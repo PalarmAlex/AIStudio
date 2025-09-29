@@ -279,7 +279,7 @@
               Command="{Binding VerticalMenuItemClickedCommand}"
               CommandParameter="30"/>
 
-            <Button Content="Практические примеры" Margin="20,2,5,2" 
+            <Button Content="Теория проектирования" Margin="20,2,5,2" 
               Style="{StaticResource MenuButtonStyle}"
               Command="{Binding VerticalMenuItemClickedCommand}"
               CommandParameter="31"/>

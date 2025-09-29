@@ -228,8 +228,8 @@ namespace AIStudio
           case "30": // Справка: теория МВАП
             OpenWebPage("https://p-mvap.ru");
             break;
-          case "31": // Справка: практические примеры
-            OpenWebPage("https://scorcher.ru/isida/isida_agent_examples.php");
+          case "31": // Справка: теория проектирования
+            OpenWebPage("https://scorcher.ru/theory_publisher/show_art.php?id=891");
             break;
           case "33": // Агент
             OpenAgent();
