@@ -1,0 +1,60 @@
+﻿<Window x:Class="AIStudio.Dialogs.InfluenceEditor"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Редактирование влияний" 
+        Width="500" Height="400"
+        WindowStartupLocation="CenterOwner"
+        PreviewKeyDown="Window_PreviewKeyDown">
+  <Grid Margin="10">
+    <Grid.RowDefinitions>
+      <RowDefinition Height="Auto"/>
+      <RowDefinition Height="*"/>
+      <RowDefinition Height="Auto"/>
+    </Grid.RowDefinitions>
+
+    <TextBlock Grid.Row="0" Text="Выберите параметры и установите влияние (-10..+10):" Margin="0,0,0,10"/>
+
+    <DataGrid Grid.Row="1"
+          x:Name="InfluencesGrid" 
+          AutoGenerateColumns="False"
+          CanUserAddRows="True"
+          CanUserDeleteRows="True"
+          PreviewKeyDown="DataGrid_PreviewKeyDown">
+      
+      <DataGrid.Columns>
+        <DataGridComboBoxColumn Header="Параметр"  Width="170" 
+                                       SelectedValueBinding="{Binding ParameterId}"
+                                       DisplayMemberPath="Name"
+                                       SelectedValuePath="Id">
+          <DataGridComboBoxColumn.EditingElementStyle>
+            <Style TargetType="ComboBox" BasedOn="{StaticResource {x:Type ComboBox}}">
+              <EventSetter Event="SelectionChanged" Handler="ParameterComboBox_SelectionChanged"/>
+            </Style>
+          </DataGridComboBoxColumn.EditingElementStyle>
+        </DataGridComboBoxColumn>
+
+        <DataGridTextColumn Header="Влияние" Width="100" Binding="{Binding InfluenceValue, StringFormat=N2}">
+          <DataGridTextColumn.ElementStyle>
+            <Style TargetType="TextBlock">
+              <Setter Property="Text" 
+                  Value="{Binding InfluenceValue, StringFormat={}{0:0.##}}"/>
+            </Style>
+          </DataGridTextColumn.ElementStyle>
+          <DataGridTextColumn.EditingElementStyle>
+            <Style TargetType="TextBox">
+              <EventSetter Event="PreviewTextInput" Handler="InfluenceTextBox_PreviewTextInput"/>
+              <EventSetter Event="LostFocus" Handler="InfluenceTextBox_LostFocus"/>
+              <EventSetter Event="DataObject.Pasting" Handler="InfluenceTextBox_Pasting"/>
+            </Style>
+          </DataGridTextColumn.EditingElementStyle>
+        </DataGridTextColumn>
+
+      </DataGrid.Columns>
+    </DataGrid>
+
+    <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,10,0,0">
+      <Button Content="Применить" Width="100" Margin="0,0,10,0" Click="ApplyButton_Click"/>
+      <Button Content="Отмена" Width="100" Click="CancelButton_Click"/>
+    </StackPanel>
+  </Grid>
+</Window>

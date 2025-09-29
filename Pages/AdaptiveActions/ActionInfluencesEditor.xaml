@@ -1,0 +1,61 @@
+﻿<Window x:Class="AIStudio.Dialogs.ActionInfluencesEditor"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:AIStudio.Dialogs"
+        mc:Ignorable="d"
+        Title="{Binding Title}" 
+        Height="450" Width="400"
+        WindowStartupLocation="CenterOwner"
+        PreviewKeyDown="Window_PreviewKeyDown"
+        ResizeMode="NoResize">
+
+  <Grid Margin="10">
+    <Grid.RowDefinitions>
+      <RowDefinition Height="Auto"/>
+      <RowDefinition Height="*"/>
+      <RowDefinition Height="Auto"/>
+    </Grid.RowDefinitions>
+
+    <TextBlock Grid.Row="0" Text="Выберите параметры и установите влияние (-10..+10):" Margin="0,0,0,10"/>
+
+    <DataGrid Grid.Row="1" 
+              x:Name="ParametersGrid"
+              AutoGenerateColumns="False"
+              CanUserAddRows="False"
+              SelectionMode="Single"
+              SelectionUnit="FullRow">
+      <DataGrid.Columns>
+        <DataGridTextColumn Header="Параметр" 
+                            Binding="{Binding Name}" 
+                            Width="*" 
+                            IsReadOnly="True"/>
+
+        <DataGridTemplateColumn Header="Влияние" Width="100">
+          <DataGridTemplateColumn.CellTemplate>
+            <DataTemplate>
+              <TextBlock Text="{Binding Effect}" 
+                         HorizontalAlignment="Center"/>
+            </DataTemplate>
+          </DataGridTemplateColumn.CellTemplate>
+          <DataGridTemplateColumn.CellEditingTemplate>
+            <DataTemplate>
+              <TextBox Text="{Binding Effect, UpdateSourceTrigger=PropertyChanged}"
+                       Width="80"
+                       HorizontalAlignment="Center"
+                       PreviewTextInput="TextBox_PreviewTextInput"
+                       DataObject.Pasting="TextBox_Pasting"/>
+            </DataTemplate>
+          </DataGridTemplateColumn.CellEditingTemplate>
+        </DataGridTemplateColumn>
+         
+      </DataGrid.Columns>
+    </DataGrid>
+
+    <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,10,0,0">
+      <Button Content="OK" Width="80" Margin="0,0,10,0" Click="OK_Click"/>
+      <Button Content="Отмена" Width="80" Click="Cancel_Click"/>
+    </StackPanel>
+  </Grid>
+</Window>

@@ -1,0 +1,271 @@
+﻿<UserControl x:Class="AIStudio.Pages.Reflexes.GeneticReflexesView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:AIStudio.Pages.Reflexes"
+             xmlns:converters="clr-namespace:AIStudio.Converters"
+             xmlns:common="clr-namespace:AIStudio.Common"
+             xmlns:sys="clr-namespace:System;assembly=mscorlib"
+             mc:Ignorable="d" 
+             d:DesignHeight="450" d:DesignWidth="800">
+
+  <UserControl.Resources>
+    <converters:ListToStringConverter x:Key="ListToStringConverter"/>
+    <converters:IntDictionaryToStringConverter x:Key="IntDictionaryToStringConverter"/>
+    <converters:InverseBooleanConverter x:Key="InverseBooleanConverter"/>
+    <converters:InverseBooleanToVisibilityConverter x:Key="InverseBooleanToVisibilityConverter"/>
+    <converters:Level1ToTextConverter x:Key="Level1ToTextConverter"/>
+
+    <Style x:Key="BaseTextBlockStyle" TargetType="TextBlock">
+      <Setter Property="Background" Value="White"/>
+      <Style.Triggers>
+        <Trigger Property="Validation.HasError" Value="true">
+          <Setter Property="Background" Value="#FFFDE6E6"/>
+        </Trigger>
+      </Style.Triggers>
+    </Style>
+
+    <Style x:Key="BaseTextBoxStyle" TargetType="TextBox">
+      <Setter Property="Background" Value="White"/>
+      <Style.Triggers>
+        <Trigger Property="Validation.HasError" Value="true">
+          <Setter Property="Background" Value="#FFFDE6E6"/>
+        </Trigger>
+      </Style.Triggers>
+    </Style>
+
+  </UserControl.Resources>
+
+  <Grid Margin="12">
+    <Grid.RowDefinitions>
+      <RowDefinition Height="Auto"/>
+      <RowDefinition Height="Auto"/>
+      <RowDefinition Height="Auto"/>
+      <RowDefinition Height="*"/>
+      <RowDefinition Height="Auto"/>
+    </Grid.RowDefinitions>
+
+    <!-- Заголовок -->
+    <TextBlock Grid.Row="0" 
+               Text="{Binding CurrentAgentTitle}" 
+               FontSize="18"
+               FontWeight="SemiBold"
+               HorizontalAlignment="Center"
+               Margin="0,0,0,5"
+               Foreground="#FF333333"/>
+
+    <TextBlock Grid.Row="1" 
+               Text="{Binding CurrentAgentDescription}" 
+               FontSize="12"
+               HorizontalAlignment="Left"
+               Margin="0,0,0,5"
+               Foreground="#FF333333"
+               TextWrapping="Wrap"
+               Height="Auto"/>
+
+    <!-- Панель фильтров -->
+    <Border Grid.Row="2" 
+            BorderBrush="#FFE0E0E0" 
+            BorderThickness="1"
+            CornerRadius="4"
+            Margin="0,0,0,10"
+            Padding="5"
+            Background="#FFF5F5F5">
+      <StackPanel Orientation="Horizontal">
+        <TextBlock Text="Фильтры:" 
+                   VerticalAlignment="Center" 
+                   Margin="0,0,10,0"
+                   FontWeight="Bold"/>
+
+        <!-- Фильтр по интегральному состоянию -->
+        <StackPanel Orientation="Vertical" Margin="0,0,15,0" Width="140">
+          <TextBlock Text="Интегральное состояние" FontSize="12" Margin="0,0,0,2"/>
+          <ComboBox Style="{StaticResource AgentComboBoxStyle}"
+                    ItemsSource="{Binding Level1FilterOptions}"
+                    SelectedValue="{Binding SelectedLevel1Filter}"                   
+                    DisplayMemberPath="Value"
+                    SelectedValuePath="Key"
+                    Height="25" Cursor="Hand"/>
+        </StackPanel>
+
+        <!-- Фильтр по контекстам реагирования -->
+        <StackPanel Orientation="Vertical" Margin="0,0,15,0" Width="180">
+          <TextBlock Text="Контексты реагирования" FontSize="12" Margin="0,0,0,2"/>
+          <ComboBox Style="{StaticResource AgentComboBoxStyle}"
+                    ItemsSource="{Binding Level2FilterOptions}"
+                    SelectedValue="{Binding SelectedLevel2Filter}"
+                    DisplayMemberPath="Value"
+                    SelectedValuePath="Key"
+                    Height="25"/>
+        </StackPanel>
+
+        <!-- Фильтр по внешним воздействиям -->
+        <StackPanel Orientation="Vertical" Margin="0,0,15,0" Width="180">
+          <TextBlock Text="Внешние воздействия" FontSize="12" Margin="0,0,0,2"/>
+          <ComboBox Style="{StaticResource AgentComboBoxStyle}"
+                    ItemsSource="{Binding Level3FilterOptions}"
+                    SelectedValue="{Binding SelectedLevel3Filter}"
+                    DisplayMemberPath="Value"
+                    SelectedValuePath="Key"
+                    Height="25"/>
+        </StackPanel>
+
+        <!-- Фильтр по адаптивным действиям -->
+        <StackPanel Orientation="Vertical" Margin="0,0,15,0" Width="180">
+          <TextBlock Text="Адаптивные действия" FontSize="12" Margin="0,0,0,2"/>
+          <ComboBox Style="{StaticResource AgentComboBoxStyle}"
+                    ItemsSource="{Binding AdaptiveActionsFilterOptions}"
+                    SelectedValue="{Binding SelectedAdaptiveActionsFilter}"
+                    DisplayMemberPath="Value"
+                    SelectedValuePath="Key"
+                    Height="25"/>
+        </StackPanel>
+
+        <!-- Кнопка сброса фильтров -->
+        <Button Content="Сбросить фильтры" 
+                Command="{Binding ClearFiltersCommand}"
+                Style="{StaticResource AgentButtonStyle}"
+                Margin="10,15,0,0"
+                Height="30"
+                Width="150" Cursor="Hand"
+                HorizontalAlignment="Right"/>
+      </StackPanel>
+    </Border>
+
+    <Border Grid.Row="3" 
+            BorderBrush="#FFE0E0E0" 
+            BorderThickness="1"
+            CornerRadius="4"
+            Margin="0,0,0,5">
+      <DataGrid ItemsSource="{Binding GeneticReflexesView}"
+          x:Name="GeneticReflexesGrid"
+          IsEnabled="{Binding IsEditingEnabled}"
+          IsReadOnly="{Binding IsEditingEnabled, Converter={StaticResource InverseBooleanConverter}}"
+          AutoGenerateColumns="False"
+          CanUserAddRows="True"
+          SelectionMode="Extended"
+          BorderThickness="0"
+          Background="White"
+          RowBackground="#FFF9F9F9"
+          AlternatingRowBackground="White"
+          GridLinesVisibility="None"
+          VerticalScrollBarVisibility="Auto"
+          HorizontalScrollBarVisibility="Auto"
+          PreviewKeyDown="DataGrid_PreviewKeyDown"
+          RowEditEnding="DataGrid_RowEditEnding"
+          AddingNewItem="DataGrid_AddingNewItem">
+
+        <DataGrid.Columns>
+          <DataGridTextColumn Header="ID" Binding="{Binding Id}" Width="50" IsReadOnly="True"/>
+          <DataGridTextColumn Header="Наименование" Binding="{Binding Name}" Width="150"/>
+
+          <DataGridTextColumn Header="Описание" Binding="{Binding Description, Mode=TwoWay}" Width="*">
+            <DataGridTextColumn.CellStyle>
+              <Style TargetType="DataGridCell" BasedOn="{StaticResource {x:Type DataGridCell}}">
+                <Setter Property="ToolTip" Value="{Binding Description}"/>
+                <EventSetter Event="MouseDoubleClick" Handler="DescriptionCell_DoubleClick"/>
+              </Style>
+            </DataGridTextColumn.CellStyle>
+          </DataGridTextColumn>
+
+          <!-- Интегральное состояние - комбобокс -->
+          <DataGridTemplateColumn Header="Интегральное состояние" Width="Auto">
+            <DataGridTemplateColumn.CellTemplate>
+              <DataTemplate>
+                <TextBlock Text="{Binding Level1, Converter={StaticResource Level1ToTextConverter}}"/>
+              </DataTemplate>
+            </DataGridTemplateColumn.CellTemplate>
+            <DataGridTemplateColumn.CellEditingTemplate>
+              <DataTemplate>
+                <ComboBox ItemsSource="{Binding DataContext.Level1Options, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                     SelectedValue="{Binding Level1}"
+                     DisplayMemberPath="Value"
+                     SelectedValuePath="Key"/>
+              </DataTemplate>
+            </DataGridTemplateColumn.CellEditingTemplate>
+          </DataGridTemplateColumn>
+
+          <!-- Контексты реагирования -->
+          <DataGridTemplateColumn Header="Контексты реагирования" Width="Auto">
+            <DataGridTemplateColumn.CellTemplate>
+              <DataTemplate>
+                <TextBlock Text="{Binding Level2, Converter={StaticResource ListToStringConverter}}"/>
+              </DataTemplate>
+            </DataGridTemplateColumn.CellTemplate>
+            <DataGridTemplateColumn.CellStyle>
+              <Style TargetType="DataGridCell" BasedOn="{StaticResource {x:Type DataGridCell}}">
+                <EventSetter Event="MouseDoubleClick" Handler="Level2Cell_DoubleClick"/>
+              </Style>
+            </DataGridTemplateColumn.CellStyle>
+          </DataGridTemplateColumn>
+
+          <!-- Внешние воздействия -->
+          <DataGridTemplateColumn Header="Внешние воздействия" Width="Auto">
+            <DataGridTemplateColumn.CellTemplate>
+              <DataTemplate>
+                <TextBlock Text="{Binding Level3, Converter={StaticResource ListToStringConverter}}"/>
+              </DataTemplate>
+            </DataGridTemplateColumn.CellTemplate>
+            <DataGridTemplateColumn.CellStyle>
+              <Style TargetType="DataGridCell" BasedOn="{StaticResource {x:Type DataGridCell}}">
+                <EventSetter Event="MouseDoubleClick" Handler="Level3Cell_DoubleClick"/>
+              </Style>
+            </DataGridTemplateColumn.CellStyle>
+          </DataGridTemplateColumn>
+
+          <!-- Адаптивные действия -->
+          <DataGridTemplateColumn Header="Адаптивные действия" Width="Auto">
+            <DataGridTemplateColumn.CellTemplate>
+              <DataTemplate>
+                <TextBlock Text="{Binding AdaptiveActions, Converter={StaticResource ListToStringConverter}}"/>
+              </DataTemplate>
+            </DataGridTemplateColumn.CellTemplate>
+            <DataGridTemplateColumn.CellStyle>
+              <Style TargetType="DataGridCell" BasedOn="{StaticResource {x:Type DataGridCell}}">
+                <EventSetter Event="MouseDoubleClick" Handler="AdaptiveActionsCell_DoubleClick"/>
+              </Style>
+            </DataGridTemplateColumn.CellStyle>
+          </DataGridTemplateColumn>
+        </DataGrid.Columns>
+
+      </DataGrid>
+    </Border>
+
+    <!-- Кнопки управления -->
+    <Grid Grid.Row="4" Margin="0,0,0,0">
+      <Grid.ColumnDefinitions>
+        <ColumnDefinition Width="*"/>
+        <ColumnDefinition Width="Auto"/>
+      </Grid.ColumnDefinitions>
+
+      <!-- Текст предупреждения -->
+      <TextBlock Grid.Column="0"
+                 Text="{Binding PulseWarningMessage}"
+                 Foreground="{Binding WarningMessageColor}"
+                 FontStyle="Italic"
+                 VerticalAlignment="Center"
+                 Margin="8,0,0,0"
+                 TextWrapping="Wrap"
+                 Visibility="{Binding IsEditingEnabled, Converter={StaticResource InverseBooleanToVisibilityConverter}}"/>
+
+      <!-- Кнопки -->
+      <StackPanel Grid.Column="1" 
+                  Orientation="Horizontal" 
+                  HorizontalAlignment="Right">
+        <Button Content="Очистить"
+                Command="{Binding RemoveAllCommand}"
+                IsEnabled="{Binding IsEditingEnabled}"
+                Style="{StaticResource RedButtonStyle}"
+                ToolTip="Удалить все данные из таблицы"/>
+        <Button Content="Сохранить" 
+                Command="{Binding SaveCommand}"
+                IsEnabled="{Binding IsEditingEnabled}"
+                Style="{StaticResource ActionButtonStyle}"
+                ToolTip="Сохранить данные" Cursor="Hand"/>
+      </StackPanel>
+    </Grid>
+
+  </Grid>
+
+</UserControl>

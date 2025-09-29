@@ -1,0 +1,147 @@
+﻿<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:conv="clr-namespace:AIStudio.Converters">
+
+  <conv:BoolToAngleConverter x:Key="BoolToAngleConverter"/>
+  
+  <!-- Цвета для стиля -->
+  <SolidColorBrush x:Key="AccentColor" Color="#FF4285F4"/>
+  <SolidColorBrush x:Key="HoverColor" Color="#FFE8F0FE"/>
+  <SolidColorBrush x:Key="PressedColor" Color="#FFD2E3FC"/>
+  <SolidColorBrush x:Key="ExpanderHoverColor" Color="#FFE1E9FF"/>
+  <SolidColorBrush x:Key="ExpanderPressedColor" Color="#FFC5D5FF"/>
+  <SolidColorBrush x:Key="ExpanderArrowColor" Color="#FF5A5A5A"/>
+
+  <!-- Стиль для кнопок (общий для всех элементов меню) -->
+  <Style x:Key="MenuButtonStyle" TargetType="ButtonBase">
+    <Setter Property="Background" Value="Transparent"/>
+    <Setter Property="BorderThickness" Value="0"/>
+    <Setter Property="HorizontalContentAlignment" Value="Left"/>
+    <Setter Property="Padding" Value="10,6,10,6"/>
+    <Setter Property="Foreground" Value="#FF333333"/>
+    <Setter Property="FontFamily" Value="Segoe UI"/>
+    <Setter Property="FontSize" Value="13"/>
+    <Setter Property="Template">
+      <Setter.Value>
+        <ControlTemplate TargetType="ButtonBase">
+          <Border x:Name="Border" 
+                  Background="{TemplateBinding Background}"
+                  BorderThickness="{TemplateBinding BorderThickness}"
+                  CornerRadius="4">
+            <ContentPresenter Content="{TemplateBinding Content}"
+                              VerticalAlignment="Center"
+                              Margin="{TemplateBinding Padding}"/>
+          </Border>
+          <ControlTemplate.Triggers>
+            <!-- Подсветка при наведении -->
+            <Trigger Property="IsMouseOver" Value="True">
+              <Setter Property="Background" Value="{StaticResource HoverColor}"/>
+            </Trigger>
+
+            <!-- Эффект вдавливания при нажатии -->
+            <Trigger Property="IsPressed" Value="True">
+              <Setter Property="Background" Value="{StaticResource PressedColor}"/>
+              <Setter TargetName="Border" Property="RenderTransform">
+                <Setter.Value>
+                  <TranslateTransform X="1" Y="1"/>
+                </Setter.Value>
+              </Setter>
+            </Trigger>
+          </ControlTemplate.Triggers>
+        </ControlTemplate>
+      </Setter.Value>
+    </Setter>
+  </Style>
+
+  <!--раскрывающийся список-->
+  <Style x:Key="MenuExpanderStyle" TargetType="Expander">
+    <Setter Property="Background" Value="Transparent"/>
+    <Setter Property="BorderThickness" Value="0"/>
+    <Setter Property="Padding" Value="0"/>
+    <Setter Property="Foreground" Value="#FF333333"/>
+    <Setter Property="FontFamily" Value="Segoe UI"/>
+    <Setter Property="FontSize" Value="13"/>
+    <Setter Property="Template">
+      <Setter.Value>
+        <ControlTemplate TargetType="Expander">
+          <StackPanel>
+            <Grid>
+              <ToggleButton x:Name="HeaderSite"
+                           Content="{TemplateBinding Header}"
+                           IsChecked="{Binding IsExpanded, RelativeSource={RelativeSource TemplatedParent}, Mode=TwoWay}"
+                           Style="{StaticResource MenuButtonStyle}"
+                           Background="Transparent"
+                           Padding="10,6,30,6">
+                <ToggleButton.Template>
+                  <ControlTemplate TargetType="ToggleButton">
+                    <Border x:Name="Border" 
+                            Background="{TemplateBinding Background}"
+                            CornerRadius="4">
+                      <Grid>
+                        <ContentPresenter Content="{TemplateBinding Content}"
+                                          VerticalAlignment="Center"
+                                          Margin="{TemplateBinding Padding}"/>
+                        <Path x:Name="Arrow"
+                              Width="8"
+                              Height="8"
+                              Margin="0,0,10,0"
+                              VerticalAlignment="Center"
+                              HorizontalAlignment="Right"
+                              Fill="{StaticResource ExpanderArrowColor}"
+                              Data="M 0 0 L 4 4 L 8 0 Z"
+                              RenderTransformOrigin="0.5,0.5">
+                          <Path.RenderTransform>
+                            <RotateTransform Angle="{Binding IsChecked, RelativeSource={RelativeSource AncestorType=ToggleButton}, Converter={StaticResource BoolToAngleConverter}}"/>
+                          </Path.RenderTransform>
+                        </Path>
+                      </Grid>
+                    </Border>
+                    <ControlTemplate.Triggers>
+                      <Trigger Property="IsChecked" Value="True">
+                        <Setter TargetName="Arrow" Property="RenderTransform">
+                          <Setter.Value>
+                            <RotateTransform Angle="180"/>
+                          </Setter.Value>
+                        </Setter>
+                      </Trigger>
+                    </ControlTemplate.Triggers>
+                  </ControlTemplate>
+                </ToggleButton.Template>
+              </ToggleButton>
+            </Grid>
+            <Border x:Name="ExpandSiteBorder"
+                    Background="#F5F5F5"
+                    CornerRadius="0 0 4 4"
+                    Margin="10,0,10,5"
+                    Padding="0,5,0,5"
+                    Visibility="Collapsed">
+              <ContentPresenter x:Name="ExpandSite"
+                                ContentSource="Content"/>
+            </Border>
+          </StackPanel>
+          <ControlTemplate.Triggers>
+            <Trigger Property="IsExpanded" Value="True">
+              <Setter TargetName="ExpandSiteBorder" Property="Visibility" Value="Visible"/>
+            </Trigger>
+
+            <!-- Специальные стили для Expander при наведении/нажатии -->
+            <Trigger SourceName="HeaderSite" Property="IsMouseOver" Value="True">
+              <Setter TargetName="HeaderSite" Property="Background" Value="{StaticResource ExpanderHoverColor}"/>
+            </Trigger>
+            <Trigger SourceName="HeaderSite" Property="IsPressed" Value="True">
+              <Setter TargetName="HeaderSite" Property="Background" Value="{StaticResource ExpanderPressedColor}"/>
+            </Trigger>
+          </ControlTemplate.Triggers>
+        </ControlTemplate>
+      </Setter.Value>
+    </Setter>
+  </Style>
+
+  <!--сепаратор в меню-->
+  <Style x:Key="MenuSeparatorStyle" TargetType="Separator">
+    <Setter Property="Margin" Value="20,5,20,5"/>
+    <Setter Property="Height" Value="1"/>
+    <Setter Property="Background" Value="#FFE0E0E0"/>
+  </Style>
+
+</ResourceDictionary>

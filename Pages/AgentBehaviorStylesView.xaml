@@ -1,0 +1,133 @@
+﻿<UserControl x:Class="AIStudio.Pages.AgentBehaviorStylesView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:converters="clr-namespace:AIStudio.Converters"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             mc:Ignorable="d"
+             Height="Auto" Width="Auto"
+             x:Name="Root">
+
+  <UserControl.Resources>
+    <!-- Конвертеры -->
+    <converters:StyleColorConverter x:Key="StyleColorConverter"/>
+    <converters:IsActiveStyleConverter x:Key="IsActiveStyleConverter"/>
+
+    <!-- Стиль для контейнера стилей поведения -->
+    <Style x:Key="StyleContainerStyle" TargetType="Border">
+      <Setter Property="Background" Value="#FFF0F0F0"/>
+      <Setter Property="CornerRadius" Value="5"/>
+      <Setter Property="Padding" Value="5"/>
+      <Setter Property="Margin" Value="5"/>
+      <Setter Property="Width" Value="Auto"/>
+      <Setter Property="Height" Value="40"/>
+      <Setter Property="BorderThickness" Value="1"/>
+      <Setter Property="BorderBrush" Value="#FFCCCCCC"/>
+      <Setter Property="RenderTransformOrigin" Value="0.5,0.5"/>
+      <Setter Property="RenderTransform">
+        <Setter.Value>
+          <ScaleTransform CenterX="0.5" CenterY="0.5"/>
+        </Setter.Value>
+      </Setter>
+    </Style>
+
+    <!-- Стиль для названия стиля поведения -->
+    <Style x:Key="StyleNameTextStyle" TargetType="TextBlock">
+      <Setter Property="VerticalAlignment" Value="Center"/>
+      <Setter Property="HorizontalAlignment" Value="Center"/>
+      <Setter Property="FontWeight" Value="SemiBold"/>
+      <Setter Property="FontSize" Value="12"/>
+      <Setter Property="TextWrapping" Value="Wrap"/>
+      <Setter Property="TextAlignment" Value="Center"/>
+      <Setter Property="Foreground" Value="Black"/>
+    </Style>
+
+    <!-- Стиль для веса стиля поведения -->
+    <Style x:Key="WeightTextStyle" TargetType="TextBlock">
+      <Setter Property="VerticalAlignment" Value="Bottom"/>
+      <Setter Property="HorizontalAlignment" Value="Right"/>
+      <Setter Property="FontSize" Value="10"/>
+      <Setter Property="Margin" Value="0,0,3,0"/>
+      <Setter Property="Foreground" Value="Black"/>
+    </Style>
+
+    <Storyboard x:Key="ActiveStyleAnimation">
+      <DoubleAnimation Storyboard.TargetProperty="Opacity"
+                    From="1" To="1.05" 
+                    Duration="0:0:1"/>
+
+      <DoubleAnimation Storyboard.TargetProperty="RenderTransform.ScaleX"
+                    From="1" To="1.05" 
+                    Duration="0:0:1"/>
+
+      <DoubleAnimation Storyboard.TargetProperty="RenderTransform.ScaleY"
+                    From="1" To="1.05" 
+                    Duration="0:0:1"/>
+    </Storyboard>
+  </UserControl.Resources>
+
+  <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+    <ItemsControl ItemsSource="{Binding AllBehaviorStyles}">
+      <ItemsControl.ItemsPanel>
+        <ItemsPanelTemplate>
+          <WrapPanel Orientation="Horizontal" 
+                              Width="{Binding ActualWidth, RelativeSource={RelativeSource AncestorType=ScrollViewer}}"/>
+        </ItemsPanelTemplate>
+      </ItemsControl.ItemsPanel>
+
+      <ItemsControl.ItemTemplate>
+        <DataTemplate>
+          <Border>
+            <Border.Style>
+              <Style TargetType="Border" BasedOn="{StaticResource StyleContainerStyle}">
+                <Style.Triggers>
+
+                  <DataTrigger Value="True">
+                    <DataTrigger.Binding>
+                      <MultiBinding Converter="{StaticResource IsActiveStyleConverter}">
+                        <Binding Path="."/>
+                        <Binding Path="DataContext.ActiveStyles" 
+                                                        RelativeSource="{RelativeSource AncestorType={x:Type UserControl}}"/>
+                      </MultiBinding>
+                    </DataTrigger.Binding>
+                    <DataTrigger.EnterActions>
+                      <BeginStoryboard Storyboard="{StaticResource ActiveStyleAnimation}"/>
+                    </DataTrigger.EnterActions>
+                  </DataTrigger>
+
+                </Style.Triggers>
+              </Style>
+            </Border.Style>
+
+            <!-- Фон с цветом в зависимости от веса и активности -->
+            <Border.Background>
+              <MultiBinding Converter="{StaticResource StyleColorConverter}">
+                <Binding Path="Weight"/>
+                <Binding Path="."/>
+                <Binding Path="DataContext.ActiveStyles" 
+                                        RelativeSource="{RelativeSource AncestorType={x:Type UserControl}}"/>
+              </MultiBinding>
+            </Border.Background>
+
+            <!-- Контент стиля поведения -->
+            <Grid>
+              <Grid.RowDefinitions>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="Auto"/>
+              </Grid.RowDefinitions>
+
+              <TextBlock Grid.Row="0" 
+                                      Text="{Binding Name}" 
+                                      Style="{StaticResource StyleNameTextStyle}"
+                                      ToolTip="{Binding Description}"/>
+
+              <TextBlock Grid.Row="1" 
+                                      Text="{Binding Weight, StringFormat={}{0}%}" 
+                                      Style="{StaticResource WeightTextStyle}"/>
+            </Grid>
+          </Border>
+        </DataTemplate>
+      </ItemsControl.ItemTemplate>
+    </ItemsControl>
+  </ScrollViewer>
+</UserControl>

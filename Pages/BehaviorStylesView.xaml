@@ -1,0 +1,221 @@
+﻿<UserControl x:Class="AIStudio.Pages.BehaviorStylesView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:converters="clr-namespace:AIStudio.Converters"
+             xmlns:common="clr-namespace:AIStudio.Common" xmlns:viewmodels="clr-namespace:AIStudio.ViewModels" d:DataContext="{d:DesignInstance Type=viewmodels:BehaviorStylesViewModel}"
+             mc:Ignorable="d"
+             d:DesignHeight="600" d:DesignWidth="800">
+
+  <UserControl.Resources>
+    <converters:ListToStringConverter x:Key="ListToStringConverter"/>
+    <converters:InverseBooleanConverter x:Key="InverseBooleanConverter"/>
+    <converters:DictionaryToStringActionConverter x:Key="DictionaryToStringActionConverter"/>
+    <converters:InverseBooleanToVisibilityConverter x:Key="InverseBooleanToVisibilityConverter"/>
+    <converters:ValidationErrorToVisibilityConverter x:Key="ValidationErrorToVisibilityConverter"/>
+    <common:NumericListValidationRule x:Key="NumbersValidationRule"/>
+    <converters:NumericWithCommaValidationRule x:Key="NumericWithCommaValidationRule"/>
+    <converters:DictionaryToStringConverter x:Key="DictionaryToStringConverter"/>
+
+    <Style TargetType="DataGridCell">
+      <Setter Property="Padding" Value="5"/>
+      <Setter Property="Template">
+        <Setter.Value>
+          <ControlTemplate TargetType="DataGridCell">
+            <Border Background="{TemplateBinding Background}" 
+                    BorderBrush="{TemplateBinding BorderBrush}" 
+                    BorderThickness="{TemplateBinding BorderThickness}"
+                    SnapsToDevicePixels="True">
+              <Grid>
+                <ContentPresenter VerticalAlignment="Center" SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}"/>
+                <Border BorderBrush="Red" 
+                        BorderThickness="1" 
+                        Visibility="{Binding (Validation.HasError), 
+                                  RelativeSource={RelativeSource TemplatedParent}, 
+                                  Converter={StaticResource ValidationErrorToVisibilityConverter}}"/>
+              </Grid>
+            </Border>
+          </ControlTemplate>
+        </Setter.Value>
+      </Setter>
+    </Style>
+
+    <!-- Базовый стиль для текстовых блоков -->
+    <Style x:Key="BaseTextBlockStyle" TargetType="TextBlock">
+      <Setter Property="Background" Value="White"/>
+      <Style.Triggers>
+        <Trigger Property="Validation.HasError" Value="true">
+          <Setter Property="Background" Value="#FFFDE6E6"/>
+        </Trigger>
+      </Style.Triggers>
+    </Style>
+
+    <!-- Базовый стиль для текстовых полей -->
+    <Style x:Key="BaseTextBoxStyle" TargetType="TextBox">
+      <Setter Property="Background" Value="White"/>
+      <Style.Triggers>
+        <Trigger Property="Validation.HasError" Value="true">
+          <Setter Property="Background" Value="#FFFDE6E6"/>
+        </Trigger>
+      </Style.Triggers>
+    </Style>
+
+  </UserControl.Resources>
+
+  <Grid Margin="12">
+    <Grid.RowDefinitions>
+      <RowDefinition Height="Auto"/>
+      <RowDefinition Height="Auto"/>
+      <RowDefinition Height="*"/>
+      <RowDefinition Height="Auto"/>
+    </Grid.RowDefinitions>
+    
+    <!-- Заголовок -->
+    <TextBlock Grid.Row="0" 
+                 Text="{Binding CurrentAgentTitle}" 
+                 FontSize="18"
+                 FontWeight="SemiBold"
+                 HorizontalAlignment="Center"
+                 Margin="0,0,0,5"
+                 Foreground="#FF333333"/>
+
+    <TextBlock Grid.Row="1" 
+               Text="{Binding CurrentAgentDescription}" 
+               FontSize="12"
+               HorizontalAlignment="Left"
+               Margin="0,0,0,5"
+               Foreground="#FF333333"
+               TextWrapping="Wrap"
+               Height="Auto"/>
+
+    <Border Grid.Row="2" 
+                BorderBrush="#FFE0E0E0" 
+                BorderThickness="1"
+                CornerRadius="4"
+                Margin="0,0,0,5">
+      <DataGrid ItemsSource="{Binding BehaviorStyles}"
+                    x:Name="BehaviorStylesGrid"
+                    IsEnabled="{Binding IsEditingEnabled}"
+                    IsReadOnly="{Binding IsEditingEnabled, Converter={StaticResource InverseBooleanConverter}}"
+                    AutoGenerateColumns="False"
+                    CanUserAddRows="True"
+                    SelectionMode="Extended"
+                    BorderThickness="0"
+                    Background="White"
+                    RowBackground="#FFF9F9F9"
+                    AlternatingRowBackground="White"
+                    GridLinesVisibility="None"
+                    VerticalScrollBarVisibility="Auto"
+                    HorizontalScrollBarVisibility="Auto"
+                    PreviewKeyDown="BehaviorStylesGrid_PreviewKeyDown"
+                    RowEditEnding="DataGrid_RowEditEnding"
+                    PreviewTextInput="DataGrid_PreviewTextInput"
+                    AddingNewItem="DataGrid_AddingNewItem"
+                    CellEditEnding="DataGrid_CellEditEnding">
+        <DataGrid.Columns>
+          
+          <DataGridTextColumn Header="ID" Binding="{Binding Id}" Width="50" IsReadOnly="True"/>
+          <DataGridTextColumn Header="Наименование" Binding="{Binding Name}" Width="200"/>
+
+          <DataGridTextColumn Header="Описание" Binding="{Binding Description, Mode=TwoWay}" Width="300">
+            <DataGridTextColumn.CellStyle>
+              <Style TargetType="DataGridCell" BasedOn="{StaticResource {x:Type DataGridCell}}">
+                <Setter Property="ToolTip" Value="{Binding Description}"/>
+                <EventSetter Event="MouseDoubleClick" Handler="DescriptionCell_DoubleClick"/>
+              </Style>
+            </DataGridTextColumn.CellStyle>
+
+            <DataGridTextColumn.HeaderStyle>
+              <Style TargetType="DataGridColumnHeader" BasedOn="{StaticResource {x:Type DataGridColumnHeader}}">
+                <Setter Property="ToolTip" Value="Двойной клик открывает окно ввода"/>
+              </Style>
+            </DataGridTextColumn.HeaderStyle>
+          </DataGridTextColumn>
+
+          <DataGridTextColumn Header="Вес" Binding="{Binding Weight}" Width="80"/>
+
+          <DataGridTextColumn Header="Влияние на действия" 
+          Binding="{Binding StileActionInfluence, Converter={StaticResource DictionaryToStringActionConverter}}" 
+          IsReadOnly="True" 
+          Width="*">
+            <DataGridTextColumn.ElementStyle>
+              <Style TargetType="TextBlock">
+                <EventSetter Event="MouseDown" Handler="ActionInfluenceCell_MouseDown"/>
+              </Style>
+            </DataGridTextColumn.ElementStyle>
+            <DataGridTextColumn.EditingElementStyle>
+              <Style TargetType="TextBox">
+                <EventSetter Event="MouseDown" Handler="ActionInfluenceCell_MouseDown"/>
+              </Style>
+            </DataGridTextColumn.EditingElementStyle>
+            <DataGridTextColumn.HeaderStyle>
+              <Style TargetType="DataGridColumnHeader" BasedOn="{StaticResource {x:Type DataGridColumnHeader}}">
+                <Setter Property="ToolTip" Value="Двойной клик открывает окно редактирования влияния на действия"/>
+              </Style>
+            </DataGridTextColumn.HeaderStyle>
+          </DataGridTextColumn>
+
+          <DataGridTextColumn Header="Антагонисты" 
+                    Binding="{Binding AntagonistStyles, Converter={StaticResource ListToStringConverter}}" 
+                    IsReadOnly="True" 
+                    Width="*">
+            <DataGridTextColumn.ElementStyle>
+              <Style TargetType="TextBlock">
+                <EventSetter Event="MouseDown" Handler="AntagonistCell_MouseDown"/>
+              </Style>
+            </DataGridTextColumn.ElementStyle>
+            <DataGridTextColumn.EditingElementStyle>
+              <Style TargetType="TextBox">
+                <EventSetter Event="MouseDown" Handler="AntagonistCell_MouseDown"/>
+              </Style>
+            </DataGridTextColumn.EditingElementStyle>
+            <DataGridTextColumn.HeaderStyle>
+              <Style TargetType="DataGridColumnHeader" BasedOn="{StaticResource {x:Type DataGridColumnHeader}}">
+                <Setter Property="ToolTip" Value="Двойной клик открывает окно ввода"/>
+              </Style>
+            </DataGridTextColumn.HeaderStyle>
+          </DataGridTextColumn>
+
+        </DataGrid.Columns>
+      </DataGrid>
+    </Border>
+
+    <!-- Кнопки управления -->
+    <Grid Grid.Row="3" Margin="0,0,0,0">
+      <Grid.ColumnDefinitions>
+        <ColumnDefinition Width="*"/>
+        <ColumnDefinition Width="Auto"/>
+      </Grid.ColumnDefinitions>
+
+      <!-- Текст предупреждения -->
+      <TextBlock Grid.Column="0"
+           Text="{Binding PulseWarningMessage}"
+           Foreground="{Binding WarningMessageColor}"
+           FontStyle="Italic"
+           VerticalAlignment="Center"
+           Margin="8,0,0,0"
+           TextWrapping="Wrap"
+           Visibility="{Binding IsEditingEnabled, Converter={StaticResource InverseBooleanToVisibilityConverter}}"/>
+
+      <!-- Кнопки -->
+      <StackPanel Grid.Column="1" 
+                  Orientation="Horizontal" 
+                  HorizontalAlignment="Right">
+        <Button Content="Очистить"
+                Command="{Binding RemoveAllCommand}"
+                IsEnabled="{Binding IsEditingEnabled}"
+                Style="{StaticResource RedButtonStyle}"
+                ToolTip="Удалить все данные из таблицы"/>
+        <Button Content="Сохранить" 
+          Command="{Binding SaveCommand}"
+          IsEnabled="{Binding IsEditingEnabled}"
+          Style="{StaticResource ActionButtonStyle}"
+          ToolTip="Сохранить данные текущей вкладки"/>
+      </StackPanel>
+    </Grid>
+
+  </Grid>
+
+</UserControl>
+  

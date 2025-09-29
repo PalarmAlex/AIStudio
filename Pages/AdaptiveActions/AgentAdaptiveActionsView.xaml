@@ -1,0 +1,101 @@
+﻿<UserControl x:Class="AIStudio.Pages.AgentAdaptiveActionsView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:converters="clr-namespace:AIStudio.Converters"
+             mc:Ignorable="d"
+             Height="Auto" Width="Auto"
+             x:Name="Root">
+
+  <UserControl.Resources>
+    <converters:IsActiveActionMultiConverter x:Key="IsActiveActionMultiConverter"/>
+    <converters:SignificanceConverter x:Key="SignificanceConverter"/>
+    <converters:ActionSizeConverter x:Key="ActionSizeConverter"/>
+    <converters:IntToVisibilityConverter x:Key="IntToVisibilityConverter"/>
+
+    <Style x:Key="NoAdaptationTextStyle" TargetType="TextBlock">
+      <Setter Property="Foreground" Value="#FFA0A0A0"/>
+      <Setter Property="FontSize" Value="14"/>
+      <Setter Property="FontStyle" Value="Italic"/>
+      <Setter Property="HorizontalAlignment" Value="Center"/>
+      <Setter Property="VerticalAlignment" Value="Center"/>
+      <Setter Property="Margin" Value="10"/>
+    </Style>
+  </UserControl.Resources>
+
+  <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+    <StackPanel>
+      <!-- Сообщение когда нет активных действий -->
+      <TextBlock Text="Адаптации не требуется, все в пределах нормы"
+           Style="{StaticResource NoAdaptationTextStyle}"
+           Visibility="{Binding CurrentActiveActions.Count, Converter={StaticResource IntToVisibilityConverter}, FallbackValue=Collapsed}"/>
+
+      <!-- Список действий -->
+      <ItemsControl ItemsSource="{Binding CurrentActiveActions}">
+        <ItemsControl.ItemsPanel>
+          <ItemsPanelTemplate>
+            <WrapPanel Orientation="Horizontal" 
+                                 Width="{Binding ActualWidth, RelativeSource={RelativeSource AncestorType=ScrollViewer}}"/>
+          </ItemsPanelTemplate>
+        </ItemsControl.ItemsPanel>
+
+        <ItemsControl.ItemTemplate>
+          <DataTemplate>
+            <Grid>
+              <TextBlock x:Name="ActionText"
+                                 Text="{Binding Name}" 
+                                 FontSize="{Binding ., Converter={StaticResource ActionSizeConverter}}"
+                                 FontWeight="SemiBold"
+                                 Margin="3,1"
+                                 HorizontalAlignment="Center"
+                                 VerticalAlignment="Center">
+
+                <TextBlock.Foreground>
+                  <MultiBinding Converter="{StaticResource IsActiveActionMultiConverter}">
+                    <Binding Path="DataContext.CurrentActiveActions" RelativeSource="{RelativeSource AncestorType=UserControl}"/>
+                    <Binding Path="."/>
+                  </MultiBinding>
+                </TextBlock.Foreground>
+
+                <TextBlock.RenderTransform>
+                  <ScaleTransform ScaleX="1" ScaleY="1"/>
+                </TextBlock.RenderTransform>
+
+                <TextBlock.Style>
+                  <Style TargetType="TextBlock">
+                    <Style.Triggers>
+                      <DataTrigger Value="True">
+                        <DataTrigger.Binding>
+                          <MultiBinding Converter="{StaticResource IsActiveActionMultiConverter}">
+                            <Binding Path="DataContext.CurrentActiveActions" RelativeSource="{RelativeSource AncestorType=UserControl}"/>
+                            <Binding Path="."/>
+                          </MultiBinding>
+                        </DataTrigger.Binding>
+                        <DataTrigger.EnterActions>
+                          <BeginStoryboard x:Name="PulseStoryboard">
+                            <Storyboard RepeatBehavior="Forever" AutoReverse="True">
+                              <DoubleAnimation Storyboard.TargetProperty="(TextBlock.RenderTransform).(ScaleTransform.ScaleX)"
+                                                                     From="1" To="1.05" 
+                                                                     Duration="0:0:1"/>
+                              <DoubleAnimation Storyboard.TargetProperty="(TextBlock.RenderTransform).(ScaleTransform.ScaleY)"
+                                                                     From="1" To="1.05" 
+                                                                     Duration="0:0:1"/>
+                            </Storyboard>
+                          </BeginStoryboard>
+                        </DataTrigger.EnterActions>
+                        <DataTrigger.ExitActions>
+                          <StopStoryboard BeginStoryboardName="PulseStoryboard"/>
+                        </DataTrigger.ExitActions>
+                      </DataTrigger>
+                    </Style.Triggers>
+                  </Style>
+                </TextBlock.Style>
+              </TextBlock>
+            </Grid>
+          </DataTemplate>
+        </ItemsControl.ItemTemplate>
+      </ItemsControl>
+    </StackPanel>
+  </ScrollViewer>
+</UserControl>

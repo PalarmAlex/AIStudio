@@ -1,0 +1,161 @@
+﻿<UserControl x:Class="AIStudio.Pages.AgentView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:converters="clr-namespace:AIStudio.Converters"
+             xmlns:local="clr-namespace:AIStudio.Pages"
+             Height="Auto" Width="Auto">
+
+  <UserControl.Resources>
+    <converters:InverseBooleanConverter x:Key="InverseBooleanConverter"/>
+    <converters:InverseBooleanToVisibilityConverter x:Key="InverseBooleanToVisibilityConverter"/>
+    <converters:SecondsToTimeFormatConverter x:Key="SecondsToTimeFormatConverter"/>
+
+    <!-- Стиль для названий свойств -->
+    <Style x:Key="PropertyNameStyle" TargetType="TextBlock">
+      <Setter Property="HorizontalAlignment" Value="Right"/>
+      <Setter Property="Margin" Value="0,0,0,5"/>
+      <Setter Property="Width" Value="70"/>
+    </Style>
+
+    <!-- Стиль для значений свойств -->
+    <Style x:Key="PropertyValueStyle" TargetType="FrameworkElement">
+      <Setter Property="HorizontalAlignment" Value="Left"/>
+      <Setter Property="MinWidth" Value="200"/>
+    </Style>
+
+    <!-- Стиль для редактируемых полей -->
+    <Style x:Key="EditableFieldStyle" TargetType="TextBox" BasedOn="{StaticResource PropertyValueStyle}">
+      <Setter Property="BorderThickness" Value="1"/>
+      <Setter Property="BorderBrush" Value="#FF7F9DB9"/>
+      <Setter Property="Padding" Value="2"/>
+    </Style>
+
+    <!-- Стиль для выпадающего списка стадий -->
+    <Style x:Key="StageComboBoxStyle" TargetType="ComboBox" BasedOn="{StaticResource PropertyValueStyle}">
+      <Setter Property="BorderThickness" Value="1"/>
+      <Setter Property="BorderBrush" Value="#FF7F9DB9"/>
+      <Setter Property="Padding" Value="2"/>
+      <Setter Property="IsEnabled" Value="True"/>
+    </Style>
+
+  </UserControl.Resources>
+
+  <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+    <StackPanel Margin="5">
+      <!-- 1. Заголовок агента -->
+        <TextBlock Text="{Binding AgentName}"
+                           Foreground="{Binding HeaderBackground}"
+                           FontSize="18"
+                           FontWeight="DemiBold"
+                           HorizontalAlignment="Center"
+                           Margin="0,5,0,5"/>
+      
+      <!-- 2. Предупреждение о пульсации/стадии -->
+      <TextBlock Text="{Binding PulseWarningMessage}"
+           Foreground="{Binding WarningMessageColor}"
+           FontStyle="Italic"
+           VerticalAlignment="Center"
+           Margin="8,0,0,0"
+           TextWrapping="Wrap"
+           Visibility="{Binding IsEditingEnabled, Converter={StaticResource InverseBooleanToVisibilityConverter}}"/>
+
+      <!-- 3. Свойства агента -->
+      <Grid>
+        <Grid.ColumnDefinitions>
+          <ColumnDefinition Width="300"/>
+          <ColumnDefinition Width="370"/>
+          <ColumnDefinition Width="200"/>
+          <ColumnDefinition Width="*"/>
+        </Grid.ColumnDefinitions>
+        <Grid.RowDefinitions>
+          <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <StackPanel Grid.Column="0" Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,5">
+          <TextBlock Text="Имя:" Style="{StaticResource PropertyNameStyle}"/>
+          <TextBox Text="{Binding AgentProperties[0].Value, UpdateSourceTrigger=PropertyChanged}"
+                 IsEnabled="{Binding AgentProperties[0].IsEditable}"
+                 Style="{StaticResource EditableFieldStyle}"
+                 MinWidth="180"/>
+        </StackPanel>
+
+        <StackPanel Grid.Column="1" Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,5">
+          <TextBlock Text="Описание:" Style="{StaticResource PropertyNameStyle}"/>
+          <TextBox Text="{Binding AgentProperties[1].Value, UpdateSourceTrigger=PropertyChanged}"
+                 IsEnabled="{Binding AgentProperties[1].IsEditable}"
+                 Style="{StaticResource EditableFieldStyle}"
+                 MinWidth="250"
+                 MaxWidth="250"
+                 MouseDoubleClick="DescriptionCell_DoubleClick"/>
+        </StackPanel>
+
+        <StackPanel Grid.Column="2" Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,5">
+          <TextBlock Text="Стадия:" Style="{StaticResource PropertyNameStyle}"/>
+          <ComboBox ItemsSource="{Binding AvailableStages}"
+            SelectedValue="{Binding SelectedStage, Mode=OneWay}"
+            IsEnabled="{Binding IsStageSelectionEnabled}"
+            Style="{StaticResource StageComboBoxStyle}" 
+            Height="22" 
+            MinWidth="100"  
+            VerticalAlignment="Top"
+            SelectionChanged="StageComboBox_SelectionChanged"/>
+        </StackPanel>
+
+        <StackPanel Grid.Column="3" Grid.Row="0" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,0,0,5">
+          <Button Content="Сохранить" 
+                        Command="{Binding UpdateCommand}"
+                        Style="{StaticResource ActionButtonStyle}"
+                        IsEnabled="{Binding IsEditingEnabled}" Margin="0,0,0,0" Height="30" VerticalAlignment="Bottom" HorizontalAlignment="Right" Cursor="Hand"/>
+        </StackPanel>
+               
+      </Grid>
+
+      <Border Height="2" Background="{Binding HeaderBackground}" Margin="0,0,0,5"/>
+      
+      <!--Заголовок параметров -->
+      <TextBlock Text="{Binding AgentBaseSost}"
+               Foreground="{Binding HomeostasisStatusColor}"
+               FontSize="18"
+               FontWeight="DemiBold"
+               HorizontalAlignment="Center"
+               Margin="0,5,0,5"/>
+
+      <local:AgentParametersView DataContext="{Binding ParametersViewModel}" Margin="0,5,0,5"/>
+
+      <Border Height="2" Background="{Binding HeaderBackground}" Margin="0,0,0,5"/>
+      
+      <!-- Заголовок стилей реагирования -->
+      <TextBlock Text="Стили реагирования агента"
+                       Foreground="{Binding HeaderBackground}"
+                       FontSize="18"
+                       FontWeight="DemiBold"
+                       HorizontalAlignment="Center"
+                       Margin="0,5,0,5"/>
+
+      <local:AgentBehaviorStylesView DataContext="{Binding BehaviorStylesViewModel}"/>
+
+      <Border Height="2" Background="{Binding HeaderBackground}" Margin="0,0,0,5"/>
+
+      <!-- Заголовок адаптивных действий -->
+      <TextBlock Text="Адаптивные действия"
+           Foreground="{Binding HeaderBackground}"
+           FontSize="18"
+           FontWeight="DemiBold"
+           HorizontalAlignment="Center"
+           Margin="0,10,0,5"/>
+      <local:AgentAdaptiveActionsView DataContext="{Binding AgentAdaptiveActionsViewModel}" />
+      <Border Height="2" Background="{Binding HeaderBackground}" Margin="0,5,0,5"/>
+
+      <!-- Заголовок пульта -->
+      <TextBlock Text="Пульт взаимодействия с агентом"
+                       Foreground="{Binding HeaderBackground}"
+                       FontSize="18"
+                       FontWeight="DemiBold"
+                       HorizontalAlignment="Center"
+                       Margin="0,5,0,5"/>
+
+      <local:AgentPultView DataContext="{Binding AgentPultViewModel}" />
+
+    </StackPanel>
+  </ScrollViewer>
+</UserControl>
