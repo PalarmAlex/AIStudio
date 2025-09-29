@@ -1,0 +1,12 @@
+# Формат: Ключ|Значение
+Name|Агент
+Description|Простой агент
+IsSleeping|False
+IsDead|False
+Lifetime|1378
+EvolutionStage|0
+PainValue|0
+JoyValue|0
+DifSensorPar|2
+CompareLevel|50
+DynamicTime|50

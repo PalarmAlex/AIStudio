@@ -1,0 +1,21 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Configuration>
+  <AppSettings>
+    <DataGomeostasFolderPath>C:\ProgramData\ISIDA\Data\Gomeostas</DataGomeostasFolderPath>
+    <SettingsPath>C:\ProgramData\ISIDA\Settings</SettingsPath>
+    <DataGomeostasTemplateFolderPath>C:\ProgramData\ISIDA\Templates\Gomeostas</DataGomeostasTemplateFolderPath>
+    <DataActionsFolderPath>C:\ProgramData\ISIDA\Data\Actions</DataActionsFolderPath>
+    <DataActionsTemplateFolderPath>C:\ProgramData\ISIDA\Templates\Actions</DataActionsTemplateFolderPath>
+    <DefaultStileId>6</DefaultStileId>
+    <DefaultAdaptiveActionId>3</DefaultAdaptiveActionId>
+    <SensorsFolderPath>C:\ProgramData\ISIDA\Data\Sensors\Verbal</SensorsFolderPath>
+    <SensorsTemplateFolderPath>C:\ProgramData\ISIDA\Templates\Sensors</SensorsTemplateFolderPath>
+    <RecognitionThreshold>3</RecognitionThreshold>
+    <CompareLevel>100</CompareLevel>
+    <DifSensorPar>2</DifSensorPar>
+    <DynamicTime>5</DynamicTime>
+    <ReflexesFolderPath>C:\ProgramData\ISIDA\Data\Reflexes</ReflexesFolderPath>
+    <ReflexesTemplateFolderPath>C:\ProgramData\ISIDA\Templates\Reflexes</ReflexesTemplateFolderPath>
+    <DefaultGeneticReflexId>0</DefaultGeneticReflexId>
+  </AppSettings>
+</Configuration>
