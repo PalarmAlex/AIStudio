@@ -103,9 +103,6 @@ namespace AIStudio
         _actionsSystem.DefaultAdaptiveActionId = AppConfig.DefaultAdaptiveActionId;
         _geneticReflexesSystem.DefaultGeneticReflexId = AppConfig.DefaultGeneticReflexId;
         _sensorySystem.VerbalRecognitionThreshold = AppConfig.RecognitionThreshold;
-
-        //_gomeostas.EnableParameterLogging();
-        //_gomeostas.EnableAgentLogging();
       }
       catch (Exception ex)
       {
@@ -495,7 +492,6 @@ namespace AIStudio
         if (IsPulsating)
         {
           GlobalTimer.Stop();
-          await _gomeostas.FlushLogsAsync();
         }
         else
         {
