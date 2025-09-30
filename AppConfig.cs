@@ -31,7 +31,7 @@ public static class AppConfig
   public static int DefaultAdaptiveActionId => GetIntSetting("DefaultAdaptiveActionId", 0);
   public static int DefaultGeneticReflexId => GetIntSetting("DefaultGeneticReflexId", 0);
   public static int RecognitionThreshold => GetIntSetting("RecognitionThreshold", 3);
-  public static int CompareLevel => GetIntSetting("CompareLevel", 100);
+  public static int CompareLevel => GetIntSetting("CompareLevel", 30);
   public static int DifSensorPar => GetIntSetting("DifSensorPar", 2);
   public static int DynamicTime => GetIntSetting("DynamicTime", 50);
 
@@ -62,7 +62,7 @@ public static class AppConfig
               new XElement("DefaultAdaptiveActionId", 0),
               new XElement("DefaultGeneticReflexId", 0),
               new XElement("RecognitionThreshold", 3),
-              new XElement("CompareLevel", 100),
+              new XElement("CompareLevel", 30),
               new XElement("DifSensorPar", 2),
               new XElement("DynamicTime", 10)
             )

@@ -25,7 +25,7 @@ namespace AIStudio.ViewModels
     public ObservableCollection<AgentProperty> AgentProperties { get; }
     public ObservableCollection<int> AvailableStages { get; } = new ObservableCollection<int> { 0, 1, 2, 3, 4, 5 };
     public string AgentName { get; set; }
-    public string AgentBaseSost { get; set; }
+    public string AgentBaseSost => $"Жизненные параметры агента. Состояние: {HomeostasisStatus}";
     public Brush HeaderBackground { get; set; }
     public bool IsStageComboEnabled => !GlobalTimer.IsPulsationRunning;
     public bool IsStageSelectionEnabled => !GlobalTimer.IsPulsationRunning;
@@ -120,9 +120,9 @@ namespace AIStudio.ViewModels
       }
     }
     public string HomeostasisStatus =>
-    AppConfig.GetBaseStateDisplay((int)(CurrentHomeostasisState?.OverallState ?? HomeostasisOverallState.Normal));
+      AppConfig.GetBaseStateDisplay((int)(CurrentHomeostasisState?.OverallState ?? HomeostasisOverallState.Normal));
     public Brush HomeostasisStatusColor =>
-        AppConfig.GetBaseStateColor((int)(CurrentHomeostasisState?.OverallState ?? HomeostasisOverallState.Normal));
+      AppConfig.GetBaseStateColor((int)(CurrentHomeostasisState?.OverallState ?? HomeostasisOverallState.Normal));
 
     public AgentViewModel(GomeostasSystem gomeostas)
     {
@@ -212,7 +212,6 @@ namespace AIStudio.ViewModels
         AgentName = $"{agentInfo.Name}. Стадия развития: {SelectedStage}";
         HeaderBackground = agentInfo.IsDead ? Brushes.Black :
                 agentInfo.IsSleeping ? Brushes.DodgerBlue : Brushes.ForestGreen;
-        AgentBaseSost = $"Жизненные параметры агента. Состояние: {HomeostasisStatus}";
 
         // Обновляем свойства агента
         if (AgentProperties.Count == 0)

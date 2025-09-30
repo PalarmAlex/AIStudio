@@ -250,7 +250,7 @@
 
       <!-- Интегральный порог состояния гомеостаза агента -->
       <StackPanel Grid.Column="1" Grid.Row="0" Orientation="Horizontal" Margin="20,0,0,5">
-        <TextBlock Text="Интегральный порог состояния:" 
+        <TextBlock Text="Интегральный порог состояния %:" 
                        Width="210"
                        VerticalAlignment="Center"/>
 
@@ -274,9 +274,9 @@
                      IsReadOnly="False"/>
       </StackPanel>
 
-      <!-- Время удержания состояния Хорошо -->
+      <!-- Время удержания состояний Плохо/Хорошо -->
       <StackPanel Grid.Column="1" Grid.Row="2" Orientation="Horizontal" Margin="20,0,0,5">
-        <TextBlock Text="Время удержания состояний:" 
+        <TextBlock Text="Время удержания состояний сек.:" 
                        Width="210"
                        VerticalAlignment="Center"/>
 

@@ -487,7 +487,7 @@ namespace AIStudio
 
     private void InitializePulseCommands()
     {
-      TogglePulseCommand = new RelayCommand(async _ =>
+      TogglePulseCommand = new RelayCommand(_ =>
       {
         if (IsPulsating)
         {
