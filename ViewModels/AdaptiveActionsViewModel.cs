@@ -227,7 +227,10 @@ namespace AIStudio.ViewModels
       {
         try
         {
-          if(action.Id > 0)
+          // Всегда удаляем из коллекции
+          AdaptiveActions.Remove(action);
+
+          if (action.Id > 0)
           {
             if (_actionsSystem.RemoveAction(action.Id))
             {

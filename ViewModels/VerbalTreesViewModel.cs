@@ -43,11 +43,7 @@ namespace AIStudio.ViewModels
 
     public bool IsEditingEnabled => IsStageZero && !GlobalTimer.IsPulsationRunning;
     public string PulseWarningMessage =>
-        !IsStageZero
-            ? "[КРИТИЧНО] Редактирование параметров доступно только в стадии 0"
-            : GlobalTimer.IsPulsationRunning
-                ? "Редактирование параметров доступно только при выключенной пульсации"
-                : string.Empty;
+        !IsStageZero ? "[КРИТИЧНО] Очистка сенсоров доступна только в стадии 0" : string.Empty;
     public Brush WarningMessageColor =>
         !IsStageZero ? Brushes.Red :
         Brushes.Gray;

@@ -11,6 +11,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
+using System.Windows.Threading;
 
 namespace AIStudio.Pages
 {
@@ -298,7 +299,12 @@ namespace AIStudio.Pages
         if (editor.ShowDialog() == true)
         {
           selectedItem.StyleActivations = editor.ResultActivations;
-          viewModel.RefreshParameters();
+          dataGrid.CommitEdit(DataGridEditingUnit.Row, true);
+          // Отложенное обновление
+          Dispatcher.BeginInvoke(new Action(() =>
+          {
+            dataGrid.Items.Refresh();
+          }), DispatcherPriority.Background);
         }
 
         e.Handled = true;
@@ -334,16 +340,16 @@ namespace AIStudio.Pages
       {
         var newInfluences = editor.ResultInfluences;
         if (isBadInfluence)
-        {
           parameter.BadStateInfluence = newInfluences;
-        }
         else
-        {
           parameter.WellStateInfluence = newInfluences;
-        }
 
-        // Обновляем отображение
-        dataGrid.Items.Refresh();
+        dataGrid.CommitEdit(DataGridEditingUnit.Row, true);
+        // Отложенное обновление
+        Dispatcher.BeginInvoke(new Action(() =>
+        {
+          dataGrid.Items.Refresh();
+        }), DispatcherPriority.Background);
       }
     }
 

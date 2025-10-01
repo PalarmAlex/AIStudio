@@ -245,7 +245,7 @@
       </Grid>
     </GroupBox>
 
-    <!-- Текст предупреждения -->
+     <!--Текст предупреждения--> 
     <TextBlock Grid.Row="4" Grid.Column="0"
                  Text="{Binding PulseWarningMessage}"
                  Foreground="{Binding WarningMessageColor}"
