@@ -9,180 +9,180 @@
   <StackPanel Margin="10" VerticalAlignment="Top">
     <!-- Настройки путей приложения -->
     <TextBlock Text="Настройки путей приложения" 
-                   FontSize="16"
-                   FontWeight="Bold"
-                   Margin="0,0,0,15"
-                   HorizontalAlignment="Center"/>
+      FontSize="16"
+      FontWeight="Bold"
+      Margin="0,0,0,15"
+      HorizontalAlignment="Center"/>
 
     <!-- Каталог настроек -->
     <StackPanel Orientation="Horizontal" Margin="0,5">
       <TextBlock Text="Каталог настроек:" 
-                       Width="265"
-                       VerticalAlignment="Center"/>
+        Width="265"
+        VerticalAlignment="Center"/>
 
       <TextBox Text="{Binding SettingsPath, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                     Width="400"
-                     Margin="5,0"
-                     Background="#FFE0EBEB"
-                     IsReadOnly="True"/>
+        Width="400"
+        Margin="5,0"
+        Background="#FFE0EBEB"
+        IsReadOnly="True"/>
 
       <Button Content="Обзор..."
-                    Command="{Binding BrowseFolderCommand}"
-                    CommandParameter="SettingsPath"
-                    MinWidth="80"
-                    Margin="5,0"/>
+        Command="{Binding BrowseFolderCommand}"
+        CommandParameter="SettingsPath"
+        MinWidth="80"
+        Margin="5,0"/>
     </StackPanel>
 
     <!-- Каталог данных гомеостаза -->
     <StackPanel Orientation="Horizontal" Margin="0,5">
       <TextBlock Text="Каталог данных гомеостаза:" 
-                       Width="265"
-                       VerticalAlignment="Center"/>
+        Width="265"
+        VerticalAlignment="Center"/>
 
       <TextBox Text="{Binding DataGomeostasFolderPath, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                     Width="400"
-                     Margin="5,0"
-                     Background="#FFE0EBEB"
-                     IsReadOnly="True"/>
+        Width="400"
+        Margin="5,0"
+        Background="#FFE0EBEB"
+        IsReadOnly="True"/>
 
       <Button Content="Обзор..."
-                    Command="{Binding BrowseFolderCommand}"
-                    CommandParameter="DataGomeostasFolderPath"
-                    MinWidth="80"
-                    Margin="5,0"/>
+        Command="{Binding BrowseFolderCommand}"
+        CommandParameter="DataGomeostasFolderPath"
+        MinWidth="80"
+        Margin="5,0"/>
     </StackPanel>
 
     <!-- Каталог данных шаблонов гомеостаза -->
     <StackPanel Orientation="Horizontal" Margin="0,5">
       <TextBlock Text="Каталог шаблонов гомеостаза:" 
-                       Width="265"
-                       VerticalAlignment="Center"/>
+        Width="265"
+        VerticalAlignment="Center"/>
 
       <TextBox Text="{Binding DataGomeostasTemplateFolderPath, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                     Width="400"
-                     Margin="5,0"
-                     Background="#FFE0EBEB"
-                     IsReadOnly="True"/>
+        Width="400"
+        Margin="5,0"
+        Background="#FFE0EBEB"
+        IsReadOnly="True"/>
 
       <Button Content="Обзор..."
-                    Command="{Binding BrowseFolderCommand}"
-                    CommandParameter="DataGomeostasTemplateFolderPath"
-                    MinWidth="80"
-                    Margin="5,0"/>
+        Command="{Binding BrowseFolderCommand}"
+        CommandParameter="DataGomeostasTemplateFolderPath"
+        MinWidth="80"
+        Margin="5,0"/>
     </StackPanel>
 
     <!-- Каталог данных адаптивных действий -->
     <StackPanel Orientation="Horizontal" Margin="0,5">
       <TextBlock Text="Каталог адаптивных действий:" 
-                       Width="265"
-                       VerticalAlignment="Center"/>
+        Width="265"
+        VerticalAlignment="Center"/>
 
       <TextBox Text="{Binding DataActionsFolderPath, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                     Width="400"
-                     Margin="5,0"
-                     Background="#FFE0EBEB"
-                     IsReadOnly="True"/>
+        Width="400"
+        Margin="5,0"
+        Background="#FFE0EBEB"
+        IsReadOnly="True"/>
 
       <Button Content="Обзор..."
-                    Command="{Binding BrowseFolderCommand}"
-                    CommandParameter="DataActionsFolderPath"
-                    MinWidth="80"
-                    Margin="5,0"/>
+        Command="{Binding BrowseFolderCommand}"
+        CommandParameter="DataActionsFolderPath"
+        MinWidth="80"
+        Margin="5,0"/>
     </StackPanel>
 
     <!-- Каталог шаблонов адаптивных действий -->
     <StackPanel Orientation="Horizontal" Margin="0,5">
       <TextBlock Text="Каталог шаблонов действий:" 
-                       Width="265"
-                       VerticalAlignment="Center"/>
+        Width="265"
+        VerticalAlignment="Center"/>
 
       <TextBox Text="{Binding DataActionsTemplateFolderPath, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                     Width="400"
-                     Margin="5,0"
-                     Background="#FFE0EBEB"
-                     IsReadOnly="True"/>
+        Width="400"
+        Margin="5,0"
+        Background="#FFE0EBEB"
+        IsReadOnly="True"/>
 
       <Button Content="Обзор..."
-                    Command="{Binding BrowseFolderCommand}"
-                    CommandParameter="DataActionsTemplateFolderPath"
-                    MinWidth="80"
-                    Margin="5,0"/>
+        Command="{Binding BrowseFolderCommand}"
+        CommandParameter="DataActionsTemplateFolderPath"
+        MinWidth="80"
+        Margin="5,0"/>
     </StackPanel>
 
     <!-- Каталог данных вербальных сенсоров -->
     <StackPanel Orientation="Horizontal" Margin="0,5">
       <TextBlock Text="Каталог вербальных сенсоров:" 
-                       Width="265"
-                       VerticalAlignment="Center"/>
+        Width="265"
+        VerticalAlignment="Center"/>
 
       <TextBox Text="{Binding SensorsFolderPath, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                     Width="400"
-                     Margin="5,0"
-                     Background="#FFE0EBEB"
-                     IsReadOnly="True"/>
+        Width="400"
+        Margin="5,0"
+        Background="#FFE0EBEB"
+        IsReadOnly="True"/>
 
       <Button Content="Обзор..."
-                    Command="{Binding BrowseFolderCommand}"
-                    CommandParameter="SensorsFolderPath"
-                    MinWidth="80"
-                    Margin="5,0"/>
+        Command="{Binding BrowseFolderCommand}"
+        CommandParameter="SensorsFolderPath"
+        MinWidth="80"
+        Margin="5,0"/>
     </StackPanel>
 
     <!-- Каталог шаблонов вербальных сенсоров -->
     <StackPanel Orientation="Horizontal" Margin="0,5">
       <TextBlock Text="Каталог шаблонов верб. сенсоров:" 
-                       Width="265"
-                       VerticalAlignment="Center"/>
+        Width="265"
+        VerticalAlignment="Center"/>
 
       <TextBox Text="{Binding SensorsTemplateFolderPath, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                     Width="400"
-                     Margin="5,0"
-                     Background="#FFE0EBEB"
-                     IsReadOnly="True"/>
+        Width="400"
+        Margin="5,0"
+        Background="#FFE0EBEB"
+        IsReadOnly="True"/>
 
       <Button Content="Обзор..."
-                    Command="{Binding BrowseFolderCommand}"
-                    CommandParameter="SensorsTemplateFolderPath"
-                    MinWidth="80"
-                    Margin="5,0"/>
+        Command="{Binding BrowseFolderCommand}"
+        CommandParameter="SensorsTemplateFolderPath"
+        MinWidth="80"
+        Margin="5,0"/>
     </StackPanel>
 
     <!-- Каталог рефлексов -->
     <StackPanel Orientation="Horizontal" Margin="0,5">
       <TextBlock Text="Каталог безусл. и условн. рефлексов:" 
-                       Width="265"
-                       VerticalAlignment="Center"/>
+        Width="265"
+        VerticalAlignment="Center"/>
 
       <TextBox Text="{Binding ReflexesFolderPath, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                     Width="400"
-                     Margin="5,0"
-                     Background="#FFE0EBEB"
-                     IsReadOnly="True"/>
+        Width="400"
+        Margin="5,0"
+        Background="#FFE0EBEB"
+        IsReadOnly="True"/>
 
       <Button Content="Обзор..."
-                    Command="{Binding BrowseFolderCommand}"
-                    CommandParameter="ReflexesFolderPath"
-                    MinWidth="80"
-                    Margin="5,0"/>
+        Command="{Binding BrowseFolderCommand}"
+        CommandParameter="ReflexesFolderPath"
+        MinWidth="80"
+        Margin="5,0"/>
     </StackPanel>
 
     <!-- Каталог шаблонов рефлексов -->
     <StackPanel Orientation="Horizontal" Margin="0,5">
       <TextBlock Text="Каталог шаблонов безусл. и условн. рефлексов:" 
-                       Width="265"
-                       VerticalAlignment="Center"/>
+        Width="265"
+        VerticalAlignment="Center"/>
 
       <TextBox Text="{Binding ReflexesTemplateFolderPath, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                     Width="400"
-                     Margin="5,0"
-                     Background="#FFE0EBEB"
-                     IsReadOnly="True"/>
+        Width="400"
+        Margin="5,0"
+        Background="#FFE0EBEB"
+        IsReadOnly="True"/>
 
       <Button Content="Обзор..."
-                    Command="{Binding BrowseFolderCommand}"
-                    CommandParameter="ReflexesTemplateFolderPath"
-                    MinWidth="80"
-                    Margin="5,0"/>
+        Command="{Binding BrowseFolderCommand}"
+        CommandParameter="ReflexesTemplateFolderPath"
+        MinWidth="80"
+        Margin="5,0"/>
     </StackPanel>
 
 
@@ -190,10 +190,10 @@
 
       <!-- Настройки гомеостаза -->
       <TextBlock Text="Настройки гомеостаза" 
-                     FontSize="16"
-                     FontWeight="Bold"
-                     Margin="0,0,0,15"
-                     HorizontalAlignment="Center"/>
+        FontSize="16"
+        FontWeight="Bold"
+        Margin="0,0,0,15"
+        HorizontalAlignment="Center"/>
 
     <Grid>
       <Grid.ColumnDefinitions>
@@ -210,104 +210,104 @@
       <!-- Стиль реагирования по умолчанию -->
       <StackPanel Grid.Column="0" Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,5">
         <TextBlock Text="Стиль реагирования по умолчанию:" 
-               Width="220"
-               VerticalAlignment="Center"/>
+          Width="220"
+          VerticalAlignment="Center"/>
         <ComboBox ItemsSource="{Binding BehaviorStylesWithNone}"
-            SelectedValue="{Binding DefaultStileId}"
-            DisplayMemberPath="Name"
-            SelectedValuePath="Id"
-            Width="220"
-            Margin="5,0"/>
+          SelectedValue="{Binding DefaultStileId}"
+          DisplayMemberPath="Name"
+          SelectedValuePath="Id"
+          Width="220"
+          Margin="5,0"/>
       </StackPanel>
 
       <!-- Адаптивное действие по умолчанию -->
       <StackPanel Grid.Column="0" Grid.Row="1" Orientation="Horizontal" Margin="0,0,0,5">
         <TextBlock Text="Адаптивное действие по умолчанию:" 
-               Width="220"
-               VerticalAlignment="Center"/>
+          Width="220"
+          VerticalAlignment="Center"/>
 
         <ComboBox ItemsSource="{Binding AdaptiveActionsWithNone}"
-            SelectedValue="{Binding DefaultAdaptiveActionId}"
-            DisplayMemberPath="Name"
-            SelectedValuePath="Id"
-            Width="220"
-            Margin="5,0"/>
+          SelectedValue="{Binding DefaultAdaptiveActionId}"
+          DisplayMemberPath="Name"
+          SelectedValuePath="Id"
+          Width="220"
+          Margin="5,0"/>
       </StackPanel>
 
       <!-- Безусловный рефлекс по умолчанию -->
       <StackPanel Grid.Column="0" Grid.Row="2" Orientation="Horizontal" Margin="0,0,0,5">
         <TextBlock Text="Безусловный рефлекс по умолчанию:" 
-               Width="220"
-               VerticalAlignment="Center"/>
+          Width="220"
+          VerticalAlignment="Center"/>
 
         <ComboBox ItemsSource="{Binding GeneticReflexesWithNone}"
-            SelectedValue="{Binding DefaultGeneticReflexId}"
-            DisplayMemberPath="Name"
-            SelectedValuePath="Id"
-            Width="220"
-            Margin="5,0"/>
+          SelectedValue="{Binding DefaultGeneticReflexId}"
+          DisplayMemberPath="Name"
+          SelectedValuePath="Id"
+          Width="220"
+          Margin="5,0"/>
       </StackPanel>
 
       <!-- Интегральный порог состояния гомеостаза агента -->
-      <StackPanel Grid.Column="1" Grid.Row="0" Orientation="Horizontal" Margin="20,0,0,5">
-        <TextBlock Text="Интегральный порог состояния %:" 
-                       Width="210"
-                       VerticalAlignment="Center"/>
+      <StackPanel Grid.Column="1" Grid.Row="0" Orientation="Horizontal" Margin="100,0,0,5">
+        <TextBlock Text="Интегральный порог состояния %:"
+          Width="250"
+          VerticalAlignment="Center"/>
 
         <TextBox Text="{Binding CompareLevel, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                     Width="220"
-                     Margin="5,0"
-                     Background="#FFFFFFFF"
-                     IsReadOnly="False"/>
+          Width="100"
+          Margin="25,0"
+          Background="#FFFFFFFF"
+          IsReadOnly="False"/>
       </StackPanel>
 
       <!-- Минимальное изменение параметра для детектирования -->
-      <StackPanel Grid.Column="1" Grid.Row="1" Orientation="Horizontal" Margin="20,0,0,5">
-        <TextBlock Text="Мин. детектирование параметра:" 
-                       Width="210"
-                       VerticalAlignment="Center"/>
+      <StackPanel Grid.Column="1" Grid.Row="1" Orientation="Horizontal" Margin="100,0,0,5">
+        <TextBlock Text="Мин. детектирование параметра (0.01%):" 
+          Width="250"
+          VerticalAlignment="Center"/>
 
         <TextBox Text="{Binding DifSensorPar, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                     Width="220"
-                     Margin="5,0"
-                     Background="#FFFFFFFF"
-                     IsReadOnly="False"/>
+          Width="100"
+          Margin="25,0"
+          Background="#FFFFFFFF"
+          IsReadOnly="False"/>
       </StackPanel>
 
       <!-- Время удержания состояний Плохо/Хорошо -->
-      <StackPanel Grid.Column="1" Grid.Row="2" Orientation="Horizontal" Margin="20,0,0,5">
+      <StackPanel Grid.Column="1" Grid.Row="2" Orientation="Horizontal" Margin="100,0,0,5">
         <TextBlock Text="Время удержания состояний сек.:" 
-                       Width="210"
-                       VerticalAlignment="Center"/>
+          Width="250"
+          VerticalAlignment="Center"/>
 
         <TextBox Text="{Binding DynamicTime, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                     Width="220"
-                     Margin="5,0"
-                     Background="#FFFFFFFF"
-                     IsReadOnly="False"/>
+          Width="100"
+          Margin="25,0"
+          Background="#FFFFFFFF"
+          IsReadOnly="False"/>
       </StackPanel>
 
       <!-- Число повторов для сохранения нового сенсора -->
-      <StackPanel Grid.Column="1" Grid.Row="3" Orientation="Horizontal" Margin="20,0,0,5">
+      <StackPanel Grid.Column="1" Grid.Row="3" Orientation="Horizontal" Margin="100,0,0,5">
         <TextBlock Text="Число повторов для записи сенсора:" 
-                       Width="210"
-                       VerticalAlignment="Center"/>
+          Width="250"
+          VerticalAlignment="Center"/>
 
         <TextBox Text="{Binding RecognitionThreshold, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                     Width="220"
-                     Margin="5,0"
-                     Background="#FFFFFFFF"
-                     IsReadOnly="False"/>
+          Width="100"
+          Margin="25,0"
+          Background="#FFFFFFFF"
+          IsReadOnly="False"/>
       </StackPanel>
 
     </Grid>
 
     <!-- Кнопка сохранения -->
     <Button Content="Сохранить настройки"
-                Command="{Binding SaveSettingsCommand}"
-                HorizontalAlignment="Right"
-                Margin="0,15,0,0"
-                Padding="10,3"
-                MinWidth="120"/>
+      Command="{Binding SaveSettingsCommand}"
+      HorizontalAlignment="Right"
+      Margin="0,15,0,0"
+      Padding="10,3"
+      MinWidth="120"/>
   </StackPanel>
 </UserControl>

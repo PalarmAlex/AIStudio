@@ -11,7 +11,7 @@
     <SensorsFolderPath>C:\ProgramData\ISIDA\Data\Sensors\Verbal</SensorsFolderPath>
     <SensorsTemplateFolderPath>C:\ProgramData\ISIDA\Templates\Sensors</SensorsTemplateFolderPath>
     <RecognitionThreshold>3</RecognitionThreshold>
-    <CompareLevel>100</CompareLevel>
+    <CompareLevel>30</CompareLevel>
     <DifSensorPar>2</DifSensorPar>
     <DynamicTime>5</DynamicTime>
     <ReflexesFolderPath>C:\ProgramData\ISIDA\Data\Reflexes</ReflexesFolderPath>

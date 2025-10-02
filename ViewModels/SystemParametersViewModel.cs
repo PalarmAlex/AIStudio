@@ -177,6 +177,7 @@ namespace AIStudio.ViewModels
 
             createdParam.BadStateInfluence = new Dictionary<int, float>(param.BadStateInfluence);
             createdParam.WellStateInfluence = new Dictionary<int, float>(param.WellStateInfluence);
+            createdParam.StyleActivations = new Dictionary<int, List<int>>(param.StyleActivations);
 
             _gomeostas.UpdateParameter(createdParam);
           }
