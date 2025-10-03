@@ -88,7 +88,7 @@
         <DataGrid.Columns>
 
           <DataGridTextColumn Header="ID" Binding="{Binding Id}" Width="50" IsReadOnly="True"/>
-          <DataGridTextColumn Header="Наименование" Binding="{Binding Name}" Width="200"/>
+          <DataGridTextColumn Header="Наименование" Binding="{Binding Name}" Width="150"/>
 
           <DataGridTextColumn Header="Описание" Binding="{Binding Description, Mode=TwoWay}" Width="300">
             <DataGridTextColumn.CellStyle>
@@ -137,9 +137,9 @@
           </DataGridTextColumn>
 
           <DataGridTextColumn Header="Затраты" 
-                    Binding="{Binding Costs, Converter={StaticResource IntDictionaryToStringConverter}}" 
-                    IsReadOnly="True" 
-                    Width="*">
+            Binding="{Binding Costs, Converter={StaticResource IntDictionaryToStringConverter}}" 
+            IsReadOnly="True" 
+            Width="*">
             <DataGridTextColumn.ElementStyle>
               <Style TargetType="TextBlock">
                 <EventSetter Event="MouseDown" Handler="CostsCell_MouseDown"/>
@@ -152,10 +152,28 @@
             </DataGridTextColumn.HeaderStyle>
           </DataGridTextColumn>
 
+          <DataGridTextColumn Header="К. усталости" Binding="{Binding FatigueCoefficient}" Width="100">
+            <DataGridTextColumn.CellStyle>
+              <Style TargetType="DataGridCell" BasedOn="{StaticResource {x:Type DataGridCell}}">
+                <EventSetter Event="PreviewTextInput" Handler="FatigueCoefficient_PreviewTextInput"/>
+                <EventSetter Event="LostFocus" Handler="FatigueCoefficient_LostFocus"/>
+              </Style>
+            </DataGridTextColumn.CellStyle>
+          </DataGridTextColumn>
+
+          <DataGridTextColumn Header="К. восстановления" Binding="{Binding RecoveryCoefficient}" Width="100">
+            <DataGridTextColumn.CellStyle>
+              <Style TargetType="DataGridCell" BasedOn="{StaticResource {x:Type DataGridCell}}">
+                <EventSetter Event="PreviewTextInput" Handler="RecoveryCoefficient_PreviewTextInput"/>
+                <EventSetter Event="LostFocus" Handler="RecoveryCoefficient_LostFocus"/>
+              </Style>
+            </DataGridTextColumn.CellStyle>
+          </DataGridTextColumn>
+
           <DataGridTextColumn Header="Антагонисты" 
-                              Binding="{Binding AntagonistActions, Converter={StaticResource ListToStringConverter}}" 
-                              IsReadOnly="True" 
-                              Width="*">
+            Binding="{Binding AntagonistActions, Converter={StaticResource ListToStringConverter}}" 
+            IsReadOnly="True" 
+            Width="*">
             <DataGridTextColumn.ElementStyle>
               <Style TargetType="TextBlock">
                 <EventSetter Event="MouseDown" Handler="AntagonistCell_MouseDown"/>

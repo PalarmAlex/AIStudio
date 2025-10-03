@@ -76,6 +76,7 @@
     <Compile Include="Common\AntagonistManager.cs" />
     <Compile Include="Common\DataGridExtensions.cs" />
     <Compile Include="Common\NumericListValidationRule.cs" />
+    <Compile Include="Converters\ActionDisplayTextConverter.cs" />
     <Compile Include="Converters\ActionSizeConverter.cs" />
     <Compile Include="Converters\ActiveBrushConverter.cs" />
     <Compile Include="Converters\BooleanToVisibilityConverter.cs" />

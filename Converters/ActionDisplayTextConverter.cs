@@ -1,29 +1,23 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Globalization;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Data;
 using static ISIDA.Actions.AdaptiveActionsSystem;
 
 namespace AIStudio.Converters
 {
-  public class ActionSizeConverter : IValueConverter
+  public class ActionDisplayTextConverter : IValueConverter
   {
     public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
     {
       if (value is AdaptiveAction action)
       {
-        int significance = action.GetSignificance();
+        int vigorPercentage = (int)((action.CurrentVigor / action.Vigor) * 100);
 
-        // Более чувствительная шкала
-        double normalized = Math.Min(1.0, (double)significance / 30.0);
-
-        // Увеличиваем диапазон размеров
-        return 16 + normalized * 12;
+        // Компактный формат: "Имя [Э%]"
+        return $"{action.Name} [{vigorPercentage}%]";
       }
-      return 16;
+
+      return string.Empty;
     }
 
     public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)

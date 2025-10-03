@@ -13,6 +13,7 @@
     <converters:SignificanceConverter x:Key="SignificanceConverter"/>
     <converters:ActionSizeConverter x:Key="ActionSizeConverter"/>
     <converters:IntToVisibilityConverter x:Key="IntToVisibilityConverter"/>
+    <converters:ActionDisplayTextConverter x:Key="ActionDisplayTextConverter"/>
 
     <Style x:Key="NoAdaptationTextStyle" TargetType="TextBlock">
       <Setter Property="Foreground" Value="#FFA0A0A0"/>
@@ -28,15 +29,15 @@
     <StackPanel>
       <!-- Сообщение когда нет активных действий -->
       <TextBlock Text="Адаптации не требуется, все в пределах нормы"
-           Style="{StaticResource NoAdaptationTextStyle}"
-           Visibility="{Binding CurrentActiveActions.Count, Converter={StaticResource IntToVisibilityConverter}, FallbackValue=Collapsed}"/>
+        Style="{StaticResource NoAdaptationTextStyle}"
+        Visibility="{Binding CurrentActiveActions.Count, Converter={StaticResource IntToVisibilityConverter}, FallbackValue=Collapsed}"/>
 
       <!-- Список действий -->
       <ItemsControl ItemsSource="{Binding CurrentActiveActions}">
         <ItemsControl.ItemsPanel>
           <ItemsPanelTemplate>
             <WrapPanel Orientation="Horizontal" 
-                                 Width="{Binding ActualWidth, RelativeSource={RelativeSource AncestorType=ScrollViewer}}"/>
+              Width="{Binding ActualWidth, RelativeSource={RelativeSource AncestorType=ScrollViewer}}"/>
           </ItemsPanelTemplate>
         </ItemsControl.ItemsPanel>
 
@@ -44,12 +45,12 @@
           <DataTemplate>
             <Grid>
               <TextBlock x:Name="ActionText"
-                                 Text="{Binding Name}" 
-                                 FontSize="{Binding ., Converter={StaticResource ActionSizeConverter}}"
-                                 FontWeight="SemiBold"
-                                 Margin="3,1"
-                                 HorizontalAlignment="Center"
-                                 VerticalAlignment="Center">
+                  Text="{Binding ., Converter={StaticResource ActionDisplayTextConverter}}"
+                  FontSize="{Binding ., Converter={StaticResource ActionSizeConverter}}"
+                  FontWeight="SemiBold"
+                  Margin="3,1"
+                  HorizontalAlignment="Center"
+                  VerticalAlignment="Center">
 
                 <TextBlock.Foreground>
                   <MultiBinding Converter="{StaticResource IsActiveActionMultiConverter}">

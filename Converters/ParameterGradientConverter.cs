@@ -17,18 +17,18 @@ namespace AIStudio.Converters
           EndPoint = new System.Windows.Point(1, 0.5)
         };
 
+        gradient.GradientStops.Add(new GradientStop(Colors.Yellow, normaWell / 100.0));
+
         // Для отрицательного Speed: Красный -> Желтый -> Зеленый
         if (speed < 0)
         {
           gradient.GradientStops.Add(new GradientStop(Colors.Red, 0));
-          gradient.GradientStops.Add(new GradientStop(Colors.Yellow, normaWell / 100.0));
           gradient.GradientStops.Add(new GradientStop(Colors.Green, 1));
         }
         // Для положительного Speed: Зеленый -> Желтый -> Красный
         else
         {
           gradient.GradientStops.Add(new GradientStop(Colors.Green, 0));
-          gradient.GradientStops.Add(new GradientStop(Colors.Yellow, (100 - normaWell) / 100.0));
           gradient.GradientStops.Add(new GradientStop(Colors.Red, 1));
         }
 
