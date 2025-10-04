@@ -12,7 +12,7 @@
       <RowDefinition Height="Auto"/>
     </Grid.RowDefinitions>
 
-    <TextBlock Grid.Row="0" Text="Выберите параметры и установите влияние (-10..+10):" Margin="0,0,0,10"/>
+    <TextBlock Grid.Row="0" Text="Выберите параметры и установите влияние (-1..+1):" Margin="0,0,0,10"/>
 
     <DataGrid Grid.Row="1"
           x:Name="InfluencesGrid" 

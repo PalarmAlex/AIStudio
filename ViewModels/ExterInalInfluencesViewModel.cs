@@ -242,9 +242,7 @@ namespace AIStudio.ViewModels
     }
 
     private bool UpdateInfluenceActionsSystemFromTable()
-    {
-      // валидация - возможно будет
-           
+    {          
       // Получаем текущие действия из системы
       var currentActions = _influenceActionSystem.GetAllInfluenceActions().ToDictionary(a => a.Id);
 

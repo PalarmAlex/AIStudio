@@ -85,20 +85,6 @@ namespace AIStudio.Dialogs
         return;
       }
 
-      // Запрещаем второй минус или минус не в начале
-      if (e.Text == "-" && (textBox.Text.Contains("-") || textBox.CaretIndex != 0))
-      {
-        e.Handled = true;
-        return;
-      }
-
-      // Запрещаем вторую точку
-      if (e.Text == "." && textBox.Text.Contains("."))
-      {
-        e.Handled = true;
-        return;
-      }
-
       // Проверяем, что ввод — число в диапазоне [-99, 99]
       bool isNumber = double.TryParse(
           newText,
@@ -145,7 +131,7 @@ namespace AIStudio.Dialogs
 
         if (sender is TextBox textBox)
         {
-          // Для поля влияния проверяем вещественные числа от -10 до 10
+          // Для поля влияния проверяем вещественные числа от -1 до 1
           if (textBox.Name.Contains("Influence") ||
               (textBox.Parent is DataGridCell cell && cell.Column.Header?.ToString() == "Влияние"))
           {
@@ -156,8 +142,8 @@ namespace AIStudio.Dialogs
                                NumberStyles.AllowDecimalPoint | NumberStyles.AllowLeadingSign,
                                CultureInfo.InvariantCulture,
                                out double number)
-                || number < -10
-                || number > 10)
+                || number < -1
+                || number > 1)
             {
               e.CancelCommand();
               return;
@@ -188,9 +174,9 @@ namespace AIStudio.Dialogs
           continue;
 
         // Проверяем корректность значений перед сохранением
-        if (item.InfluenceValue < -10 || item.InfluenceValue > 10)
+        if (item.InfluenceValue < -1 || item.InfluenceValue > 1)
         {
-          MessageBox.Show($"Значение влияния должно быть между -10 и 10 (параметр {item.ParameterId})",
+          MessageBox.Show($"Значение влияния должно быть между -1 и +1 (параметр {item.ParameterId})",
                         "Ошибка", MessageBoxButton.OK, MessageBoxImage.Warning);
           return;
         }
@@ -272,12 +258,6 @@ namespace AIStudio.Dialogs
       var textBox = sender as TextBox;
       if (textBox == null) return;
 
-      // Получаем текущий текст и предполагаемый новый текст
-      string currentText = textBox.Text;
-      string newText = currentText.Substring(0, textBox.SelectionStart) +
-                      e.Text +
-                      currentText.Substring(textBox.SelectionStart + textBox.SelectionLength);
-
       // Автозамена запятой на точку
       if (e.Text == ",")
       {
@@ -287,19 +267,8 @@ namespace AIStudio.Dialogs
         return;
       }
 
-      // Запрещаем второй минус или минус не в начале
-      if (e.Text == "-" && (textBox.Text.Contains("-") || textBox.CaretIndex != 0))
-      {
-        e.Handled = true;
-        return;
-      }
-
-      // Запрещаем вторую точку
-      if (e.Text == "." && textBox.Text.Contains("."))
-      {
-        e.Handled = true;
-        return;
-      }
+      // Получаем предполагаемый новый текст
+      string newText = textBox.Text.Insert(textBox.CaretIndex, e.Text);
 
       // Проверяем, что ввод — число в диапазоне [-10, 10]
       bool isNumber = double.TryParse(

@@ -12,7 +12,7 @@
     <SensorsTemplateFolderPath>C:\ProgramData\ISIDA\Templates\Sensors</SensorsTemplateFolderPath>
     <RecognitionThreshold>3</RecognitionThreshold>
     <CompareLevel>30</CompareLevel>
-    <DifSensorPar>2</DifSensorPar>
+    <DifSensorPar>0.02</DifSensorPar>
     <DynamicTime>5</DynamicTime>
     <ReflexesFolderPath>C:\ProgramData\ISIDA\Data\Reflexes</ReflexesFolderPath>
     <ReflexesTemplateFolderPath>C:\ProgramData\ISIDA\Templates\Reflexes</ReflexesTemplateFolderPath>
