@@ -207,8 +207,60 @@
         <RowDefinition Height="Auto"/>
       </Grid.RowDefinitions>
 
+      <!-- Интегральный порог состояния гомеостаза агента -->
+      <StackPanel Grid.Column="0" Grid.Row="0" Orientation="Horizontal" Margin="100,0,0,5">
+        <TextBlock Text="Интегральный порог состояния %:"
+          Width="250"
+          VerticalAlignment="Center"/>
+
+        <TextBox Text="{Binding CompareLevel, Mode=TwoWay, UpdateSourceTrigger=LostFocus}"
+          Width="100"
+          Margin="25,0"
+          Background="#FFFFFFFF"
+          IsReadOnly="False"/>
+      </StackPanel>
+
+      <!-- Минимальное изменение параметра для детектирования -->
+      <StackPanel Grid.Column="0" Grid.Row="1" Orientation="Horizontal" Margin="100,0,0,5">
+        <TextBlock Text="Мин. детектирование параметра:" 
+          Width="250"
+          VerticalAlignment="Center"/>
+
+        <TextBox Text="{Binding DifSensorParText, Mode=TwoWay, UpdateSourceTrigger=LostFocus}"
+          Width="100"
+          Margin="25,0"
+          Background="#FFFFFFFF"
+          IsReadOnly="False"/>
+      </StackPanel>
+
+      <!-- Время удержания состояний Плохо/Хорошо -->
+      <StackPanel Grid.Column="0" Grid.Row="2" Orientation="Horizontal" Margin="100,0,0,5">
+        <TextBlock Text="Время удержания состояний сек.:" 
+          Width="250"
+          VerticalAlignment="Center"/>
+
+        <TextBox Text="{Binding DynamicTime, Mode=TwoWay, UpdateSourceTrigger=LostFocus}"
+          Width="100"
+          Margin="25,0"
+          Background="#FFFFFFFF"
+          IsReadOnly="False"/>
+      </StackPanel>
+
+      <!-- Число повторов для сохранения нового сенсора -->
+      <StackPanel Grid.Column="0" Grid.Row="3" Orientation="Horizontal" Margin="100,0,0,5">
+        <TextBlock Text="Число повторов для записи сенсора:" 
+          Width="250"
+          VerticalAlignment="Center"/>
+
+        <TextBox Text="{Binding RecognitionThreshold, Mode=TwoWay, UpdateSourceTrigger=LostFocus}"
+          Width="100"
+          Margin="25,0"
+          Background="#FFFFFFFF"
+          IsReadOnly="False"/>
+      </StackPanel>
+
       <!-- Стиль реагирования по умолчанию -->
-      <StackPanel Grid.Column="0" Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,5">
+      <StackPanel Grid.Column="1" Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,5">
         <TextBlock Text="Стиль реагирования по умолчанию:" 
           Width="220"
           VerticalAlignment="Center"/>
@@ -221,7 +273,7 @@
       </StackPanel>
 
       <!-- Адаптивное действие по умолчанию -->
-      <StackPanel Grid.Column="0" Grid.Row="1" Orientation="Horizontal" Margin="0,0,0,5">
+      <StackPanel Grid.Column="1" Grid.Row="1" Orientation="Horizontal" Margin="0,0,0,5">
         <TextBlock Text="Адаптивное действие по умолчанию:" 
           Width="220"
           VerticalAlignment="Center"/>
@@ -235,7 +287,7 @@
       </StackPanel>
 
       <!-- Безусловный рефлекс по умолчанию -->
-      <StackPanel Grid.Column="0" Grid.Row="2" Orientation="Horizontal" Margin="0,0,0,5">
+      <StackPanel Grid.Column="1" Grid.Row="2" Orientation="Horizontal" Margin="0,0,0,5">
         <TextBlock Text="Безусловный рефлекс по умолчанию:" 
           Width="220"
           VerticalAlignment="Center"/>
@@ -246,58 +298,6 @@
           SelectedValuePath="Id"
           Width="220"
           Margin="5,0"/>
-      </StackPanel>
-
-      <!-- Интегральный порог состояния гомеостаза агента -->
-      <StackPanel Grid.Column="1" Grid.Row="0" Orientation="Horizontal" Margin="100,0,0,5">
-        <TextBlock Text="Интегральный порог состояния %:"
-          Width="250"
-          VerticalAlignment="Center"/>
-
-        <TextBox Text="{Binding CompareLevel, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-          Width="100"
-          Margin="25,0"
-          Background="#FFFFFFFF"
-          IsReadOnly="False"/>
-      </StackPanel>
-
-      <!-- Минимальное изменение параметра для детектирования -->
-      <StackPanel Grid.Column="1" Grid.Row="1" Orientation="Horizontal" Margin="100,0,0,5">
-        <TextBlock Text="Мин. детектирование параметра (0.01%):" 
-          Width="250"
-          VerticalAlignment="Center"/>
-
-        <TextBox Text="{Binding DifSensorPar, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-          Width="100"
-          Margin="25,0"
-          Background="#FFFFFFFF"
-          IsReadOnly="False"/>
-      </StackPanel>
-
-      <!-- Время удержания состояний Плохо/Хорошо -->
-      <StackPanel Grid.Column="1" Grid.Row="2" Orientation="Horizontal" Margin="100,0,0,5">
-        <TextBlock Text="Время удержания состояний сек.:" 
-          Width="250"
-          VerticalAlignment="Center"/>
-
-        <TextBox Text="{Binding DynamicTime, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-          Width="100"
-          Margin="25,0"
-          Background="#FFFFFFFF"
-          IsReadOnly="False"/>
-      </StackPanel>
-
-      <!-- Число повторов для сохранения нового сенсора -->
-      <StackPanel Grid.Column="1" Grid.Row="3" Orientation="Horizontal" Margin="100,0,0,5">
-        <TextBlock Text="Число повторов для записи сенсора:" 
-          Width="250"
-          VerticalAlignment="Center"/>
-
-        <TextBox Text="{Binding RecognitionThreshold, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-          Width="100"
-          Margin="25,0"
-          Background="#FFFFFFFF"
-          IsReadOnly="False"/>
       </StackPanel>
 
     </Grid>

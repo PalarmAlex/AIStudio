@@ -107,7 +107,7 @@ namespace AIStudio
       catch (Exception ex)
       {
         Debug.WriteLine($"Ошибка инициализации систем: {ex.Message}");
-        MessageBox.Show("Ошибка инициализации. См. логи.", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
+        MessageBox.Show("Ошибка инициализации", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
         return;
       }
 

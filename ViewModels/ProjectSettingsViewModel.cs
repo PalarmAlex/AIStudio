@@ -1,4 +1,5 @@
-﻿using isida.Reflexes;
+﻿using isida.Common;
+using isida.Reflexes;
 using ISIDA.Actions;
 using ISIDA.Gomeostas;
 using Ookii.Dialogs.Wpf;
@@ -6,8 +7,10 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Windows;
 using System.Windows.Input;
 
 namespace AIStudio.ViewModels
@@ -18,6 +21,7 @@ namespace AIStudio.ViewModels
     private readonly AdaptiveActionsSystem _actionsSystem;
     private readonly GeneticReflexesSystem _geneticReflexesSystem;
 
+    private bool _isInitialized = false;
     private string _settingsPath;
     private string _dataGomeostasFolderPath;
     private string _dataGomeostasTemplateFolderPath;
@@ -30,10 +34,18 @@ namespace AIStudio.ViewModels
     private int _defaultStileId;
     private int _defaultAdaptiveActionId;
     private int _defaultGeneticReflexId;
+
     private int _recognitionThreshold;
+    private int _previousRecognitionThreshold;
+
     private int _compareLevel;
-    private int _difSensorPar;
+    private int _previousCompareLevel;
+
+    private float _difSensorPar;
+    private float _previousDifSensorPar;
+
     private int _dynamicTime;
+    private int _previousDynamicTime;
 
     public string SettingsPath
     {
@@ -143,40 +155,138 @@ namespace AIStudio.ViewModels
         OnPropertyChanged(nameof(DefaultGeneticReflexId));
       }
     }
+
     public int RecognitionThreshold
     {
       get => _recognitionThreshold;
       set
       {
-        _recognitionThreshold = value;
-        OnPropertyChanged(nameof(RecognitionThreshold));
+        if (!_isInitialized)
+        {
+          _recognitionThreshold = value;
+          _previousRecognitionThreshold = value;
+          return;
+        }
+
+        var validation = SettingsValidator.ValidateRecognitionThreshold(value);
+        if (validation.isValid)
+        {
+          _previousRecognitionThreshold = _recognitionThreshold;
+          _recognitionThreshold = value;
+          OnPropertyChanged(nameof(RecognitionThreshold));
+        }
+        else
+        {
+          MessageBox.Show(validation.errorMessage, "Ошибка ввода");
+          _recognitionThreshold = _previousRecognitionThreshold;
+          OnPropertyChanged(nameof(RecognitionThreshold));
+        }
       }
     }
+
     public int CompareLevel
     {
       get => _compareLevel;
       set
       {
-        _compareLevel = value;
-        OnPropertyChanged(nameof(CompareLevel));
+        if (!_isInitialized)
+        {
+          _compareLevel = value;
+          _previousCompareLevel = value;
+          return;
+        }
+
+        var validation = SettingsValidator.ValidateCompareLevel(value);
+        if (validation.isValid)
+        {
+          _previousCompareLevel = _compareLevel;
+          _compareLevel = value;
+          OnPropertyChanged(nameof(CompareLevel));
+        }
+        else
+        {
+          MessageBox.Show(validation.errorMessage, "Ошибка ввода");
+          _compareLevel = _previousCompareLevel;
+          OnPropertyChanged(nameof(CompareLevel));
+        }
       }
     }
-    public int DifSensorPar
+
+    private string _difSensorParText;
+    public string DifSensorParText
+    {
+      get => _difSensorParText ?? _difSensorPar.ToString(CultureInfo.InvariantCulture);
+      set
+      {
+        if (string.IsNullOrEmpty(value))
+          return;
+
+        string normalizedValue = value.Replace(',', '.');
+
+        if (float.TryParse(normalizedValue, NumberStyles.Float, CultureInfo.InvariantCulture, out float result))
+        {
+          var validation = SettingsValidator.ValidateDifSensorPar(result);
+          if (validation.isValid)
+          {
+            _difSensorParText = normalizedValue;
+            _difSensorPar = result;
+            OnPropertyChanged(nameof(DifSensorPar));
+          }
+          else
+          {
+            MessageBox.Show(validation.errorMessage, "Ошибка ввода");
+            _difSensorParText = _difSensorPar.ToString(CultureInfo.InvariantCulture);
+            OnPropertyChanged(nameof(DifSensorParText));
+          }
+        }
+        else
+          OnPropertyChanged(nameof(DifSensorParText));
+      }
+    }
+
+    public float DifSensorPar
     {
       get => _difSensorPar;
       set
       {
-        _difSensorPar = value;
-        OnPropertyChanged(nameof(DifSensorPar));
+        var validation = SettingsValidator.ValidateDifSensorPar(value);
+        if (validation.isValid)
+        {
+          _difSensorPar = value;
+          _difSensorParText = value.ToString(CultureInfo.InvariantCulture);
+          OnPropertyChanged(nameof(DifSensorPar));
+          OnPropertyChanged(nameof(DifSensorParText));
+        }
+        else
+          MessageBox.Show(validation.errorMessage, "Ошибка ввода");
       }
     }
+
     public int DynamicTime
     {
       get => _dynamicTime;
       set
       {
-        _dynamicTime = value;
-        OnPropertyChanged(nameof(DynamicTime));
+        if (!_isInitialized)
+        {
+          _dynamicTime = value;
+          _previousDynamicTime = value;
+          return;
+        }
+
+        var validation = SettingsValidator.ValidateDynamicTime(value);
+        if (validation.isValid)
+        {
+          _previousDynamicTime = _dynamicTime;
+          _dynamicTime = value;
+          OnPropertyChanged(nameof(DynamicTime));
+        }
+        else
+        {
+          MessageBox.Show(validation.errorMessage, "Ошибка ввода");
+          _dynamicTime = _previousDynamicTime;
+          OnPropertyChanged(nameof(DynamicTime));
+        }
       }
     }
 
@@ -207,10 +317,18 @@ namespace AIStudio.ViewModels
       DefaultStileId = AppConfig.DefaultStileId;
       DefaultAdaptiveActionId = AppConfig.DefaultAdaptiveActionId;
       DefaultGeneticReflexId = AppConfig.DefaultGeneticReflexId;
-      RecognitionThreshold = AppConfig.RecognitionThreshold;
-      CompareLevel = AppConfig.CompareLevel;
-      DifSensorPar = AppConfig.DifSensorPar;
-      DynamicTime = AppConfig.DynamicTime;
+
+      _recognitionThreshold = AppConfig.RecognitionThreshold;
+      _previousRecognitionThreshold = _recognitionThreshold;
+
+      _compareLevel = AppConfig.CompareLevel;
+      _previousCompareLevel = _compareLevel;
+
+      _difSensorPar = AppConfig.DifSensorPar;
+      _previousDifSensorPar = _difSensorPar;
+
+      _dynamicTime = AppConfig.DynamicTime;
+      _previousDynamicTime = _dynamicTime;
 
       _gomeostas = gomeostas;
 
@@ -251,6 +369,8 @@ namespace AIStudio.ViewModels
 
       BrowseFolderCommand = new RelayCommand(BrowseFolderWithParameter);
       SaveSettingsCommand = new RelayCommand(SaveSettingsWithParameter);
+
+      _isInitialized = true;
     }
 
     private void LoadBehaviorStylesWithNone()
@@ -294,7 +414,6 @@ namespace AIStudio.ViewModels
         }
       }
     }
-
 
     public event PropertyChangedEventHandler PropertyChanged;
     protected virtual void OnPropertyChanged(string propertyName)
@@ -385,8 +504,33 @@ namespace AIStudio.ViewModels
       }
     }
 
+    private bool ValidateAllSettings()
+    {
+      var validations = new List<(bool isValid, string errorMessage)>
+    {
+        SettingsValidator.ValidateRecognitionThreshold(RecognitionThreshold),
+        SettingsValidator.ValidateCompareLevel(CompareLevel),
+        SettingsValidator.ValidateDifSensorPar(DifSensorPar),
+        SettingsValidator.ValidateDynamicTime(DynamicTime)
+        // Добавьте другие проверки по необходимости
+    };
+
+      var failedValidations = validations.Where(v => !v.isValid).ToList();
+      if (failedValidations.Any())
+      {
+        string errorMessage = string.Join("\n\n", failedValidations.Select(v => v.errorMessage));
+        MessageBox.Show($"Обнаружены ошибки в настройках:\n\n{errorMessage}", "Ошибка валидации");
+        return false;
+      }
+
+      return true;
+    }
+
     private void SaveSettingsWithParameter(object _)
     {
+      if (!ValidateAllSettings())
+        return;
+
       try
       {
         AppConfig.SetSetting(nameof(SettingsPath), SettingsPath);
@@ -403,7 +547,7 @@ namespace AIStudio.ViewModels
         AppConfig.SetIntSetting(nameof(DefaultGeneticReflexId), DefaultGeneticReflexId);
         AppConfig.SetIntSetting(nameof(RecognitionThreshold), RecognitionThreshold);
         AppConfig.SetIntSetting(nameof(CompareLevel), CompareLevel);
-        AppConfig.SetIntSetting(nameof(DifSensorPar), DifSensorPar);
+        AppConfig.SetFloatSetting(nameof(DifSensorPar), DifSensorPar);
         AppConfig.SetIntSetting(nameof(DynamicTime), DynamicTime);
 
         // Используем TaskDialog вместо MessageBox

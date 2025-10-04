@@ -27,13 +27,13 @@ public static class AppConfig
   public static string ReflexesFolderPath => GetSetting("ReflexesFolderPath");
   public static string ReflexesTemplateFolderPath => GetSetting("ReflexesTemplateFolderPath");
   public static string SettingsPath => GetSetting("SettingsPath");
-  public static int DefaultStileId => GetIntSetting("DefaultStileId", 0);
-  public static int DefaultAdaptiveActionId => GetIntSetting("DefaultAdaptiveActionId", 0);
-  public static int DefaultGeneticReflexId => GetIntSetting("DefaultGeneticReflexId", 0);
-  public static int RecognitionThreshold => GetIntSetting("RecognitionThreshold", 3);
-  public static int CompareLevel => GetIntSetting("CompareLevel", 30);
-  public static int DifSensorPar => GetIntSetting("DifSensorPar", 2);
-  public static int DynamicTime => GetIntSetting("DynamicTime", 50);
+  public static int DefaultStileId => GetIntSetting("DefaultStileId", (int)GetDefaultValueSettings("DefaultStileId"));
+  public static int DefaultAdaptiveActionId => GetIntSetting("DefaultAdaptiveActionId", (int)GetDefaultValueSettings("DefaultAdaptiveActionId"));
+  public static int DefaultGeneticReflexId => GetIntSetting("DefaultGeneticReflexId", (int)GetDefaultValueSettings("DefaultGeneticReflexId"));
+  public static int RecognitionThreshold => GetIntSetting("RecognitionThreshold", (int)GetDefaultValueSettings("RecognitionThreshold"));
+  public static int CompareLevel => GetIntSetting("CompareLevel", (int)GetDefaultValueSettings("CompareLevel"));
+  public static float DifSensorPar => GetFloatSetting("DifSensorPar", (float)GetDefaultValueSettings("DifSensorPar"));
+  public static int DynamicTime => GetIntSetting("DynamicTime", (int)GetDefaultValueSettings("DynamicTime"));
 
   /// <summary>
   /// Создает конфиг с настройками по умолчанию, если его нет
@@ -63,8 +63,8 @@ public static class AppConfig
               new XElement("DefaultGeneticReflexId", 0),
               new XElement("RecognitionThreshold", 3),
               new XElement("CompareLevel", 30),
-              new XElement("DifSensorPar", 2),
-              new XElement("DynamicTime", 10)
+              new XElement("DifSensorPar", 0.02),
+              new XElement("DynamicTime", 50)
             )
           )
         );
@@ -151,6 +151,37 @@ public static class AppConfig
     }
   }
 
+  private static float GetFloatSetting(string key, float defaultValue)
+  {
+    string value = GetSetting(key);
+    return float.TryParse(value, System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out float result) ? result : defaultValue;
+  }
+
+  public static void SetFloatSetting(string key, float value)
+  {
+    try
+    {
+      var doc = XDocument.Load(ConfigFullPath);
+      var element = doc.Root?
+                      .Element("AppSettings")?
+                      .Element(key);
+
+      // Сохраняем с инвариантной культурой, чтобы разделитель был точкой
+      string stringValue = value.ToString(System.Globalization.CultureInfo.InvariantCulture);
+
+      if (element != null)
+        element.Value = stringValue;
+      else
+        doc.Root?.Element("AppSettings")?.Add(new XElement(key, stringValue));
+
+      doc.Save(ConfigFullPath);
+    }
+    catch (Exception ex)
+    {
+      Debug.WriteLine($"Ошибка сохранения настройки {key}: {ex.Message}");
+    }
+  }
+
   public static string GetBaseStateDisplay(int baseID)
   {
     switch (baseID)
@@ -170,6 +201,30 @@ public static class AppConfig
       case 0: return new SolidColorBrush(Color.FromRgb(204, 204, 0)); // темно-желтый
       case 1: return Brushes.Green;
       default: return Brushes.Gray;
+    }
+  }
+
+  /// <summary>
+  /// Получает значение настройки по умолчанию по имени
+  /// </summary>
+  public static object GetDefaultValueSettings(string settingName)
+  {
+    switch (settingName)
+    {
+      case "DefaultStileId":
+      case "DefaultAdaptiveActionId":
+      case "DefaultGeneticReflexId":
+        return 0;
+      case "RecognitionThreshold":
+        return 3;
+      case "DynamicTime":
+        return 50;
+      case "CompareLevel":
+        return 30;
+      case "DifSensorPar":
+        return 0.02f;
+      default:
+        return null;
     }
   }
 }
