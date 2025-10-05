@@ -34,6 +34,8 @@ public static class AppConfig
   public static int CompareLevel => GetIntSetting("CompareLevel", (int)GetDefaultValueSettings("CompareLevel"));
   public static float DifSensorPar => GetFloatSetting("DifSensorPar", (float)GetDefaultValueSettings("DifSensorPar"));
   public static int DynamicTime => GetIntSetting("DynamicTime", (int)GetDefaultValueSettings("DynamicTime"));
+  public static float DefaultBaseThreshold => GetFloatSetting("DefaultBaseThreshold", (float)GetDefaultValueSettings("DefaultBaseThreshold"));
+  public static float DefaultKCompetition => GetFloatSetting("DefaultKCompetition", (float)GetDefaultValueSettings("DefaultKCompetition"));
 
   /// <summary>
   /// Создает конфиг с настройками по умолчанию, если его нет
@@ -64,7 +66,9 @@ public static class AppConfig
               new XElement("RecognitionThreshold", 3),
               new XElement("CompareLevel", 30),
               new XElement("DifSensorPar", 0.02),
-              new XElement("DynamicTime", 50)
+              new XElement("DynamicTime", 50),
+              new XElement("DefaultKCompetition", 0.3),
+              new XElement("DefaultBaseThreshold", 0.2)
             )
           )
         );
@@ -223,6 +227,10 @@ public static class AppConfig
         return 30;
       case "DifSensorPar":
         return 0.02f;
+      case "DefaultBaseThreshold":
+        return 0.2f;
+      case "DefaultKCompetition":
+        return 0.3f;
       default:
         return null;
     }

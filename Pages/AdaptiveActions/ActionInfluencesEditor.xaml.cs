@@ -4,6 +4,7 @@ using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
+using isida.Common;
 using ISIDA.Actions;
 using ISIDA.Gomeostas;
 
@@ -115,14 +116,23 @@ namespace AIStudio.Dialogs
         }
 
         var itemList = items.ToList();
-        var invalidItems = itemList
-            .Where(item => item == null || item.Effect < -10 || item.Effect > 10)
+        var validationResults = itemList
+            .Select(item =>
+            {
+              return SettingsValidator.ValidateInfluencesParametr(item.Effect);
+            })
             .ToList();
 
-        if (invalidItems.Any())
+        var invalidResults = validationResults
+            .Where(result => !result.isValid)
+            .ToList();
+
+        if (invalidResults.Any())
         {
+          string errorMessage = string.Join("\n", invalidResults.Select(r => r.errorMessage).Take(5));
           MessageBox.Show(
-              "Некоторые значения влияния выходят за допустимые пределы (-10..+10).\nПожалуйста, исправьте их перед сохранением.",
+              $"Обнаружены ошибки валидации:\n{errorMessage}" +
+              (invalidResults.Count > 5 ? $"\n\n... и еще {invalidResults.Count - 5} ошибок" : ""),
               "Ошибка валидации",
               MessageBoxButton.OK,
               MessageBoxImage.Warning);

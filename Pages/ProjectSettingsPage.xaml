@@ -205,6 +205,8 @@
         <RowDefinition Height="Auto"/>
         <RowDefinition Height="Auto"/>
         <RowDefinition Height="Auto"/>
+        <RowDefinition Height="Auto"/>
+        <RowDefinition Height="Auto"/>
       </Grid.RowDefinitions>
 
       <!-- Интегральный порог состояния гомеостаза агента -->
@@ -253,6 +255,32 @@
           VerticalAlignment="Center"/>
 
         <TextBox Text="{Binding RecognitionThreshold, Mode=TwoWay, UpdateSourceTrigger=LostFocus}"
+          Width="100"
+          Margin="25,0"
+          Background="#FFFFFFFF"
+          IsReadOnly="False"/>
+      </StackPanel>
+
+      <!-- Порог активации стилей реагирования -->
+      <StackPanel Grid.Column="0" Grid.Row="4" Orientation="Horizontal" Margin="100,0,0,5">
+        <TextBlock Text="Порог активации стилей:" 
+          Width="250"
+          VerticalAlignment="Center"/>
+
+        <TextBox Text="{Binding DefaultBaseThresholdText, Mode=TwoWay, UpdateSourceTrigger=LostFocus}"
+          Width="100"
+          Margin="25,0"
+          Background="#FFFFFFFF"
+          IsReadOnly="False"/>
+      </StackPanel>
+
+      <!-- Коэфф. конкурентного подавления при латеральном торможении -->
+      <StackPanel Grid.Column="0" Grid.Row="5" Orientation="Horizontal" Margin="100,0,0,5">
+        <TextBlock Text="Коэфф. латерального торможения стилей:" 
+          Width="250"
+          VerticalAlignment="Center"/>
+
+        <TextBox Text="{Binding DefaultKCompetitionText, Mode=TwoWay, UpdateSourceTrigger=LostFocus}"
           Width="100"
           Margin="25,0"
           Background="#FFFFFFFF"

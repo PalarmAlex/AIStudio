@@ -6,6 +6,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using AIStudio.Common;
+using isida.Common;
 using ISIDA.Gomeostas;
 
 namespace AIStudio.Dialogs
@@ -139,11 +140,16 @@ namespace AIStudio.Dialogs
             text = text.Replace(',', '.');
 
             if (!double.TryParse(text,
-                               NumberStyles.AllowDecimalPoint | NumberStyles.AllowLeadingSign,
-                               CultureInfo.InvariantCulture,
-                               out double number)
-                || number < -1
-                || number > 1)
+                   NumberStyles.AllowDecimalPoint | NumberStyles.AllowLeadingSign,
+                   CultureInfo.InvariantCulture,
+                   out double number))
+            {
+              e.CancelCommand();
+              return;
+            }
+
+            var validationResult = SettingsValidator.ValidateBadWellStateInfluence((float?)number);
+            if (!validationResult.isValid)
             {
               e.CancelCommand();
               return;
@@ -174,7 +180,8 @@ namespace AIStudio.Dialogs
           continue;
 
         // Проверяем корректность значений перед сохранением
-        if (item.InfluenceValue < -1 || item.InfluenceValue > 1)
+        var validationResult = SettingsValidator.ValidateBadWellStateInfluence((float?)item.InfluenceValue);
+        if (!validationResult.isValid)
         {
           MessageBox.Show($"Значение влияния должно быть между -1 и +1 (параметр {item.ParameterId})",
                         "Ошибка", MessageBoxButton.OK, MessageBoxImage.Warning);
@@ -270,7 +277,7 @@ namespace AIStudio.Dialogs
       // Получаем предполагаемый новый текст
       string newText = textBox.Text.Insert(textBox.CaretIndex, e.Text);
 
-      // Проверяем, что ввод — число в диапазоне [-10, 10]
+      // Проверяем, что ввод — число в диапазоне [-1, 1]
       bool isNumber = double.TryParse(
           newText,
           NumberStyles.AllowDecimalPoint | NumberStyles.AllowLeadingSign,
@@ -278,7 +285,8 @@ namespace AIStudio.Dialogs
           out double number
       );
 
-      e.Handled = !isNumber || number < -10 || number > 10;
+      var validationResult = SettingsValidator.ValidateBadWellStateInfluence((float?)number);
+      e.Handled = !isNumber || number < -1 || number > 1;
     }
 
     private void InfluenceTextBox_LostFocus(object sender, RoutedEventArgs e)
