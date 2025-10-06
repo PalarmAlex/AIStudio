@@ -1,23 +1,27 @@
 ﻿using System;
-using System.IO;
-using System.Xml.Linq;
 using System.Diagnostics;
+using System.IO;
+using System.Reflection;
 using System.Windows.Media;
+using System.Xml.Linq;
 
 public static class AppConfig
 {
   private const string ConfigFileName = "AIStudio.Settings.xml";
   private static readonly string ConfigDirectory = Path.Combine(
-      Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData),
-      "ISIDA",
+      Path.GetDirectoryName(Assembly.GetEntryAssembly().Location),
       "Settings");
 
   private static readonly string ConfigFullPath = Path.Combine(ConfigDirectory, ConfigFileName);
+
+  // Флаг первого запуска
+  private static bool _isFirstRunInitialized = false;
 
   static AppConfig()
   {
     InitializeConfig();
   }
+
   public static string DataGomeostasFolderPath => GetSetting("DataGomeostasFolderPath");
   public static string DataGomeostasTemplateFolderPath => GetSetting("DataGomeostasTemplateFolderPath");
   public static string DataActionsFolderPath => GetSetting("DataActionsFolderPath");
@@ -38,47 +42,151 @@ public static class AppConfig
   public static float DefaultKCompetition => GetFloatSetting("DefaultKCompetition", (float)GetDefaultValueSettings("DefaultKCompetition"));
 
   /// <summary>
-  /// Создает конфиг с настройками по умолчанию, если его нет
+  /// Инициализирует конфигурацию и проверяет первый запуск
   /// </summary>
   private static void InitializeConfig()
   {
     try
     {
-      if (!File.Exists(ConfigFullPath))
+      bool isNewConfig = !File.Exists(ConfigFullPath);
+
+      if (isNewConfig)
       {
         Directory.CreateDirectory(ConfigDirectory);
+        CreateDefaultConfig();
 
-        var defaultConfig = new XDocument(
-          new XElement("Configuration",
-            new XElement("AppSettings",
-              new XElement("DataGomeostasFolderPath", @"C:\ProgramData\ISIDA\Data\Gomeostas"),
-              new XElement("DataActionsFolderPath", @"C:\ProgramData\ISIDA\Data\Actions"),
-              new XElement("SensorsFolderPath", @"C:\ProgramData\ISIDA\Data\Sensors"),
-              new XElement("ReflexesFolderPath", @"C:\ProgramData\ISIDA\Data\Reflexes"),
-              new XElement("DataGomeostasTemplateFolderPath", @"C:\ProgramData\ISIDA\Templates\Gomeostas"),
-              new XElement("DataActionsTemplateFolderPath", @"C:\ProgramData\ISIDA\Templates\Actions"),
-              new XElement("SensorsTemplateFolderPath", @"C:\ProgramData\ISIDA\Templates\Sensors"),
-              new XElement("ReflexesTemplateFolderPath", @"C:\ProgramData\ISIDA\Templates\Reflexes"),
-              new XElement("SettingsPath", @"C:\ProgramData\ISIDA\Settings"),
-              new XElement("DefaultStileId", 0),
-              new XElement("DefaultAdaptiveActionId", 0),
-              new XElement("DefaultGeneticReflexId", 0),
-              new XElement("RecognitionThreshold", 3),
-              new XElement("CompareLevel", 30),
-              new XElement("DifSensorPar", 0.02),
-              new XElement("DynamicTime", 50),
-              new XElement("DefaultKCompetition", 0.3),
-              new XElement("DefaultBaseThreshold", 0.2)
-            )
-          )
-        );
-
-        defaultConfig.Save(ConfigFullPath);
+        // Помечаем для последующей обработки первого запуска
+        _isFirstRunInitialized = true;
+      }
+      else
+      {
+        // Проверяем, нужно ли обновить пути (для случаев обновления программы)
+        CheckAndUpdatePaths();
       }
     }
     catch (Exception ex)
     {
       Debug.WriteLine($"Ошибка инициализации конфига: {ex.Message}");
+    }
+  }
+
+  /// <summary>
+  /// Создает конфиг с настройками по умолчанию
+  /// </summary>
+  private static void CreateDefaultConfig()
+  {
+    var defaultConfig = new XDocument(
+      new XElement("Configuration",
+        new XElement("AppSettings",
+          new XElement("DataGomeostasFolderPath", @"C:\ProgramData\ISIDA\Data\Gomeostas"),
+          new XElement("DataActionsFolderPath", @"C:\ProgramData\ISIDA\Data\Actions"),
+          new XElement("SensorsFolderPath", @"C:\ProgramData\ISIDA\Data\Sensors"),
+          new XElement("ReflexesFolderPath", @"C:\ProgramData\ISIDA\Data\Reflexes"),
+          new XElement("DataGomeostasTemplateFolderPath", @"C:\ProgramData\ISIDA\Templates\Gomeostas"),
+          new XElement("DataActionsTemplateFolderPath", @"C:\ProgramData\ISIDA\Templates\Actions"),
+          new XElement("SensorsTemplateFolderPath", @"C:\ProgramData\ISIDA\Templates\Sensors"),
+          new XElement("ReflexesTemplateFolderPath", @"C:\ProgramData\ISIDA\Templates\Reflexes"),
+          new XElement("SettingsPath", @"C:\ProgramData\ISIDA\Settings"),
+          new XElement("DefaultStileId", 0),
+          new XElement("DefaultAdaptiveActionId", 0),
+          new XElement("DefaultGeneticReflexId", 0),
+          new XElement("RecognitionThreshold", 3),
+          new XElement("CompareLevel", 30),
+          new XElement("DifSensorPar", 0.02),
+          new XElement("DynamicTime", 50),
+          new XElement("DefaultKCompetition", 0.3),
+          new XElement("DefaultBaseThreshold", 0.2)
+        )
+      )
+    );
+
+    defaultConfig.Save(ConfigFullPath);
+  }
+
+  /// <summary>
+  /// Проверяет и обновляет пути при необходимости
+  /// </summary>
+  private static void CheckAndUpdatePaths()
+  {
+    try
+    {
+      string currentInstallPath = GetApplicationInstallPath();
+
+      // Если программа установлена не в Program Files, обновляем пути
+      if (!IsProgramFilesPath(currentInstallPath))
+      {
+        UpdateConfigPaths(currentInstallPath);
+      }
+    }
+    catch (Exception ex)
+    {
+      Debug.WriteLine($"Ошибка при проверке путей: {ex.Message}");
+    }
+  }
+
+  /// <summary>
+  /// Получает путь установки приложения
+  /// </summary>
+  public static string GetApplicationInstallPath()
+  {
+    return Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location);
+  }
+
+  /// <summary>
+  /// Проверяет, находится ли путь в Program Files
+  /// </summary>
+  private static bool IsProgramFilesPath(string path)
+  {
+    string programFiles = Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles);
+    string programFilesX86 = Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86);
+
+    return path.StartsWith(programFiles, StringComparison.OrdinalIgnoreCase) ||
+           path.StartsWith(programFilesX86, StringComparison.OrdinalIgnoreCase);
+  }
+
+  /// <summary>
+  /// Обновляет пути в конфигурации на основе пути установки
+  /// </summary>
+  public static void UpdateConfigPaths(string installPath)
+  {
+    try
+    {
+      string drive = Path.GetPathRoot(installPath);
+
+      SetSetting("DataGomeostasFolderPath", Path.Combine(installPath, "Data", "Gomeostas"));
+      SetSetting("DataActionsFolderPath", Path.Combine(installPath, "Data", "Actions"));
+      SetSetting("SensorsFolderPath", Path.Combine(installPath, "Data", "Sensors"));
+      SetSetting("ReflexesFolderPath", Path.Combine(installPath, "Data", "Reflexes"));
+      SetSetting("DataGomeostasTemplateFolderPath", Path.Combine(installPath, "Templates", "Gomeostas"));
+      SetSetting("DataActionsTemplateFolderPath", Path.Combine(installPath, "Templates", "Actions"));
+      SetSetting("SensorsTemplateFolderPath", Path.Combine(installPath, "Templates", "Sensors"));
+      SetSetting("ReflexesTemplateFolderPath", Path.Combine(installPath, "Templates", "Reflexes"));
+      SetSetting("SettingsPath", Path.Combine(installPath, "Settings"));
+
+      Debug.WriteLine($"Конфигурационные пути обновлены для установки в: {installPath}");
+    }
+    catch (Exception ex)
+    {
+      Debug.WriteLine($"Ошибка обновления путей конфигурации: {ex.Message}");
+    }
+  }
+
+  /// <summary>
+  /// Вызывается при первом запуске приложения для окончательной настройки
+  /// </summary>
+  public static void InitializeFirstRun()
+  {
+    if (_isFirstRunInitialized)
+    {
+      string installPath = GetApplicationInstallPath();
+
+      // Если установка не в Program Files, обновляем пути
+      if (!IsProgramFilesPath(installPath))
+      {
+        UpdateConfigPaths(installPath);
+      }
+
+      _isFirstRunInitialized = false;
     }
   }
 

@@ -8,7 +8,8 @@
         mc:Ignorable="d"
         x:Name="mainWindow"
         Title="AI Control Panel" Height="700" Width="1200"
-        WindowStartupLocation="CenterScreen">
+        WindowStartupLocation="CenterScreen"
+        WindowState="Maximized">
 
   <Window.Resources>
     <ResourceDictionary>
