@@ -2,20 +2,19 @@
 using System.Diagnostics;
 using System.IO;
 using System.Reflection;
+using System.Windows;
 using System.Windows.Media;
 using System.Xml.Linq;
 
 public static class AppConfig
 {
   private const string ConfigFileName = "AIStudio.Settings.xml";
-  private static readonly string ConfigDirectory = Path.Combine(
-      Path.GetDirectoryName(Assembly.GetEntryAssembly().Location),
-      "Settings");
+  private static string ConfigDirectory = Path.Combine(
+      Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData),
+      "ISIDA", "Settings"
+  );
 
-  private static readonly string ConfigFullPath = Path.Combine(ConfigDirectory, ConfigFileName);
-
-  // Флаг первого запуска
-  private static bool _isFirstRunInitialized = false;
+  private static string ConfigFullPath = Path.Combine(ConfigDirectory, ConfigFileName);
 
   static AppConfig()
   {
@@ -31,6 +30,7 @@ public static class AppConfig
   public static string ReflexesFolderPath => GetSetting("ReflexesFolderPath");
   public static string ReflexesTemplateFolderPath => GetSetting("ReflexesTemplateFolderPath");
   public static string SettingsPath => GetSetting("SettingsPath");
+  public static int FirstRun => GetIntSetting("FirstRun", (int)GetDefaultValueSettings("FirstRun"));
   public static int DefaultStileId => GetIntSetting("DefaultStileId", (int)GetDefaultValueSettings("DefaultStileId"));
   public static int DefaultAdaptiveActionId => GetIntSetting("DefaultAdaptiveActionId", (int)GetDefaultValueSettings("DefaultAdaptiveActionId"));
   public static int DefaultGeneticReflexId => GetIntSetting("DefaultGeneticReflexId", (int)GetDefaultValueSettings("DefaultGeneticReflexId"));
@@ -44,24 +44,33 @@ public static class AppConfig
   /// <summary>
   /// Инициализирует конфигурацию и проверяет первый запуск
   /// </summary>
-  private static void InitializeConfig()
+  public static void InitializeConfig()
   {
     try
     {
-      bool isNewConfig = !File.Exists(ConfigFullPath);
+      string currentInstallPath = GetApplicationInstallPath();
 
-      if (isNewConfig)
+      if (!IsProgramFilesPath(currentInstallPath))
+      {
+        ConfigDirectory = Path.Combine(currentInstallPath, "Settings");
+        ConfigFullPath = Path.Combine(ConfigDirectory, ConfigFileName);
+      }
+     
+      bool isNoConfig = !File.Exists(ConfigFullPath);
+
+      if (isNoConfig)
       {
         Directory.CreateDirectory(ConfigDirectory);
         CreateDefaultConfig();
-
-        // Помечаем для последующей обработки первого запуска
-        _isFirstRunInitialized = true;
       }
       else
       {
-        // Проверяем, нужно ли обновить пути (для случаев обновления программы)
-        CheckAndUpdatePaths();
+        int firstRunValue = GetIntSetting("FirstRun", 0);
+        if (firstRunValue == 0)
+        {
+          CheckAndUpdatePaths(currentInstallPath);
+          SetIntSetting("FirstRun", 1);
+        }
       }
     }
     catch (Exception ex)
@@ -95,7 +104,8 @@ public static class AppConfig
           new XElement("DifSensorPar", 0.02),
           new XElement("DynamicTime", 50),
           new XElement("DefaultKCompetition", 0.3),
-          new XElement("DefaultBaseThreshold", 0.2)
+          new XElement("DefaultBaseThreshold", 0.2),
+          new XElement("FirstRun", 1)
         )
       )
     );
@@ -106,17 +116,17 @@ public static class AppConfig
   /// <summary>
   /// Проверяет и обновляет пути при необходимости
   /// </summary>
-  private static void CheckAndUpdatePaths()
+  private static void CheckAndUpdatePaths(string currentInstallPath)
   {
     try
     {
-      string currentInstallPath = GetApplicationInstallPath();
-
-      // Если программа установлена не в Program Files, обновляем пути
-      if (!IsProgramFilesPath(currentInstallPath))
+      // Если программа установлена в Program Files
+      if (IsProgramFilesPath(currentInstallPath))
       {
-        UpdateConfigPaths(currentInstallPath);
+        string programData = Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData);
+        currentInstallPath = Path.Combine(programData, "ISIDA");
       }
+      UpdateConfigPaths(currentInstallPath);
     }
     catch (Exception ex)
     {
@@ -129,7 +139,7 @@ public static class AppConfig
   /// </summary>
   public static string GetApplicationInstallPath()
   {
-    return Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location);
+    return Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
   }
 
   /// <summary>
@@ -137,11 +147,16 @@ public static class AppConfig
   /// </summary>
   private static bool IsProgramFilesPath(string path)
   {
-    string programFiles = Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles);
-    string programFilesX86 = Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86);
+    if (string.IsNullOrEmpty(path))
+      return false;
 
-    return path.StartsWith(programFiles, StringComparison.OrdinalIgnoreCase) ||
-           path.StartsWith(programFilesX86, StringComparison.OrdinalIgnoreCase);
+    string pathUpper = path.ToUpperInvariant();
+
+    // Всегда проверяем оба возможных Program Files пути
+    string pf64 = @"C:\PROGRAM FILES";
+    string pf32 = @"C:\PROGRAM FILES (X86)";
+
+    return pathUpper.StartsWith(pf64) || pathUpper.StartsWith(pf32);
   }
 
   /// <summary>
@@ -151,8 +166,6 @@ public static class AppConfig
   {
     try
     {
-      string drive = Path.GetPathRoot(installPath);
-
       SetSetting("DataGomeostasFolderPath", Path.Combine(installPath, "Data", "Gomeostas"));
       SetSetting("DataActionsFolderPath", Path.Combine(installPath, "Data", "Actions"));
       SetSetting("SensorsFolderPath", Path.Combine(installPath, "Data", "Sensors"));
@@ -168,25 +181,6 @@ public static class AppConfig
     catch (Exception ex)
     {
       Debug.WriteLine($"Ошибка обновления путей конфигурации: {ex.Message}");
-    }
-  }
-
-  /// <summary>
-  /// Вызывается при первом запуске приложения для окончательной настройки
-  /// </summary>
-  public static void InitializeFirstRun()
-  {
-    if (_isFirstRunInitialized)
-    {
-      string installPath = GetApplicationInstallPath();
-
-      // Если установка не в Program Files, обновляем пути
-      if (!IsProgramFilesPath(installPath))
-      {
-        UpdateConfigPaths(installPath);
-      }
-
-      _isFirstRunInitialized = false;
     }
   }
 
@@ -339,6 +333,8 @@ public static class AppConfig
         return 0.2f;
       case "DefaultKCompetition":
         return 0.3f;
+      case "FirstRun":
+        return 0;
       default:
         return null;
     }

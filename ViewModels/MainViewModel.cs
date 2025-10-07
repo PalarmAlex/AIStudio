@@ -70,9 +70,6 @@ namespace AIStudio
     {
       try
       {
-        // Инициализация первого запуска
-        AppConfig.InitializeFirstRun();
-
         // Инициализация гомеостаза
         GomeostasSystem.InitializeInstance(AppConfig.DataGomeostasFolderPath, AppConfig.DataGomeostasTemplateFolderPath);
         _gomeostas = GomeostasSystem.Instance;
