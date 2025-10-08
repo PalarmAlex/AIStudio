@@ -184,6 +184,25 @@
             </DataGridTextColumn.HeaderStyle>
           </DataGridTextColumn>
 
+          <DataGridTemplateColumn Header="Системный" Width="70">
+            <DataGridTemplateColumn.CellTemplate>
+              <DataTemplate>
+                <CheckBox IsChecked="{Binding IsSystemParam}"
+                IsHitTestVisible="False"
+                Focusable="False"
+                VerticalAlignment="Center"
+                HorizontalAlignment="Center"/>
+              </DataTemplate>
+            </DataGridTemplateColumn.CellTemplate>
+            <DataGridTemplateColumn.CellEditingTemplate>
+              <DataTemplate>
+                <CheckBox IsChecked="{Binding IsSystemParam}"
+                VerticalAlignment="Center"
+                HorizontalAlignment="Center"/>
+              </DataTemplate>
+            </DataGridTemplateColumn.CellEditingTemplate>
+          </DataGridTemplateColumn>
+
         </DataGrid.Columns>
       </DataGrid>
     </Border>

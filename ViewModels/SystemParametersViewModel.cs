@@ -161,7 +161,8 @@ namespace AIStudio.ViewModels
                 param.Value,
                 param.Weight,
                 param.NormaWell,
-                param.Speed);
+                param.Speed,
+                param.IsSystemParam);
 
             if (warnings.Length > 0)
             {
@@ -234,21 +235,48 @@ namespace AIStudio.ViewModels
           // Удаляем из системы гомеостаза (если параметр уже сохранен)
           if (param.Id > 0)
           {
-            _gomeostas.RemoveParameter(param.Id);
-            var (success, error) = _gomeostas.SaveAgentParameters();
-            if (!success)
+            try
             {
-              MessageBox.Show($"Не удалось сохранить параметры:\n{error}",
-                  "Ошибка сохранения",
+              _gomeostas.RemoveParameter(param.Id);
+
+              var (success, error) = _gomeostas.SaveAgentParameters();
+              if (!success)
+              {
+                MessageBox.Show($"Не удалось сохранить параметры:\n{error}",
+                    "Ошибка сохранения",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Error);
+              }
+            }
+            catch (InvalidOperationException ex) when (ex.Message.Contains("системным"))
+            {
+              // Отлавливаем исключение о системном параметре
+              MessageBox.Show($"Не удалось удалить параметр '{param.Name}':\n{ex.Message}",
+                  "Системный параметр",
+                  MessageBoxButton.OK,
+                  MessageBoxImage.Warning);
+
+              // Возвращаем параметр обратно в коллекцию
+              if (!SystemParameters.Contains(param))
+              {
+                SystemParameters.Add(param);
+              }
+              continue; // Переходим к следующему параметру
+            }
+            catch (Exception ex)
+            {
+              MessageBox.Show($"Ошибка при удалении параметра '{param.Name}':\n{ex.Message}",
+                  "Ошибка удаления",
                   MessageBoxButton.OK,
                   MessageBoxImage.Error);
+              continue;
             }
           }
         }
       }
       catch (Exception ex)
       {
-        MessageBox.Show($"Ошибка при удалении параметров: {ex.Message}",
+        MessageBox.Show($"Общая ошибка при удалении параметров: {ex.Message}",
             "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
       }
     }

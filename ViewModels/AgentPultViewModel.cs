@@ -153,6 +153,6 @@ namespace AIStudio.ViewModels
 
   public class InfluenceActionItem : AntagonistItem
   {
-    // доп свойства если надо
+    // доп свойства
   }
 }

@@ -1,13 +1,14 @@
-﻿using System;
+﻿using AIStudio.Common;
+using ISIDA.Common;
+using ISIDA.Gomeostas;
+using System;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Diagnostics;
+using System.Security.Cryptography;
 using System.Windows;
 using System.Windows.Input;
 using System.Windows.Media;
-using AIStudio.Common;
-using ISIDA.Common;
-using ISIDA.Gomeostas;
 using static ISIDA.Gomeostas.GomeostasSystem;
 
 namespace AIStudio.ViewModels
@@ -160,10 +161,31 @@ namespace AIStudio.ViewModels
           AgentName = $"{AgentProperties[0].Value}. Стадия развития: {SelectedStage}";
           OnPropertyChanged(nameof(AgentName));
 
-          MessageBox.Show("Изменения сохранены успешно",
-              "Сохранение",
-              MessageBoxButton.OK,
-              MessageBoxImage.Information);
+          var result = MessageBox.Show("Изменения успешно сохранены.\n" +
+              "Сохранить так же значения параметров?",
+              "Подтверждение сохранения значений параметров",
+              MessageBoxButton.YesNo,
+              MessageBoxImage.Question);
+
+          if (result == MessageBoxResult.Yes)
+          {
+            // предполагаем, что валидация прошла при их сохранении на странице параметров
+            (success, error) = _gomeostas.SaveAgentParameters(false);
+            if (success)
+            {
+              MessageBox.Show("Значения параметров успешно сохранены",
+                  "Сохранение",
+                  MessageBoxButton.OK,
+                  MessageBoxImage.Information);
+            }
+            else
+            {
+              MessageBox.Show($"Не удалось сохранить значения параметров:\n{error}",
+                  "Ошибка сохранения",
+                  MessageBoxButton.OK,
+                  MessageBoxImage.Error);
+            }
+          }
         }
         else
         {
