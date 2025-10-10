@@ -1,5 +1,6 @@
 ﻿using AIStudio.Common;
 using ISIDA.Actions;
+using ISIDA.Common;
 using ISIDA.Gomeostas;
 using System;
 using System.Collections.Generic;
@@ -20,24 +21,59 @@ namespace AIStudio.ViewModels
       PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
     }
 
+    private readonly GomeostasSystem _gomeostas;
     private readonly InfluenceActionSystem _influenceActionSystem;
     private ObservableCollection<InfluenceActionItem> _influenceActions;
     private ObservableCollection<InfluenceActionItem> _column1Actions;
     private ObservableCollection<InfluenceActionItem> _column2Actions;
     private AntagonistManager _antagonistManager;
+    private bool _isAgentDead;
+
+    public bool IsEditingEnabled => !IsAgentDead;
+    public bool IsAgentDead
+    {
+      get => _isAgentDead;
+      set
+      {
+        if (_isAgentDead != value)
+        {
+          _isAgentDead = value;
+          OnPropertyChanged();
+          OnPropertyChanged(nameof(IsEditingEnabled));
+        }
+      }
+    }
 
     private ICommand _applyInfluenceCommand;
     public ICommand ApplyInfluenceCommand => _applyInfluenceCommand ??
-        (_applyInfluenceCommand = new RelayCommand(ApplyInfluenceActions));
+        (_applyInfluenceCommand = new RelayCommand(ApplyInfluenceActions, _ => IsEditingEnabled));
 
     public AgentPultViewModel()
     {
+      _gomeostas = GomeostasSystem.Instance;
       _influenceActionSystem = InfluenceActionSystem.Instance;
       _influenceActions = new ObservableCollection<InfluenceActionItem>();
       _column1Actions = new ObservableCollection<InfluenceActionItem>();
       _column2Actions = new ObservableCollection<InfluenceActionItem>();
 
       LoadInfluenceActions();
+      UpdateAgentState();
+    }
+
+    private void UpdateAgentState()
+    {
+      try
+      {
+        var agentInfo = _gomeostas.GetAgentState();
+        if (agentInfo != null)
+        {
+          IsAgentDead = agentInfo.IsDead;
+        }
+      }
+      catch (Exception ex)
+      {
+        System.Diagnostics.Debug.WriteLine($"Ошибка получения состояния агента: {ex.Message}");
+      }
     }
 
     public ObservableCollection<InfluenceActionItem> Column1Actions
@@ -105,6 +141,7 @@ namespace AIStudio.ViewModels
         System.Diagnostics.Debug.WriteLine($"Ошибка загрузки воздействий: {ex.Message}");
       }
     }
+
     public List<int> GetSelectedInfluenceActions()
     {
       return _influenceActions
@@ -115,6 +152,15 @@ namespace AIStudio.ViewModels
 
     public void ApplyInfluenceActions(object parameter)
     {
+      if (IsAgentDead)
+      {
+        MessageBox.Show("Невозможно применить воздействие к мертвому агенту",
+            "Агент мертв",
+            MessageBoxButton.OK,
+            MessageBoxImage.Error);
+        return;
+      }
+
       var selectedActions = GetSelectedInfluenceActions();
       if (selectedActions.Count == 0)
       {
@@ -136,6 +182,16 @@ namespace AIStudio.ViewModels
         var (success, error) = _influenceActionSystem.ApplyInfluenceAction(action.Id);
         if (!success)
         {
+          if (error.Contains("Агент мертв"))
+          {
+            IsAgentDead = true;
+            MessageBox.Show("Агент умер во время применения воздействий",
+                "Агент мертв",
+                MessageBoxButton.OK,
+                MessageBoxImage.Warning);
+            return;
+          }
+
           MessageBox.Show($"Не удалось применить гомеостатическое воздействие: {error}",
               "Ошибка изменения параметров гомеостаза агента",
               MessageBoxButton.OK,

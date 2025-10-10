@@ -4,7 +4,7 @@ using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
-using isida.Common;
+using ISIDA.Common;
 using ISIDA.Actions;
 using ISIDA.Gomeostas;
 

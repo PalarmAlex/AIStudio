@@ -1,7 +1,7 @@
 ﻿using AIStudio.Common;
 using AIStudio.Dialogs;
 using AIStudio.ViewModels;
-using isida.Reflexes;
+using ISIDA.Reflexes;
 using ISIDA.Gomeostas;
 using System;
 using System.Collections.Generic;

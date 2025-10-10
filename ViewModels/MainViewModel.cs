@@ -18,7 +18,7 @@ using ISIDA.Gomeostas;
 using ISIDA.Common;
 using ISIDA.Actions;
 using ISIDA.Sensors;
-using isida.Reflexes;
+using ISIDA.Reflexes;
 using AIStudio.Pages.Reflexes;
 
 namespace AIStudio
@@ -63,6 +63,29 @@ namespace AIStudio
         OnPropertyChanged(nameof(CurrentContent));
       }
     }
+
+    private bool _isAgentDead;
+    public bool IsAgentDead
+    {
+      get => _isAgentDead;
+      set
+      {
+        if (_isAgentDead != value)
+        {
+          _isAgentDead = value;
+          OnPropertyChanged(nameof(IsAgentDead));
+          OnPropertyChanged(nameof(IsPulseButtonEnabled));
+          OnPropertyChanged(nameof(PulseButtonText));
+          OnPropertyChanged(nameof(PulseButtonColor));
+          OnPropertyChanged(nameof(PulseStatus));
+
+          if (_isAgentDead && IsPulsating)
+            StopPulsationDueToDeath();
+        }
+      }
+    }
+
+    public bool IsPulseButtonEnabled => !IsAgentDead;
 
     #endregion
 
@@ -120,22 +143,79 @@ namespace AIStudio
 
       ResetLifeTimeCommand = new RelayCommand(_ =>
       {
+        if (IsAgentDead)
+        {
+          MessageBox.Show("Невозможно сбросить время жизни мертвого агента",
+              "Агент мертв",
+              MessageBoxButton.OK,
+              MessageBoxImage.Error);
+          return;
+        }
+
         if (MessageBox.Show("Сбросить время жизни системы?", "Подтверждение",
             MessageBoxButton.YesNo, MessageBoxImage.Question) == MessageBoxResult.Yes)
         {
           GlobalTimer.Reset();
           OnPropertyChanged(nameof(LifeTimeStatus));
         }
-      });
+      }, _ => !IsAgentDead);
       VerticalMenuItemClickedCommand = new RelayCommand(ExecuteVerticalMenuItemClicked);
 
       IsAgentExpanded = true;
       OpenAgent();
+      UpdateAgentState();
+    }
+
+    private void UpdateAgentState()
+    {
+      try
+      {
+        var agentInfo = _gomeostas.GetAgentState();
+        if (agentInfo != null)
+        {
+          bool wasDead = IsAgentDead;
+          IsAgentDead = agentInfo.IsDead;
+
+          // Если агент только что умер и пульсация активна
+          if (!wasDead && IsAgentDead && IsPulsating)
+            StopPulsationDueToDeath();
+        }
+      }
+      catch (Exception ex)
+      {
+        Debug.WriteLine($"Ошибка получения состояния агента: {ex.Message}");
+      }
+    }
+
+    private void StopPulsationDueToDeath()
+    {
+      if (IsPulsating)
+      {
+        GlobalTimer.Stop();
+        IsPulsating = false;
+
+        // Показываем сообщение о остановке пульсации
+        MessageBox.Show("Пульсация автоматически остановлена - агент мертв",
+            "Агент мертв",
+            MessageBoxButton.OK,
+            MessageBoxImage.Warning);
+
+        Debug.WriteLine("Пульсация остановлена из-за смерти агента");
+      }
     }
 
     #region Левое меню проекта
     private void ExecuteVerticalMenuItemClicked(object parameter)
     {
+      if (IsAgentDead)
+      {
+        MessageBox.Show("Невозможно выполнить операцию для мертвого агента",
+            "Агент мертв",
+            MessageBoxButton.OK,
+            MessageBoxImage.Error);
+        return;
+      }
+
       if (parameter is string menuItem)
       {
         switch (menuItem)
@@ -312,6 +392,7 @@ namespace AIStudio
       var agentViewModel = new AgentViewModel(_gomeostas);
       agentView.DataContext = agentViewModel;
       CurrentContent = agentView;
+      UpdateAgentState();
     }
 
     // Открыть страницу системных параметров
@@ -470,15 +551,17 @@ namespace AIStudio
       }
     }
 
-    public string PulseButtonText => IsPulsating ? "СТОП" : "СТАРТ";
-    public Brush PulseButtonColor => IsPulsating ? Brushes.Red : Brushes.Green;
-
-    public string PulseStatus => $"Пульсов: {GlobalTimer.GlobalPulsCount}";
+    public string PulseButtonText => IsAgentDead ? "АГЕНТ МЕРТВ" : (IsPulsating ? "СТОП" : "СТАРТ");
+    public Brush PulseButtonColor => IsAgentDead ? Brushes.DarkRed : (IsPulsating ? Brushes.Red : Brushes.Green);
+    public string PulseStatus => IsAgentDead ? "АГЕНТ МЕРТВ" : $"Пульсов: {GlobalTimer.GlobalPulsCount}";
 
     public string LifeTimeStatus
     {
       get
       {
+        if (IsAgentDead)
+          return "АГЕНТ МЕРТВ";
+
         var agentInfo = _gomeostas.GetAgentState();
         var ts = TimeSpan.FromSeconds(agentInfo.Lifetime);
         return $"Глобальное время жизни: {ts.Days / 365} лет, {(ts.Days % 365) / 30} месяцев, {ts:%d} дней, {ts:%h} часов, {ts:%m} минут, {ts:%s} секунд";
@@ -491,6 +574,15 @@ namespace AIStudio
     {
       TogglePulseCommand = new RelayCommand(_ =>
       {
+        if (IsAgentDead)
+        {
+          MessageBox.Show("Невозможно управлять пульсацией мертвого агента",
+              "Агент мертв",
+              MessageBoxButton.OK,
+              MessageBoxImage.Error);
+          return;
+        }
+
         if (IsPulsating)
         {
           GlobalTimer.Stop();
@@ -500,7 +592,7 @@ namespace AIStudio
           GlobalTimer.Start();
         }
         IsPulsating = !IsPulsating;
-      });
+      }, _ => IsPulseButtonEnabled);
     }
 
     private void SetupPulseHandlers()
@@ -522,6 +614,10 @@ namespace AIStudio
           {
             OnPropertyChanged(nameof(PulseStatus));
             OnPropertyChanged(nameof(LifeTimeStatus));
+            UpdateAgentState(); // Обновляем состояние агента после каждого пульса
+
+            if (IsAgentDead && IsPulsating)
+              StopPulsationDueToDeath();
           }
         });
       };

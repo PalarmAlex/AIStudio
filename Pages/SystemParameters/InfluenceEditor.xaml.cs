@@ -6,7 +6,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using AIStudio.Common;
-using isida.Common;
+using ISIDA.Common;
 using ISIDA.Gomeostas;
 
 namespace AIStudio.Dialogs

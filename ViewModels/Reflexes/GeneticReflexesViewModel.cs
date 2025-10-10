@@ -1,4 +1,4 @@
-﻿using isida.Reflexes;
+﻿using ISIDA.Reflexes;
 using ISIDA.Actions;
 using ISIDA.Common;
 using ISIDA.Gomeostas;

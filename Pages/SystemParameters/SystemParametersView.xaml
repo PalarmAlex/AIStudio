@@ -139,6 +139,22 @@
             </DataGridTextColumn.EditingElementStyle>
           </DataGridTextColumn>
 
+          <DataGridTextColumn Header="Крит. мин." Binding="{Binding CriticalMinValue, Mode=TwoWay}" Width="Auto">
+            <DataGridTextColumn.EditingElementStyle>
+              <Style TargetType="TextBox">
+                <EventSetter Event="PreviewTextInput" Handler="NumericColumn_PreviewTextInput"/>
+              </Style>
+            </DataGridTextColumn.EditingElementStyle>
+          </DataGridTextColumn>
+
+          <DataGridTextColumn Header="Крит. макс." Binding="{Binding CriticalMaxValue, Mode=TwoWay}" Width="Auto">
+            <DataGridTextColumn.EditingElementStyle>
+              <Style TargetType="TextBox">
+                <EventSetter Event="PreviewTextInput" Handler="NumericColumn_PreviewTextInput"/>
+              </Style>
+            </DataGridTextColumn.EditingElementStyle>
+          </DataGridTextColumn>
+
           <DataGridTextColumn Header="Влияние (Плохо)" Width="*" IsReadOnly="True">
             <DataGridTextColumn.Binding>
               <Binding Path="BadStateInfluence" 
@@ -184,10 +200,10 @@
             </DataGridTextColumn.HeaderStyle>
           </DataGridTextColumn>
 
-          <DataGridTemplateColumn Header="Системный" Width="70">
+          <DataGridTemplateColumn Header="Зависимый" Width="50">
             <DataGridTemplateColumn.CellTemplate>
               <DataTemplate>
-                <CheckBox IsChecked="{Binding IsSystemParam}"
+                <CheckBox IsChecked="{Binding RequiresExternalResources}"
                 IsHitTestVisible="False"
                 Focusable="False"
                 VerticalAlignment="Center"
@@ -196,7 +212,26 @@
             </DataGridTemplateColumn.CellTemplate>
             <DataGridTemplateColumn.CellEditingTemplate>
               <DataTemplate>
-                <CheckBox IsChecked="{Binding IsSystemParam}"
+                <CheckBox IsChecked="{Binding RequiresExternalResources}"
+                VerticalAlignment="Center"
+                HorizontalAlignment="Center"/>
+              </DataTemplate>
+            </DataGridTemplateColumn.CellEditingTemplate>
+          </DataGridTemplateColumn>
+
+          <DataGridTemplateColumn Header="Жизн. важный" Width="50">
+            <DataGridTemplateColumn.CellTemplate>
+              <DataTemplate>
+                <CheckBox IsChecked="{Binding IsVital}"
+                IsHitTestVisible="False"
+                Focusable="False"
+                VerticalAlignment="Center"
+                HorizontalAlignment="Center"/>
+              </DataTemplate>
+            </DataGridTemplateColumn.CellTemplate>
+            <DataGridTemplateColumn.CellEditingTemplate>
+              <DataTemplate>
+                <CheckBox IsChecked="{Binding IsVital}"
                 VerticalAlignment="Center"
                 HorizontalAlignment="Center"/>
               </DataTemplate>

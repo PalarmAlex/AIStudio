@@ -1,5 +1,5 @@
-﻿using isida.Common;
-using isida.Reflexes;
+﻿using ISIDA.Common;
+using ISIDA.Reflexes;
 using ISIDA.Actions;
 using ISIDA.Gomeostas;
 using Ookii.Dialogs.Wpf;

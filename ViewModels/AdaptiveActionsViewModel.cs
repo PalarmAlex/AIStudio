@@ -170,13 +170,25 @@ namespace AIStudio.ViewModels
 
     private bool UpdateActionsSystemFromTable()
     {
-      if (!_actionsSystem.ValidateAction(AdaptiveActions, out string erroMsg))
+      var (isValid, errors, validate_warnings) = _actionsSystem.ValidateAction(AdaptiveActions);
+      if (!isValid)
       {
-        MessageBox.Show($"Ошибка валидации адаптивных действий:\n{erroMsg}",
-            "Ошибка сохранения",
+        MessageBox.Show(errors,
+            "Ошибки валидации",
             MessageBoxButton.OK,
             MessageBoxImage.Error);
         return false;
+      }
+      if (validate_warnings != "")
+      {
+        var resultMsg = MessageBox.Show(
+            $"{validate_warnings}\n\nПродолжить сохранение?",
+            "Предупреждения",
+            MessageBoxButton.YesNo,
+            MessageBoxImage.Warning);
+
+        if (resultMsg == MessageBoxResult.No)
+          return false;
       }
 
       // Получаем текущие действия из системы

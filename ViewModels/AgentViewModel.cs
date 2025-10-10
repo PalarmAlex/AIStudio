@@ -18,23 +18,101 @@ namespace AIStudio.ViewModels
     private readonly GomeostasSystem _gomeostas;
     private ICommand _changeStageCommand;
     private ICommand _updateCommand;
-    public ICommand UpdateCommand => _updateCommand ?? (_updateCommand = new RelayCommand(_ => UpdateAgentProperties()));
-    public ICommand ChangeStageCommand => _changeStageCommand ?? (_changeStageCommand = new RelayCommand(ChangeStage));
+    public ICommand UpdateCommand => _updateCommand ?? (_updateCommand = new RelayCommand(_ => UpdateAgentProperties(), _ => !IsAgentDead));
+    public ICommand ChangeStageCommand => _changeStageCommand ?? (_changeStageCommand = new RelayCommand(ChangeStage, _ => !IsAgentDead));
     private bool _disposed = false;
     private int _previousStage;
+    private bool _isAgentDead;
 
     public ObservableCollection<AgentProperty> AgentProperties { get; }
     public ObservableCollection<int> AvailableStages { get; } = new ObservableCollection<int> { 0, 1, 2, 3, 4, 5 };
-    public string AgentName { get; set; }
-    public string AgentBaseSost => $"Жизненные параметры агента. Состояние: {HomeostasisStatus}";
-    public Brush HeaderBackground { get; set; }
-    public bool IsStageComboEnabled => !GlobalTimer.IsPulsationRunning;
-    public bool IsStageSelectionEnabled => !GlobalTimer.IsPulsationRunning;
-    public bool IsEditingEnabled => !GlobalTimer.IsPulsationRunning;
-    public Brush WarningMessageColor => GlobalTimer.IsPulsationRunning ? Brushes.Gray : Brushes.Transparent;
-    public string PulseWarningMessage => GlobalTimer.IsPulsationRunning
-        ? "Редактирование свойств недоступно во время пульсации"
-        : string.Empty;
+
+    private string _agentName;
+    public string AgentName
+    {
+      get => _agentName;
+      set
+      {
+        _agentName = value;
+        OnPropertyChanged(nameof(AgentName));
+      }
+    }
+
+    public string AgentBaseSost => IsAgentDead
+        ? "АГЕНТ МЕРТВ"
+        : $"Жизненные параметры агента. Состояние: {HomeostasisStatus}";
+
+    private Brush _headerBackground;
+    public Brush HeaderBackground
+    {
+      get => _headerBackground;
+      set
+      {
+        _headerBackground = value;
+        OnPropertyChanged(nameof(HeaderBackground));
+      }
+    }
+
+    private Brush _textForeground;
+    public Brush TextForeground
+    {
+      get => _textForeground;
+      set
+      {
+        _textForeground = value;
+        OnPropertyChanged(nameof(TextForeground));
+      }
+    }
+
+    public bool IsAgentDead
+    {
+      get => _isAgentDead;
+      set
+      {
+        if (_isAgentDead != value)
+        {
+          _isAgentDead = value;
+          OnPropertyChanged(nameof(IsAgentDead));
+          OnPropertyChanged(nameof(IsStageComboEnabled));
+          OnPropertyChanged(nameof(IsStageSelectionEnabled));
+          OnPropertyChanged(nameof(IsEditingEnabled));
+          OnPropertyChanged(nameof(PulseWarningMessage));
+          OnPropertyChanged(nameof(AgentBaseSost));
+          OnPropertyChanged(nameof(IsAnyControlEnabled));
+
+          // Обновляем команды
+          (_updateCommand as RelayCommand)?.RaiseCanExecuteChanged();
+          (_changeStageCommand as RelayCommand)?.RaiseCanExecuteChanged();
+        }
+      }
+    }
+
+    public bool IsAnyControlEnabled => !IsAgentDead && !GlobalTimer.IsPulsationRunning;
+    public bool IsStageComboEnabled => IsAnyControlEnabled;
+    public bool IsStageSelectionEnabled => IsAnyControlEnabled;
+    public bool IsEditingEnabled => IsAnyControlEnabled;
+
+    private Brush _warningMessageColor;
+    public Brush WarningMessageColor
+    {
+      get => _warningMessageColor;
+      set
+      {
+        _warningMessageColor = value;
+        OnPropertyChanged(nameof(WarningMessageColor));
+      }
+    }
+
+    private string _pulseWarningMessage;
+    public string PulseWarningMessage
+    {
+      get => _pulseWarningMessage;
+      set
+      {
+        _pulseWarningMessage = value;
+        OnPropertyChanged(nameof(PulseWarningMessage));
+      }
+    }
 
     private int _selectedStage;
     public int SelectedStage
@@ -50,12 +128,10 @@ namespace AIStudio.ViewModels
           OnPropertyChanged(nameof(PulseWarningMessage));
           OnPropertyChanged(nameof(WarningMessageColor));
 
-          if (AgentProperties.Count > 0)
+          if (AgentProperties.Count > 0 && !IsAgentDead)
           {
             AgentName = $"{AgentProperties[0].Value}. Стадия развития: {value}";
-            OnPropertyChanged(nameof(AgentName));
           }
-
           UpdateEditableProperties();
         }
       }
@@ -68,7 +144,7 @@ namespace AIStudio.ViewModels
       set
       {
         _agentAdaptiveActionsViewModel = value;
-        OnPropertyChanged(nameof(AdaptiveActionsViewModel));
+        OnPropertyChanged(nameof(AgentAdaptiveActionsViewModel));
       }
     }
 
@@ -93,8 +169,8 @@ namespace AIStudio.ViewModels
         {
           _currentHomeostasisState = value;
           OnPropertyChanged(nameof(CurrentHomeostasisState));
-          OnPropertyChanged(nameof(HomeostasisStatus)); // Для отображения в UI
-          OnPropertyChanged(nameof(HomeostasisStatusColor)); // Для цветовой индикации
+          OnPropertyChanged(nameof(HomeostasisStatus));
+          OnPropertyChanged(nameof(HomeostasisStatusColor));
         }
       }
     }
@@ -120,10 +196,14 @@ namespace AIStudio.ViewModels
         OnPropertyChanged(nameof(AgentPultViewModel));
       }
     }
-    public string HomeostasisStatus =>
-      AppConfig.GetBaseStateDisplay((int)(CurrentHomeostasisState?.OverallState ?? HomeostasisOverallState.Normal));
-    public Brush HomeostasisStatusColor =>
-      AppConfig.GetBaseStateColor((int)(CurrentHomeostasisState?.OverallState ?? HomeostasisOverallState.Normal));
+
+    public string HomeostasisStatus => IsAgentDead
+        ? "СМЕРТЬ"
+        : AppConfig.GetBaseStateDisplay((int)(CurrentHomeostasisState?.OverallState ?? HomeostasisOverallState.Normal));
+
+    public Brush HomeostasisStatusColor => IsAgentDead
+        ? Brushes.DarkRed
+        : AppConfig.GetBaseStateColor((int)(CurrentHomeostasisState?.OverallState ?? HomeostasisOverallState.Normal));
 
     public AgentViewModel(GomeostasSystem gomeostas)
     {
@@ -135,19 +215,33 @@ namespace AIStudio.ViewModels
       AgentAdaptiveActionsViewModel = new AgentAdaptiveActionsViewModel();
       AgentPultViewModel = new AgentPultViewModel();
 
+      // Инициализация цветов
+      TextForeground = Brushes.Black;
+      WarningMessageColor = Brushes.Transparent;
+
       GlobalTimer.PulsationStateChanged += OnPulsationStateChanged;
       GlobalTimer.OnPulseStateChanged += isActive =>
       {
-        if (isActive) // Реагируем только на true (старт пульса)
+        if (isActive)
           OnPulseStateChanged(isActive);
       };
 
       LoadAgentData();
       UpdateEditableProperties();
+      UpdateWarningMessage();
     }
 
     private void UpdateAgentProperties()
     {
+      if (IsAgentDead)
+      {
+        MessageBox.Show("Невозможно изменить свойства мертвого агента",
+            "Агент мертв",
+            MessageBoxButton.OK,
+            MessageBoxImage.Error);
+        return;
+      }
+
       try
       {
         _gomeostas.SetAgentName(AgentProperties[0].Value);
@@ -159,7 +253,6 @@ namespace AIStudio.ViewModels
         if (success)
         {
           AgentName = $"{AgentProperties[0].Value}. Стадия развития: {SelectedStage}";
-          OnPropertyChanged(nameof(AgentName));
 
           var result = MessageBox.Show("Изменения успешно сохранены.\n" +
               "Сохранить так же значения параметров?",
@@ -169,7 +262,6 @@ namespace AIStudio.ViewModels
 
           if (result == MessageBoxResult.Yes)
           {
-            // предполагаем, что валидация прошла при их сохранении на странице параметров
             (success, error) = _gomeostas.SaveAgentParameters(false);
             if (success)
             {
@@ -204,6 +296,25 @@ namespace AIStudio.ViewModels
       }
     }
 
+    private void UpdateWarningMessage()
+    {
+      if (IsAgentDead)
+      {
+        PulseWarningMessage = "АГЕНТ МЕРТВ - все операции заблокированы";
+        WarningMessageColor = Brushes.DarkRed;
+      }
+      else if (GlobalTimer.IsPulsationRunning)
+      {
+        PulseWarningMessage = "Редактирование свойств недоступно во время пульсации";
+        WarningMessageColor = Brushes.Gray;
+      }
+      else
+      {
+        PulseWarningMessage = string.Empty;
+        WarningMessageColor = Brushes.Transparent;
+      }
+    }
+
     private void OnPulseStateChanged(bool isPulseActive)
     {
       Application.Current.Dispatcher.Invoke(LoadAgentData);
@@ -213,11 +324,11 @@ namespace AIStudio.ViewModels
     {
       Application.Current.Dispatcher.Invoke(() =>
       {
+        UpdateWarningMessage();
         OnPropertyChanged(nameof(IsEditingEnabled));
         OnPropertyChanged(nameof(IsStageComboEnabled));
-        OnPropertyChanged(nameof(PulseWarningMessage));
-        OnPropertyChanged(nameof(WarningMessageColor));
         OnPropertyChanged(nameof(IsStageSelectionEnabled));
+        OnPropertyChanged(nameof(IsAnyControlEnabled));
         UpdateEditableProperties();
       });
     }
@@ -229,24 +340,53 @@ namespace AIStudio.ViewModels
         var agentInfo = _gomeostas.GetAgentState();
         if (agentInfo == null) return;
 
-        _previousStage = SelectedStage;
-        SelectedStage = agentInfo.EvolutionStage;
-        AgentName = $"{agentInfo.Name}. Стадия развития: {SelectedStage}";
-        HeaderBackground = agentInfo.IsDead ? Brushes.Black :
-                agentInfo.IsSleeping ? Brushes.DodgerBlue : Brushes.ForestGreen;
+        IsAgentDead = agentInfo.IsDead;
+
+        if (IsAgentDead)
+        {
+          // Устанавливаем визуальные индикации смерти
+          HeaderBackground = Brushes.Black;
+          TextForeground = Brushes.DarkRed;
+          AgentName = $"{agentInfo.Name} - МЕРТВ";
+
+          // Блокируем все свойства
+          foreach (var prop in AgentProperties)
+          {
+            prop.IsEditable = false;
+          }
+        }
+        else
+        {
+          _previousStage = SelectedStage;
+          SelectedStage = agentInfo.EvolutionStage;
+          AgentName = $"{agentInfo.Name}. Стадия развития: {SelectedStage}";
+
+          // Нормальные цвета в зависимости от состояния
+          HeaderBackground = agentInfo.IsSleeping ? Brushes.DodgerBlue : Brushes.ForestGreen;
+          TextForeground = Brushes.Black;
+        }
 
         // Обновляем свойства агента
         if (AgentProperties.Count == 0)
         {
-          AgentProperties.Add(new AgentProperty("Имя", agentInfo.Name, true));
-          AgentProperties.Add(new AgentProperty("Описание", agentInfo.Description, true));
-          AgentProperties.Add(new AgentProperty("Стадия", agentInfo.EvolutionStage.ToString(), true));
+          AgentProperties.Add(new AgentProperty("Имя", agentInfo.Name, !IsAgentDead));
+          AgentProperties.Add(new AgentProperty("Описание", agentInfo.Description, !IsAgentDead));
+          AgentProperties.Add(new AgentProperty("Стадия", agentInfo.EvolutionStage.ToString(), !IsAgentDead));
         }
         else
         {
           AgentProperties[0].Value = agentInfo.Name;
           AgentProperties[1].Value = agentInfo.Description;
           AgentProperties[2].Value = agentInfo.EvolutionStage.ToString();
+
+          // Обновляем редактируемость только если агент жив
+          if (!IsAgentDead)
+          {
+            foreach (var prop in AgentProperties)
+            {
+              prop.IsEditable = !GlobalTimer.IsPulsationRunning;
+            }
+          }
         }
 
         var activeActions = _gomeostas.GetActiveAdaptiveActionsList();
@@ -258,11 +398,12 @@ namespace AIStudio.ViewModels
           OverallState = agentInfo.OverallState,
         };
 
+        UpdateWarningMessage();
+
         OnPropertyChanged(nameof(HeaderBackground));
+        OnPropertyChanged(nameof(TextForeground));
         OnPropertyChanged(nameof(AgentName));
         OnPropertyChanged(nameof(AgentBaseSost));
-        OnPropertyChanged(nameof(IsStageComboEnabled));
-        OnPropertyChanged(nameof(WarningMessageColor));
         OnPropertyChanged(nameof(HomeostasisStatus));
         OnPropertyChanged(nameof(HomeostasisStatusColor));
 
@@ -278,22 +419,30 @@ namespace AIStudio.ViewModels
 
     public void UpdateEditableProperties()
     {
-      bool isPulsationRunning = GlobalTimer.IsPulsationRunning;
+      bool isEditable = !IsAgentDead && !GlobalTimer.IsPulsationRunning;
 
-      // Блокируем все поля при пульсации
       foreach (var prop in AgentProperties)
       {
-        prop.IsEditable = !isPulsationRunning;
+        prop.IsEditable = isEditable;
       }
 
+      UpdateWarningMessage();
       OnPropertyChanged(nameof(IsStageSelectionEnabled));
       OnPropertyChanged(nameof(IsEditingEnabled));
-      OnPropertyChanged(nameof(PulseWarningMessage));
-      OnPropertyChanged(nameof(WarningMessageColor));
+      OnPropertyChanged(nameof(IsAnyControlEnabled));
     }
 
     private void ChangeStage(object stageObj)
     {
+      if (IsAgentDead)
+      {
+        MessageBox.Show("Невозможно изменить стадию мертвого агента",
+            "Агент мертв",
+            MessageBoxButton.OK,
+            MessageBoxImage.Error);
+        return;
+      }
+
       if (!IsStageSelectionEnabled || GlobalTimer.IsPulsationRunning)
         return;
 
@@ -304,28 +453,23 @@ namespace AIStudio.ViewModels
 
         try
         {
-          // Первый вызов - без флага force
           var result = _gomeostas.SetEvolutionStageWithValidation(newStage);
 
           if (result.Success)
           {
-            // Обычный переход вперед
             SelectedStage = newStage;
             LoadAgentData();
             _previousStage = currentStage;
           }
           else
           {
-            // Проверяем, является ли это запросом подтверждения
             if (result.Message.Contains("Продолжить?"))
             {
-              // Запрос подтверждения для обратного перехода
               var dialogResult = MessageBox.Show(result.Message, "Подтверждение возврата",
                   MessageBoxButton.YesNo, MessageBoxImage.Warning);
 
               if (dialogResult == MessageBoxResult.Yes)
               {
-                // Рекурсивный вызов с флагом force
                 var forceResult = _gomeostas.SetEvolutionStageWithValidation(newStage, true);
 
                 if (forceResult.Success)
@@ -349,10 +493,8 @@ namespace AIStudio.ViewModels
             }
             else
             {
-              // Обычная ошибка (прыжок вперед через стадию)
               MessageBox.Show(result.Message, "Ошибка перехода",
                   MessageBoxButton.OK, MessageBoxImage.Warning);
-
               throw new InvalidOperationException(result.Message);
             }
           }
