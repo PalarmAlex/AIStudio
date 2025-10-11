@@ -83,6 +83,7 @@ namespace AIStudio.ViewModels
           Vigor = action.Vigor,
           FatigueCoefficient = action.FatigueCoefficient,
           RecoveryCoefficient = action.RecoveryCoefficient,
+          PhraseId = action.PhraseId,
           Influences = new Dictionary<int, int>(action.Influences),
           Costs = new Dictionary<int, int>(action.Costs),
           AntagonistActions = new List<int>(action.AntagonistActions)
@@ -214,6 +215,7 @@ namespace AIStudio.ViewModels
           existingAction.Vigor = action.Vigor;
           existingAction.FatigueCoefficient = action.FatigueCoefficient;
           existingAction.RecoveryCoefficient = action.RecoveryCoefficient;
+          existingAction.PhraseId = action.PhraseId;
           existingAction.Influences = new Dictionary<int, int>(action.Influences);
           existingAction.Costs = new Dictionary<int, int>(action.Costs);
           existingAction.AntagonistActions = new List<int>(action.AntagonistActions);
@@ -231,7 +233,8 @@ namespace AIStudio.ViewModels
               action.Vigor,
               action.IsElementary,
               action.FatigueCoefficient,
-              action.RecoveryCoefficient
+              action.RecoveryCoefficient,
+              action.PhraseId
           );
           action.Id = newId;
         }

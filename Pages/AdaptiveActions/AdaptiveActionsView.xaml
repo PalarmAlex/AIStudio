@@ -15,6 +15,7 @@
     <converters:IntDictionaryToStringConverter x:Key="IntDictionaryToStringConverter"/>
     <converters:InverseBooleanConverter x:Key="InverseBooleanConverter"/>
     <converters:InverseBooleanToVisibilityConverter x:Key="InverseBooleanToVisibilityConverter"/>
+    <converters:PhraseIdToTextConverter x:Key="PhraseIdToTextConverter"/>
 
     <Style x:Key="BaseTextBlockStyle" TargetType="TextBlock">
       <Setter Property="Background" Value="White"/>
@@ -152,7 +153,7 @@
             </DataGridTextColumn.HeaderStyle>
           </DataGridTextColumn>
 
-          <DataGridTextColumn Header="К. усталости" Binding="{Binding FatigueCoefficient}" Width="100">
+          <DataGridTextColumn Header="К. усталости" Binding="{Binding FatigueCoefficient}" Width="70">
             <DataGridTextColumn.CellStyle>
               <Style TargetType="DataGridCell" BasedOn="{StaticResource {x:Type DataGridCell}}">
                 <EventSetter Event="PreviewTextInput" Handler="FatigueCoefficient_PreviewTextInput"/>
@@ -161,7 +162,7 @@
             </DataGridTextColumn.CellStyle>
           </DataGridTextColumn>
 
-          <DataGridTextColumn Header="К. восстановления" Binding="{Binding RecoveryCoefficient}" Width="100">
+          <DataGridTextColumn Header="К. восстановления" Binding="{Binding RecoveryCoefficient}" Width="70">
             <DataGridTextColumn.CellStyle>
               <Style TargetType="DataGridCell" BasedOn="{StaticResource {x:Type DataGridCell}}">
                 <EventSetter Event="PreviewTextInput" Handler="RecoveryCoefficient_PreviewTextInput"/>
@@ -182,6 +183,22 @@
             <DataGridTextColumn.HeaderStyle>
               <Style TargetType="DataGridColumnHeader" BasedOn="{StaticResource {x:Type DataGridColumnHeader}}">
                 <Setter Property="ToolTip" Value="Двойной клик открывает окно ввода"/>
+              </Style>
+            </DataGridTextColumn.HeaderStyle>
+          </DataGridTextColumn>
+
+          <DataGridTextColumn Header="Фраза" 
+                    Binding="{Binding PhraseId, Converter={StaticResource PhraseIdToTextConverter}}" 
+                    IsReadOnly="True" 
+                    Width="150">
+            <DataGridTextColumn.ElementStyle>
+              <Style TargetType="TextBlock">
+                <EventSetter Event="MouseDown" Handler="PhraseCell_MouseDown"/>
+              </Style>
+            </DataGridTextColumn.ElementStyle>
+            <DataGridTextColumn.HeaderStyle>
+              <Style TargetType="DataGridColumnHeader" BasedOn="{StaticResource {x:Type DataGridColumnHeader}}">
+                <Setter Property="ToolTip" Value="Двойной клик открывает окно выбора фразы"/>
               </Style>
             </DataGridTextColumn.HeaderStyle>
           </DataGridTextColumn>

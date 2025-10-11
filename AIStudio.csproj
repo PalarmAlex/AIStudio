@@ -98,6 +98,7 @@
     <Compile Include="Converters\ParameterStateToBrushConverter.cs" />
     <Compile Include="Converters\ParameterValueToGradientConverter.cs" />
     <Compile Include="Converters\ParameterValueToIndicatorPositionConverter.cs" />
+    <Compile Include="Converters\PhraseIdToTextConverter.cs" />
     <Compile Include="Converters\PositiveInfluenceSumConverter.cs" />
     <Compile Include="Converters\RowCountToHeightConverter.cs" />
     <Compile Include="Converters\SecondsToTimeFormatConverter.cs" />
@@ -142,6 +143,9 @@
     </Compile>
     <Compile Include="Pages\ExterInalInfluencesView.xaml.cs">
       <DependentUpon>ExterInalInfluencesView.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Pages\PhraseSelectorDialog.xaml.cs">
+      <DependentUpon>PhraseSelectorDialog.xaml</DependentUpon>
     </Compile>
     <Compile Include="Pages\Reflexes\AdaptiveActionsSelectionDialog.xaml.cs">
       <DependentUpon>AdaptiveActionsSelectionDialog.xaml</DependentUpon>
@@ -267,6 +271,10 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="Pages\ExterInalInfluencesView.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Pages\PhraseSelectorDialog.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

@@ -48,8 +48,9 @@ namespace AIStudio.Pages
         Description = string.Empty,
         Influences = new Dictionary<int, int>(),
         AntagonistActions = new List<int>(),
-        FatigueCoefficient = 0.2f, // Значение по умолчанию
-        RecoveryCoefficient = 0.05f // Значение по умолчанию
+        FatigueCoefficient = 0.2f,
+        RecoveryCoefficient = 0.05f,
+        PhraseId = 0
       };
     }
 
@@ -171,6 +172,31 @@ namespace AIStudio.Pages
                 kvp => kvp.Key,
                 kvp => GomeostasSystem.ClampInt(kvp.Value, -10, 10));
 
+            // Отложенное обновление
+            Dispatcher.BeginInvoke(new Action(() =>
+            {
+              ActionsGrid.Items.Refresh();
+            }), DispatcherPriority.Background);
+          }
+        }
+        e.Handled = true;
+      }
+    }
+
+    private void PhraseCell_MouseDown(object sender, MouseButtonEventArgs e)
+    {
+      if (e.ClickCount == 2)
+      {
+        if (sender is FrameworkElement element &&
+            element.DataContext is AdaptiveActionsSystem.AdaptiveAction action)
+        {
+          var selector = new PhraseSelectorDialog(
+              $"Выбор фразы для действия: {action.Name} (ID: {action.Id})",
+              action.PhraseId);
+
+          if (selector.ShowDialog() == true)
+          {
+            action.PhraseId = selector.SelectedPhraseId;
             // Отложенное обновление
             Dispatcher.BeginInvoke(new Action(() =>
             {
