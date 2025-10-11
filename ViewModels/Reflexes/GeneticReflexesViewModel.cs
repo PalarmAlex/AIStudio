@@ -329,7 +329,9 @@ namespace AIStudio.ViewModels
     {
       try
       {
-        // Валидация всех рефлексов
+        var currentReflexes = _geneticReflexesSystem.GetAllGeneticReflexes().ToDictionary(a => a.Id);
+
+        // Валидация всех рефлексов с учетом временных ID
         foreach (var reflex in _allGeneticReflexes)
         {
           var validationResult = _geneticReflexesSystem.ValidateGeneticReflex(reflex);
@@ -342,8 +344,6 @@ namespace AIStudio.ViewModels
             return false;
           }
         }
-
-        var currentReflexes = _geneticReflexesSystem.GetAllGeneticReflexes().ToDictionary(a => a.Id);
 
         // Удаление рефлексов
         var reflexesToRemove = currentReflexes.Keys.Except(_allGeneticReflexes.Select(a => a.Id)).ToList();
@@ -362,7 +362,7 @@ namespace AIStudio.ViewModels
         // Обновление и добавление рефлексов
         foreach (var reflex in _allGeneticReflexes)
         {
-          if (currentReflexes.ContainsKey(reflex.Id))
+          if (currentReflexes.ContainsKey(reflex.Id) && reflex.Id > 0)
           {
             // Обновление существующего
             var warnings = _geneticReflexesSystem.UpdateGeneticReflex(reflex);
@@ -376,7 +376,7 @@ namespace AIStudio.ViewModels
           }
           else
           {
-            // Добавление нового
+            // Добавление нового (ID <= 0 или нет в текущих)
             var (newId, warnings) = _geneticReflexesSystem.AddGeneticReflex(
                 reflex.Name,
                 reflex.Description,
