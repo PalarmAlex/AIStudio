@@ -1,7 +1,8 @@
-﻿using ISIDA.Reflexes;
-using ISIDA.Actions;
+﻿using ISIDA.Actions;
 using ISIDA.Common;
 using ISIDA.Gomeostas;
+using ISIDA.Reflexes;
+using ISIDA.Sensors;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -39,6 +40,7 @@ namespace AIStudio.ViewModels
     private int? _selectedLevel2Filter;
     private int? _selectedLevel3Filter;
     private int? _selectedAdaptiveActionsFilter;
+    private int? _selectedWordFilter;
 
     public bool IsStageZero => _currentAgentStage == 0;
 
@@ -85,7 +87,8 @@ namespace AIStudio.ViewModels
       return (!SelectedLevel1Filter.HasValue || reflex.Level1 == SelectedLevel1Filter.Value) &&
              (!SelectedLevel2Filter.HasValue || (reflex.Level2 != null && reflex.Level2.Contains(SelectedLevel2Filter.Value))) &&
              (!SelectedLevel3Filter.HasValue || (reflex.Level3 != null && reflex.Level3.Contains(SelectedLevel3Filter.Value))) &&
-             (!SelectedAdaptiveActionsFilter.HasValue || (reflex.AdaptiveActions != null && reflex.AdaptiveActions.Contains(SelectedAdaptiveActionsFilter.Value)));
+             (!SelectedAdaptiveActionsFilter.HasValue || (reflex.AdaptiveActions != null && reflex.AdaptiveActions.Contains(SelectedAdaptiveActionsFilter.Value))) &&
+             (!SelectedWordFilter.HasValue || reflex.WordId == SelectedWordFilter.Value);
     }
 
     private void OnPulsationStateChanged()
@@ -122,10 +125,10 @@ namespace AIStudio.ViewModels
         new KeyValuePair<int?, string>(0, "Норма"),
         new KeyValuePair<int?, string>(1, "Хорошо")
     };
-
     public List<KeyValuePair<int?, string>> Level2FilterOptions { get; private set; } = new List<KeyValuePair<int?, string>>();
     public List<KeyValuePair<int?, string>> Level3FilterOptions { get; private set; } = new List<KeyValuePair<int?, string>>();
     public List<KeyValuePair<int?, string>> AdaptiveActionsFilterOptions { get; private set; } = new List<KeyValuePair<int?, string>>();
+    public List<KeyValuePair<int?, string>> WordFilterOptions { get; private set; } = new List<KeyValuePair<int?, string>>();
 
     public int? SelectedLevel1Filter
     {
@@ -171,6 +174,17 @@ namespace AIStudio.ViewModels
       }
     }
 
+    public int? SelectedWordFilter
+    {
+      get => _selectedWordFilter;
+      set
+      {
+        _selectedWordFilter = value;
+        OnPropertyChanged(nameof(SelectedWordFilter));
+        ApplyFilters();
+      }
+    }
+
     private void ApplyFilters()
     {
       _geneticReflexesView.Refresh();
@@ -182,6 +196,7 @@ namespace AIStudio.ViewModels
       SelectedLevel2Filter = null;
       SelectedLevel3Filter = null;
       SelectedAdaptiveActionsFilter = null;
+      SelectedWordFilter = null;
     }
 
     private void LoadFilterOptions()
@@ -201,11 +216,28 @@ namespace AIStudio.ViewModels
       var adaptiveItems = _actionsSystem?.GetAllAdaptiveActions()?.ToList() ?? new List<AdaptiveActionsSystem.AdaptiveAction>();
       AdaptiveActionsFilterOptions.AddRange(adaptiveItems.Select(x => new KeyValuePair<int?, string>(x.Id, x.Name)));
 
+      WordFilterOptions = new List<KeyValuePair<int?, string>> { new KeyValuePair<int?, string>(null, "Все слова") };
+      if (SensorySystem.IsInitialized)
+      {
+        try
+        {
+          var sensorySystem = SensorySystem.Instance;
+          var allWords = sensorySystem.VerbalChannel.GetAllWords();
+          if (allWords != null)
+          {
+            WordFilterOptions.AddRange(allWords.Select(w => new KeyValuePair<int?, string>(w.Key, w.Value)));
+          }
+        }
+        catch (Exception ex)
+        {
+          Console.WriteLine($"Ошибка загрузки слов для фильтра: {ex.Message}");
+        }
+      }
+
       OnPropertyChanged(nameof(Level2FilterOptions));
       OnPropertyChanged(nameof(Level3FilterOptions));
       OnPropertyChanged(nameof(AdaptiveActionsFilterOptions));
-
-
+      OnPropertyChanged(nameof(WordFilterOptions));
     }
 
     #endregion
@@ -238,7 +270,6 @@ namespace AIStudio.ViewModels
       _currentAgentName = agentInfo.Name;
 
       _allGeneticReflexes.Clear();
-      //GeneticReflexes.Clear();
 
       foreach (var reflex in _geneticReflexesSystem.GetAllGeneticReflexes().OrderBy(a => a.Id))
       {
@@ -250,11 +281,11 @@ namespace AIStudio.ViewModels
           Level1 = reflex.Level1,
           Level2 = new List<int>(reflex.Level2),
           Level3 = new List<int>(reflex.Level3),
+          WordId = reflex.WordId,
           AdaptiveActions = new List<int>(reflex.AdaptiveActions)
         };
 
         _allGeneticReflexes.Add(reflexCopy);
-        //GeneticReflexes.Add(reflexCopy);
       }
 
       // Загружаем опции фильтров
@@ -383,7 +414,8 @@ namespace AIStudio.ViewModels
                 reflex.Level1,
                 new List<int>(reflex.Level2),
                 new List<int>(reflex.Level3),
-                new List<int>(reflex.AdaptiveActions)
+                new List<int>(reflex.AdaptiveActions),
+                reflex.WordId
             );
 
             if (warnings != null && warnings.Length > 0)
@@ -417,9 +449,6 @@ namespace AIStudio.ViewModels
         {
           if (_allGeneticReflexes.Contains(reflex))
             _allGeneticReflexes.Remove(reflex);
-
-          //if (GeneticReflexes.Contains(reflex))
-          //  GeneticReflexes.Remove(reflex);
 
           if (reflex.Id > 0)
           {

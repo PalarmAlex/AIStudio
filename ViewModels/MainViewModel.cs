@@ -105,13 +105,13 @@ namespace AIStudio
         InfluenceActionSystem.InitializeInstance(_gomeostas, AppConfig.DataActionsFolderPath, AppConfig.DataActionsTemplateFolderPath);
         _influenceActionSystem = InfluenceActionSystem.Instance;
 
-        // Инициализация безусловных рефлексов
-        GeneticReflexesSystem.InitializeInstance(_gomeostas, AppConfig.ReflexesFolderPath, AppConfig.ReflexesTemplateFolderPath);
-        _geneticReflexesSystem = GeneticReflexesSystem.Instance;
-
         // Инициализация сенсорной системы
         SensorySystem.InitializeInstance(AppConfig.SensorsFolderPath, AppConfig.SensorsTemplateFolderPath);
         _sensorySystem = SensorySystem.Instance;
+
+        // Инициализация безусловных рефлексов
+        GeneticReflexesSystem.InitializeInstance(_gomeostas, AppConfig.ReflexesFolderPath, AppConfig.ReflexesTemplateFolderPath);
+        _geneticReflexesSystem = GeneticReflexesSystem.Instance;
 
         // Инициализация диспетчера пульса
         GlobalTimer.InitializeSystems(

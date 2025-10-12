@@ -16,6 +16,7 @@
     <converters:InverseBooleanConverter x:Key="InverseBooleanConverter"/>
     <converters:InverseBooleanToVisibilityConverter x:Key="InverseBooleanToVisibilityConverter"/>
     <converters:Level1ToTextConverter x:Key="Level1ToTextConverter"/>
+    <converters:WordIdToTextConverter x:Key="WordIdToTextConverter"/>
 
     <Style x:Key="BaseTextBlockStyle" TargetType="TextBlock">
       <Setter Property="Background" Value="White"/>
@@ -90,7 +91,7 @@
         </StackPanel>
 
         <!-- Фильтр по контекстам реагирования -->
-        <StackPanel Orientation="Vertical" Margin="0,0,15,0" Width="180">
+        <StackPanel Orientation="Vertical" Margin="0,0,15,0" Width="150">
           <TextBlock Text="Контексты реагирования" FontSize="12" Margin="0,0,0,2"/>
           <ComboBox Style="{StaticResource AgentComboBoxStyle}"
                     ItemsSource="{Binding Level2FilterOptions}"
@@ -101,7 +102,7 @@
         </StackPanel>
 
         <!-- Фильтр по внешним воздействиям -->
-        <StackPanel Orientation="Vertical" Margin="0,0,15,0" Width="180">
+        <StackPanel Orientation="Vertical" Margin="0,0,15,0" Width="160">
           <TextBlock Text="Внешние воздействия" FontSize="12" Margin="0,0,0,2"/>
           <ComboBox Style="{StaticResource AgentComboBoxStyle}"
                     ItemsSource="{Binding Level3FilterOptions}"
@@ -112,7 +113,7 @@
         </StackPanel>
 
         <!-- Фильтр по адаптивным действиям -->
-        <StackPanel Orientation="Vertical" Margin="0,0,15,0" Width="180">
+        <StackPanel Orientation="Vertical" Margin="0,0,15,0" Width="150">
           <TextBlock Text="Адаптивные действия" FontSize="12" Margin="0,0,0,2"/>
           <ComboBox Style="{StaticResource AgentComboBoxStyle}"
                     ItemsSource="{Binding AdaptiveActionsFilterOptions}"
@@ -121,6 +122,18 @@
                     SelectedValuePath="Key"
                     Height="25"/>
         </StackPanel>
+
+        <!-- Фильтр по словам -->
+        <StackPanel Orientation="Vertical" Margin="0,0,15,0" Width="150">
+          <TextBlock Text="Слова" FontSize="12" Margin="0,0,0,2"/>
+          <ComboBox Style="{StaticResource AgentComboBoxStyle}"
+                ItemsSource="{Binding WordFilterOptions}"
+                SelectedValue="{Binding SelectedWordFilter}"
+                DisplayMemberPath="Value"
+                SelectedValuePath="Key"
+                Height="25"/>
+        </StackPanel>
+
 
         <!-- Кнопка сброса фильтров -->
         <Button Content="Сбросить фильтры" 
@@ -213,6 +226,22 @@
               </Style>
             </DataGridTemplateColumn.CellStyle>
           </DataGridTemplateColumn>
+
+          <DataGridTextColumn Header="Слово" 
+                    Binding="{Binding WordId, Converter={StaticResource WordIdToTextConverter}}" 
+                    IsReadOnly="True" 
+                    Width="150">
+            <DataGridTextColumn.ElementStyle>
+              <Style TargetType="TextBlock">
+                <EventSetter Event="MouseDown" Handler="WordCell_MouseDown"/>
+              </Style>
+            </DataGridTextColumn.ElementStyle>
+            <DataGridTextColumn.HeaderStyle>
+              <Style TargetType="DataGridColumnHeader" BasedOn="{StaticResource {x:Type DataGridColumnHeader}}">
+                <Setter Property="ToolTip" Value="Двойной клик открывает окно выбора слова"/>
+              </Style>
+            </DataGridTextColumn.HeaderStyle>
+          </DataGridTextColumn>
 
           <!-- Адаптивные действия -->
           <DataGridTemplateColumn Header="Адаптивные действия" Width="Auto">

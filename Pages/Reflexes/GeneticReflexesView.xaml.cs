@@ -1,8 +1,9 @@
 ﻿using AIStudio.Common;
 using AIStudio.Dialogs;
 using AIStudio.ViewModels;
-using ISIDA.Reflexes;
+using ISIDA.Actions;
 using ISIDA.Gomeostas;
+using ISIDA.Reflexes;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -17,6 +18,7 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
+using System.Windows.Threading;
 
 namespace AIStudio.Pages.Reflexes
 {
@@ -99,6 +101,7 @@ namespace AIStudio.Pages.Reflexes
         Level1 = 0,
         Level2 = new List<int>(),
         Level3 = new List<int>(),
+        WordId = 0,
         AdaptiveActions = new List<int>()
       };
     }
@@ -170,6 +173,31 @@ namespace AIStudio.Pages.Reflexes
           GeneticReflexesGrid.CommitEdit(DataGridEditingUnit.Row, true);
           GeneticReflexesGrid.Items.Refresh();
         }
+      }
+    }
+
+    private void WordCell_MouseDown(object sender, MouseButtonEventArgs e)
+    {
+      if (e.ClickCount == 2)
+      {
+        if (sender is FrameworkElement element &&
+            element.DataContext is GeneticReflexesSystem.GeneticReflex reflex)
+        {
+          var selector = new WordSelectorDialog(
+              $"Выбор слова для действия: {reflex.Name} (ID: {reflex.Id})",
+              reflex.WordId);
+
+          if (selector.ShowDialog() == true)
+          {
+            reflex.WordId = selector.SelectedWordId;
+            // Отложенное обновление
+            Dispatcher.BeginInvoke(new Action(() =>
+            {
+              GeneticReflexesGrid.Items.Refresh();
+            }), DispatcherPriority.Background);
+          }
+        }
+        e.Handled = true;
       }
     }
 

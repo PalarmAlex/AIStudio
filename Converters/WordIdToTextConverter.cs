@@ -12,26 +12,26 @@ namespace AIStudio.Converters
   /// <summary>
   /// Конвертер для отображения текста фразы по PhraseId
   /// </summary>
-  public class PhraseIdToTextConverter : IValueConverter
+  public class WordIdToTextConverter : IValueConverter
   {
     public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
     {
-      if (value is int phraseId && phraseId != 0)
+      if (value is int wordId && wordId != 0)
       {
         try
         {
           if (SensorySystem.IsInitialized)
           {
             var sensorySystem = SensorySystem.Instance;
-            var phraseText = sensorySystem.VerbalChannel.GetPhraseFromPhraseId(phraseId);
-            return string.IsNullOrEmpty(phraseText) ? $"[Фраза не найдена: {phraseId}]" : phraseText;
+            var wordText = sensorySystem.VerbalChannel.GetWordFromWordId(wordId);
+            return string.IsNullOrEmpty(wordText) ? $"[Слово не найдено: {wordId}]" : wordText;
           }
         }
         catch
         {
           // Игнорируем ошибки
         }
-        return $"[ID: {phraseId}]";
+        return $"[ID: {wordId}]";
       }
       return "Не задана";
     }

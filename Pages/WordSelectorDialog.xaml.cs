@@ -7,43 +7,43 @@ using ISIDA.Sensors;
 
 namespace AIStudio.Dialogs
 {
-  public partial class PhraseSelectorDialog : Window
+  public partial class WordSelectorDialog : Window
   {
-    public int SelectedPhraseId { get; private set; }
-    private Dictionary<int, string> _allPhrases;
-    private Dictionary<int, string> _filteredPhrases;
+    public int SelectedWordId { get; private set; }
+    private Dictionary<int, string> _allWords;
+    private Dictionary<int, string> _filteredWords;
 
-    public PhraseSelectorDialog(string title, int currentPhraseId = 0)
+    public WordSelectorDialog(string title, int currentWordId = 0)
     {
       InitializeComponent();
       Title = title;
-      SelectedPhraseId = currentPhraseId;
-      LoadPhrases();
+      SelectedWordId = currentWordId;
+      LoadWords();
       ApplyFilter();
     }
 
-    private void LoadPhrases()
+    private void LoadWords()
     {
       try
       {
         if (SensorySystem.IsInitialized)
         {
           var sensorySystem = SensorySystem.Instance;
-          _allPhrases = sensorySystem.VerbalChannel.GetAllPhrases();
+          _allWords = sensorySystem.VerbalChannel.GetAllWords();
 
-          // Сортируем по тексту фразы для удобства
-          _allPhrases = _allPhrases
+          // Сортируем по тексту слова для удобства
+          _allWords = _allWords
               .OrderBy(p => p.Value)
               .ToDictionary(p => p.Key, p => p.Value);
         }
         else
         {
-          _allPhrases = new Dictionary<int, string>();
+          _allWords = new Dictionary<int, string>();
         }
       }
       catch
       {
-        _allPhrases = new Dictionary<int, string>();
+        _allWords = new Dictionary<int, string>();
       }
     }
 
@@ -53,20 +53,20 @@ namespace AIStudio.Dialogs
 
       if (string.IsNullOrWhiteSpace(filterText))
       {
-        _filteredPhrases = _allPhrases;
+        _filteredWords = _allWords;
       }
       else
       {
-        _filteredPhrases = _allPhrases
+        _filteredWords = _allWords
             .Where(p => p.Value.ToLower().Contains(filterText))
             .ToDictionary(p => p.Key, p => p.Value);
       }
 
-      PhrasesListBox.ItemsSource = _filteredPhrases
+      WordListBox.ItemsSource = _filteredWords
           .Select(p => new { Id = p.Key, Text = p.Value })
           .ToList();
 
-      StatusTextBlock.Text = $"Найдено фраз: {_filteredPhrases.Count}";
+      StatusTextBlock.Text = $"Найдено фраз: {_filteredWords.Count}";
     }
 
     private void FilterTextBox_TextChanged(object sender, TextChangedEventArgs e)
@@ -74,12 +74,12 @@ namespace AIStudio.Dialogs
       ApplyFilter();
     }
 
-    private void PhrasesListBox_MouseDoubleClick(object sender, System.Windows.Input.MouseButtonEventArgs e)
+    private void WordListBox_MouseDoubleClick(object sender, System.Windows.Input.MouseButtonEventArgs e)
     {
-      if (PhrasesListBox.SelectedItem != null)
+      if (WordListBox.SelectedItem != null)
       {
-        var selectedItem = (dynamic)PhrasesListBox.SelectedItem;
-        SelectedPhraseId = selectedItem.Id;
+        var selectedItem = (dynamic)WordListBox.SelectedItem;
+        SelectedWordId = selectedItem.Id;
         DialogResult = true;
         Close();
       }
@@ -87,10 +87,10 @@ namespace AIStudio.Dialogs
 
     private void OKButton_Click(object sender, RoutedEventArgs e)
     {
-      if (PhrasesListBox.SelectedItem != null)
+      if (WordListBox.SelectedItem != null)
       {
-        var selectedItem = (dynamic)PhrasesListBox.SelectedItem;
-        SelectedPhraseId = selectedItem.Id;
+        var selectedItem = (dynamic)WordListBox.SelectedItem;
+        SelectedWordId = selectedItem.Id;
         DialogResult = true;
       }
       else
@@ -108,7 +108,7 @@ namespace AIStudio.Dialogs
 
     private void ClearButton_Click(object sender, RoutedEventArgs e)
     {
-      SelectedPhraseId = 0;
+      SelectedWordId = 0;
       DialogResult = true;
       Close();
     }

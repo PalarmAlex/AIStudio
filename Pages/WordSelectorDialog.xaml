@@ -1,4 +1,4 @@
-﻿<Window x:Class="AIStudio.Dialogs.PhraseSelectorDialog"
+﻿<Window x:Class="AIStudio.Dialogs.WordSelectorDialog"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         Title="PhraseSelectorDialog" 
@@ -23,11 +23,11 @@
                  Margin="0,0,0,10"
                  Height="25"/>
 
-    <!-- Список фраз -->
-    <TextBlock Grid.Row="2" Text="Список фраз:" Margin="0,0,0,5"/>
-    <ListBox Grid.Row="3" x:Name="PhrasesListBox" 
+    <!-- Список слов -->
+    <TextBlock Grid.Row="2" Text="Список слов:" Margin="0,0,0,5"/>
+    <ListBox Grid.Row="3" x:Name="WordListBox" 
                  Height="300" 
-                 MouseDoubleClick="PhrasesListBox_MouseDoubleClick"
+                 MouseDoubleClick="WordListBox_MouseDoubleClick"
                  ScrollViewer.VerticalScrollBarVisibility="Auto">
       <ListBox.ItemTemplate>
         <DataTemplate>
