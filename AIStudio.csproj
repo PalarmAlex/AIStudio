@@ -99,6 +99,7 @@
     <Compile Include="Converters\ParameterStateToBrushConverter.cs" />
     <Compile Include="Converters\ParameterValueToGradientConverter.cs" />
     <Compile Include="Converters\ParameterValueToIndicatorPositionConverter.cs" />
+    <Compile Include="Converters\PerceptionImageIdToTextConverter.cs" />
     <Compile Include="Converters\WordIdToTextConverter.cs" />
     <Compile Include="Converters\PositiveInfluenceSumConverter.cs" />
     <Compile Include="Converters\RowCountToHeightConverter.cs" />
@@ -144,6 +145,12 @@
     </Compile>
     <Compile Include="Pages\ExterInalInfluencesView.xaml.cs">
       <DependentUpon>ExterInalInfluencesView.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Pages\Reflexes\ConditionedReflexesView.xaml.cs">
+      <DependentUpon>ConditionedReflexesView.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Pages\Reflexes\PerceptionImageSelectionDialog.xaml.cs">
+      <DependentUpon>PerceptionImageSelectionDialog.xaml</DependentUpon>
     </Compile>
     <Compile Include="Pages\WordSelectorDialog.xaml.cs">
       <DependentUpon>WordSelectorDialog.xaml</DependentUpon>
@@ -206,6 +213,7 @@
     <Compile Include="ViewModels\ExterInalInfluencesViewModel.cs" />
     <Compile Include="ViewModels\MainViewModel.cs" />
     <Compile Include="ViewModels\ProjectSettingsViewModel.cs" />
+    <Compile Include="ViewModels\Reflexes\ConditionedReflexesViewModel.cs" />
     <Compile Include="ViewModels\Reflexes\GeneticReflexesViewModel.cs" />
     <Compile Include="ViewModels\RelayCommand.cs" />
     <Compile Include="ViewModels\SystemParametersViewModel.cs" />
@@ -272,6 +280,14 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="Pages\ExterInalInfluencesView.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Pages\Reflexes\ConditionedReflexesView.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Pages\Reflexes\PerceptionImageSelectionDialog.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

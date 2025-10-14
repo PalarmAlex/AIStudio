@@ -32,6 +32,8 @@ namespace AIStudio
     private readonly AdaptiveActionsSystem _actionsSystem;
     private readonly InfluenceActionSystem _influenceActionSystem;
     private readonly GeneticReflexesSystem _geneticReflexesSystem;
+    private readonly ConditionedReflexesSystem _conditionedReflexesSystem;
+    private readonly PerceptionImagesSystem _perceptionImagesSystem;
     public event PropertyChangedEventHandler PropertyChanged;
 
     private ICommand _openAgentCommand;
@@ -112,6 +114,14 @@ namespace AIStudio
         // Инициализация безусловных рефлексов
         GeneticReflexesSystem.InitializeInstance(_gomeostas, AppConfig.ReflexesFolderPath, AppConfig.ReflexesTemplateFolderPath);
         _geneticReflexesSystem = GeneticReflexesSystem.Instance;
+
+        // Инициализация образов рефлексов
+        PerceptionImagesSystem.InitializeInstance(_geneticReflexesSystem);
+        _perceptionImagesSystem = PerceptionImagesSystem.Instance;
+
+        // Инициализация условных рефлексов
+        ConditionedReflexesSystem.InitializeInstance(_gomeostas, _geneticReflexesSystem, _perceptionImagesSystem);
+        _conditionedReflexesSystem = ConditionedReflexesSystem.Instance;
 
         // Инициализация диспетчера пульса
         GlobalTimer.InitializeSystems(
@@ -232,7 +242,7 @@ namespace AIStudio
             ShowGeneticReflexes();
             break;
           case "5": // Условные рефлексы
-            ShowStub("Условные рефлексы");
+            ShowConditionedReflexes();
             break;
           case "6": // Дерево рефлексов
             ShowStub("Дерево рефлексов");
@@ -432,6 +442,19 @@ namespace AIStudio
       var viewModel = new GeneticReflexesViewModel(_gomeostas, _geneticReflexesSystem, _actionsSystem, _influenceActionSystem);
       geneticReflexesView.DataContext = viewModel;
       CurrentContent = geneticReflexesView;
+    }
+
+    // Открыть страницу условных рефлексов
+    private void ShowConditionedReflexes()
+    {
+      var conditionedReflexesView = new ConditionedReflexesView();
+      var viewModel = new ConditionedReflexesViewModel(
+          _gomeostas,
+          _conditionedReflexesSystem,
+          _actionsSystem,
+          _perceptionImagesSystem);
+      conditionedReflexesView.DataContext = viewModel;
+      CurrentContent = conditionedReflexesView;
     }
 
     // Метод-заглушка для отображения сообщения
