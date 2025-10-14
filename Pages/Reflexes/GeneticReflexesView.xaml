@@ -17,6 +17,7 @@
     <converters:InverseBooleanToVisibilityConverter x:Key="InverseBooleanToVisibilityConverter"/>
     <converters:Level1ToTextConverter x:Key="Level1ToTextConverter"/>
     <converters:WordIdToTextConverter x:Key="WordIdToTextConverter"/>
+    <converters:IdListToNamesConverter x:Key="IdListToNamesConverter"/>
 
     <Style x:Key="BaseTextBlockStyle" TargetType="TextBlock">
       <Setter Property="Background" Value="White"/>
@@ -193,7 +194,7 @@
           <DataGridTemplateColumn Header="Контексты реагирования" Width="250">
             <DataGridTemplateColumn.CellTemplate>
               <DataTemplate>
-                <TextBlock Text="{Binding Level2, Converter={StaticResource ListToStringConverter}}"/>
+                <TextBlock Text="{Binding Level2, Converter={StaticResource IdListToNamesConverter}, ConverterParameter='Level2'}"/>
               </DataTemplate>
             </DataGridTemplateColumn.CellTemplate>
             <DataGridTemplateColumn.CellStyle>
@@ -207,7 +208,7 @@
           <DataGridTemplateColumn Header="Внешние стимулы" Width="250">
             <DataGridTemplateColumn.CellTemplate>
               <DataTemplate>
-                <TextBlock Text="{Binding Level3, Converter={StaticResource ListToStringConverter}}"/>
+                <TextBlock Text="{Binding Level3, Converter={StaticResource IdListToNamesConverter}, ConverterParameter='Level3'}"/>
               </DataTemplate>
             </DataGridTemplateColumn.CellTemplate>
             <DataGridTemplateColumn.CellStyle>
@@ -237,7 +238,7 @@
           <DataGridTemplateColumn Header="Адаптивные действия" Width="*">
             <DataGridTemplateColumn.CellTemplate>
               <DataTemplate>
-                <TextBlock Text="{Binding AdaptiveActions, Converter={StaticResource ListToStringConverter}}"/>
+                <TextBlock Text="{Binding AdaptiveActions, Converter={StaticResource IdListToNamesConverter}, ConverterParameter='AdaptiveActions'}"/>
               </DataTemplate>
             </DataGridTemplateColumn.CellTemplate>
             <DataGridTemplateColumn.CellStyle>
