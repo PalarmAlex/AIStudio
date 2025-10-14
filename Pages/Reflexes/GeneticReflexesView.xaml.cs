@@ -96,35 +96,12 @@ namespace AIStudio.Pages.Reflexes
     {
       e.NewItem = new GeneticReflexesSystem.GeneticReflex
       {
-        Name = "Новый безусловный рефлекс",
-        Description = string.Empty,
         Level1 = 0,
         Level2 = new List<int>(),
         Level3 = new List<int>(),
         WordId = 0,
         AdaptiveActions = new List<int>()
       };
-    }
-
-    private void DescriptionCell_DoubleClick(object sender, MouseButtonEventArgs e)
-    {
-      if (sender is DataGridCell cell && cell.DataContext is GeneticReflexesSystem.GeneticReflex reflex)
-      {
-        var dialog = new TextInputDialog
-        {
-          Owner = Window.GetWindow(this),
-          Title = "Редактирование описания",
-          Text = reflex.Description,
-          Multiline = true
-        };
-
-        if (dialog.ShowDialog() == true)
-        {
-          reflex.Description = dialog.Text;
-          GeneticReflexesGrid.CommitEdit(DataGridEditingUnit.Row, true);
-          GeneticReflexesGrid.Items.Refresh();
-        }
-      }
     }
 
     private void Level2Cell_DoubleClick(object sender, MouseButtonEventArgs e)
@@ -184,7 +161,7 @@ namespace AIStudio.Pages.Reflexes
             element.DataContext is GeneticReflexesSystem.GeneticReflex reflex)
         {
           var selector = new WordSelectorDialog(
-              $"Выбор слова для действия: {reflex.Name} (ID: {reflex.Id})",
+              $"Выбор слова для рефлекса ID: {reflex.Id}",
               reflex.WordId);
 
           if (selector.ShowDialog() == true)

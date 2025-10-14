@@ -171,16 +171,6 @@
 
         <DataGrid.Columns>
           <DataGridTextColumn Header="ID" Binding="{Binding Id}" Width="50" IsReadOnly="True"/>
-          <DataGridTextColumn Header="Наименование" Binding="{Binding Name}" Width="150"/>
-
-          <DataGridTextColumn Header="Описание" Binding="{Binding Description, Mode=TwoWay}" Width="*">
-            <DataGridTextColumn.CellStyle>
-              <Style TargetType="DataGridCell" BasedOn="{StaticResource {x:Type DataGridCell}}">
-                <Setter Property="ToolTip" Value="{Binding Description}"/>
-                <EventSetter Event="MouseDoubleClick" Handler="DescriptionCell_DoubleClick"/>
-              </Style>
-            </DataGridTextColumn.CellStyle>
-          </DataGridTextColumn>
 
           <!-- Интегральное состояние - комбобокс -->
           <DataGridTemplateColumn Header="Интегральное состояние" Width="Auto">
@@ -200,7 +190,7 @@
           </DataGridTemplateColumn>
 
           <!-- Контексты реагирования -->
-          <DataGridTemplateColumn Header="Контексты реагирования" Width="Auto">
+          <DataGridTemplateColumn Header="Контексты реагирования" Width="250">
             <DataGridTemplateColumn.CellTemplate>
               <DataTemplate>
                 <TextBlock Text="{Binding Level2, Converter={StaticResource ListToStringConverter}}"/>
@@ -213,8 +203,8 @@
             </DataGridTemplateColumn.CellStyle>
           </DataGridTemplateColumn>
 
-          <!-- Внешние воздействия -->
-          <DataGridTemplateColumn Header="Внешние воздействия" Width="Auto">
+          <!-- Внешние стимулы -->
+          <DataGridTemplateColumn Header="Внешние стимулы" Width="250">
             <DataGridTemplateColumn.CellTemplate>
               <DataTemplate>
                 <TextBlock Text="{Binding Level3, Converter={StaticResource ListToStringConverter}}"/>
@@ -244,7 +234,7 @@
           </DataGridTextColumn>
 
           <!-- Адаптивные действия -->
-          <DataGridTemplateColumn Header="Адаптивные действия" Width="Auto">
+          <DataGridTemplateColumn Header="Адаптивные действия" Width="*">
             <DataGridTemplateColumn.CellTemplate>
               <DataTemplate>
                 <TextBlock Text="{Binding AdaptiveActions, Converter={StaticResource ListToStringConverter}}"/>

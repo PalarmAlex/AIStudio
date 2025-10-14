@@ -314,20 +314,6 @@
           Margin="5,0"/>
       </StackPanel>
 
-      <!-- Безусловный рефлекс по умолчанию -->
-      <StackPanel Grid.Column="1" Grid.Row="2" Orientation="Horizontal" Margin="0,0,0,5">
-        <TextBlock Text="Безусловный рефлекс по умолчанию:" 
-          Width="220"
-          VerticalAlignment="Center"/>
-
-        <ComboBox ItemsSource="{Binding GeneticReflexesWithNone}"
-          SelectedValue="{Binding DefaultGeneticReflexId}"
-          DisplayMemberPath="Name"
-          SelectedValuePath="Id"
-          Width="220"
-          Margin="5,0"/>
-      </StackPanel>
-
     </Grid>
 
     <!-- Кнопка сохранения -->

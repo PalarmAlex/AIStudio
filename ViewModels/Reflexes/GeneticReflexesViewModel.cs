@@ -224,9 +224,7 @@ namespace AIStudio.ViewModels
           var sensorySystem = SensorySystem.Instance;
           var allWords = sensorySystem.VerbalChannel.GetAllWords();
           if (allWords != null)
-          {
             WordFilterOptions.AddRange(allWords.Select(w => new KeyValuePair<int?, string>(w.Key, w.Value)));
-          }
         }
         catch (Exception ex)
         {
@@ -276,8 +274,6 @@ namespace AIStudio.ViewModels
         var reflexCopy = new GeneticReflexesSystem.GeneticReflex
         {
           Id = reflex.Id,
-          Name = reflex.Name,
-          Description = reflex.Description,
           Level1 = reflex.Level1,
           Level2 = new List<int>(reflex.Level2),
           Level3 = new List<int>(reflex.Level3),
@@ -314,7 +310,7 @@ namespace AIStudio.ViewModels
 
         try
         {
-          var (success, error) = _geneticReflexesSystem.SaveGeneticReflexes(true); // Включить валидацию
+          var (success, error) = _geneticReflexesSystem.SaveGeneticReflexes(false);
 
           if (success)
           {
@@ -368,7 +364,7 @@ namespace AIStudio.ViewModels
           var validationResult = _geneticReflexesSystem.ValidateGeneticReflex(reflex);
           if (!validationResult.IsValid)
           {
-            MessageBox.Show($"Ошибка валидации рефлекса '{reflex.Name}':\n{validationResult.ErrorMessage}",
+            MessageBox.Show($"Ошибка валидации рефлекса '{reflex.Id}':\n{validationResult.ErrorMessage}",
                 "Ошибка сохранения",
                 MessageBoxButton.OK,
                 MessageBoxImage.Error);
@@ -399,7 +395,7 @@ namespace AIStudio.ViewModels
             var warnings = _geneticReflexesSystem.UpdateGeneticReflex(reflex);
             if (warnings != null && warnings.Length > 0)
             {
-              MessageBox.Show($"Предупреждения при обновлении рефлекса '{reflex.Name}':\n{string.Join("\n", warnings)}",
+              MessageBox.Show($"Предупреждения при обновлении рефлекса '{reflex.Id}':\n{string.Join("\n", warnings)}",
                   "Предупреждения",
                   MessageBoxButton.OK,
                   MessageBoxImage.Warning);
@@ -409,8 +405,6 @@ namespace AIStudio.ViewModels
           {
             // Добавление нового (ID <= 0 или нет в текущих)
             var (newId, warnings) = _geneticReflexesSystem.AddGeneticReflex(
-                reflex.Name,
-                reflex.Description,
                 reflex.Level1,
                 new List<int>(reflex.Level2),
                 new List<int>(reflex.Level3),
@@ -420,7 +414,7 @@ namespace AIStudio.ViewModels
 
             if (warnings != null && warnings.Length > 0)
             {
-              MessageBox.Show($"Предупреждения при добавлении рефлекса '{reflex.Name}':\n{string.Join("\n", warnings)}",
+              MessageBox.Show($"Предупреждения при добавлении рефлекса '{reflex.Id}':\n{string.Join("\n", warnings)}",
                   "Предупреждения",
                   MessageBoxButton.OK,
                   MessageBoxImage.Warning);
@@ -453,9 +447,7 @@ namespace AIStudio.ViewModels
           if (reflex.Id > 0)
           {
             if (_geneticReflexesSystem.RemoveGeneticReflex(reflex.Id))
-            {
               _geneticReflexesSystem.SaveGeneticReflexes();
-            }
             else
               MessageBox.Show("Не удалось удалить безусловные рефлексы", "Ошибка",
                             MessageBoxButton.OK, MessageBoxImage.Error);

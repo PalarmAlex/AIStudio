@@ -33,7 +33,6 @@ namespace AIStudio.ViewModels
     private string _reflexesTemplateFolderPath;
     private int _defaultStileId;
     private int _defaultAdaptiveActionId;
-    private int _defaultGeneticReflexId;
 
     private int _recognitionThreshold;
     private int _previousRecognitionThreshold;
@@ -150,15 +149,6 @@ namespace AIStudio.ViewModels
       {
         _defaultAdaptiveActionId = value;
         OnPropertyChanged(nameof(DefaultAdaptiveActionId));
-      }
-    }
-    public int DefaultGeneticReflexId
-    {
-      get => _defaultGeneticReflexId;
-      set
-      {
-        _defaultGeneticReflexId = value;
-        OnPropertyChanged(nameof(DefaultGeneticReflexId));
       }
     }
 
@@ -419,7 +409,6 @@ namespace AIStudio.ViewModels
       ReflexesTemplateFolderPath = AppConfig.ReflexesTemplateFolderPath;
       DefaultStileId = AppConfig.DefaultStileId;
       DefaultAdaptiveActionId = AppConfig.DefaultAdaptiveActionId;
-      DefaultGeneticReflexId = AppConfig.DefaultGeneticReflexId;
 
       _recognitionThreshold = AppConfig.RecognitionThreshold;
       _previousRecognitionThreshold = _recognitionThreshold;
@@ -470,7 +459,6 @@ namespace AIStudio.ViewModels
 
       LoadBehaviorStylesWithNone();
       LoadAdaptiveActionsWithNone();
-      LoadGeneticReflexesWithNone();
 
       BrowseFolderCommand = new RelayCommand(BrowseFolderWithParameter);
       SaveSettingsCommand = new RelayCommand(SaveSettingsWithParameter);
@@ -502,20 +490,6 @@ namespace AIStudio.ViewModels
         foreach (var action in _actionsSystem.GetAllAdaptiveActions().OrderBy(a => a.Id))
         {
           AdaptiveActionsWithNone.Add(new SelectableItem { Id = action.Id, Name = action.Name });
-        }
-      }
-    }
-
-    private void LoadGeneticReflexesWithNone()
-    {
-      GeneticReflexesWithNone.Clear();
-      GeneticReflexesWithNone.Add(new SelectableItem { Id = 0, Name = "Нет" });
-
-      if (_geneticReflexesSystem?.GetAllGeneticReflexes() != null)
-      {
-        foreach (var reflex in _geneticReflexesSystem.GetAllGeneticReflexes().OrderBy(r => r.Id))
-        {
-          GeneticReflexesWithNone.Add(new SelectableItem { Id = reflex.Id, Name = reflex.Name });
         }
       }
     }
@@ -649,7 +623,6 @@ namespace AIStudio.ViewModels
         AppConfig.SetSetting(nameof(ReflexesTemplateFolderPath), ReflexesTemplateFolderPath);
         AppConfig.SetIntSetting(nameof(DefaultStileId), DefaultStileId);
         AppConfig.SetIntSetting(nameof(DefaultAdaptiveActionId), DefaultAdaptiveActionId);
-        AppConfig.SetIntSetting(nameof(DefaultGeneticReflexId), DefaultGeneticReflexId);
         AppConfig.SetIntSetting(nameof(RecognitionThreshold), RecognitionThreshold);
         AppConfig.SetIntSetting(nameof(CompareLevel), CompareLevel);
         AppConfig.SetFloatSetting(nameof(DifSensorPar), DifSensorPar);
