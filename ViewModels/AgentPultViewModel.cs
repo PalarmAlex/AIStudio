@@ -2,6 +2,7 @@
 using ISIDA.Actions;
 using ISIDA.Common;
 using ISIDA.Gomeostas;
+using ISIDA.Sensors;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -22,12 +23,16 @@ namespace AIStudio.ViewModels
     }
 
     private readonly GomeostasSystem _gomeostas;
+    private readonly SensorySystem _sensorySystem;
     private readonly InfluenceActionSystem _influenceActionSystem;
     private ObservableCollection<InfluenceActionItem> _influenceActions;
     private ObservableCollection<InfluenceActionItem> _column1Actions;
     private ObservableCollection<InfluenceActionItem> _column2Actions;
     private AntagonistManager _antagonistManager;
     private bool _isAgentDead;
+    private bool _authoritativeMode;
+    private string _messageText;
+    private string _agentResponse;
 
     public bool IsEditingEnabled => !IsAgentDead;
     public bool IsAgentDead
@@ -44,6 +49,45 @@ namespace AIStudio.ViewModels
       }
     }
 
+    public bool AuthoritativeMode
+    {
+      get => _authoritativeMode;
+      set
+      {
+        if (_authoritativeMode != value)
+        {
+          _authoritativeMode = value;
+          OnPropertyChanged();
+        }
+      }
+    }
+
+    public string MessageText
+    {
+      get => _messageText;
+      set
+      {
+        if (_messageText != value)
+        {
+          _messageText = value;
+          OnPropertyChanged();
+        }
+      }
+    }
+
+    public string AgentResponse
+    {
+      get => _agentResponse;
+      set
+      {
+        if (_agentResponse != value)
+        {
+          _agentResponse = value;
+          OnPropertyChanged();
+        }
+      }
+    }
+
     private ICommand _applyInfluenceCommand;
     public ICommand ApplyInfluenceCommand => _applyInfluenceCommand ??
         (_applyInfluenceCommand = new RelayCommand(ApplyInfluenceActions, _ => IsEditingEnabled));
@@ -51,10 +95,12 @@ namespace AIStudio.ViewModels
     public AgentPultViewModel()
     {
       _gomeostas = GomeostasSystem.Instance;
+      _sensorySystem = SensorySystem.Instance;
       _influenceActionSystem = InfluenceActionSystem.Instance;
       _influenceActions = new ObservableCollection<InfluenceActionItem>();
       _column1Actions = new ObservableCollection<InfluenceActionItem>();
       _column2Actions = new ObservableCollection<InfluenceActionItem>();
+      _messageText = "Привет";
 
       LoadInfluenceActions();
       UpdateAgentState();
@@ -162,42 +208,96 @@ namespace AIStudio.ViewModels
       }
 
       var selectedActions = GetSelectedInfluenceActions();
-      if (selectedActions.Count == 0)
+      if (selectedActions.Count == 0 && string.IsNullOrWhiteSpace(MessageText))
       {
-        MessageBox.Show("Не выбрано ни одного воздействия",
+        MessageBox.Show("Не выбрано ни одного воздействия и не введено сообщение",
             "Внимание",
             MessageBoxButton.OK,
             MessageBoxImage.Information);
         return;
       }
 
-      // Получаем все выбранные действия
-      var actionsToApply = _influenceActionSystem.GetAllInfluenceActions()
-          .Where(a => selectedActions.Contains(a.Id))
-          .ToList();
-
-      // Применяем воздействия к системе гомеостаза
-      foreach (var action in actionsToApply)
+      try
       {
-        var (success, error) = _influenceActionSystem.ApplyInfluenceAction(action.Id);
-        if (!success)
+        List<int> phraseIds = new List<int>();
+
+        // Обрабатываем текстовое сообщение, если оно есть
+        if (!string.IsNullOrWhiteSpace(MessageText))
         {
-          if (error.Contains("Агент мертв"))
+          // Распознаем текст и получаем ID фраз
+          phraseIds = _sensorySystem.VerbalChannel.RecognizeText(
+              MessageText,
+              AuthoritativeMode
+          );
+
+          // Формируем ответ агента
+          if (phraseIds.Any())
           {
-            IsAgentDead = true;
-            MessageBox.Show("Агент умер во время применения воздействий",
-                "Агент мертв",
+            var recognizedPhrases = phraseIds.Select(id =>
+                _sensorySystem.VerbalChannel.GetPhraseFromPhraseId(id));
+            AgentResponse = $"Распознанные фразы: {string.Join("; ", recognizedPhrases)}";
+          }
+          else
+          {
+            AgentResponse = "Фразы не распознаны (добавлены в песочницу для обучения)";
+          }
+        }
+
+        // Применяем воздействия, если есть выбранные действия
+        if (selectedActions.Any())
+        {
+          var (success, errorMessage, imageId) = _influenceActionSystem.ApplyMultipleInfluenceActions(
+              selectedActions,
+              phraseIds
+          );
+
+          if (!success)
+          {
+            if (errorMessage.Contains("Агент мертв"))
+            {
+              IsAgentDead = true;
+              MessageBox.Show("Агент умер во время применения воздействий",
+                  "Агент мертв",
+                  MessageBoxButton.OK,
+                  MessageBoxImage.Warning);
+              return;
+            }
+
+            MessageBox.Show($"Не удалось применить воздействия: {errorMessage}",
+                "Ошибка",
                 MessageBoxButton.OK,
-                MessageBoxImage.Warning);
+                MessageBoxImage.Error);
             return;
           }
 
-          MessageBox.Show($"Не удалось применить гомеостатическое воздействие: {error}",
-              "Ошибка изменения параметров гомеостаза агента",
+          // Добавляем информацию о созданном образе в ответ
+          if (imageId > 0)
+            AgentResponse += $"\nСоздан образ восприятия ID: {imageId}";
+
+          // Обновляем состояние агента после воздействий
+          UpdateAgentState();
+
+          MessageBox.Show("Воздействия успешно применены",
+              "Успех",
               MessageBoxButton.OK,
-              MessageBoxImage.Error);
-          return;
+              MessageBoxImage.Information);
         }
+        else
+        {
+          // Если только текстовое сообщение без действий
+          MessageBox.Show("Сообщение обработано",
+              "Успех",
+              MessageBoxButton.OK,
+              MessageBoxImage.Information);
+        }
+      }
+      catch (Exception ex)
+      {
+        MessageBox.Show($"Ошибка при применении воздействий: {ex.Message}",
+            "Ошибка",
+            MessageBoxButton.OK,
+            MessageBoxImage.Error);
+        System.Diagnostics.Debug.WriteLine($"Ошибка ApplyInfluenceActions: {ex.Message}");
       }
     }
 

@@ -94,7 +94,7 @@ namespace AIStudio
     public MainViewModel()
     {
       try
-      {
+      {       
         // Инициализация гомеостаза
         GomeostasSystem.InitializeInstance(AppConfig.DataGomeostasFolderPath, AppConfig.DataGomeostasTemplateFolderPath);
         _gomeostas = GomeostasSystem.Instance;
@@ -118,6 +118,7 @@ namespace AIStudio
         // Инициализация образов рефлексов
         PerceptionImagesSystem.InitializeInstance(_geneticReflexesSystem);
         _perceptionImagesSystem = PerceptionImagesSystem.Instance;
+        _gomeostas.SetPerceptionImagesSystem(_perceptionImagesSystem);
 
         // Инициализация условных рефлексов
         ConditionedReflexesSystem.InitializeInstance(_gomeostas, _geneticReflexesSystem, _perceptionImagesSystem);
