@@ -7,10 +7,14 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.Linq;
 using System.Runtime.CompilerServices;
+using System.Text.RegularExpressions;
 using System.Windows;
+using System.Windows.Documents;
 using System.Windows.Input;
+using System.Windows.Media;
 
 namespace AIStudio.ViewModels
 {
@@ -33,6 +37,7 @@ namespace AIStudio.ViewModels
     private bool _authoritativeMode;
     private string _messageText;
     private string _agentResponse;
+    private string _recognitionDisplayText;
 
     public bool IsEditingEnabled => !IsAgentDead;
     public bool IsAgentDead
@@ -71,6 +76,8 @@ namespace AIStudio.ViewModels
         {
           _messageText = value;
           OnPropertyChanged();
+          if(_messageText != "")
+            UpdateRecognitionDisplay();
         }
       }
     }
@@ -88,6 +95,19 @@ namespace AIStudio.ViewModels
       }
     }
 
+    public string RecognitionDisplayText
+    {
+      get => _recognitionDisplayText;
+      set
+      {
+        if (_recognitionDisplayText != value)
+        {
+          _recognitionDisplayText = value;
+          OnPropertyChanged();
+        }
+      }
+    }
+
     private ICommand _applyInfluenceCommand;
     public ICommand ApplyInfluenceCommand => _applyInfluenceCommand ??
         (_applyInfluenceCommand = new RelayCommand(ApplyInfluenceActions, _ => IsEditingEnabled));
@@ -100,10 +120,12 @@ namespace AIStudio.ViewModels
       _influenceActions = new ObservableCollection<InfluenceActionItem>();
       _column1Actions = new ObservableCollection<InfluenceActionItem>();
       _column2Actions = new ObservableCollection<InfluenceActionItem>();
-      _messageText = "Привет";
+      _recognitionDisplayText = "";
+      MessageText = "Привет";
 
       LoadInfluenceActions();
       UpdateAgentState();
+      UpdateRecognitionDisplay();
     }
 
     private void UpdateAgentState()
@@ -119,6 +141,64 @@ namespace AIStudio.ViewModels
       catch (Exception ex)
       {
         System.Diagnostics.Debug.WriteLine($"Ошибка получения состояния агента: {ex.Message}");
+      }
+    }
+
+    /// <summary>
+    /// Обновляет отображение распознанного текста с заменой нераспознанных слов на xxxxx
+    /// </summary>
+    private void UpdateRecognitionDisplay()
+    {
+      if (string.IsNullOrWhiteSpace(MessageText))
+      {
+        RecognitionDisplayText = "";
+        return;
+      }
+
+      try
+      {
+        // Получаем все слова из дерева для проверки распознавания
+        var allWords = _sensorySystem.VerbalChannel.GetAllWords();
+        var recognizedWords = allWords.Values.Select(w => w.ToLower()).ToHashSet();
+
+        // Разбиваем текст на части (слова, пробелы, знаки препинания)
+        var parts = Regex.Split(MessageText, @"(\s+|[^\w\s])")
+            .Where(part => !string.IsNullOrEmpty(part))
+            .ToList();
+
+        var resultParts = new List<string>();
+
+        foreach (var part in parts)
+        {
+          // Проверяем, является ли часть словом (содержит буквы)
+          if (Regex.IsMatch(part, @"\p{L}"))
+          {
+            // Это слово - проверяем распознавание
+            if (recognizedWords.Contains(part.ToLower()))
+            {
+              // Распознанное слово - оставляем как есть
+              resultParts.Add(part);
+            }
+            else
+            {
+              // Не распознанное слово - заменяем на xxxxx
+              resultParts.Add("xxxxx");
+            }
+          }
+          else
+          {
+            // Это пробелы или знаки препинания - оставляем как есть
+            resultParts.Add(part);
+          }
+        }
+
+        RecognitionDisplayText = string.Join("", resultParts);
+      }
+      catch (Exception ex)
+      {
+        Debug.WriteLine($"Ошибка при обновлении отображения распознавания: {ex.Message}");
+        // В случае ошибки показываем исходный текст
+        RecognitionDisplayText = MessageText;
       }
     }
 
@@ -204,6 +284,7 @@ namespace AIStudio.ViewModels
             "Агент мертв",
             MessageBoxButton.OK,
             MessageBoxImage.Error);
+        MessageText = ""; // Очищаем только поле ввода
         return;
       }
 
@@ -214,6 +295,7 @@ namespace AIStudio.ViewModels
             "Внимание",
             MessageBoxButton.OK,
             MessageBoxImage.Information);
+        MessageText = ""; // Очищаем только поле ввода
         return;
       }
 
@@ -230,21 +312,13 @@ namespace AIStudio.ViewModels
               AuthoritativeMode
           );
 
-          // Формируем ответ агента
-          if (phraseIds.Any())
-          {
-            var recognizedPhrases = phraseIds.Select(id =>
-                _sensorySystem.VerbalChannel.GetPhraseFromPhraseId(id));
-            AgentResponse = $"Распознанные фразы: {string.Join("; ", recognizedPhrases)}";
-          }
-          else
-          {
-            AgentResponse = "Фразы не распознаны (добавлены в песочницу для обучения)";
-          }
-        }
+          UpdateRecognitionDisplay(); // до очистки поля ввода!
+          MessageText = "";
+        }else
+          UpdateRecognitionDisplay(); // чтобы очистило текст распознавания
 
-        // Применяем воздействия, если есть выбранные действия
-        if (selectedActions.Any())
+        // Применяем воздействия, если есть выбранные действия или фраза
+        if (selectedActions.Any() || phraseIds.Any())
         {
           var (success, errorMessage, imageId) = _influenceActionSystem.ApplyMultipleInfluenceActions(
               selectedActions,
@@ -269,26 +343,8 @@ namespace AIStudio.ViewModels
                 MessageBoxImage.Error);
             return;
           }
-
-          // Добавляем информацию о созданном образе в ответ
-          if (imageId > 0)
-            AgentResponse += $"\nСоздан образ восприятия ID: {imageId}";
-
           // Обновляем состояние агента после воздействий
           UpdateAgentState();
-
-          MessageBox.Show("Воздействия успешно применены",
-              "Успех",
-              MessageBoxButton.OK,
-              MessageBoxImage.Information);
-        }
-        else
-        {
-          // Если только текстовое сообщение без действий
-          MessageBox.Show("Сообщение обработано",
-              "Успех",
-              MessageBoxButton.OK,
-              MessageBoxImage.Information);
         }
       }
       catch (Exception ex)
@@ -297,7 +353,7 @@ namespace AIStudio.ViewModels
             "Ошибка",
             MessageBoxButton.OK,
             MessageBoxImage.Error);
-        System.Diagnostics.Debug.WriteLine($"Ошибка ApplyInfluenceActions: {ex.Message}");
+        Debug.WriteLine($"Ошибка ApplyInfluenceActions: {ex.Message}");
       }
     }
 
