@@ -15,25 +15,30 @@
 
     <TextBlock Grid.Row="0" Text="Выберите образ восприятия:" Margin="0,0,0,10" FontWeight="Bold"/>
 
-    <ListView x:Name="PerceptionImagesList" Grid.Row="1" SelectionMode="Single">
+    <ListView x:Name="PerceptionImagesList" Grid.Row="1" SelectionMode="Single"
+              MouseDoubleClick="PerceptionImagesList_MouseDoubleClick">
       <ListView.View>
         <GridView>
-          <GridViewColumn Header="ID" Width="60" DisplayMemberBinding="{Binding Id}"/>
-          <GridViewColumn Header="Описание" Width="300">
+          <GridViewColumn Header="Выбрать" Width="60">
             <GridViewColumn.CellTemplate>
               <DataTemplate>
-                <TextBlock Text="{Binding Description}" TextWrapping="Wrap"/>
+                <RadioButton IsChecked="{Binding IsSelected}" 
+                            GroupName="PerceptionImageSelection"
+                            HorizontalAlignment="Center"
+                            VerticalAlignment="Center"
+                            Click="RadioButton_Click"/>
               </DataTemplate>
             </GridViewColumn.CellTemplate>
           </GridViewColumn>
-          <GridViewColumn Header="Воздействия" Width="150">
+          <GridViewColumn Header="ID" Width="60" DisplayMemberBinding="{Binding Id}"/>
+          <GridViewColumn Header="Воздействия" Width="300">
             <GridViewColumn.CellTemplate>
               <DataTemplate>
                 <TextBlock Text="{Binding InfluenceActionsDescription}" TextWrapping="Wrap"/>
               </DataTemplate>
             </GridViewColumn.CellTemplate>
           </GridViewColumn>
-          <GridViewColumn Header="Фразы" Width="150">
+          <GridViewColumn Header="Фразы" Width="250">
             <GridViewColumn.CellTemplate>
               <DataTemplate>
                 <TextBlock Text="{Binding PhrasesDescription}" TextWrapping="Wrap"/>
@@ -43,15 +48,6 @@
         </GridView>
       </ListView.View>
     </ListView>
-
-    <!-- Детали выбранного образа -->
-    <Border Grid.Row="2" Background="#FFF8F8F8" BorderBrush="#FFE0E0E0" BorderThickness="1" 
-                Margin="0,10,0,5" Padding="8">
-      <StackPanel>
-        <TextBlock Text="Детали выбранного образа:" FontWeight="SemiBold" Margin="0,0,0,5"/>
-        <TextBlock x:Name="SelectedImageDetails" TextWrapping="Wrap"/>
-      </StackPanel>
-    </Border>
 
     <StackPanel Grid.Row="3" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,10,0,0">
       <Button Content="OK" Width="80" Margin="0,0,10,0" Click="OkButton_Click"/>

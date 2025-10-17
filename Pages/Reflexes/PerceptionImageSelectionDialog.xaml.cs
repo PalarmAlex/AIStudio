@@ -1,8 +1,11 @@
-﻿using ISIDA.Reflexes;
+﻿using ISIDA.Actions;
+using ISIDA.Reflexes;
+using ISIDA.Sensors;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Windows;
+using System.Windows.Controls;
 using System.Windows.Input;
 
 namespace AIStudio.Dialogs
@@ -36,7 +39,6 @@ namespace AIStudio.Dialogs
           _perceptionImages.Add(new PerceptionImageItem
           {
             Id = image.Id,
-            Description = CreateImageDescription(image),
             InfluenceActionsDescription = CreateInfluenceActionsDescription(image),
             PhrasesDescription = CreatePhrasesDescription(image),
             InfluenceActionsList = image.InfluenceActionsList ?? new List<int>(),
@@ -54,18 +56,10 @@ namespace AIStudio.Dialogs
           if (selectedItem != null)
           {
             PerceptionImagesList.SelectedItem = selectedItem;
-            UpdateSelectedImageDetails(selectedItem);
+            // Прокручиваем к выбранному элементу
+            PerceptionImagesList.ScrollIntoView(selectedItem);
           }
         }
-
-        // Подписываемся на событие выбора
-        PerceptionImagesList.SelectionChanged += (s, e) =>
-        {
-          if (PerceptionImagesList.SelectedItem is PerceptionImageItem selectedItem)
-          {
-            UpdateSelectedImageDetails(selectedItem);
-          }
-        };
       }
       catch (Exception ex)
       {
@@ -74,17 +68,22 @@ namespace AIStudio.Dialogs
       }
     }
 
-    private string CreateImageDescription(PerceptionImagesSystem.PerceptionImage image)
-    {
-      return $"Образ #{image.Id}";
-    }
-
     private string CreateInfluenceActionsDescription(PerceptionImagesSystem.PerceptionImage image)
     {
       if (image.InfluenceActionsList == null || !image.InfluenceActionsList.Any())
         return "Нет воздействий";
 
-      return $"Воздействий: {image.InfluenceActionsList.Count}";
+      if (InfluenceActionSystem.IsInitialized)
+      {
+        var influenceSystem = InfluenceActionSystem.Instance;
+        var allActions = influenceSystem.GetAllInfluenceActions();
+        var names = image.InfluenceActionsList
+            .Where(id => allActions.Any(a => a.Id == id))
+            .Select(id => allActions.First(a => a.Id == id).Name)
+            .ToList();
+        return string.Join(", ", names);
+      }
+      return "InfluenceActionSystem не инициализирован";
     }
 
     private string CreatePhrasesDescription(PerceptionImagesSystem.PerceptionImage image)
@@ -92,47 +91,58 @@ namespace AIStudio.Dialogs
       if (image.PhraseIdList == null || !image.PhraseIdList.Any())
         return "Нет фраз";
 
-      return $"Фраз: {image.PhraseIdList.Count}";
+      if (SensorySystem.IsInitialized)
+      {
+        var sensorySystem = SensorySystem.Instance;
+        var allSensors = sensorySystem.VerbalChannel.GetAllPhrases();
+        var names = image.PhraseIdList
+            .Where(id => allSensors.Any(a => a.Key == id))
+            .Select(id => allSensors.First(a => a.Key == id).Value)
+            .ToList();
+        return string.Join(", ", names);
+      }
+      return "Нет фраз";
     }
 
-    private void UpdateSelectedImageDetails(PerceptionImageItem item)
+    private void RadioButton_Click(object sender, RoutedEventArgs e)
     {
-      var details = new System.Text.StringBuilder();
-      details.AppendLine($"ID: {item.Id}");
+      if (sender is RadioButton radioButton && radioButton.DataContext is PerceptionImageItem item)
+      {
+        // Сбрасываем выбор у всех остальных элементов
+        foreach (var perceptionItem in _perceptionImages)
+        {
+          perceptionItem.IsSelected = perceptionItem.Id == item.Id;
+        }
 
-      if (item.InfluenceActionsList.Any())
-      {
-        details.AppendLine($"Воздействия: {string.Join(", ", item.InfluenceActionsList)}");
-      }
-      else
-      {
-        details.AppendLine("Воздействия: отсутствуют");
-      }
+        // Обновляем привязки
+        PerceptionImagesList.Items.Refresh();
 
-      if (item.PhraseIdList.Any())
-      {
-        details.AppendLine($"Фразы: {string.Join(", ", item.PhraseIdList)}");
+        // Устанавливаем выбранный ID
+        SelectedPerceptionImageId = item.Id;
       }
-      else
-      {
-        details.AppendLine("Фразы: отсутствуют");
-      }
-
-      SelectedImageDetails.Text = details.ToString();
-      SelectedPerceptionImageId = item.Id;
     }
 
     private void OkButton_Click(object sender, RoutedEventArgs e)
     {
-      if (PerceptionImagesList.SelectedItem is PerceptionImageItem selectedItem)
+      // Находим выбранный элемент через радиокнопку
+      var selectedItem = _perceptionImages.FirstOrDefault(item => item.IsSelected);
+      if (selectedItem != null)
       {
         SelectedPerceptionImageId = selectedItem.Id;
         DialogResult = true;
       }
       else
       {
-        SelectedPerceptionImageId = 0;
-        DialogResult = true;
+        // Если ничего не выбрано, но был первоначальный выбор - сохраняем его
+        if (SelectedPerceptionImageId > 0)
+        {
+          DialogResult = true;
+        }
+        else
+        {
+          SelectedPerceptionImageId = 0;
+          DialogResult = true;
+        }
       }
       Close();
     }
@@ -151,13 +161,35 @@ namespace AIStudio.Dialogs
         Close();
         e.Handled = true;
       }
+      else if (e.Key == Key.Enter)
+      {
+        OkButton_Click(sender, e);
+        e.Handled = true;
+      }
+    }
+
+    // Обработчик двойного клика по строке для быстрого выбора
+    private void PerceptionImagesList_MouseDoubleClick(object sender, MouseButtonEventArgs e)
+    {
+      if (PerceptionImagesList.SelectedItem is PerceptionImageItem item)
+      {
+        // Устанавливаем выбор через радиокнопку
+        foreach (var perceptionItem in _perceptionImages)
+        {
+          perceptionItem.IsSelected = perceptionItem.Id == item.Id;
+        }
+        PerceptionImagesList.Items.Refresh();
+        SelectedPerceptionImageId = item.Id;
+
+        DialogResult = true;
+        Close();
+      }
     }
   }
 
   public class PerceptionImageItem
   {
     public int Id { get; set; }
-    public string Description { get; set; }
     public string InfluenceActionsDescription { get; set; }
     public string PhrasesDescription { get; set; }
     public List<int> InfluenceActionsList { get; set; }

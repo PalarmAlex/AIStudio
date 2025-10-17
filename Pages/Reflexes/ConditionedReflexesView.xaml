@@ -17,6 +17,7 @@
     <converters:Level1ToTextConverter x:Key="Level1ToTextConverter"/>
     <converters:IdListToNamesConverter x:Key="IdListToNamesConverter"/>
     <converters:PerceptionImageIdToTextConverter x:Key="PerceptionImageIdToTextConverter"/>
+    <converters:PerceptionImageIdToTooltipConverter x:Key="PerceptionImageIdToTooltipConverter"/>
 
     <Style x:Key="BaseTextBlockStyle" TargetType="TextBlock">
       <Setter Property="Background" Value="White"/>
@@ -102,7 +103,7 @@
         </StackPanel>
 
         <!-- Фильтр по образам восприятия -->
-        <StackPanel Orientation="Vertical" Margin="0,0,15,0" Width="160">
+        <StackPanel Orientation="Vertical" Margin="0,0,15,0" Width="150">
           <TextBlock Text="Образы восприятия" FontSize="12" Margin="0,0,0,2"/>
           <ComboBox Style="{StaticResource AgentComboBoxStyle}"
                               ItemsSource="{Binding Level3FilterOptions}"
@@ -124,7 +125,7 @@
         </StackPanel>
 
         <!-- Фильтр по рангу -->
-        <StackPanel Orientation="Vertical" Margin="0,0,15,0" Width="120">
+        <StackPanel Orientation="Vertical" Margin="0,0,15,0" Width="130">
           <TextBlock Text="Ранг" FontSize="12" Margin="0,0,0,2"/>
           <ComboBox Style="{StaticResource AgentComboBoxStyle}"
                               ItemsSource="{Binding RankFilterOptions}"
@@ -204,12 +205,12 @@
             </DataGridTemplateColumn.CellStyle>
           </DataGridTemplateColumn>
 
-           <!--Образ восприятия--> 
+          <!--Образ восприятия-->
           <DataGridTemplateColumn Header="Образ восприятия" Width="200">
             <DataGridTemplateColumn.CellTemplate>
               <DataTemplate>
                 <TextBlock Text="{Binding Level3, Converter={StaticResource PerceptionImageIdToTextConverter}}"
-                               ToolTip="Двойной клик для просмотра деталей образа"/>
+                 ToolTip="{Binding Level3, Converter={StaticResource PerceptionImageIdToTooltipConverter}}"/>
               </DataTemplate>
             </DataGridTemplateColumn.CellTemplate>
             <DataGridTemplateColumn.CellStyle>
@@ -219,7 +220,7 @@
             </DataGridTemplateColumn.CellStyle>
           </DataGridTemplateColumn>
 
-           <!--Адаптивные действия--> 
+          <!--Адаптивные действия--> 
           <DataGridTemplateColumn Header="Адаптивные действия" Width="200">
             <DataGridTemplateColumn.CellTemplate>
               <DataTemplate>

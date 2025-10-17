@@ -84,7 +84,7 @@
           Style="{StaticResource ActionButtonStyle}"
           IsEnabled="{Binding IsEditingEnabled}" 
           Height="30" 
-          Margin="10,0,0,0"
+          Margin="35,0,0,0"
           HorizontalAlignment="Right" 
           Cursor="Hand"/>
     </StackPanel>

@@ -73,18 +73,7 @@ namespace AIStudio.Pages.Reflexes
     private void Level3Cell_DoubleClick(object sender, MouseButtonEventArgs e)
     {
       if (sender is DataGridCell cell && cell.DataContext is ConditionedReflexesSystem.ConditionedReflex reflex)
-      {
-        if (reflex.Level3 > 0)
-        {
-          // Показываем диалог с детальной информацией об образе
-          ShowPerceptionImageDetails(reflex.Level3);
-        }
-        else
-        {
-          // Открытие диалога для выбора образа восприятия
-          ShowLevel3EditDialog(reflex);
-        }
-      }
+        ShowLevel3EditDialog(reflex);
     }
 
     private void AdaptiveActionsCell_DoubleClick(object sender, MouseButtonEventArgs e)
@@ -156,57 +145,6 @@ namespace AIStudio.Pages.Reflexes
       {
         MessageBox.Show($"Ошибка при редактировании адаптивных действий: {ex.Message}",
             "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
-      }
-    }
-
-    private void ShowPerceptionImageDetails(int imageId)
-    {
-      try
-      {
-        if (PerceptionImagesSystem.IsInitialized)
-        {
-          var perceptionSystem = PerceptionImagesSystem.Instance;
-          var images = perceptionSystem.GetAllPerceptionImagesList();
-          var image = images.FirstOrDefault(img => img.Id == imageId);
-
-          if (image != null)
-          {
-            var details = new System.Text.StringBuilder();
-            details.AppendLine($"Образ восприятия #{image.Id}");
-            details.AppendLine();
-
-            if (image.InfluenceActionsList != null && image.InfluenceActionsList.Any())
-            {
-              details.AppendLine($"Воздействия: {string.Join(", ", image.InfluenceActionsList)}");
-            }
-            else
-            {
-              details.AppendLine("Воздействия: отсутствуют");
-            }
-
-            if (image.PhraseIdList != null && image.PhraseIdList.Any())
-            {
-              details.AppendLine($"Фразы: {string.Join(", ", image.PhraseIdList)}");
-            }
-            else
-            {
-              details.AppendLine("Фразы: отсутствуют");
-            }
-
-            MessageBox.Show(details.ToString(), "Детали образа восприятия",
-                MessageBoxButton.OK, MessageBoxImage.Information);
-          }
-          else
-          {
-            MessageBox.Show($"Образ восприятия #{imageId} не найден", "Ошибка",
-                MessageBoxButton.OK, MessageBoxImage.Error);
-          }
-        }
-      }
-      catch (System.Exception ex)
-      {
-        MessageBox.Show($"Ошибка при получении деталей образа: {ex.Message}", "Ошибка",
-            MessageBoxButton.OK, MessageBoxImage.Error);
       }
     }
   }
