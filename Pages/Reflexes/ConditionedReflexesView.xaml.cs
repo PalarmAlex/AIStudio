@@ -1,4 +1,6 @@
-﻿using AIStudio.Dialogs;
+﻿using AIStudio.Common;
+using AIStudio.Dialogs;
+using AIStudio.ViewModels;
 using ISIDA.Reflexes;
 using System.Collections.Generic;
 using System.Linq;
@@ -19,19 +21,34 @@ namespace AIStudio.Pages.Reflexes
     {
       if (e.Key == Key.Delete)
       {
-        var dataGrid = sender as DataGrid;
-        if (dataGrid != null && dataGrid.SelectedItems.Count > 0)
+        var grid = (DataGrid)sender;
+
+        if (grid.IsEditing())
+          return;
+
+        if (grid.SelectedItems.Count > 0 && DataContext is ConditionedReflexesViewModel viewModel)
         {
+          var actions = grid.SelectedItems
+            .Cast<object>()
+            .Where(item => item is ConditionedReflexesSystem.ConditionedReflex)
+            .Cast<ConditionedReflexesSystem.ConditionedReflex>()
+            .ToList();
+
           var result = MessageBox.Show(
-              $"Удалить выбранные условные рефлексы?",
+              $"Вы действительно хотите удалить {actions.Count} условных рефлексов?",
               "Подтверждение удаления",
               MessageBoxButton.YesNo,
               MessageBoxImage.Question);
 
-          if (result == MessageBoxResult.No)
+          if (result == MessageBoxResult.Yes)
           {
-            e.Handled = true;
+            foreach (var action in actions)
+            {
+              viewModel.RemoveSelectedReflexes(action);
+            }
           }
+
+          e.Handled = true;
         }
       }
     }

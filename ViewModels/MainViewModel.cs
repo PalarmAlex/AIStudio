@@ -116,7 +116,7 @@ namespace AIStudio
         _geneticReflexesSystem = GeneticReflexesSystem.Instance;
 
         // Инициализация образов рефлексов
-        PerceptionImagesSystem.InitializeInstance(_geneticReflexesSystem);
+        PerceptionImagesSystem.InitializeInstance(_gomeostas, _geneticReflexesSystem);
         _perceptionImagesSystem = PerceptionImagesSystem.Instance;
         _gomeostas.SetPerceptionImagesSystem(_perceptionImagesSystem);
 

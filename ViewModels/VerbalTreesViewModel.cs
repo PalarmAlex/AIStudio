@@ -463,7 +463,6 @@ namespace AIStudio.ViewModels
 
     private void RemoveAllTrees(object parameter)
     {
-      // Запрос подтверждения
       var result = MessageBox.Show(
           "Вы уверены, что хотите полностью очистить все вербальные деревья?\n\n" +
           "Это действие удалит все слова и фразы из памяти агента и не может быть отменено.",

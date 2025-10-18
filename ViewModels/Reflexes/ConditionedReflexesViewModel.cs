@@ -230,7 +230,6 @@ namespace AIStudio.ViewModels
       OnPropertyChanged(nameof(RankFilterOptions));
     }
 
-    // Метод для создания описания образа восприятия
     private string CreatePerceptionImageDescription(PerceptionImagesSystem.PerceptionImage image)
     {
       var description = $"Образ {image.Id}";
@@ -386,14 +385,18 @@ namespace AIStudio.ViewModels
       try
       {
         var currentReflexes = _conditionedReflexesSystem.GetAllConditionedReflexes().ToDictionary(a => a.Id);
-
         // Удаление рефлексов
         var reflexesToRemove = currentReflexes.Keys.Except(_allConditionedReflexes.Select(a => a.Id)).ToList();
         foreach (var reflexId in reflexesToRemove)
         {
-          // Для условных рефлексов используем затухание вместо прямого удаления
-          var reflex = currentReflexes[reflexId];
-          reflex.AssociationStrength = 0; // Помечаем для удаления при следующем затухании
+          var success = _conditionedReflexesSystem.RemoveConditionedReflex(reflexId);
+          if (!success)
+          {
+            MessageBox.Show($"Не удалось удалить условный рефлекс ID: {reflexId}",
+                "Ошибка",
+                MessageBoxButton.OK,
+                MessageBoxImage.Warning);
+          }
         }
 
         // Обновление и добавление рефлексов
@@ -401,17 +404,18 @@ namespace AIStudio.ViewModels
         {
           if (currentReflexes.ContainsKey(reflex.Id) && reflex.Id > 0)
           {
-            // Обновление существующего
+            // Обновление существующего рефлекса
             var existingReflex = currentReflexes[reflex.Id];
             existingReflex.Level1 = reflex.Level1;
             existingReflex.Level2 = new List<int>(reflex.Level2);
             existingReflex.Level3 = reflex.Level3;
             existingReflex.AdaptiveActions = new List<int>(reflex.AdaptiveActions);
             existingReflex.Rank = reflex.Rank;
+            // Не обновляем системные поля: AssociationStrength, LastActivation, BirthTime
           }
-          else
+          else if (reflex.Id <= 0)
           {
-            // Добавление нового
+            // Добавление нового рефлекса
             var (newId, warnings) = _conditionedReflexesSystem.AddConditionedReflex(
                 reflex.Level1,
                 new List<int>(reflex.Level2),
@@ -453,16 +457,28 @@ namespace AIStudio.ViewModels
           if (_allConditionedReflexes.Contains(reflex))
             _allConditionedReflexes.Remove(reflex);
 
-          // Для условных рефлексов помечаем для удаления через затухание
           if (reflex.Id > 0)
           {
-            reflex.AssociationStrength = 0;
-            _conditionedReflexesSystem.SaveConditionedReflexes();
+            bool removed = _conditionedReflexesSystem.RemoveConditionedReflex(reflex.Id);
+            if (removed)
+            {
+              var (success, error) = _conditionedReflexesSystem.SaveConditionedReflexes();
+              if (!success)
+              {
+                MessageBox.Show($"Не удалось сохранить удаление: {error}", "Ошибка",
+                    MessageBoxButton.OK, MessageBoxImage.Error);
+              }
+            }
+            else
+            {
+              MessageBox.Show("Не удалось удалить рефлекс из системы", "Ошибка",
+                  MessageBoxButton.OK, MessageBoxImage.Error);
+            }
           }
         }
         catch (Exception ex)
         {
-          MessageBox.Show($"Ошибка удаления условного рефлекса: {ex.Message}", "Ошибка",
+          MessageBox.Show($"Ошибка удаления: {ex.Message}", "Ошибка",
               MessageBoxButton.OK, MessageBoxImage.Error);
         }
       }
@@ -480,26 +496,32 @@ namespace AIStudio.ViewModels
       {
         try
         {
-          // Помечаем все рефлексы для удаления через затухание
-          foreach (var reflex in _allConditionedReflexes)
-          {
-            reflex.AssociationStrength = 0;
-          }
+          var success = _conditionedReflexesSystem.RemoveAllConditionedReflexes();
 
-          _allConditionedReflexes.Clear();
-
-          var (success, error) = _conditionedReflexesSystem.SaveConditionedReflexes();
           if (success)
           {
-            MessageBox.Show("Все условные рефлексы агента успешно удалены",
-                "Удаление завершено",
-                MessageBoxButton.OK,
-                MessageBoxImage.Information);
+            _allConditionedReflexes.Clear();
+
+            var (saveSuccess, error) = _conditionedReflexesSystem.SaveConditionedReflexes();
+            if (saveSuccess)
+            {
+              MessageBox.Show("Все условные рефлексы агента успешно удалены",
+                  "Удаление завершено",
+                  MessageBoxButton.OK,
+                  MessageBoxImage.Information);
+            }
+            else
+            {
+              MessageBox.Show($"Не удалось сохранить изменения после удаления:\n{error}",
+                  "Ошибка сохранения",
+                  MessageBoxButton.OK,
+                  MessageBoxImage.Error);
+            }
           }
           else
           {
-            MessageBox.Show($"Не удалось удалить условные рефлексы агента:\n{error}",
-                "Ошибка сохранения после удаления",
+            MessageBox.Show("Не удалось удалить все условные рефлексы",
+                "Ошибка удаления",
                 MessageBoxButton.OK,
                 MessageBoxImage.Error);
           }
