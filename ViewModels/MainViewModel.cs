@@ -34,6 +34,8 @@ namespace AIStudio
     private readonly GeneticReflexesSystem _geneticReflexesSystem;
     private readonly ConditionedReflexesSystem _conditionedReflexesSystem;
     private readonly PerceptionImagesSystem _perceptionImagesSystem;
+    private readonly ReflexesActivator _reflexesActivator;
+    private readonly ReflexTreeSystem _reflexTree;
     public event PropertyChangedEventHandler PropertyChanged;
 
     private ICommand _openAgentCommand;
@@ -119,16 +121,22 @@ namespace AIStudio
         PerceptionImagesSystem.InitializeInstance(_gomeostas, _geneticReflexesSystem);
         _perceptionImagesSystem = PerceptionImagesSystem.Instance;
         _gomeostas.SetPerceptionImagesSystem(_perceptionImagesSystem);
+        _influenceActionSystem.SetPerceptionImagesSystem(_perceptionImagesSystem);
 
         // Инициализация условных рефлексов
         ConditionedReflexesSystem.InitializeInstance(_gomeostas, _geneticReflexesSystem, _perceptionImagesSystem);
         _conditionedReflexesSystem = ConditionedReflexesSystem.Instance;
 
+        // Инициализация дерева рефлексов
+        ReflexTreeSystem.InitializeInstance(_geneticReflexesSystem);
+        _reflexTree = ReflexTreeSystem.Instance;
+
+        // Инициализация активатора рефлексов
+        ReflexesActivator.InitializeInstance(_gomeostas, _geneticReflexesSystem, _conditionedReflexesSystem, _influenceActionSystem, _reflexTree);
+        _reflexesActivator = ReflexesActivator.Instance;
+
         // Инициализация диспетчера пульса
-        GlobalTimer.InitializeSystems(
-            gomeostas: _gomeostas,
-            actionsSystem: _actionsSystem
-        );
+        GlobalTimer.InitializeSystems(_gomeostas,_actionsSystem, _reflexesActivator);
 
         _gomeostas.DefaultStileId = AppConfig.DefaultStileId;
         _gomeostas.CompareLevel = AppConfig.CompareLevel;
