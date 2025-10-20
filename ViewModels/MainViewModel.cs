@@ -36,6 +36,7 @@ namespace AIStudio
     private readonly PerceptionImagesSystem _perceptionImagesSystem;
     private readonly ReflexesActivator _reflexesActivator;
     private readonly ReflexTreeSystem _reflexTree;
+    private readonly ReflexExecutionService _reflexExecution;
     public event PropertyChangedEventHandler PropertyChanged;
 
     private ICommand _openAgentCommand;
@@ -131,8 +132,12 @@ namespace AIStudio
         ReflexTreeSystem.InitializeInstance(_geneticReflexesSystem);
         _reflexTree = ReflexTreeSystem.Instance;
 
+        // Инициализация сервиса запуска рефлексов
+        ReflexExecutionService.InitializeInstance(_actionsSystem, _influenceActionSystem);
+        _reflexExecution = ReflexExecutionService.Instance;
+
         // Инициализация активатора рефлексов
-        ReflexesActivator.InitializeInstance(_gomeostas, _geneticReflexesSystem, _conditionedReflexesSystem, _influenceActionSystem, _reflexTree);
+        ReflexesActivator.InitializeInstance(_gomeostas, _geneticReflexesSystem, _conditionedReflexesSystem, _influenceActionSystem, _reflexTree, _reflexExecution, _actionsSystem);
         _reflexesActivator = ReflexesActivator.Instance;
 
         // Инициализация диспетчера пульса
