@@ -625,7 +625,15 @@ namespace AIStudio
         }
         else
         {
-          GlobalTimer.Start();
+          try
+          {
+            GlobalTimer.Start();
+          }
+          catch (Exception ex)
+          {
+            MessageBox.Show(ex.Message, "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
+            return;
+          }
         }
         IsPulsating = !IsPulsating;
       }, _ => IsPulseButtonEnabled);

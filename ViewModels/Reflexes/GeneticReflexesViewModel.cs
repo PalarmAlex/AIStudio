@@ -414,7 +414,7 @@ namespace AIStudio.ViewModels
 
             if (warnings != null && warnings.Length > 0)
             {
-              MessageBox.Show($"Предупреждения при добавлении рефлекса '{reflex.Id}':\n{string.Join("\n", warnings)}",
+              MessageBox.Show($"Предупреждения при добавлении рефлекса '{newId}':\n{string.Join("\n", warnings)}",
                   "Предупреждения",
                   MessageBoxButton.OK,
                   MessageBoxImage.Warning);

@@ -457,9 +457,24 @@ namespace AIStudio.ViewModels
 
           if (result.Success)
           {
-            SelectedStage = newStage;
-            LoadAgentData();
-            _previousStage = currentStage;
+            var dialogResult = MessageBox.Show("Вы собираетесь перейти на следующую стадию?", "Подтверждение смены стадии",
+              MessageBoxButton.YesNo, MessageBoxImage.Warning);
+
+            if(dialogResult == MessageBoxResult.Yes)
+            {
+              SelectedStage = newStage;
+              LoadAgentData();
+              _previousStage = currentStage;
+
+              var (success, error) = _gomeostas.SaveAgentProperties();
+              if (!success)
+                MessageBox.Show(error, "Ошибка сохранения стадии",
+                    MessageBoxButton.OK, MessageBoxImage.Warning);
+            }
+            else
+            {
+              throw new InvalidOperationException("Переход на следующую стадию отменен");
+            }
           }
           else
           {
@@ -480,6 +495,11 @@ namespace AIStudio.ViewModels
 
                   MessageBox.Show($"Успешно возвращены на стадию {newStage}. Данные последующих стадий очищены.",
                       "Возврат выполнен", MessageBoxButton.OK, MessageBoxImage.Information);
+
+                  var (success, error) = _gomeostas.SaveAgentProperties();
+                  if (!success)
+                    MessageBox.Show(error, "Ошибка сохранения стадии",
+                        MessageBoxButton.OK, MessageBoxImage.Warning);
                 }
                 else
                 {
