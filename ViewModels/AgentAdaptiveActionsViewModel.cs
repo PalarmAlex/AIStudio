@@ -18,8 +18,13 @@ namespace AIStudio.ViewModels
       {
         _currentActiveActions = value;
         OnPropertyChanged();
+        UpdateGroupedActions();
       }
     }
+
+    public ObservableCollection<AdaptiveAction> ElementaryActions { get; } = new ObservableCollection<AdaptiveAction>();
+    public ObservableCollection<AdaptiveAction> GeneticReflexActions { get; } = new ObservableCollection<AdaptiveAction>();
+    public ObservableCollection<AdaptiveAction> ConditionedReflexActions { get; } = new ObservableCollection<AdaptiveAction>();
 
     private int _minSignificance = 1;
     private int _maxSignificance = 1;
@@ -45,6 +50,34 @@ namespace AIStudio.ViewModels
       var activeSignificances = CurrentActiveActions.Select(a => a.GetSignificance()).ToList();
       MinSignificance = activeSignificances.Any() ? activeSignificances.Min() : 1;
       MaxSignificance = activeSignificances.Any() ? activeSignificances.Max() : 1;
+    }
+
+    private void UpdateGroupedActions()
+    {
+      ElementaryActions.Clear();
+      GeneticReflexActions.Clear();
+      ConditionedReflexActions.Clear();
+
+      // Группируем действия по типам источников
+      foreach (var action in CurrentActiveActions)
+      {
+        switch (action.ActivationSource)
+        {
+          case ActionActivationSource.Elementary:
+            ElementaryActions.Add(action);
+            break;
+          case ActionActivationSource.GeneticReflex:
+            GeneticReflexActions.Add(action);
+            break;
+          case ActionActivationSource.ConditionedReflex:
+            ConditionedReflexActions.Add(action);
+            break;
+        }
+      }
+
+      OnPropertyChanged(nameof(ElementaryActions));
+      OnPropertyChanged(nameof(GeneticReflexActions));
+      OnPropertyChanged(nameof(ConditionedReflexActions));
     }
 
     public event PropertyChangedEventHandler PropertyChanged;
