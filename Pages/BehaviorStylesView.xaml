@@ -128,12 +128,23 @@
 
             <DataGridTextColumn.HeaderStyle>
               <Style TargetType="DataGridColumnHeader" BasedOn="{StaticResource {x:Type DataGridColumnHeader}}">
-                <Setter Property="ToolTip" Value="Двойной клик открывает окно ввода"/>
+                <Setter Property="ToolTip" Value="ДБ клик открывает окно ввода"/>
               </Style>
             </DataGridTextColumn.HeaderStyle>
           </DataGridTextColumn>
 
-          <DataGridTextColumn Header="Вес" Binding="{Binding Weight}" Width="80"/>
+          <DataGridTextColumn Header="Вес" Binding="{Binding Weight, Mode=TwoWay}" Width="80">
+            <DataGridTextColumn.HeaderStyle>
+              <Style TargetType="DataGridColumnHeader">
+                <Setter Property="ToolTip" Value="Значимость стиля"/>
+              </Style>
+            </DataGridTextColumn.HeaderStyle>
+            <DataGridTextColumn.EditingElementStyle>
+              <Style TargetType="TextBox">
+                <EventSetter Event="PreviewTextInput" Handler="NumericColumn_PreviewTextInput"/>
+              </Style>
+            </DataGridTextColumn.EditingElementStyle>
+          </DataGridTextColumn>
 
           <DataGridTextColumn Header="Влияние на действия" 
           Binding="{Binding StileActionInfluence, Converter={StaticResource DictionaryToStringActionConverter}}" 
@@ -150,8 +161,15 @@
               </Style>
             </DataGridTextColumn.EditingElementStyle>
             <DataGridTextColumn.HeaderStyle>
-              <Style TargetType="DataGridColumnHeader" BasedOn="{StaticResource {x:Type DataGridColumnHeader}}">
-                <Setter Property="ToolTip" Value="Двойной клик открывает окно редактирования влияния на действия"/>
+              <Style TargetType="DataGridColumnHeader">
+                <Setter Property="ToolTip">
+                  <Setter.Value>
+                    <TextBlock TextWrapping="Wrap" Width="200">
+                        Список действий, которые модулируются по энергичности стилем.
+                        ДБ клик запускает редактор.
+                    </TextBlock>
+                  </Setter.Value>
+                </Setter>
               </Style>
             </DataGridTextColumn.HeaderStyle>
           </DataGridTextColumn>
@@ -171,8 +189,16 @@
               </Style>
             </DataGridTextColumn.EditingElementStyle>
             <DataGridTextColumn.HeaderStyle>
-              <Style TargetType="DataGridColumnHeader" BasedOn="{StaticResource {x:Type DataGridColumnHeader}}">
-                <Setter Property="ToolTip" Value="Двойной клик открывает окно ввода"/>
+              <Style TargetType="DataGridColumnHeader">
+                <Setter Property="ToolTip">
+                  <Setter.Value>
+                    <TextBlock TextWrapping="Wrap" Width="200">
+                        Список ID стилей-антагонистов, которые несовместимы с данным стилем.
+                        При активации данного стиля, все указанные здесь стили будут деактивированы.
+                        ДБ клик запускает редактор.
+                    </TextBlock>
+                  </Setter.Value>
+                </Setter>
               </Style>
             </DataGridTextColumn.HeaderStyle>
           </DataGridTextColumn>

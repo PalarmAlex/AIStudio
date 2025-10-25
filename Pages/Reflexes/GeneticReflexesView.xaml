@@ -175,6 +175,11 @@
 
           <!-- Интегральное состояние - комбобокс -->
           <DataGridTemplateColumn Header="Интегральное состояние" Width="Auto">
+            <DataGridTemplateColumn.HeaderStyle>
+              <Style TargetType="DataGridColumnHeader">
+                <Setter Property="ToolTip" Value="Первый уровень дерева триггера рефлекса: Интегральное базовое состояние гомеостаза"/>
+              </Style>
+            </DataGridTemplateColumn.HeaderStyle>
             <DataGridTemplateColumn.CellTemplate>
               <DataTemplate>
                 <TextBlock Text="{Binding Level1, Converter={StaticResource Level1ToTextConverter}}"/>
@@ -192,6 +197,18 @@
 
           <!-- Контексты реагирования -->
           <DataGridTemplateColumn Header="Контексты реагирования" Width="250">
+            <DataGridTemplateColumn.HeaderStyle>
+              <Style TargetType="DataGridColumnHeader">
+                <Setter Property="ToolTip">
+                  <Setter.Value>
+                    <TextBlock TextWrapping="Wrap" Width="200">
+                        Второй уровень дерева триггера рефлекса: Контексты реагирования.
+                        ДБ клик запускает редактор ввода.
+                    </TextBlock>
+                  </Setter.Value>
+                </Setter>
+              </Style>
+            </DataGridTemplateColumn.HeaderStyle>
             <DataGridTemplateColumn.CellTemplate>
               <DataTemplate>
                 <TextBlock Text="{Binding Level2, Converter={StaticResource IdListToNamesConverter}, ConverterParameter='Level2'}"/>
@@ -206,6 +223,18 @@
 
           <!-- Внешние стимулы -->
           <DataGridTemplateColumn Header="Внешние стимулы" Width="250">
+            <DataGridTemplateColumn.HeaderStyle>
+              <Style TargetType="DataGridColumnHeader">
+                <Setter Property="ToolTip">
+                  <Setter.Value>
+                    <TextBlock TextWrapping="Wrap" Width="200">
+                        Третий уровень дерева триггера рефлекса: Гомеостатические воздействия.
+                        ДБ клик запускает редактор ввода.
+                    </TextBlock>
+                  </Setter.Value>
+                </Setter>
+              </Style>
+            </DataGridTemplateColumn.HeaderStyle>
             <DataGridTemplateColumn.CellTemplate>
               <DataTemplate>
                 <TextBlock Text="{Binding Level3, Converter={StaticResource IdListToNamesConverter}, ConverterParameter='Level3'}"/>
@@ -228,14 +257,34 @@
               </Style>
             </DataGridTextColumn.ElementStyle>
             <DataGridTextColumn.HeaderStyle>
-              <Style TargetType="DataGridColumnHeader" BasedOn="{StaticResource {x:Type DataGridColumnHeader}}">
-                <Setter Property="ToolTip" Value="Двойной клик открывает окно выбора слова"/>
+              <Style TargetType="DataGridColumnHeader">
+                <Setter Property="ToolTip">
+                  <Setter.Value>
+                    <TextBlock TextWrapping="Wrap" Width="200">
+                        Слово, сопровождающее действие, или активируемое отдельно от действия.
+                        Для рефлексов это коммуникативный сигнал демонстрации своего состояния, обычно "крик о помощи".
+                        ДБ клик запускает редактор ввода.
+                    </TextBlock>
+                  </Setter.Value>
+                </Setter>
               </Style>
             </DataGridTextColumn.HeaderStyle>
           </DataGridTextColumn>
 
           <!-- Адаптивные действия -->
           <DataGridTemplateColumn Header="Адаптивные действия" Width="*">
+            <DataGridTemplateColumn.HeaderStyle>
+              <Style TargetType="DataGridColumnHeader">
+                <Setter Property="ToolTip">
+                  <Setter.Value>
+                    <TextBlock TextWrapping="Wrap" Width="200">
+                        Действия запускаемые рефлексом.
+                        ДБ клик запускает редактор ввода.
+                    </TextBlock>
+                  </Setter.Value>
+                </Setter>
+              </Style>
+            </DataGridTemplateColumn.HeaderStyle>
             <DataGridTemplateColumn.CellTemplate>
               <DataTemplate>
                 <TextBlock Text="{Binding AdaptiveActions, Converter={StaticResource IdListToNamesConverter}, ConverterParameter='AdaptiveActions'}"/>

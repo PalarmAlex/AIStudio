@@ -129,8 +129,16 @@
               </Style>
             </DataGridTextColumn.ElementStyle>
             <DataGridTextColumn.HeaderStyle>
-              <Style TargetType="DataGridColumnHeader" BasedOn="{StaticResource {x:Type DataGridColumnHeader}}">
-                <Setter Property="ToolTip" Value="Двойной клик открывает окно ввода"/>
+              <Style TargetType="DataGridColumnHeader">
+                <Setter Property="ToolTip">
+                  <Setter.Value>
+                    <TextBlock TextWrapping="Wrap" Width="200">
+                        Влияние воздействия на параметры гомеостаза (положительное или отрицательное).
+                        Ключ - ID параметра, значение - величина воздействия.
+                        ДБ клик открывает окно ввода".
+                    </TextBlock>
+                  </Setter.Value>
+                </Setter>
               </Style>
             </DataGridTextColumn.HeaderStyle>
           </DataGridTextColumn>
@@ -145,8 +153,16 @@
               </Style>
             </DataGridTextColumn.ElementStyle>
             <DataGridTextColumn.HeaderStyle>
-              <Style TargetType="DataGridColumnHeader" BasedOn="{StaticResource {x:Type DataGridColumnHeader}}">
-                <Setter Property="ToolTip" Value="Двойной клик открывает окно ввода"/>
+              <Style TargetType="DataGridColumnHeader">
+                <Setter Property="ToolTip">
+                  <Setter.Value>
+                    <TextBlock TextWrapping="Wrap" Width="200">
+                      Список ID воздействий-антагонистов, которые несовместимы с данным воздействием.
+                      При активации данного воздействия, все указанные здесь воздействия будут деактивированы.
+                      ДБ клик открывает окно ввода.
+                    </TextBlock>
+                  </Setter.Value>
+                </Setter>
               </Style>
             </DataGridTextColumn.HeaderStyle>
           </DataGridTextColumn>

@@ -336,6 +336,19 @@ namespace AIStudio.Pages
       }
     }
 
+    private void NumericColumn_PreviewTextInput(object sender, TextCompositionEventArgs e)
+    {
+      // Разрешаем: цифры, запятые, двоеточия, минусы и точки
+      if (!char.IsDigit(e.Text, 0) &&
+          e.Text != "," &&
+          e.Text != ":" &&
+          e.Text != "-" &&
+          e.Text != ".")
+      {
+        e.Handled = true;
+      }
+    }
+
     #region Вспомогательные методы
 
     /// <summary>

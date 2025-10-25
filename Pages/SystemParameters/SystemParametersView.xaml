@@ -102,20 +102,30 @@
 
             <DataGridTextColumn.HeaderStyle>
               <Style TargetType="DataGridColumnHeader" BasedOn="{StaticResource {x:Type DataGridColumnHeader}}">
-                <Setter Property="ToolTip" Value="Двойной клик открывает окно ввода"/>
+                <Setter Property="ToolTip" Value="ДБ клик открывает окно ввода"/>
               </Style>
             </DataGridTextColumn.HeaderStyle>
           </DataGridTextColumn>
 
           <DataGridTextColumn Header="Значение" Binding="{Binding Value, StringFormat=N2, Mode=TwoWay}" Width="Auto">
+            <DataGridTextColumn.HeaderStyle>
+              <Style TargetType="DataGridColumnHeader">
+                <Setter Property="ToolTip" Value="Текущее значение параметра"/>
+              </Style>
+            </DataGridTextColumn.HeaderStyle>
             <DataGridTextColumn.EditingElementStyle>
               <Style TargetType="TextBox">
                 <EventSetter Event="PreviewTextInput" Handler="NumericColumn_PreviewTextInput"/>
               </Style>
             </DataGridTextColumn.EditingElementStyle>
           </DataGridTextColumn>
-          
+
           <DataGridTextColumn Header="Вес" Binding="{Binding Weight, Mode=TwoWay}" Width="Auto">
+            <DataGridTextColumn.HeaderStyle>
+              <Style TargetType="DataGridColumnHeader">
+                <Setter Property="ToolTip" Value="Значимость параметра"/>
+              </Style>
+            </DataGridTextColumn.HeaderStyle>
             <DataGridTextColumn.EditingElementStyle>
               <Style TargetType="TextBox">
                 <EventSetter Event="PreviewTextInput" Handler="NumericColumn_PreviewTextInput"/>
@@ -124,13 +134,24 @@
           </DataGridTextColumn>
           
           <DataGridTextColumn Header="Норма" Binding="{Binding NormaWell, Mode=TwoWay}" Width="Auto">
+            <DataGridTextColumn.HeaderStyle>
+              <Style TargetType="DataGridColumnHeader">
+                <Setter Property="ToolTip" Value="Порог критических значений параметра"/>
+              </Style>
+            </DataGridTextColumn.HeaderStyle>
             <DataGridTextColumn.EditingElementStyle>
               <Style TargetType="TextBox">
                 <EventSetter Event="PreviewTextInput" Handler="NumericColumn_PreviewTextInput"/>
               </Style>
             </DataGridTextColumn.EditingElementStyle>
           </DataGridTextColumn>
+
           <DataGridTextColumn Header="% затухания" Binding="{Binding Speed, Mode=TwoWay}" Width="Auto">
+            <DataGridTextColumn.HeaderStyle>
+              <Style TargetType="DataGridColumnHeader">
+                <Setter Property="ToolTip" Value="Скорость изменения параметра (% в час)"/>
+              </Style>
+            </DataGridTextColumn.HeaderStyle>
             <DataGridTextColumn.EditingElementStyle>
               <Style TargetType="TextBox">
                 <EventSetter Event="PreviewTextInput" Handler="SpeedColumn_PreviewTextInput"/>
@@ -138,8 +159,19 @@
               </Style>
             </DataGridTextColumn.EditingElementStyle>
           </DataGridTextColumn>
-
           <DataGridTextColumn Header="Крит. мин." Binding="{Binding CriticalMinValue, Mode=TwoWay}" Width="Auto">
+            <DataGridTextColumn.HeaderStyle>
+              <Style TargetType="DataGridColumnHeader">
+                <Setter Property="ToolTip">
+                  <Setter.Value>
+                    <TextBlock TextWrapping="Wrap" Width="200">
+                        Минимальное допустимое критическое значение для жизненно важных параметров.
+                        Ниже приводит к смерти агента.
+                    </TextBlock>
+                  </Setter.Value>
+                </Setter>
+              </Style>
+            </DataGridTextColumn.HeaderStyle>
             <DataGridTextColumn.EditingElementStyle>
               <Style TargetType="TextBox">
                 <EventSetter Event="PreviewTextInput" Handler="NumericColumn_PreviewTextInput"/>
@@ -148,6 +180,18 @@
           </DataGridTextColumn>
 
           <DataGridTextColumn Header="Крит. макс." Binding="{Binding CriticalMaxValue, Mode=TwoWay}" Width="Auto">
+            <DataGridTextColumn.HeaderStyle>
+              <Style TargetType="DataGridColumnHeader">
+                <Setter Property="ToolTip">
+                  <Setter.Value>
+                    <TextBlock TextWrapping="Wrap" Width="200">
+                        Максимальное допустимое критическое значение для жизненно важных параметров.
+                        Выше приводит к смерти агента.
+                    </TextBlock>
+                  </Setter.Value>
+                </Setter>
+              </Style>
+            </DataGridTextColumn.HeaderStyle>
             <DataGridTextColumn.EditingElementStyle>
               <Style TargetType="TextBox">
                 <EventSetter Event="PreviewTextInput" Handler="NumericColumn_PreviewTextInput"/>
@@ -166,8 +210,15 @@
               </Style>
             </DataGridTextColumn.CellStyle>
             <DataGridTextColumn.HeaderStyle>
-              <Style TargetType="DataGridColumnHeader" BasedOn="{StaticResource {x:Type DataGridColumnHeader}}">
-                <Setter Property="ToolTip" Value="Двойной клик открывает окно ввода"/>
+              <Style TargetType="DataGridColumnHeader">
+                <Setter Property="ToolTip">
+                  <Setter.Value>
+                    <TextBlock TextWrapping="Wrap" Width="200">
+                        Влияние на другие параметры при состоянии 'Плохо'.
+                        ДБ клик запускает редактор.
+                    </TextBlock>
+                  </Setter.Value>
+                </Setter>
               </Style>
             </DataGridTextColumn.HeaderStyle>
           </DataGridTextColumn>
@@ -183,8 +234,15 @@
               </Style>
             </DataGridTextColumn.CellStyle>
             <DataGridTextColumn.HeaderStyle>
-              <Style TargetType="DataGridColumnHeader" BasedOn="{StaticResource {x:Type DataGridColumnHeader}}">
-                <Setter Property="ToolTip" Value="Двойной клик открывает окно ввода"/>
+              <Style TargetType="DataGridColumnHeader">
+                <Setter Property="ToolTip">
+                  <Setter.Value>
+                    <TextBlock TextWrapping="Wrap" Width="200">
+                        Влияние на другие параметры при состоянии 'Хорошо'.
+                        ДБ клик запускает редактор.
+                    </TextBlock>
+                  </Setter.Value>
+                </Setter>
               </Style>
             </DataGridTextColumn.HeaderStyle>
           </DataGridTextColumn>
@@ -194,13 +252,32 @@
               <Binding Path="StyleActivations" Converter="{StaticResource StyleActivationsToStringConverter}"/>
             </DataGridTextColumn.Binding>
             <DataGridTextColumn.HeaderStyle>
-              <Style TargetType="DataGridColumnHeader" BasedOn="{StaticResource {x:Type DataGridColumnHeader}}">
-                <Setter Property="ToolTip" Value="Двойной клик открывает окно ввода"/>
+              <Style TargetType="DataGridColumnHeader">
+                <Setter Property="ToolTip">
+                  <Setter.Value>
+                    <TextBlock TextWrapping="Wrap" Width="200">
+                        Список стилей реагирования, запускаемых при разных диапазонах значений параметра.
+                        ДБ клик запускает редактор.
+                    </TextBlock>
+                  </Setter.Value>
+                </Setter>
               </Style>
             </DataGridTextColumn.HeaderStyle>
           </DataGridTextColumn>
 
           <DataGridTemplateColumn Header="Зависимый" Width="50">
+            <DataGridTemplateColumn.HeaderStyle>
+              <Style TargetType="DataGridColumnHeader">
+                <Setter Property="ToolTip">
+                  <Setter.Value>
+                    <TextBlock TextWrapping="Wrap" Width="200">
+                        Признак того, что параметр требует внешних ресурсов.
+                        Агент не может восстановить его самостоятельно.
+                    </TextBlock>
+                  </Setter.Value>
+                </Setter>
+              </Style>
+            </DataGridTemplateColumn.HeaderStyle>
             <DataGridTemplateColumn.CellTemplate>
               <DataTemplate>
                 <CheckBox IsChecked="{Binding RequiresExternalResources}"
@@ -220,6 +297,18 @@
           </DataGridTemplateColumn>
 
           <DataGridTemplateColumn Header="Жизн. важный" Width="50">
+            <DataGridTemplateColumn.HeaderStyle>
+              <Style TargetType="DataGridColumnHeader">
+                <Setter Property="ToolTip">
+                  <Setter.Value>
+                    <TextBlock TextWrapping="Wrap" Width="200">
+                        Флаг, указывающий что параметр является жизненно важным. 
+                        Критические мин/макс значения только таких параметров могут вызвать 'смерть' агента.
+                    </TextBlock>
+                  </Setter.Value>
+                </Setter>
+              </Style>
+            </DataGridTemplateColumn.HeaderStyle>
             <DataGridTemplateColumn.CellTemplate>
               <DataTemplate>
                 <CheckBox IsChecked="{Binding IsVital}"
