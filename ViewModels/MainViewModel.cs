@@ -1,25 +1,26 @@
-﻿using System;
+﻿using AIStudio.Common;
+using AIStudio.Pages;
+using AIStudio.Pages.Reflexes;
+using AIStudio.ViewModels;
+using isida.Common;
+using ISIDA.Actions;
+using ISIDA.Common;
+using ISIDA.Gomeostas;
+using ISIDA.Reflexes;
+using ISIDA.Sensors;
+using Ookii.Dialogs.Wpf;
+using System;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Configuration;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
-using System.Xml.Serialization;
 using System.Windows.Media;
-using Ookii.Dialogs.Wpf;
-using AIStudio.Common;
-using AIStudio.Pages;
-using AIStudio.ViewModels;
-using System.Diagnostics;
-using ISIDA.Gomeostas;
-using ISIDA.Common;
-using ISIDA.Actions;
-using ISIDA.Sensors;
-using ISIDA.Reflexes;
-using AIStudio.Pages.Reflexes;
+using System.Xml.Serialization;
 
 namespace AIStudio
 {
@@ -97,7 +98,14 @@ namespace AIStudio
     public MainViewModel()
     {
       try
-      {       
+      {
+        ResearchLoggerManager.Initialize(
+          logFileName: "AgentLogs",
+          format: ResearchLogger.LogFormat.All,  // И JSONL и CSV
+          enabled: true,  // Включить логирование
+          clearOnStart: true
+         );
+
         // Инициализация гомеостаза
         GomeostasSystem.InitializeInstance(AppConfig.DataGomeostasFolderPath, AppConfig.DataGomeostasTemplateFolderPath);
         _gomeostas = GomeostasSystem.Instance;
