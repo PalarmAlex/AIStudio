@@ -1,4 +1,5 @@
-﻿using System;
+﻿using ISIDA.Common;
+using System;
 using System.Diagnostics;
 using System.IO;
 using System.Reflection;
@@ -30,7 +31,9 @@ public static class AppConfig
   public static string ReflexesFolderPath => GetSetting("ReflexesFolderPath");
   public static string ReflexesTemplateFolderPath => GetSetting("ReflexesTemplateFolderPath");
   public static string SettingsPath => GetSetting("SettingsPath");
+  public static ResearchLogger.LogFormat LogFormat => GetLogFormatSetting("DefaultFormatLog", ResearchLogger.LogFormat.All);
   public static int FirstRun => GetIntSetting("FirstRun", (int)GetDefaultValueSettings("FirstRun"));
+  public static bool LogEnabled => GetBoolSetting("LogEnabled", (bool)GetDefaultValueSettings("LogEnabled"));
   public static int DefaultStileId => GetIntSetting("DefaultStileId", (int)GetDefaultValueSettings("DefaultStileId"));
   public static int DefaultAdaptiveActionId => GetIntSetting("DefaultAdaptiveActionId", (int)GetDefaultValueSettings("DefaultAdaptiveActionId"));
   public static int DefaultGeneticReflexId => GetIntSetting("DefaultGeneticReflexId", (int)GetDefaultValueSettings("DefaultGeneticReflexId"));
@@ -105,7 +108,9 @@ public static class AppConfig
           new XElement("DynamicTime", 50),
           new XElement("DefaultKCompetition", 0.3),
           new XElement("DefaultBaseThreshold", 0.2),
-          new XElement("FirstRun", 1)
+          new XElement("FirstRun", 1),
+          new XElement("LogEnabled", false),
+          new XElement("LogFormat", "All")
         )
       )
     );
@@ -288,6 +293,37 @@ public static class AppConfig
     }
   }
 
+  private static bool GetBoolSetting(string key, bool defaultValue)
+  {
+    string value = GetSetting(key);
+    if (bool.TryParse(value, out bool result))
+      return result;
+
+    return defaultValue;
+  }
+
+  public static void SetBoolSetting(string key, bool value)
+  {
+    try
+    {
+      var doc = XDocument.Load(ConfigFullPath);
+      var element = doc.Root?
+                      .Element("AppSettings")?
+                      .Element(key);
+
+      if (element != null)
+        element.Value = value.ToString().ToLowerInvariant();
+      else
+        doc.Root?.Element("AppSettings")?.Add(new XElement(key, value.ToString().ToLowerInvariant()));
+
+      doc.Save(ConfigFullPath);
+    }
+    catch (Exception ex)
+    {
+      Debug.WriteLine($"Ошибка сохранения настройки {key}: {ex.Message}");
+    }
+  }
+
   public static string GetBaseStateDisplay(int baseID)
   {
     switch (baseID)
@@ -308,6 +344,26 @@ public static class AppConfig
       case 1: return Brushes.Green;
       default: return Brushes.Gray;
     }
+  }
+
+  private static ResearchLogger.LogFormat GetLogFormatSetting(string key, ResearchLogger.LogFormat defaultValue)
+  {
+    string value = GetSetting(key);
+
+    // Сначала пробуем распарсить как строку enum
+    if (Enum.TryParse<ResearchLogger.LogFormat>(value, true, out var result))
+      return result;
+
+    // Если не получается, пробуем как число (для обратной совместимости)
+    if (int.TryParse(value, out int intValue) && Enum.IsDefined(typeof(ResearchLogger.LogFormat), intValue))
+      return (ResearchLogger.LogFormat)intValue;
+
+    return defaultValue;
+  }
+
+  public static void SetLogFormatSetting(string key, ResearchLogger.LogFormat value)
+  {
+    SetSetting(key, value.ToString());
   }
 
   /// <summary>
@@ -335,6 +391,10 @@ public static class AppConfig
         return 0.3f;
       case "FirstRun":
         return 0;
+      case "LogEnabled":
+        return false;
+      case "LogFormat":
+        return ResearchLogger.LogFormat.All; ;
       default:
         return null;
     }

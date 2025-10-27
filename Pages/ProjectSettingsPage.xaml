@@ -314,6 +314,30 @@
           Margin="5,0"/>
       </StackPanel>
 
+      <!-- Включить логирование действий -->
+      <StackPanel Grid.Column="1" Grid.Row="2" Orientation="Horizontal" Margin="5,0,0,0">
+        <TextBlock Text="Включить логирование событий:" 
+          Width="220"
+          VerticalAlignment="Center"/>
+        <CheckBox IsChecked="{Binding LogEnabled}"
+                VerticalAlignment="Center"
+                HorizontalAlignment="Center"/>
+      </StackPanel>
+
+      <!-- Формат логирования -->
+      <StackPanel Grid.Column="1" Grid.Row="2" Orientation="Horizontal" Margin="260,0,0,0">
+        <TextBlock Text="Формат логов:" 
+               Width="80"
+               VerticalAlignment="Center"/>
+
+        <ComboBox ItemsSource="{Binding FormatLog}"
+              SelectedValue="{Binding DefaultFormatLog}"
+              DisplayMemberPath="Name"
+              SelectedValuePath="Id"
+              Width="100"
+              Margin="5,0"/>
+      </StackPanel>
+
     </Grid>
 
     <!-- Кнопка сохранения -->

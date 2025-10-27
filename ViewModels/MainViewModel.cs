@@ -101,9 +101,9 @@ namespace AIStudio
       {
         ResearchLoggerManager.Initialize(
           logFileName: "AgentLogs",
-          format: ResearchLogger.LogFormat.All,  // И JSONL и CSV
-          enabled: true,  // Включить логирование
-          clearOnStart: true
+          format: AppConfig.LogFormat,
+          enabled: AppConfig.LogEnabled,
+          clearOnStart: AppConfig.LogEnabled
          );
 
         // Инициализация гомеостаза

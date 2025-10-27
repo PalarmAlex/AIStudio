@@ -22,6 +22,7 @@ namespace AIStudio.ViewModels
     private readonly GeneticReflexesSystem _geneticReflexesSystem;
 
     private bool _isInitialized = false;
+    private bool _logEnabled = false;
     private string _settingsPath;
     private string _dataGomeostasFolderPath;
     private string _dataGomeostasTemplateFolderPath;
@@ -33,6 +34,7 @@ namespace AIStudio.ViewModels
     private string _reflexesTemplateFolderPath;
     private int _defaultStileId;
     private int _defaultAdaptiveActionId;
+    private int _defaultFormatLog;
 
     private int _recognitionThreshold;
     private int _previousRecognitionThreshold;
@@ -140,6 +142,15 @@ namespace AIStudio.ViewModels
       {
         _defaultStileId = value;
         OnPropertyChanged(nameof(DefaultStileId));
+      }
+    }
+    public bool LogEnabled
+    {
+      get => _logEnabled;
+      set
+      {
+        _logEnabled = value;
+        OnPropertyChanged(nameof(LogEnabled));
       }
     }
     public int DefaultAdaptiveActionId
@@ -383,12 +394,23 @@ namespace AIStudio.ViewModels
       }
     }
 
+    public int DefaultFormatLog
+    {
+      get => _defaultFormatLog;
+      set
+      {
+        _defaultFormatLog = value;
+        OnPropertyChanged(nameof(DefaultFormatLog));
+      }
+    }
+
     public ICommand BrowseFolderCommand { get; }
     public ICommand SaveSettingsCommand { get; }
 
     public ObservableCollection<SelectableItem> BehaviorStylesWithNone { get; } = new ObservableCollection<SelectableItem>();
     public ObservableCollection<SelectableItem> AdaptiveActionsWithNone { get; } = new ObservableCollection<SelectableItem>();
     public ObservableCollection<SelectableItem> GeneticReflexesWithNone { get; } = new ObservableCollection<SelectableItem>();
+    public ObservableCollection<SelectableItem> FormatLog { get; } = new ObservableCollection<SelectableItem>();
 
     public class SelectableItem
     {
@@ -409,6 +431,9 @@ namespace AIStudio.ViewModels
       ReflexesTemplateFolderPath = AppConfig.ReflexesTemplateFolderPath;
       DefaultStileId = AppConfig.DefaultStileId;
       DefaultAdaptiveActionId = AppConfig.DefaultAdaptiveActionId;
+      LogEnabled = AppConfig.LogEnabled;
+
+      _defaultFormatLog = (int)AppConfig.LogFormat;
 
       _recognitionThreshold = AppConfig.RecognitionThreshold;
       _previousRecognitionThreshold = _recognitionThreshold;
@@ -459,11 +484,22 @@ namespace AIStudio.ViewModels
 
       LoadBehaviorStylesWithNone();
       LoadAdaptiveActionsWithNone();
+      LoadLogFormats();
 
+      DefaultFormatLog = (int)AppConfig.LogFormat;
       BrowseFolderCommand = new RelayCommand(BrowseFolderWithParameter);
       SaveSettingsCommand = new RelayCommand(SaveSettingsWithParameter);
 
       _isInitialized = true;
+    }
+    private void LoadLogFormats()
+    {
+      FormatLog.Clear();
+
+      FormatLog.Add(new SelectableItem { Id = (int)ResearchLogger.LogFormat.None, Name = "Нет" });
+      FormatLog.Add(new SelectableItem { Id = (int)ResearchLogger.LogFormat.JsonL, Name = "JSON" });
+      FormatLog.Add(new SelectableItem { Id = (int)ResearchLogger.LogFormat.Csv, Name = "CSV" });
+      FormatLog.Add(new SelectableItem { Id = (int)ResearchLogger.LogFormat.All, Name = "Все" });
     }
 
     private void LoadBehaviorStylesWithNone()
@@ -627,8 +663,9 @@ namespace AIStudio.ViewModels
         AppConfig.SetIntSetting(nameof(CompareLevel), CompareLevel);
         AppConfig.SetFloatSetting(nameof(DifSensorPar), DifSensorPar);
         AppConfig.SetIntSetting(nameof(DynamicTime), DynamicTime);
+        AppConfig.SetBoolSetting(nameof(LogEnabled), LogEnabled);
+        AppConfig.SetLogFormatSetting(nameof(DefaultFormatLog), (ResearchLogger.LogFormat)DefaultFormatLog);
 
-        // Используем TaskDialog вместо MessageBox
         var dialog = new TaskDialog
         {
           WindowTitle = "Успех",
