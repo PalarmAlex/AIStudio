@@ -75,6 +75,7 @@
     <Compile Include="Common\AntagonistItem.cs" />
     <Compile Include="Common\AntagonistManager.cs" />
     <Compile Include="Common\DataGridExtensions.cs" />
+    <Compile Include="Common\MemoryLogManager.cs" />
     <Compile Include="Common\NumericListValidationRule.cs" />
     <Compile Include="Converters\ActionDisplayTextConverter.cs" />
     <Compile Include="Converters\ActionSizeConverter.cs" />
@@ -147,6 +148,9 @@
     <Compile Include="Pages\ExterInalInfluencesView.xaml.cs">
       <DependentUpon>ExterInalInfluencesView.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Pages\LiveLogsView.xaml.cs">
+      <DependentUpon>LiveLogsView.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Pages\Reflexes\ConditionedReflexesView.xaml.cs">
       <DependentUpon>ConditionedReflexesView.xaml</DependentUpon>
     </Compile>
@@ -212,6 +216,7 @@
     <Compile Include="ViewModels\BehaviorStylesViewModel.cs" />
     <Compile Include="ViewModels\AgentInfo.cs" />
     <Compile Include="ViewModels\ExterInalInfluencesViewModel.cs" />
+    <Compile Include="ViewModels\LiveLogsViewModel.cs" />
     <Compile Include="ViewModels\MainViewModel.cs" />
     <Compile Include="ViewModels\ProjectSettingsViewModel.cs" />
     <Compile Include="ViewModels\Reflexes\ConditionedReflexesViewModel.cs" />
@@ -281,6 +286,10 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="Pages\ExterInalInfluencesView.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Pages\LiveLogsView.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

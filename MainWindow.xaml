@@ -218,6 +218,15 @@
           </StackPanel>
         </Expander>
 
+        <Expander Header="Логирование" Style="{StaticResource MenuExpanderStyle}">
+          <StackPanel>
+            <Button Content="Логи системы" Margin="20,2,5,2" 
+              Style="{StaticResource MenuButtonStyle}"
+              Command="{Binding VerticalMenuItemClickedCommand}"
+              CommandParameter="34"/>
+          </StackPanel>
+        </Expander>
+
         <Expander Header="Архивация" Style="{StaticResource MenuExpanderStyle}">
           <StackPanel>
             <Button Content="Экспортировать настройки" Margin="20,2,5,2" 

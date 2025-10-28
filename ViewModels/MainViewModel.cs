@@ -159,6 +159,9 @@ namespace AIStudio
         _gomeostas.DefaultKCompetition = AppConfig.DefaultKCompetition;
         _actionsSystem.DefaultAdaptiveActionId = AppConfig.DefaultAdaptiveActionId;
         _sensorySystem.VerbalRecognitionThreshold = AppConfig.RecognitionThreshold;
+
+        // Настраиваем запись логов в память
+        ResearchLogger.SetMemoryLogWriter(MemoryLogManager.Instance);
       }
       catch (Exception ex)
       {
@@ -344,6 +347,9 @@ namespace AIStudio
           case "33": // Агент
             OpenAgent();
             break;
+          case "34":  // Живые логи системы
+            ShowLiveLogs();
+            break;
           default:
             ShowStub($"Меню {menuItem}");
             break;
@@ -397,6 +403,17 @@ namespace AIStudio
         MessageBox.Show($"Не удалось открыть веб-страницу:\n{ex.Message}",
             "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
       }
+    }
+
+    /// <summary>
+    /// Открывает страницу живых логов системы
+    /// </summary>
+    private void ShowLiveLogs()
+    {
+      var liveLogsView = new LiveLogsView();
+      var viewModel = new LiveLogsViewModel();
+      liveLogsView.DataContext = viewModel;
+      CurrentContent = liveLogsView;
     }
 
     // Открыть страницу сенсоров
