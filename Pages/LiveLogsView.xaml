@@ -3,10 +3,17 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:converters="clr-namespace:AIStudio.Converters"
              mc:Ignorable="d" 
              d:DesignHeight="600" d:DesignWidth="800">
 
   <UserControl.Resources>
+
+    <!-- Конвертер для ToolTip стилей -->
+    <converters:StyleTooltipMultiConverter x:Key="StyleTooltipConverter"/>
+    <!-- Конвертер для ToolTip триггеров -->
+    <converters:TriggerTooltipMultiConverter x:Key="TriggerTooltipConverter"/>
+
     <!-- Стиль для текста матрицы -->
     <Style x:Key="MatrixTextStyle" TargetType="TextBlock">
       <Setter Property="Foreground" Value="#FF00FF00"/>
@@ -128,6 +135,52 @@
       <Setter Property="FontSize" Value="10"/>
       <Setter Property="Padding" Value="8,4"/>
     </Style>
+
+    <!-- Стиль для ячейки Состояние -->
+    <Style x:Key="StateCellStyle" TargetType="DataGridCell" BasedOn="{StaticResource MatrixCellStyle}">
+      <Style.Triggers>
+        <!-- Триггер для значения -1 (красный) -->
+        <DataTrigger Binding="{Binding DisplayBaseID}" Value="-1">
+          <Setter Property="Background" Value="#40FF0000"/>
+          <Setter Property="ToolTip" Value="ПЛОХО"/>
+        </DataTrigger>
+        <!-- Триггер для значения 0 (желтый) -->
+        <DataTrigger Binding="{Binding DisplayBaseID}" Value="0">
+          <Setter Property="Background" Value="#40FFFF00"/>
+          <Setter Property="ToolTip" Value="НОРМА"/>
+        </DataTrigger>
+        <!-- Триггер для значения 1 (зеленый) -->
+        <DataTrigger Binding="{Binding DisplayBaseID}" Value="1">
+          <Setter Property="Background" Value="#4000FF00"/>
+          <Setter Property="ToolTip" Value="ХОРОШО"/>
+        </DataTrigger>
+      </Style.Triggers>
+    </Style>
+
+    <!-- Стиль для ячейки Стиль -->
+    <Style x:Key="StyleCellStyle" TargetType="DataGridCell" BasedOn="{StaticResource MatrixCellStyle}">
+      <Setter Property="ToolTip">
+        <Setter.Value>
+          <MultiBinding Converter="{StaticResource StyleTooltipConverter}">
+            <Binding Path="DataContext" RelativeSource="{RelativeSource AncestorType=UserControl}"/>
+            <Binding Path="DisplayBaseStyleID"/>
+          </MultiBinding>
+        </Setter.Value>
+      </Setter>
+    </Style>
+
+    <!-- Стиль для ячейки Триггер -->
+    <Style x:Key="TriggerCellStyle" TargetType="DataGridCell" BasedOn="{StaticResource MatrixCellStyle}">
+      <Setter Property="ToolTip">
+        <Setter.Value>
+          <MultiBinding Converter="{StaticResource TriggerTooltipConverter}">
+            <Binding Path="DataContext" RelativeSource="{RelativeSource AncestorType=UserControl}"/>
+            <Binding Path="DisplayTriggerStimulusID"/>
+          </MultiBinding>
+        </Setter.Value>
+      </Setter>
+    </Style>
+
   </UserControl.Resources>
 
   <Grid Background="Black">
@@ -191,7 +244,7 @@
             </DataGridTextColumn.Header>
           </DataGridTextColumn>
 
-          <DataGridTextColumn Binding="{Binding DisplayBaseID}" Width="70">
+          <DataGridTextColumn Binding="{Binding DisplayBaseID}" Width="70" CellStyle="{StaticResource StateCellStyle}">
             <DataGridTextColumn.Header>
               <DataGridColumnHeader Style="{StaticResource MatrixHeaderStyle}" 
                                   Content="Состояние"
@@ -199,19 +252,21 @@
             </DataGridTextColumn.Header>
           </DataGridTextColumn>
 
-          <DataGridTextColumn Binding="{Binding DisplayBaseStyleID}" Width="60">
+          <DataGridTextColumn Binding="{Binding DisplayBaseStyleID}" Width="60"
+                    CellStyle="{StaticResource StyleCellStyle}">
             <DataGridTextColumn.Header>
               <DataGridColumnHeader Style="{StaticResource MatrixHeaderStyle}" 
-                                  Content="Стиль"
-                                  ToolTip="ID образа стилей поведения"/>
+                            Content="Стиль"
+                            ToolTip="ID образа стилей поведения"/>
             </DataGridTextColumn.Header>
           </DataGridTextColumn>
 
-          <DataGridTextColumn Binding="{Binding DisplayTriggerStimulusID}" Width="70">
+          <DataGridTextColumn Binding="{Binding DisplayTriggerStimulusID}" Width="70"
+                    CellStyle="{StaticResource TriggerCellStyle}">
             <DataGridTextColumn.Header>
               <DataGridColumnHeader Style="{StaticResource MatrixHeaderStyle}" 
-                                  Content="Триггер"
-                                  ToolTip="ID образа пускового стимула"/>
+                            Content="Триггер"
+                            ToolTip="ID образа пускового стимула"/>
             </DataGridTextColumn.Header>
           </DataGridTextColumn>
 

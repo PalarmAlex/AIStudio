@@ -6,6 +6,12 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Threading;
 using AIStudio.Common;
+using ISIDA.Actions;
+using ISIDA.Gomeostas;
+using ISIDA.Reflexes;
+using ISIDA.Sensors;
+using System.Linq;
+using System.Collections.Generic;
 
 namespace AIStudio.ViewModels
 {
@@ -22,6 +28,12 @@ namespace AIStudio.ViewModels
     private readonly DispatcherTimer _refreshTimer;
     private bool _isAutoRefreshEnabled = true;
     private bool _disposed = false;
+
+    // Зависимости
+    private readonly GomeostasSystem _gomeostas;
+    private readonly PerceptionImagesSystem _perceptionImagesSystem;
+    private readonly InfluenceActionSystem _influenceActionSystem;
+    private readonly VerbalSensorChannel _verbalSensor;
 
     /// <summary>
     /// Коллекция записей логов только для чтения
@@ -51,8 +63,17 @@ namespace AIStudio.ViewModels
     /// <summary>
     /// Конструктор модели представления живых логов
     /// </summary>
-    public LiveLogsViewModel()
+    public LiveLogsViewModel(
+        GomeostasSystem gomeostas,
+        PerceptionImagesSystem perceptionImagesSystem,
+        InfluenceActionSystem influenceActionSystem,
+        VerbalSensorChannel verbalSensor)
     {
+      _gomeostas = gomeostas ?? throw new ArgumentNullException(nameof(gomeostas));
+      _perceptionImagesSystem = perceptionImagesSystem ?? throw new ArgumentNullException(nameof(perceptionImagesSystem));
+      _influenceActionSystem = influenceActionSystem ?? throw new ArgumentNullException(nameof(influenceActionSystem));
+      _verbalSensor = verbalSensor ?? throw new ArgumentNullException(nameof(verbalSensor));
+
       ClearLogsCommand = new RelayCommand(_ => ClearLogs());
       ToggleAutoRefreshCommand = new RelayCommand(_ => ToggleAutoRefresh());
 
@@ -121,5 +142,93 @@ namespace AIStudio.ViewModels
       _refreshTimer?.Stop();
       _disposed = true;
     }
+
+    #region Конвертеры для ToolTip'ов
+
+    /// <summary>
+    /// Получает текст подсказки для стиля поведения
+    /// </summary>
+    public string GetStyleTooltip(string displayBaseStyleID)
+    {
+      if (string.IsNullOrEmpty(displayBaseStyleID) || !int.TryParse(displayBaseStyleID, out int imageId) || imageId <= 0)
+        return "Нет данных о стилях";
+
+      try
+      {
+        var styleImages = _perceptionImagesSystem.GetAllBehaviorStyleImagesList();
+        var styleImage = styleImages.FirstOrDefault(img => img.Id == imageId);
+
+        if (styleImage != null && styleImage.BehaviorStylesList.Any())
+        {
+          var allStyles = _gomeostas.GetAllBehaviorStyles();
+
+          var styleNames = styleImage.BehaviorStylesList
+              .Select(styleId => allStyles.ContainsKey(styleId) ? allStyles[styleId].Name : $"Стиль {styleId}")
+              .Where(name => !string.IsNullOrEmpty(name));
+
+          return string.Join(", ", styleNames);
+        }
+      }
+      catch (Exception ex)
+      {
+        return $"Ошибка загрузки стилей: {ex.Message}";
+      }
+
+      return "Нет данных о стилях";
+    }
+
+    /// <summary>
+    /// Получает текст подсказки для триггера
+    /// </summary>
+    public string GetTriggerTooltip(string displayTriggerStimulusID)
+    {
+      if (string.IsNullOrEmpty(displayTriggerStimulusID) || !int.TryParse(displayTriggerStimulusID, out int imageId) || imageId <= 0)
+        return "Нет данных о триггере";
+
+      try
+      {
+        var perceptionImages = _perceptionImagesSystem.GetAllPerceptionImagesList();
+        var perceptionImage = perceptionImages.FirstOrDefault(img => img.Id == imageId);
+
+        if (perceptionImage != null)
+        {
+          var tooltipParts = new List<string>();
+
+          // Получаем названия внешних воздействий
+          if (perceptionImage.InfluenceActionsList.Any())
+          {
+            var allInfluences = _influenceActionSystem.GetAllInfluenceActions();
+
+            var influenceNames = perceptionImage.InfluenceActionsList
+                .Select(actionId => allInfluences.FirstOrDefault(a => a.Id == actionId)?.Name ?? $"Воздействие {actionId}")
+                .Where(name => !string.IsNullOrEmpty(name));
+
+            if (influenceNames.Any())
+              tooltipParts.Add($"Воздействия: {string.Join(", ", influenceNames)}");
+          }
+
+          // Получаем фразы
+          if (perceptionImage.PhraseIdList.Any())
+          {
+            var phraseNames = perceptionImage.PhraseIdList
+                .Select(phraseId => _verbalSensor?.GetPhraseFromPhraseId(phraseId) ?? $"Фраза {phraseId}")
+                .Where(phrase => !string.IsNullOrEmpty(phrase));
+
+            if (phraseNames.Any())
+              tooltipParts.Add($"Фразы: {string.Join(", ", phraseNames)}");
+          }
+
+          return tooltipParts.Any() ? string.Join("\n", tooltipParts) : "Пустой образ восприятия";
+        }
+      }
+      catch (Exception ex)
+      {
+        return $"Ошибка загрузки триггера: {ex.Message}";
+      }
+
+      return "Нет данных о триггере";
+    }
+
+    #endregion
   }
 }

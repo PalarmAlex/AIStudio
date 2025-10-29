@@ -411,7 +411,11 @@ namespace AIStudio
     private void ShowLiveLogs()
     {
       var liveLogsView = new LiveLogsView();
-      var viewModel = new LiveLogsViewModel();
+      var viewModel = new LiveLogsViewModel(
+          _gomeostas,
+          _perceptionImagesSystem,
+          _influenceActionSystem,
+          _sensorySystem.VerbalChannel);
       liveLogsView.DataContext = viewModel;
       CurrentContent = liveLogsView;
     }
