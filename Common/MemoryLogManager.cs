@@ -51,10 +51,10 @@ namespace AIStudio.Common
         Method = method ?? string.Empty,
         Pulse = pulse,
         BaseID = baseId,
-        BaseStyleID = baseStyleId,
-        TriggerStimulusID = triggerStimulusId,
-        GeneticReflexID = geneticReflexId,
-        ConditionReflexID = conditionedReflexId
+        BaseStyleID = baseStyleId == 0 ? null : baseStyleId,
+        TriggerStimulusID = triggerStimulusId == 0 ? null : triggerStimulusId,
+        GeneticReflexID = geneticReflexId == 0 ? null : geneticReflexId,
+        ConditionReflexID = conditionedReflexId == 0 ? null : conditionedReflexId
       };
 
       AddLogEntry(entry);
@@ -157,7 +157,7 @@ namespace AIStudio.Common
     public int? GeneticReflexID { get; set; }
     public int? ConditionReflexID { get; set; }
 
-    public string DisplayTime => Timestamp.ToString("HH:mm:ss.fff");
+    public string DisplayTime => Timestamp.ToString("HH:mm:ss");
     public string DisplayPulse => Pulse?.ToString() ?? "-";
     public string DisplayBaseID => BaseID?.ToString() ?? "-";
     public string DisplayBaseStyleID => BaseStyleID?.ToString() ?? "-";

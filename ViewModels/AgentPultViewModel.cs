@@ -320,7 +320,7 @@ namespace AIStudio.ViewModels
         // Применяем воздействия, если есть выбранные действия или фраза
         if (selectedActions.Any() || phraseIds.Any())
         {
-          var (success, errorMessage, imageId) = _influenceActionSystem.ApplyMultipleInfluenceActions(
+          var (success, errorMessage, imageId, imageGenRefId) = _influenceActionSystem.ApplyMultipleInfluenceActions(
               selectedActions,
               phraseIds
           );

@@ -372,7 +372,7 @@ namespace AIStudio.ViewModels
           }
         }
 
-        // Удаление рефлексов
+        // Удаление рефлексов из системы, которые удалил юзер из таблицы
         var reflexesToRemove = currentReflexes.Keys.Except(_allGeneticReflexes.Select(a => a.Id)).ToList();
         foreach (var reflexId in reflexesToRemove)
         {
@@ -386,7 +386,7 @@ namespace AIStudio.ViewModels
           }
         }
 
-        // Обновление и добавление рефлексов
+        // Обновление и добавление рефлексов, которые добавил/обновил юзер в таблицу
         foreach (var reflex in _allGeneticReflexes)
         {
           if (currentReflexes.ContainsKey(reflex.Id) && reflex.Id > 0)

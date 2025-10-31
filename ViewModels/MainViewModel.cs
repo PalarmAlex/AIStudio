@@ -2,7 +2,6 @@
 using AIStudio.Pages;
 using AIStudio.Pages.Reflexes;
 using AIStudio.ViewModels;
-using isida.Common;
 using ISIDA.Actions;
 using ISIDA.Common;
 using ISIDA.Gomeostas;
@@ -38,6 +37,7 @@ namespace AIStudio
     private readonly ReflexesActivator _reflexesActivator;
     private readonly ReflexTreeSystem _reflexTree;
     private readonly ReflexExecutionService _reflexExecution;
+    private readonly ResearchLogger _researchLogger;
     public event PropertyChangedEventHandler PropertyChanged;
 
     private ICommand _openAgentCommand;
@@ -99,13 +99,6 @@ namespace AIStudio
     {
       try
       {
-        ResearchLoggerManager.Initialize(
-          logFileName: "AgentLogs",
-          format: AppConfig.LogFormat,
-          enabled: AppConfig.LogEnabled,
-          clearOnStart: AppConfig.LogEnabled
-         );
-
         // Инициализация гомеостаза
         GomeostasSystem.InitializeInstance(AppConfig.DataGomeostasFolderPath, AppConfig.DataGomeostasTemplateFolderPath);
         _gomeostas = GomeostasSystem.Instance;
@@ -137,7 +130,7 @@ namespace AIStudio
         _conditionedReflexesSystem = ConditionedReflexesSystem.Instance;
 
         // Инициализация дерева рефлексов
-        ReflexTreeSystem.InitializeInstance(_geneticReflexesSystem);
+        ReflexTreeSystem.InitializeInstance(_geneticReflexesSystem, _perceptionImagesSystem);
         _reflexTree = ReflexTreeSystem.Instance;
 
         // Инициализация сервиса запуска рефлексов
@@ -148,7 +141,14 @@ namespace AIStudio
         ReflexesActivator.InitializeInstance(_gomeostas, _geneticReflexesSystem, _conditionedReflexesSystem, _influenceActionSystem, _reflexTree, _reflexExecution, _actionsSystem);
         _reflexesActivator = ReflexesActivator.Instance;
 
-        // Инициализация диспетчера пульса
+        _researchLogger = new ResearchLogger(
+            _gomeostas,
+            _perceptionImagesSystem,
+            _reflexesActivator,
+            clearOnStart: AppConfig.LogEnabled,
+            enabled: AppConfig.LogEnabled
+        );
+        ResearchLogger.SetMemoryLogWriter(MemoryLogManager.Instance);
         GlobalTimer.InitializeSystems(_gomeostas,_actionsSystem, _reflexesActivator);
 
         _gomeostas.DefaultStileId = AppConfig.DefaultStileId;
@@ -159,9 +159,6 @@ namespace AIStudio
         _gomeostas.DefaultKCompetition = AppConfig.DefaultKCompetition;
         _actionsSystem.DefaultAdaptiveActionId = AppConfig.DefaultAdaptiveActionId;
         _sensorySystem.VerbalRecognitionThreshold = AppConfig.RecognitionThreshold;
-
-        // Настраиваем запись логов в память
-        ResearchLogger.SetMemoryLogWriter(MemoryLogManager.Instance);
       }
       catch (Exception ex)
       {
@@ -685,6 +682,7 @@ namespace AIStudio
 
           if (brightness >= 0.99)
           {
+            _researchLogger?.LogSystemState(GlobalTimer.GlobalPulsCount);
             OnPropertyChanged(nameof(PulseStatus));
             OnPropertyChanged(nameof(LifeTimeStatus));
             UpdateAgentState(); // Обновляем состояние агента после каждого пульса

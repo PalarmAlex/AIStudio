@@ -168,7 +168,7 @@
         </Setter.Value>
       </Setter>
     </Style>
-
+    
     <!-- Стиль для ячейки Триггер -->
     <Style x:Key="TriggerCellStyle" TargetType="DataGridCell" BasedOn="{StaticResource MatrixCellStyle}">
       <Setter Property="ToolTip">
@@ -228,7 +228,7 @@
                       SelectionMode="Extended">
 
         <DataGrid.Columns>
-          <DataGridTextColumn Binding="{Binding DisplayTime}" Width="100">
+          <DataGridTextColumn Binding="{Binding DisplayTime}" Width="80">
             <DataGridTextColumn.Header>
               <DataGridColumnHeader Style="{StaticResource MatrixHeaderStyle}" 
                                   Content="Время"
