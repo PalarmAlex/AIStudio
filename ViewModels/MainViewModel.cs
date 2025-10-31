@@ -112,7 +112,7 @@ namespace AIStudio
         _influenceActionSystem = InfluenceActionSystem.Instance;
 
         // Инициализация сенсорной системы
-        SensorySystem.InitializeInstance(AppConfig.SensorsFolderPath, AppConfig.SensorsTemplateFolderPath);
+        SensorySystem.InitializeInstance(_gomeostas, AppConfig.SensorsFolderPath, AppConfig.SensorsTemplateFolderPath);
         _sensorySystem = SensorySystem.Instance;
 
         // Инициализация безусловных рефлексов
@@ -124,6 +124,7 @@ namespace AIStudio
         _perceptionImagesSystem = PerceptionImagesSystem.Instance;
         _gomeostas.SetPerceptionImagesSystem(_perceptionImagesSystem);
         _influenceActionSystem.SetPerceptionImagesSystem(_perceptionImagesSystem);
+        _sensorySystem.SetDependentSystems(_geneticReflexesSystem, _perceptionImagesSystem);
 
         // Инициализация условных рефлексов
         ConditionedReflexesSystem.InitializeInstance(_gomeostas, _geneticReflexesSystem, _perceptionImagesSystem);
@@ -146,6 +147,7 @@ namespace AIStudio
             _perceptionImagesSystem,
             _reflexesActivator,
             _actionsSystem,
+            format: AppConfig.LogFormat,
             clearOnStart: AppConfig.LogEnabled,
             enabled: AppConfig.LogEnabled
         );
@@ -265,7 +267,8 @@ namespace AIStudio
             ShowGeneticReflexes();
             break;
           case "5": // Условные рефлексы
-            ShowConditionedReflexes();
+            //ShowConditionedReflexes();
+            ShowStub("Условные рефлексы");
             break;
           case "6": // Дерево рефлексов
             ShowStub("Дерево рефлексов");
