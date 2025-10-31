@@ -34,6 +34,7 @@ namespace AIStudio.ViewModels
     private readonly PerceptionImagesSystem _perceptionImagesSystem;
     private readonly InfluenceActionSystem _influenceActionSystem;
     private readonly VerbalSensorChannel _verbalSensor;
+    private readonly AdaptiveActionsSystem _adaptiveActionsSystem;
 
     /// <summary>
     /// Коллекция записей логов только для чтения
@@ -67,12 +68,14 @@ namespace AIStudio.ViewModels
         GomeostasSystem gomeostas,
         PerceptionImagesSystem perceptionImagesSystem,
         InfluenceActionSystem influenceActionSystem,
-        VerbalSensorChannel verbalSensor)
+        VerbalSensorChannel verbalSensor,
+        AdaptiveActionsSystem adaptiveActionsSystem)
     {
       _gomeostas = gomeostas ?? throw new ArgumentNullException(nameof(gomeostas));
       _perceptionImagesSystem = perceptionImagesSystem ?? throw new ArgumentNullException(nameof(perceptionImagesSystem));
       _influenceActionSystem = influenceActionSystem ?? throw new ArgumentNullException(nameof(influenceActionSystem));
       _verbalSensor = verbalSensor ?? throw new ArgumentNullException(nameof(verbalSensor));
+      _adaptiveActionsSystem = adaptiveActionsSystem ?? throw new ArgumentNullException(nameof(adaptiveActionsSystem)); ;
 
       ClearLogsCommand = new RelayCommand(_ => ClearLogs());
       ToggleAutoRefreshCommand = new RelayCommand(_ => ToggleAutoRefresh());
@@ -144,6 +147,35 @@ namespace AIStudio.ViewModels
     }
 
     #region Конвертеры для ToolTip'ов
+
+    /// <summary>
+    /// Получает текст подсказки для элементарного действия
+    /// </summary>
+    public string GetElementaryActionTooltip(string displayElementaryActionID)
+    {
+      if (string.IsNullOrEmpty(displayElementaryActionID) || !int.TryParse(displayElementaryActionID, out int actionId) || actionId <= 0)
+        return "Нет данных об элементарных действиях";
+
+      try
+      {
+        var actions = _adaptiveActionsSystem.GetAllAdaptiveActions();
+        var actionList = actions.ToList();
+
+        if (actionList != null)
+        {
+          var actionNames = actionList
+              .Where(a => a.Id == actionId)
+              .Select(a => a.Name ?? $"Элементарное действие: {a.Id}")
+              .Where(name => !string.IsNullOrEmpty(name)); return string.Join(", ", actionNames);
+        }
+      }
+      catch (Exception ex)
+      {
+        return $"Ошибка загрузки действий: {ex.Message}";
+      }
+
+      return "Нет данных об элементарных действиях";
+    }
 
     /// <summary>
     /// Получает текст подсказки для стиля поведения

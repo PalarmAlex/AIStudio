@@ -145,6 +145,7 @@ namespace AIStudio
             _gomeostas,
             _perceptionImagesSystem,
             _reflexesActivator,
+            _actionsSystem,
             clearOnStart: AppConfig.LogEnabled,
             enabled: AppConfig.LogEnabled
         );
@@ -412,7 +413,8 @@ namespace AIStudio
           _gomeostas,
           _perceptionImagesSystem,
           _influenceActionSystem,
-          _sensorySystem.VerbalChannel);
+          _sensorySystem.VerbalChannel,
+          _actionsSystem);
       liveLogsView.DataContext = viewModel;
       CurrentContent = liveLogsView;
     }
