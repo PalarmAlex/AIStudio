@@ -40,7 +40,7 @@ namespace AIStudio.Common
     /// Реализация интерфейса ILogWriter - запись лога из библиотеки
     /// </summary>
     public void WriteLog(string className, string method, int? pulse, int? baseId,
-                       int? baseStyleId, int? triggerStimulusId, int? elementaryActionId,
+                       int? baseStyleId, int? triggerStimulusId, int? hasCriticalChanges, int? elementaryActionId,
                        int? geneticReflexId, int? conditionedReflexId)
     {
       if (_disposed) return;
@@ -53,6 +53,7 @@ namespace AIStudio.Common
         BaseID = baseId,
         BaseStyleID = baseStyleId == 0 ? null : baseStyleId,
         TriggerStimulusID = triggerStimulusId == 0 ? null : triggerStimulusId,
+        HasCriticalChanges = hasCriticalChanges == 0 ? null : hasCriticalChanges,
         ElementaryActionID = elementaryActionId == 0 ? null : elementaryActionId,
         GeneticReflexID = geneticReflexId == 0 ? null : geneticReflexId,
         ConditionReflexID = conditionedReflexId == 0 ? null : conditionedReflexId
@@ -155,6 +156,7 @@ namespace AIStudio.Common
     public int? Pulse { get; set; }
     public int? BaseStyleID { get; set; }
     public int? TriggerStimulusID { get; set; }
+    public int? HasCriticalChanges { get; set; }
     public int? ElementaryActionID { get; set; }
     public int? GeneticReflexID { get; set; }
     public int? ConditionReflexID { get; set; }
@@ -164,6 +166,7 @@ namespace AIStudio.Common
     public string DisplayBaseID => BaseID?.ToString() ?? "-";
     public string DisplayBaseStyleID => BaseStyleID?.ToString() ?? "-";
     public string DisplayTriggerStimulusID => TriggerStimulusID?.ToString() ?? "-";
+    public string DisplayHasCriticalChanges => HasCriticalChanges?.ToString() ?? "-";
     public string DisplayElementaryActionID => ElementaryActionID?.ToString() ?? "-";
     public string DisplayGeneticReflexID => GeneticReflexID?.ToString() ?? "-";
     public string DisplayConditionReflexID => ConditionReflexID?.ToString() ?? "-";

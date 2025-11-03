@@ -672,6 +672,7 @@ namespace AIStudio
 
     private void SetupPulseHandlers()
     {
+      // Обработка анимации яркости
       GlobalTimer.OnPulseBrightnessChanged += brightness =>
       {
         Application.Current.Dispatcher.Invoke(() =>
@@ -687,7 +688,6 @@ namespace AIStudio
 
           if (brightness >= 0.99)
           {
-            _researchLogger?.LogSystemState(GlobalTimer.GlobalPulsCount);
             OnPropertyChanged(nameof(PulseStatus));
             OnPropertyChanged(nameof(LifeTimeStatus));
             UpdateAgentState(); // Обновляем состояние агента после каждого пульса
@@ -695,6 +695,24 @@ namespace AIStudio
             if (IsAgentDead && IsPulsating)
               StopPulsationDueToDeath();
           }
+        });
+      };
+
+      // Обработка завершения пульса (логирование и обновление UI)
+      GlobalTimer.OnPulseCompleted += pulseCount =>
+      {
+        Application.Current.Dispatcher.Invoke(() =>
+        {
+          // Логируем состояние системы ПОСЛЕ завершения всех операций пульса
+          _researchLogger?.LogSystemState(pulseCount);
+
+          // Обновляем UI
+          OnPropertyChanged(nameof(PulseStatus));
+          OnPropertyChanged(nameof(LifeTimeStatus));
+          UpdateAgentState();
+
+          if (IsAgentDead && IsPulsating)
+            StopPulsationDueToDeath();
         });
       };
     }

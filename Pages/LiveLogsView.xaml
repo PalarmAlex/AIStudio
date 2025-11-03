@@ -281,6 +281,14 @@
             </DataGridTextColumn.Header>
           </DataGridTextColumn>
 
+          <DataGridTextColumn Binding="{Binding DisplayHasCriticalChanges}" Width="50">
+            <DataGridTextColumn.Header>
+              <DataGridColumnHeader Style="{StaticResource MatrixHeaderStyle}" 
+                            Content="ОР1"
+                            ToolTip="Ориентировочный рефлекс по критическим изменениям параметров гомеостаза"/>
+            </DataGridTextColumn.Header>
+          </DataGridTextColumn>
+
           <DataGridTextColumn Binding="{Binding DisplayElementaryActionID}" Width="70"
                               CellStyle="{StaticResource ElementaryActionCellStyle}">
             <DataGridTextColumn.Header>
