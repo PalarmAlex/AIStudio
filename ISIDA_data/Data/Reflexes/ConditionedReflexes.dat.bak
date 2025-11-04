@@ -1,0 +1,5 @@
+# ID|Name|Description|Level1|Level2|Level3|AdaptiveActions|Rank|AssociationStrength|LastActivation|BirthTime|SourceGeneticReflexId
+# Level1: -1:Плохо, 0:Норма, 1:Хорошо
+# Level2: id1,id2,id3 (образ стилей поведения)
+# Level3: ID образа пускового стимула
+# AssociationStrength: крепость связи C_ij ∈ [0,1]

@@ -12,11 +12,13 @@
     <SensorsTemplateFolderPath>D:\ISIDA\Programms\app\AIStudio\bin\Debug\Templates\Sensors</SensorsTemplateFolderPath>
     <RecognitionThreshold>3</RecognitionThreshold>
     <CompareLevel>30</CompareLevel>
-    <DifSensorPar>0.02</DifSensorPar>
-    <DynamicTime>5</DynamicTime>
+    <DifSensorPar>1.2</DifSensorPar>
+    <DynamicTime>7</DynamicTime>
     <ReflexesFolderPath>D:\ISIDA\Programms\app\AIStudio\bin\Debug\Data\Reflexes</ReflexesFolderPath>
     <ReflexesTemplateFolderPath>D:\ISIDA\Programms\app\AIStudio\bin\Debug\Templates\Reflexes</ReflexesTemplateFolderPath>
     <DefaultGeneticReflexId>0</DefaultGeneticReflexId>
     <FirstRun>1</FirstRun>
+    <LogEnabled>true</LogEnabled>
+    <DefaultFormatLog>Csv</DefaultFormatLog>
   </AppSettings>
 </Configuration>
