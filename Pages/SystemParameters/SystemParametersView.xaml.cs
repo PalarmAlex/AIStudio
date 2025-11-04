@@ -123,8 +123,8 @@ namespace AIStudio.Pages
       else if (e.Column.Header.ToString() == "% затухания")
       {
         if (!int.TryParse(input, out int value)
-            || value < -10 || value > 10)
-          msgText = "Введите целое число от -10 до +10";
+            || value < -20 || value > 20)
+          msgText = "Введите целое число от -20 до +20";
       }
       else if(e.Column.Header.ToString() == "Влияние (Плохо)" || e.Column.Header.ToString() == "Влияние (Хорошо)")
       {
@@ -208,7 +208,7 @@ namespace AIStudio.Pages
                       e.Text +
                       currentText.Substring(textBox.SelectionStart + textBox.SelectionLength);
 
-      // Проверяем, является ли ввод допустимым целым числом в диапазоне -10..10
+      // Проверяем, является ли ввод допустимым целым числом в диапазоне -20..20
       if (!IsValidSpeedValue(newText))
       {
         e.Handled = true;
@@ -231,8 +231,8 @@ namespace AIStudio.Pages
       // Проверяем, является ли текст целым числом
       if (int.TryParse(text, out int result))
       {
-        // Проверяем диапазон -10 до 10
-        return result >= -10 && result <= 10;
+        // Проверяем диапазон -20 до 20
+        return result >= -20 && result <= 20;
       }
 
       // Проверяем частичный ввод (например, "-", "1", "-1")
