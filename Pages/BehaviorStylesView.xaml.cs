@@ -126,6 +126,7 @@ namespace AIStudio.Pages
           if (editor.ShowDialog() == true)
           {
             behaviorStyle.AntagonistStyles = editor.SelectedStyleIds.ToList();
+
             // Отложенное обновление
             Dispatcher.BeginInvoke(new Action(() =>
             {

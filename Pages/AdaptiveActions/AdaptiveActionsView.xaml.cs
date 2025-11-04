@@ -116,10 +116,17 @@ namespace AIStudio.Pages
                 kvp => kvp.Key,
                 kvp => GomeostasSystem.ClampInt(kvp.Value, -10, 10));
             // Отложенное обновление
-            Dispatcher.BeginInvoke(new Action(() =>
+            try
             {
-              ActionsGrid.Items.Refresh();
-            }), DispatcherPriority.Background);
+              Dispatcher.BeginInvoke(new Action(() =>
+              {
+                ActionsGrid.Items.Refresh();
+              }), DispatcherPriority.Background);
+            }
+            catch
+            {
+
+            }
           }
         }
         e.Handled = true;

@@ -30,10 +30,65 @@ namespace AIStudio.Common
     private bool _disposed = false;
 
     public ReadOnlyObservableCollection<LogEntry> LogEntries { get; }
+    private readonly ObservableCollection<StyleLogEntry> _styleLogEntries = new ObservableCollection<StyleLogEntry>();
+    private readonly ObservableCollection<ParameterLogEntry> _parameterLogEntries = new ObservableCollection<ParameterLogEntry>();
+    public ReadOnlyObservableCollection<StyleLogEntry> StyleLogEntries { get; }
+    public ReadOnlyObservableCollection<ParameterLogEntry> ParameterLogEntries { get; }
 
     private MemoryLogManager()
     {
       LogEntries = new ReadOnlyObservableCollection<LogEntry>(_logEntries);
+      StyleLogEntries = new ReadOnlyObservableCollection<StyleLogEntry>(_styleLogEntries);
+      ParameterLogEntries = new ReadOnlyObservableCollection<ParameterLogEntry>(_parameterLogEntries);
+    }
+
+    /// <summary>
+    /// Запись лога стилей
+    /// </summary>
+    public void WriteStyleLog(int pulse, string stage, int styleId, string styleName,
+                             int weight, float activity)
+    {
+      if (_disposed) return;
+
+      var entry = new StyleLogEntry
+      {
+        Pulse = pulse,
+        Stage = stage,
+        StyleId = styleId,
+        StyleName = styleName,
+        Weight = weight,
+        Activity = activity,
+        Timestamp = DateTime.Now
+      };
+
+      AddStyleLogEntry(entry);
+    }
+
+    /// <summary>
+    /// Запись лога параметров
+    /// </summary>
+    public void WriteParameterLog(int pulse, int paramId, string paramName, int weight,
+                                 int normaWell, int speed, float value, float urgencyFunction,
+                                 string parameterState, string activationZone)
+    {
+      if (_disposed) return;
+
+      var entry = new ParameterLogEntry
+      {
+        Pulse = pulse,
+        ParamId = paramId,
+        ParamName = paramName,
+        Weight = weight,
+        NormaWell = normaWell,
+        Speed = speed,
+        Value = value,
+        UrgencyFunction = urgencyFunction,
+        ParameterState = parameterState,
+        ActivationZone = activationZone,
+        Timestamp = DateTime.Now
+      };
+
+      AddParameterLogEntry(entry);
     }
 
     /// <summary>
@@ -92,6 +147,66 @@ namespace AIStudio.Common
       }
     }
 
+    private void AddStyleLogEntry(StyleLogEntry entry)
+    {
+      if (Application.Current != null && Application.Current.Dispatcher.CheckAccess())
+      {
+        AddStyleLogEntryInternal(entry);
+      }
+      else if (Application.Current != null)
+      {
+        Application.Current.Dispatcher.BeginInvoke(new Action<StyleLogEntry>(AddStyleLogEntryInternal),
+            DispatcherPriority.Background, entry);
+      }
+      else
+      {
+        AddStyleLogEntryInternal(entry);
+      }
+    }
+
+    private void AddStyleLogEntryInternal(StyleLogEntry entry)
+    {
+      lock (_lock)
+      {
+        _styleLogEntries.Insert(0, entry);
+
+        while (_styleLogEntries.Count > _maxLogEntries)
+        {
+          _styleLogEntries.RemoveAt(_styleLogEntries.Count - 1);
+        }
+      }
+    }
+
+    private void AddParameterLogEntry(ParameterLogEntry entry)
+    {
+      if (Application.Current != null && Application.Current.Dispatcher.CheckAccess())
+      {
+        AddParameterLogEntryInternal(entry);
+      }
+      else if (Application.Current != null)
+      {
+        Application.Current.Dispatcher.BeginInvoke(new Action<ParameterLogEntry>(AddParameterLogEntryInternal),
+            DispatcherPriority.Background, entry);
+      }
+      else
+      {
+        AddParameterLogEntryInternal(entry);
+      }
+    }
+
+    private void AddParameterLogEntryInternal(ParameterLogEntry entry)
+    {
+      lock (_lock)
+      {
+        _parameterLogEntries.Insert(0, entry);
+
+        while (_parameterLogEntries.Count > _maxLogEntries)
+        {
+          _parameterLogEntries.RemoveAt(_parameterLogEntries.Count - 1);
+        }
+      }
+    }
+
     public void Clear()
     {
       if (_disposed) return;
@@ -116,6 +231,58 @@ namespace AIStudio.Common
       lock (_lock)
       {
         _logEntries.Clear();
+        _styleLogEntries.Clear();
+        _parameterLogEntries.Clear();
+      }
+    }
+
+    public void ClearStyleLogs()
+    {
+      if (Application.Current != null && Application.Current.Dispatcher.CheckAccess())
+      {
+        ClearStyleLogsInternal();
+      }
+      else if (Application.Current != null)
+      {
+        Application.Current.Dispatcher.BeginInvoke(new Action(ClearStyleLogsInternal),
+            DispatcherPriority.Background);
+      }
+      else
+      {
+        ClearStyleLogsInternal();
+      }
+    }
+
+    private void ClearStyleLogsInternal()
+    {
+      lock (_lock)
+      {
+        _styleLogEntries.Clear();
+      }
+    }
+
+    public void ClearParameterLogs()
+    {
+      if (Application.Current != null && Application.Current.Dispatcher.CheckAccess())
+      {
+        ClearParameterLogsInternal();
+      }
+      else if (Application.Current != null)
+      {
+        Application.Current.Dispatcher.BeginInvoke(new Action(ClearParameterLogsInternal),
+            DispatcherPriority.Background);
+      }
+      else
+      {
+        ClearParameterLogsInternal();
+      }
+    }
+
+    private void ClearParameterLogsInternal()
+    {
+      lock (_lock)
+      {
+        _parameterLogEntries.Clear();
       }
     }
 
@@ -142,6 +309,8 @@ namespace AIStudio.Common
       lock (_lock)
       {
         _logEntries.Clear();
+        _styleLogEntries.Clear();
+        _parameterLogEntries.Clear();
         _disposed = true;
       }
     }
@@ -170,5 +339,51 @@ namespace AIStudio.Common
     public string DisplayElementaryActionID => ElementaryActionID?.ToString() ?? "-";
     public string DisplayGeneticReflexID => GeneticReflexID?.ToString() ?? "-";
     public string DisplayConditionReflexID => ConditionReflexID?.ToString() ?? "-";
+  }
+
+  public class StyleLogEntry
+  {
+    public DateTime Timestamp { get; set; } = DateTime.Now;
+    public int Pulse { get; set; }
+    public string Stage { get; set; } = string.Empty;
+    public int StyleId { get; set; }
+    public string StyleName { get; set; } = string.Empty;
+    public int Weight { get; set; }
+    public float Activity { get; set; }
+
+    public string DisplayTime => Timestamp.ToString("HH:mm:ss");
+    public string DisplayPulse => Pulse.ToString();
+    public string DisplayStage => Stage;
+    public string DisplayStyleId => StyleId.ToString();
+    public string DisplayStyleName => StyleName;
+    public string DisplayWeight => Weight.ToString();
+    public string DisplayActivity => Activity.ToString("F2");
+  }
+
+  public class ParameterLogEntry
+  {
+    public DateTime Timestamp { get; set; } = DateTime.Now;
+    public int Pulse { get; set; }
+    public int ParamId { get; set; }
+    public string ParamName { get; set; } = string.Empty;
+    public int Weight { get; set; }
+    public int NormaWell { get; set; }
+    public int Speed { get; set; }
+    public float Value { get; set; }
+    public float UrgencyFunction { get; set; }
+    public string ParameterState { get; set; } = string.Empty;
+    public string ActivationZone { get; set; } = string.Empty;
+
+    public string DisplayTime => Timestamp.ToString("HH:mm:ss");
+    public string DisplayPulse => Pulse.ToString();
+    public string DisplayParamId => ParamId.ToString();
+    public string DisplayParamName => ParamName;
+    public string DisplayWeight => Weight.ToString();
+    public string DisplayNormaWell => NormaWell.ToString();
+    public string DisplaySpeed => Speed.ToString();
+    public string DisplayValue => Value.ToString("F2");
+    public string DisplayUrgencyFunction => UrgencyFunction.ToString("F4");
+    public string DisplayParameterState => ParameterState;
+    public string DisplayActivationZone => ActivationZone;
   }
 }

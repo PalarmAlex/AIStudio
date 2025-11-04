@@ -151,6 +151,7 @@ namespace AIStudio
             clearOnStart: AppConfig.LogEnabled,
             enabled: AppConfig.LogEnabled
         );
+        _gomeostas.SetResearchLogger(_researchLogger);
         ResearchLogger.SetMemoryLogWriter(MemoryLogManager.Instance);
         GlobalTimer.InitializeSystems(_gomeostas,_actionsSystem, _reflexesActivator);
 
@@ -348,8 +349,14 @@ namespace AIStudio
           case "33": // Агент
             OpenAgent();
             break;
-          case "34":  // Живые логи системы
+          case "34":  // логи системы
             ShowLiveLogs();
+            break;
+          case "35":  // логи стилей
+            ShowStileLogs();
+            break;
+          case "36":  // логи параметров
+            ShowParametersLogs();
             break;
           default:
             ShowStub($"Меню {menuItem}");
@@ -407,7 +414,7 @@ namespace AIStudio
     }
 
     /// <summary>
-    /// Открывает страницу живых логов системы
+    /// Открывает страницу логов системы
     /// </summary>
     private void ShowLiveLogs()
     {
@@ -420,6 +427,28 @@ namespace AIStudio
           _actionsSystem);
       liveLogsView.DataContext = viewModel;
       CurrentContent = liveLogsView;
+    }
+
+    /// <summary>
+    /// Открывает страницу логов стилей
+    /// </summary>
+    private void ShowStileLogs()
+    {
+      var stileLogsView = new StyleLogsView();
+      var viewModel = new StyleLogsViewModel();
+      stileLogsView.DataContext = viewModel;
+      CurrentContent = stileLogsView;
+    }
+
+    /// <summary>
+    /// Открывает страницу логов параметров
+    /// </summary>
+    private void ShowParametersLogs()
+    {
+      var parameterLogsView = new ParameterLogsView();
+      var viewModel = new ParameterLogsViewModel();
+      parameterLogsView.DataContext = viewModel;
+      CurrentContent = parameterLogsView;
     }
 
     // Открыть страницу сенсоров

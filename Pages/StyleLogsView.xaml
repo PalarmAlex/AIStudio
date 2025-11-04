@@ -1,0 +1,181 @@
+﻿<UserControl x:Class="AIStudio.Pages.StyleLogsView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             mc:Ignorable="d" 
+             d:DesignHeight="600" d:DesignWidth="800">
+
+  <UserControl.Resources>
+    <Style x:Key="MatrixTextStyle" TargetType="TextBlock">
+      <Setter Property="Foreground" Value="#FF00FF00"/>
+      <Setter Property="FontFamily" Value="Consolas, Courier New"/>
+      <Setter Property="FontSize" Value="12"/>
+      <Setter Property="VerticalAlignment" Value="Center"/>
+    </Style>
+
+    <Style x:Key="MatrixHeaderStyle" TargetType="DataGridColumnHeader">
+      <Setter Property="Foreground" Value="#FFFFFF00"/>
+      <Setter Property="FontFamily" Value="Consolas, Courier New"/>
+      <Setter Property="FontSize" Value="12"/>
+      <Setter Property="FontWeight" Value="Bold"/>
+      <Setter Property="Background" Value="#101010"/>
+      <Setter Property="BorderBrush" Value="#00FF00"/>
+      <Setter Property="BorderThickness" Value="0,0,1,1"/>
+      <Setter Property="Padding" Value="5,3"/>
+      <Setter Property="HorizontalContentAlignment" Value="Center"/>
+    </Style>
+
+    <Style x:Key="MatrixCellStyle" TargetType="DataGridCell">
+      <Setter Property="Foreground" Value="#FF00FF00"/>
+      <Setter Property="FontFamily" Value="Consolas, Courier New"/>
+      <Setter Property="FontSize" Value="12"/>
+      <Setter Property="Background" Value="Transparent"/>
+      <Setter Property="BorderBrush" Value="#202020"/>
+      <Setter Property="BorderThickness" Value="0,0,1,1"/>
+      <Setter Property="Padding" Value="5,3"/>
+      <Setter Property="Template">
+        <Setter.Value>
+          <ControlTemplate TargetType="DataGridCell">
+            <Border Background="{TemplateBinding Background}" 
+                    BorderBrush="{TemplateBinding BorderBrush}" 
+                    BorderThickness="{TemplateBinding BorderThickness}"
+                    Padding="{TemplateBinding Padding}">
+              <ContentPresenter VerticalAlignment="Center"/>
+            </Border>
+          </ControlTemplate>
+        </Setter.Value>
+      </Setter>
+      <Style.Triggers>
+        <Trigger Property="IsSelected" Value="True">
+          <Setter Property="Background" Value="#2000FF00"/>
+          <Setter Property="Foreground" Value="#FFFFFF"/>
+        </Trigger>
+      </Style.Triggers>
+    </Style>
+
+    <Style x:Key="MatrixRowStyle" TargetType="DataGridRow">
+      <Setter Property="Background" Value="Transparent"/>
+      <Style.Triggers>
+        <Trigger Property="IsMouseOver" Value="True">
+          <Setter Property="Background" Value="#1000FF00"/>
+        </Trigger>
+        <Trigger Property="IsSelected" Value="True">
+          <Setter Property="Background" Value="#3000FF00"/>
+        </Trigger>
+      </Style.Triggers>
+    </Style>
+
+    <Style x:Key="MatrixDataGridStyle" TargetType="DataGrid">
+      <Setter Property="Background" Value="Transparent"/>
+      <Setter Property="Foreground" Value="#00FF00"/>
+      <Setter Property="BorderBrush" Value="Transparent"/>
+      <Setter Property="HeadersVisibility" Value="Column"/>
+      <Setter Property="RowBackground" Value="Transparent"/>
+      <Setter Property="AlternatingRowBackground" Value="#080808"/>
+      <Setter Property="GridLinesVisibility" Value="None"/>
+      <Setter Property="HorizontalGridLinesBrush" Value="Transparent"/>
+      <Setter Property="VerticalGridLinesBrush" Value="Transparent"/>
+      <Setter Property="ScrollViewer.CanContentScroll" Value="True"/>
+    </Style>
+
+    <Style x:Key="MatrixButtonStyle" TargetType="Button">
+      <Setter Property="Background" Value="#002000"/>
+      <Setter Property="Foreground" Value="#00FF00"/>
+      <Setter Property="BorderBrush" Value="#00FF00"/>
+      <Setter Property="BorderThickness" Value="1"/>
+      <Setter Property="Padding" Value="10,5"/>
+      <Setter Property="FontFamily" Value="Consolas"/>
+      <Setter Property="FontSize" Value="11"/>
+      <Setter Property="Template">
+        <Setter.Value>
+          <ControlTemplate TargetType="Button">
+            <Border Background="{TemplateBinding Background}" 
+                    BorderBrush="{TemplateBinding BorderBrush}" 
+                    BorderThickness="{TemplateBinding BorderThickness}"
+                    CornerRadius="2">
+              <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+            </Border>
+          </ControlTemplate>
+        </Setter.Value>
+      </Setter>
+      <Style.Triggers>
+        <Trigger Property="IsMouseOver" Value="True">
+          <Setter Property="Background" Value="#004000"/>
+          <Setter Property="Foreground" Value="#80FF80"/>
+        </Trigger>
+        <Trigger Property="IsPressed" Value="True">
+          <Setter Property="Background" Value="#006000"/>
+        </Trigger>
+      </Style.Triggers>
+    </Style>
+
+    <Style x:Key="MultiLineCellStyle" TargetType="DataGridCell" BasedOn="{StaticResource MatrixCellStyle}">
+      <Setter Property="TextBlock.TextWrapping" Value="Wrap"/>
+    </Style>
+
+  </UserControl.Resources>
+
+  <Grid Background="Black">
+    <Grid.RowDefinitions>
+      <RowDefinition Height="Auto"/>
+      <RowDefinition Height="*"/>
+      <RowDefinition Height="Auto"/>
+    </Grid.RowDefinitions>
+
+    <!-- Заголовок -->
+    <Border Grid.Row="0" Background="#101010" Padding="10" BorderBrush="#00FF00" BorderThickness="0,0,0,1">
+      <TextBlock Text="ЛОГИ СТИЛЕЙ ПОВЕДЕНИЯ - ГРУППИРОВКА ПО ПУЛЬСАМ" 
+                 Foreground="#00FF00"
+                 FontFamily="Consolas, Courier New"
+                 FontSize="16"
+                 FontWeight="Bold"
+                 VerticalAlignment="Center"/>
+    </Border>
+
+    <!-- Таблица с группировкой -->
+    <Border Grid.Row="1" Margin="5" BorderBrush="#00FF00" BorderThickness="1" Background="#080808">
+      <DataGrid ItemsSource="{Binding StyleLogGroups}"
+                Style="{StaticResource MatrixDataGridStyle}"
+                AutoGenerateColumns="False"
+                IsReadOnly="True"
+                RowStyle="{StaticResource MatrixRowStyle}"
+                CellStyle="{StaticResource MatrixCellStyle}"
+                VerticalScrollBarVisibility="Auto"
+                HorizontalScrollBarVisibility="Auto"
+                CanUserResizeColumns="True"
+                CanUserSortColumns="True"
+                RowHeight="60">
+
+        <DataGrid.Columns>
+          <DataGridTextColumn Binding="{Binding DisplayTime}" Width="80" Header="Время" HeaderStyle="{StaticResource MatrixHeaderStyle}"/>
+          <DataGridTextColumn Binding="{Binding DisplayPulse}" Width="60" Header="Пульс" HeaderStyle="{StaticResource MatrixHeaderStyle}"/>
+
+          <!-- Базовые стили -->
+          <DataGridTextColumn Binding="{Binding DisplayBaseStyles}" Width="Auto" 
+                              Header="Базовые стили" HeaderStyle="{StaticResource MatrixHeaderStyle}"
+                              CellStyle="{StaticResource MultiLineCellStyle}"/>
+
+          <!-- После антагонистов -->
+          <DataGridTextColumn Binding="{Binding DisplayAfterAntagonistStyles}" Width="Auto"
+                              Header="После антагонистов" HeaderStyle="{StaticResource MatrixHeaderStyle}"
+                              CellStyle="{StaticResource MultiLineCellStyle}"/>
+
+          <!-- Финальные стили -->
+          <DataGridTextColumn Binding="{Binding DisplayFinalStyles}" Width="Auto"
+                              Header="Финальные стили" HeaderStyle="{StaticResource MatrixHeaderStyle}"
+                              CellStyle="{StaticResource MultiLineCellStyle}"/>
+        </DataGrid.Columns>
+      </DataGrid>
+    </Border>
+
+    <!-- Панель управления -->
+    <Border Grid.Row="2" Background="#101010" Padding="10" BorderBrush="#00FF00" BorderThickness="0,1,0,0">
+      <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+        <Button Content="ОЧИСТИТЬ" 
+                Command="{Binding ClearLogsCommand}"
+                Style="{StaticResource MatrixButtonStyle}"/>
+      </StackPanel>
+    </Border>
+  </Grid>
+</UserControl>

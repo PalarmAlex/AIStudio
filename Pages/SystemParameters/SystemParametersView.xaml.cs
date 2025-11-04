@@ -90,7 +90,7 @@ namespace AIStudio.Pages
         Value = 50,
         Weight = 50,
         NormaWell = 50,
-        Speed = 0,
+        Speed = -1,
         StyleActivations = new Dictionary<int, List<int>>()
       };
     }
