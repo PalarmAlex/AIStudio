@@ -114,6 +114,17 @@
       <Setter Property="TextBlock.TextWrapping" Value="Wrap"/>
     </Style>
 
+    <Style x:Key="MatrixToolTipStyle" TargetType="ToolTip">
+      <Setter Property="Background" Value="#202020"/>
+      <Setter Property="BorderBrush" Value="#00FF00"/>
+      <Setter Property="BorderThickness" Value="1"/>
+      <Setter Property="Foreground" Value="#00FF00"/>
+      <Setter Property="FontFamily" Value="Consolas"/>
+      <Setter Property="FontSize" Value="12"/>
+      <Setter Property="Padding" Value="8,4"/>
+      <Setter Property="MaxWidth" Value="300"/>
+    </Style>
+
   </UserControl.Resources>
 
   <Grid Background="Black">
@@ -125,7 +136,7 @@
 
     <!-- Заголовок -->
     <Border Grid.Row="0" Background="#101010" Padding="10" BorderBrush="#00FF00" BorderThickness="0,0,0,1">
-      <TextBlock Text="ЛОГИ СТИЛЕЙ ПОВЕДЕНИЯ - ГРУППИРОВКА ПО ПУЛЬСАМ" 
+      <TextBlock Text="ЛОГИ СТИЛЕЙ ПОВЕДЕНИЯ" 
                  Foreground="#00FF00"
                  FontFamily="Consolas, Courier New"
                  FontSize="16"
@@ -152,19 +163,94 @@
           <DataGridTextColumn Binding="{Binding DisplayPulse}" Width="60" Header="Пульс" HeaderStyle="{StaticResource MatrixHeaderStyle}"/>
 
           <!-- Базовые стили -->
-          <DataGridTextColumn Binding="{Binding DisplayBaseStyles}" Width="Auto" 
-                              Header="Базовые стили" HeaderStyle="{StaticResource MatrixHeaderStyle}"
-                              CellStyle="{StaticResource MultiLineCellStyle}"/>
+          <DataGridTextColumn Binding="{Binding DisplayBaseStyles}" Width="*" 
+                    Header="Базовые стили">
+            <DataGridTextColumn.HeaderStyle>
+              <Style TargetType="DataGridColumnHeader" BasedOn="{StaticResource MatrixHeaderStyle}">
+                <Setter Property="ToolTip">
+                  <Setter.Value>
+                    <ToolTip Style="{StaticResource MatrixToolTipStyle}">
+                      <StackPanel>
+                        <TextBlock TextWrapping="Wrap" MaxWidth="300"
+                                       Text="Стили поведения, активированные напрямую параметрами гомеостаза."/>
+                        <TextBlock TextWrapping="Wrap" MaxWidth="300"
+                                       Text="На этом этапе могут быть конфликты между стилями."/>
+                        <TextBlock TextWrapping="Wrap" MaxWidth="300" Margin="0,8,0,0"
+                                       Text="Формат записи:" FontWeight="Bold"/>
+                        <TextBlock TextWrapping="Wrap" MaxWidth="300"
+                                       Text="Стиль | Вес | Вес после контрастирования."/>
+                      </StackPanel>
+                    </ToolTip>
+                  </Setter.Value>
+                </Setter>
+              </Style>
+            </DataGridTextColumn.HeaderStyle>
+            <DataGridTextColumn.CellStyle>
+              <Style TargetType="DataGridCell" BasedOn="{StaticResource MatrixCellStyle}">
+                <Setter Property="TextBlock.TextWrapping" Value="Wrap"/>
+              </Style>
+            </DataGridTextColumn.CellStyle>
+          </DataGridTextColumn>
 
           <!-- После антагонистов -->
-          <DataGridTextColumn Binding="{Binding DisplayAfterAntagonistStyles}" Width="Auto"
-                              Header="После антагонистов" HeaderStyle="{StaticResource MatrixHeaderStyle}"
-                              CellStyle="{StaticResource MultiLineCellStyle}"/>
+          <DataGridTextColumn Binding="{Binding DisplayAfterAntagonistStyles}" Width="*"
+                    Header="После антагонистов">
+            <DataGridTextColumn.HeaderStyle>
+              <Style TargetType="DataGridColumnHeader" BasedOn="{StaticResource MatrixHeaderStyle}">
+                <Setter Property="ToolTip">
+                  <Setter.Value>
+                    <ToolTip Style="{StaticResource MatrixToolTipStyle}">
+                      <StackPanel>
+                        <TextBlock TextWrapping="Wrap" MaxWidth="300"
+                                       Text="Стили после разрешения конфликтов между антагонистами."/>
+                        <TextBlock TextWrapping="Wrap" MaxWidth="300"
+                                       Text="Если два стиля несовместимы, один из них (кто слабее) подавляется."/>
+                        <TextBlock TextWrapping="Wrap" MaxWidth="300" Margin="0,8,0,0"
+                                       Text="Формат записи:" FontWeight="Bold"/>
+                        <TextBlock TextWrapping="Wrap" MaxWidth="300"
+                                       Text="Стиль | Вес | Вес после контрастирования."/>
+                      </StackPanel>
+                    </ToolTip>                    
+                  </Setter.Value>
+                </Setter>
+              </Style>
+            </DataGridTextColumn.HeaderStyle>
+            <DataGridTextColumn.CellStyle>
+              <Style TargetType="DataGridCell" BasedOn="{StaticResource MatrixCellStyle}">
+                <Setter Property="TextBlock.TextWrapping" Value="Wrap"/>
+              </Style>
+            </DataGridTextColumn.CellStyle>
+          </DataGridTextColumn>
 
           <!-- Финальные стили -->
-          <DataGridTextColumn Binding="{Binding DisplayFinalStyles}" Width="Auto"
-                              Header="Финальные стили" HeaderStyle="{StaticResource MatrixHeaderStyle}"
-                              CellStyle="{StaticResource MultiLineCellStyle}"/>
+          <DataGridTextColumn Binding="{Binding DisplayFinalStyles}" Width="*"
+                    Header="Финальные стили">
+            <DataGridTextColumn.HeaderStyle>
+              <Style TargetType="DataGridColumnHeader" BasedOn="{StaticResource MatrixHeaderStyle}">
+                <Setter Property="ToolTip">
+                  <Setter.Value>
+                    <ToolTip Style="{StaticResource MatrixToolTipStyle}">
+                      <StackPanel>
+                        <TextBlock TextWrapping="Wrap" MaxWidth="300"
+                                       Text="Финальные стили после латерального торможения."/>
+                        <TextBlock TextWrapping="Wrap" MaxWidth="300"
+                                       Text="Самые сильные стили подавляют слабые конкурирующие стили."/>
+                        <TextBlock TextWrapping="Wrap" MaxWidth="300" Margin="0,8,0,0"
+                                       Text="Формат записи:" FontWeight="Bold"/>
+                        <TextBlock TextWrapping="Wrap" MaxWidth="300"
+                                       Text="Стиль | Вес | Вес после контрастирования."/>
+                      </StackPanel>
+                    </ToolTip>
+                  </Setter.Value>
+                </Setter>
+              </Style>
+            </DataGridTextColumn.HeaderStyle>
+            <DataGridTextColumn.CellStyle>
+              <Style TargetType="DataGridCell" BasedOn="{StaticResource MatrixCellStyle}">
+                <Setter Property="TextBlock.TextWrapping" Value="Wrap"/>
+              </Style>
+            </DataGridTextColumn.CellStyle>
+          </DataGridTextColumn>
         </DataGrid.Columns>
       </DataGrid>
     </Border>

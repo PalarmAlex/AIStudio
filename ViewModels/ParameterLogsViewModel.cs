@@ -146,6 +146,7 @@ namespace AIStudio.ViewModels
       style.Setters.Add(new Setter(Control.BorderBrushProperty, Brushes.Lime));
       style.Setters.Add(new Setter(Control.BorderThicknessProperty, new Thickness(1)));
       style.Setters.Add(new Setter(Control.PaddingProperty, new Thickness(4)));
+      style.Setters.Add(new Setter(Control.ToolTipProperty, CreateParameterToolTip()));
       return style;
     }
 
@@ -167,6 +168,32 @@ namespace AIStudio.ViewModels
       style.Triggers.Add(trigger);
 
       return style;
+    }
+
+    private ToolTip CreateParameterToolTip()
+    {
+      return new ToolTip
+      {
+        Content = new TextBlock
+        {
+          Text = "Данные параметра:\n" +
+                     "• Знач - Текущее значение (0-100)\n" +
+                     "• Вес - Значимость (0-100)\n" +
+                     "• Срочн - Функция потребности\n" +
+                     "• Сост - Состояние параметра\n" +
+                     "• Зона - Зона активации стилей\n\n" +
+                     "Формат зоны отклонения: Zone (ParamId|Deviation|Range|Percent)\n" +
+                     "Zone: 0-Выход из нормы, 1-Возврат, 2-Норма, 3-Слабое, 4-Умеренное, 5-Значительное, 6-Критическое",
+          TextWrapping = TextWrapping.Wrap,
+          MaxWidth = 350
+        },
+        Background = new SolidColorBrush(Color.FromRgb(32, 32, 32)),
+        BorderBrush = Brushes.Lime,
+        Foreground = Brushes.Lime,
+        FontFamily = new FontFamily("Consolas"),
+        FontSize = 12,
+        Padding = new Thickness(8)
+      };
     }
 
     private string GetParameterName(int paramId)

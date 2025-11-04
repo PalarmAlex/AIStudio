@@ -131,7 +131,7 @@
 
     <!-- Заголовок -->
     <Border Grid.Row="0" Background="#101010" Padding="10" BorderBrush="#00FF00" BorderThickness="0,0,0,1">
-      <TextBlock Text="ЛОГИ ПАРАМЕТРОВ ГОМЕОСТАЗА - ГОРИЗОНТАЛЬНОЕ ОТОБРАЖЕНИЕ" 
+      <TextBlock Text="ЛОГИ ПАРАМЕТРОВ ГОМЕОСТАЗА" 
                  Foreground="#00FF00"
                  FontFamily="Consolas, Courier New"
                  FontSize="16"

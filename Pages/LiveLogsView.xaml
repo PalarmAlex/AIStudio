@@ -313,6 +313,14 @@
                                   ToolTip="ID условного рефлекса"/>
             </DataGridTextColumn.Header>
           </DataGridTextColumn>
+
+          <DataGridTextColumn  Width="*">
+            <DataGridTextColumn.Header>
+              <DataGridColumnHeader Style="{StaticResource MatrixHeaderStyle}" 
+                                  Content=""
+                                  ToolTip=""/>
+            </DataGridTextColumn.Header>
+          </DataGridTextColumn>
         </DataGrid.Columns>
       </DataGrid>
     </Border>

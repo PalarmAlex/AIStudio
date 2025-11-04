@@ -159,6 +159,7 @@
               </Style>
             </DataGridTextColumn.EditingElementStyle>
           </DataGridTextColumn>
+          
           <DataGridTextColumn Header="Крит. мин." Binding="{Binding CriticalMinValue, Mode=TwoWay}" Width="Auto">
             <DataGridTextColumn.HeaderStyle>
               <Style TargetType="DataGridColumnHeader">
