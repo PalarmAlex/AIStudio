@@ -8,7 +8,6 @@
              d:DesignHeight="600" d:DesignWidth="1200">
 
   <UserControl.Resources>
-    <!-- Явно определяем стили здесь -->
     <Style x:Key="MatrixHeaderStyle" TargetType="DataGridColumnHeader">
       <Setter Property="Foreground" Value="#FFFFFF00"/>
       <Setter Property="FontFamily" Value="Consolas, Courier New"/>
@@ -22,6 +21,8 @@
       <Setter Property="VerticalContentAlignment" Value="Center"/>
       <Setter Property="TextBlock.TextAlignment" Value="Center"/>
       <Setter Property="TextBlock.TextWrapping" Value="Wrap"/>
+      <Setter Property="Height" Value="40"/>
+      <Setter Property="MinHeight" Value="40"/>
     </Style>
 
     <Style x:Key="MatrixCellStyle" TargetType="DataGridCell">
@@ -34,6 +35,7 @@
       <Setter Property="Padding" Value="2,1"/>
       <Setter Property="TextBlock.TextWrapping" Value="Wrap"/>
       <Setter Property="VerticalAlignment" Value="Center"/>
+      <Setter Property="VerticalContentAlignment" Value="Center"/>
       <Setter Property="Template">
         <Setter.Value>
           <ControlTemplate TargetType="DataGridCell">
@@ -48,13 +50,14 @@
       </Setter>
       <Style.Triggers>
         <Trigger Property="IsSelected" Value="True">
-          <Setter Property="Background" Value="#2000FF00"/>
+          <Setter Property="Background" Value="#4000FF00"/>
+          <!-- Более яркий цвет выделения -->
           <Setter Property="Foreground" Value="#FFFFFF"/>
+          <Setter Property="BorderBrush" Value="#80FF80"/>
         </Trigger>
       </Style.Triggers>
     </Style>
 
-    <!-- Остальные стили оставляем как были -->
     <Style x:Key="MatrixTextStyle" TargetType="TextBlock">
       <Setter Property="Foreground" Value="#FF00FF00"/>
       <Setter Property="FontFamily" Value="Consolas, Courier New"/>
@@ -64,6 +67,7 @@
 
     <Style x:Key="MatrixRowStyle" TargetType="DataGridRow">
       <Setter Property="Background" Value="Transparent"/>
+      <Setter Property="Height" Value="75"/>
       <Style.Triggers>
         <Trigger Property="IsMouseOver" Value="True">
           <Setter Property="Background" Value="#1000FF00"/>
@@ -152,12 +156,10 @@
                 HorizontalScrollBarVisibility="Auto"
                 CanUserResizeColumns="True"
                 CanUserSortColumns="True"
-                RowHeight="80">
+                SelectionUnit="FullRow"
+                SelectionMode="Single">
 
         <DataGrid.Columns>
-          <!-- Фиксированные колонки -->
-          <DataGridTextColumn Binding="{Binding DisplayTime}" Width="80" Header="Время" HeaderStyle="{StaticResource MatrixHeaderStyle}"/>
-          <DataGridTextColumn Binding="{Binding DisplayPulse}" Width="60" Header="Пульс" HeaderStyle="{StaticResource MatrixHeaderStyle}"/>
           <!-- Динамические колонки будут добавляться через ViewModel -->
         </DataGrid.Columns>
       </DataGrid>

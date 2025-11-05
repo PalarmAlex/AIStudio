@@ -16,9 +16,20 @@ namespace AIStudio.ViewModels
 
     private readonly DispatcherTimer _refreshTimer;
     private bool _disposed = false;
+    private StyleLogGroup _selectedRow;
 
     public ObservableCollection<StyleLogGroup> StyleLogGroups { get; } = new ObservableCollection<StyleLogGroup>();
     public ICommand ClearLogsCommand { get; }
+
+    public StyleLogGroup SelectedRow
+    {
+      get => _selectedRow;
+      set
+      {
+        _selectedRow = value;
+        OnPropertyChanged(nameof(SelectedRow));
+      }
+    }
 
     public StyleLogsViewModel()
     {
@@ -26,7 +37,7 @@ namespace AIStudio.ViewModels
 
       _refreshTimer = new DispatcherTimer
       {
-        Interval = TimeSpan.FromMilliseconds(100)
+        Interval = TimeSpan.FromMilliseconds(500)
       };
       _refreshTimer.Tick += (s, e) => RefreshDisplay();
       _refreshTimer.Start();
@@ -35,6 +46,9 @@ namespace AIStudio.ViewModels
     private void RefreshDisplay()
     {
       if (_disposed) return;
+
+      // Сохраняем текущее выделение перед обновлением
+      var previouslySelectedPulse = SelectedRow?.Pulse;
 
       // Группируем данные по пульсу
       var groupedData = MemoryLogManager.Instance.StyleLogEntries
@@ -77,10 +91,25 @@ namespace AIStudio.ViewModels
       // Обновляем коллекцию
       Application.Current.Dispatcher.Invoke(() =>
       {
+        // Сохраняем выделение
+        StyleLogGroup rowToSelect = null;
+
         StyleLogGroups.Clear();
         foreach (var group in groupedData)
         {
           StyleLogGroups.Add(group);
+
+          // Восстанавливаем выделение если нужно
+          if (previouslySelectedPulse.HasValue && group.Pulse == previouslySelectedPulse.Value)
+          {
+            rowToSelect = group;
+          }
+        }
+
+        // Восстанавливаем выделение после обновления данных
+        if (rowToSelect != null)
+        {
+          SelectedRow = rowToSelect;
         }
       });
     }
@@ -92,6 +121,7 @@ namespace AIStudio.ViewModels
       Application.Current.Dispatcher.Invoke(() =>
       {
         StyleLogGroups.Clear();
+        SelectedRow = null;
       });
 
       // Также очищаем исходные данные

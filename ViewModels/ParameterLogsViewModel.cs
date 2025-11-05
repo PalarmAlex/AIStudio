@@ -23,18 +23,29 @@ namespace AIStudio.ViewModels
     private bool _disposed = false;
     private DataGrid _dataGrid;
     private List<int> _knownParamIds = new List<int>();
+    private ParameterLogGroup _selectedRow;
 
     public ObservableCollection<ParameterLogGroup> ParameterLogGroups { get; } = new ObservableCollection<ParameterLogGroup>();
     public ICommand ClearLogsCommand { get; }
 
-    // Ссылка на DataGrid для динамического добавления колонок
+    public ParameterLogGroup SelectedRow
+    {
+      get => _selectedRow;
+      set
+      {
+        _selectedRow = value;
+        OnPropertyChanged(nameof(SelectedRow));
+      }
+    }
+
     public DataGrid ParametersDataGrid
     {
       get => _dataGrid;
       set
       {
         _dataGrid = value;
-        InitializeDataGridColumns();
+        if (_dataGrid != null)
+          _dataGrid.SelectionChanged += OnDataGridSelectionChanged;
       }
     }
 
@@ -44,20 +55,17 @@ namespace AIStudio.ViewModels
 
       _refreshTimer = new DispatcherTimer
       {
-        Interval = TimeSpan.FromMilliseconds(500) // Увеличиваем интервал для производительности
+        Interval = TimeSpan.FromMilliseconds(500)
       };
       _refreshTimer.Tick += (s, e) => RefreshDisplay();
       _refreshTimer.Start();
     }
 
-    private void InitializeDataGridColumns()
+    private void OnDataGridSelectionChanged(object sender, SelectionChangedEventArgs e)
     {
-      if (_dataGrid == null) return;
-
-      // Очищаем существующие колонки (кроме фиксированных)
-      while (_dataGrid.Columns.Count > 2) // Оставляем Время и Пульс
+      if (_dataGrid?.SelectedItem is ParameterLogGroup selectedGroup)
       {
-        _dataGrid.Columns.RemoveAt(_dataGrid.Columns.Count - 1);
+        SelectedRow = selectedGroup;
       }
     }
 
@@ -83,6 +91,9 @@ namespace AIStudio.ViewModels
         _knownParamIds = currentParamIds;
       }
 
+      // Сохраняем текущее выделение перед обновлением
+      var previouslySelectedPulse = SelectedRow?.Pulse;
+
       // Обновляем данные
       var groupedData = currentEntries
           .GroupBy(entry => entry.Pulse)
@@ -92,10 +103,26 @@ namespace AIStudio.ViewModels
 
       Application.Current.Dispatcher.Invoke(() =>
       {
+        // Сохраняем выделение
+        ParameterLogGroup rowToSelect = null;
+
         ParameterLogGroups.Clear();
         foreach (var group in groupedData)
         {
           ParameterLogGroups.Add(group);
+
+          // Восстанавливаем выделение если нужно
+          if (previouslySelectedPulse.HasValue && group.Pulse == previouslySelectedPulse.Value)
+          {
+            rowToSelect = group;
+          }
+        }
+
+        // Восстанавливаем выделение после обновления данных
+        if (rowToSelect != null)
+        {
+          _dataGrid.SelectedItem = rowToSelect;
+          SelectedRow = rowToSelect;
         }
       });
     }
@@ -106,31 +133,55 @@ namespace AIStudio.ViewModels
 
       Application.Current.Dispatcher.Invoke(() =>
       {
-        // Удаляем старые колонки параметров
-        while (_dataGrid.Columns.Count > 2)
-        {
-          _dataGrid.Columns.RemoveAt(_dataGrid.Columns.Count - 1);
-        }
+        // Сохраняем текущее выделение
+        var selectedItem = _dataGrid.SelectedItem;
 
-        // Добавляем новые колонки для каждого параметра
+        // Очищаем ВСЕ колонки
+        _dataGrid.Columns.Clear();
+
+        // Добавляем фиксированные колонки ПЕРВЫМИ
+        var timeColumn = new DataGridTextColumn
+        {
+          Header = "Время",
+          Width = 80,
+          Binding = new System.Windows.Data.Binding("DisplayTime"),
+          HeaderStyle = CreateHeaderStyle(),
+          CellStyle = CreateCellStyle(),
+          MinWidth = 80
+        };
+        _dataGrid.Columns.Add(timeColumn);
+
+        var pulseColumn = new DataGridTextColumn
+        {
+          Header = "Пульс",
+          Width = 60,
+          Binding = new System.Windows.Data.Binding("DisplayPulse"),
+          HeaderStyle = CreateHeaderStyle(),
+          CellStyle = CreateCellStyle(),
+          MinWidth = 60
+        };
+        _dataGrid.Columns.Add(pulseColumn);
+
+        // Добавляем динамические колонки параметров
         foreach (var paramId in paramIds)
         {
-          // Получаем имя параметра для заголовка
           var paramName = GetParameterName(paramId);
-
-          // Создаем колонку для параметра
           var paramColumn = new DataGridTextColumn
           {
             Header = $"{paramName}\n(ID:{paramId})",
             Width = new DataGridLength(1, DataGridLengthUnitType.SizeToCells),
-            Binding = new System.Windows.Data.Binding($"Parameters[{paramId}]")
+            Binding = new System.Windows.Data.Binding($"Parameters[{paramId}]"),
+            HeaderStyle = CreateHeaderStyle(),
+            CellStyle = CreateCellStyle(),
+            MinWidth = 80
           };
-
-          // Устанавливаем стили напрямую в свойства
-          paramColumn.HeaderStyle = CreateHeaderStyle();
-          paramColumn.CellStyle = CreateCellStyle();
-
           _dataGrid.Columns.Add(paramColumn);
+        }
+
+        // Восстанавливаем выделение
+        if (selectedItem != null)
+        {
+          _dataGrid.SelectedItem = selectedItem;
         }
       });
     }
@@ -144,8 +195,12 @@ namespace AIStudio.ViewModels
       style.Setters.Add(new Setter(Control.FontWeightProperty, FontWeights.Bold));
       style.Setters.Add(new Setter(Control.BackgroundProperty, new SolidColorBrush(Color.FromRgb(16, 16, 16))));
       style.Setters.Add(new Setter(Control.BorderBrushProperty, Brushes.Lime));
-      style.Setters.Add(new Setter(Control.BorderThicknessProperty, new Thickness(1)));
+      style.Setters.Add(new Setter(Control.BorderThicknessProperty, new Thickness(0, 0, 1, 1)));
       style.Setters.Add(new Setter(Control.PaddingProperty, new Thickness(4)));
+      style.Setters.Add(new Setter(Control.HeightProperty, 40.0)); // ФИКСИРОВАННАЯ ВЫСОТА
+      style.Setters.Add(new Setter(Control.MinHeightProperty, 40.0));
+      style.Setters.Add(new Setter(Control.VerticalContentAlignmentProperty, VerticalAlignment.Center));
+      style.Setters.Add(new Setter(Control.HorizontalContentAlignmentProperty, HorizontalAlignment.Center));
       style.Setters.Add(new Setter(Control.ToolTipProperty, CreateParameterToolTip()));
       return style;
     }
@@ -158,13 +213,15 @@ namespace AIStudio.ViewModels
       style.Setters.Add(new Setter(Control.FontSizeProperty, 12.0));
       style.Setters.Add(new Setter(Control.BackgroundProperty, Brushes.Transparent));
       style.Setters.Add(new Setter(Control.BorderBrushProperty, new SolidColorBrush(Color.FromRgb(32, 32, 32))));
-      style.Setters.Add(new Setter(Control.BorderThicknessProperty, new Thickness(1)));
+      style.Setters.Add(new Setter(Control.BorderThicknessProperty, new Thickness(0, 0, 1, 1)));
       style.Setters.Add(new Setter(Control.PaddingProperty, new Thickness(4)));
       style.Setters.Add(new Setter(TextBlock.TextWrappingProperty, TextWrapping.Wrap));
+      style.Setters.Add(new Setter(Control.VerticalContentAlignmentProperty, VerticalAlignment.Center));
 
       var trigger = new Trigger { Property = DataGridCell.IsSelectedProperty, Value = true };
-      trigger.Setters.Add(new Setter(Control.BackgroundProperty, new SolidColorBrush(Color.FromArgb(32, 0, 255, 0))));
+      trigger.Setters.Add(new Setter(Control.BackgroundProperty, new SolidColorBrush(Color.FromArgb(64, 0, 255, 0))));
       trigger.Setters.Add(new Setter(Control.ForegroundProperty, Brushes.White));
+      trigger.Setters.Add(new Setter(Control.BorderBrushProperty, new SolidColorBrush(Color.FromArgb(128, 0, 255, 0))));
       style.Triggers.Add(trigger);
 
       return style;
@@ -232,9 +289,9 @@ namespace AIStudio.ViewModels
 
     private string FormatParameterInfo(ParameterLogEntry entry)
     {
-      return $"Знач: {entry.Value:F1}\n" +
+      return $"Знач: {entry.Value:F3}\n" +
              $"Вес: {entry.Weight}\n" +
-             $"Срочн: {entry.UrgencyFunction:F4}\n" +
+             $"Срочн: {entry.UrgencyFunction:F3}\n" +
              $"Сост: {entry.ParameterState}\n" +
              $"Зона: {entry.ActivationZone}";
     }
@@ -247,7 +304,6 @@ namespace AIStudio.ViewModels
       {
         ParameterLogGroups.Clear();
         _knownParamIds.Clear();
-        InitializeDataGridColumns();
       });
 
       MemoryLogManager.Instance.ClearParameterLogs();
@@ -262,6 +318,10 @@ namespace AIStudio.ViewModels
     {
       if (_disposed) return;
       _refreshTimer?.Stop();
+      if (_dataGrid != null)
+      {
+        _dataGrid.SelectionChanged -= OnDataGridSelectionChanged;
+      }
       _disposed = true;
     }
 

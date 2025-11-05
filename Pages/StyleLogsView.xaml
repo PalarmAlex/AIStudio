@@ -147,16 +147,19 @@
     <!-- Таблица с группировкой -->
     <Border Grid.Row="1" Margin="5" BorderBrush="#00FF00" BorderThickness="1" Background="#080808">
       <DataGrid ItemsSource="{Binding StyleLogGroups}"
-                Style="{StaticResource MatrixDataGridStyle}"
-                AutoGenerateColumns="False"
-                IsReadOnly="True"
-                RowStyle="{StaticResource MatrixRowStyle}"
-                CellStyle="{StaticResource MatrixCellStyle}"
-                VerticalScrollBarVisibility="Auto"
-                HorizontalScrollBarVisibility="Auto"
-                CanUserResizeColumns="True"
-                CanUserSortColumns="True"
-                RowHeight="60">
+          SelectedItem="{Binding SelectedRow, Mode=TwoWay}"
+          Style="{StaticResource MatrixDataGridStyle}"
+          AutoGenerateColumns="False"
+          IsReadOnly="True"
+          RowStyle="{StaticResource MatrixRowStyle}"
+          CellStyle="{StaticResource MatrixCellStyle}"
+          VerticalScrollBarVisibility="Auto"
+          HorizontalScrollBarVisibility="Auto"
+          CanUserResizeColumns="True"
+          CanUserSortColumns="True"
+          SelectionUnit="FullRow"
+          SelectionMode="Single"
+          RowHeight="60">
 
         <DataGrid.Columns>
           <DataGridTextColumn Binding="{Binding DisplayTime}" Width="80" Header="Время" HeaderStyle="{StaticResource MatrixHeaderStyle}"/>
