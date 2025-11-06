@@ -29,7 +29,7 @@
       <Setter Property="Foreground" Value="#FF00FF00"/>
       <Setter Property="FontFamily" Value="Consolas, Courier New"/>
       <Setter Property="FontSize" Value="12"/>
-      <Setter Property="Background" Value="Transparent"/>
+      <Setter Property="Background" Value="{Binding Background, RelativeSource={RelativeSource Self}}"/>
       <Setter Property="BorderBrush" Value="#202020"/>
       <Setter Property="BorderThickness" Value="0,0,1,1"/>
       <Setter Property="Padding" Value="2,1"/>
@@ -40,9 +40,9 @@
         <Setter.Value>
           <ControlTemplate TargetType="DataGridCell">
             <Border Background="{TemplateBinding Background}" 
-                    BorderBrush="{TemplateBinding BorderBrush}" 
-                    BorderThickness="{TemplateBinding BorderThickness}"
-                    Padding="{TemplateBinding Padding}">
+                BorderBrush="{TemplateBinding BorderBrush}" 
+                BorderThickness="{TemplateBinding BorderThickness}"
+                Padding="{TemplateBinding Padding}">
               <ContentPresenter VerticalAlignment="Center"/>
             </Border>
           </ControlTemplate>
@@ -51,7 +51,6 @@
       <Style.Triggers>
         <Trigger Property="IsSelected" Value="True">
           <Setter Property="Background" Value="#4000FF00"/>
-          <!-- Более яркий цвет выделения -->
           <Setter Property="Foreground" Value="#FFFFFF"/>
           <Setter Property="BorderBrush" Value="#80FF80"/>
         </Trigger>
@@ -67,7 +66,7 @@
 
     <Style x:Key="MatrixRowStyle" TargetType="DataGridRow">
       <Setter Property="Background" Value="Transparent"/>
-      <Setter Property="Height" Value="75"/>
+      <Setter Property="Height" Value="60"/>
       <Style.Triggers>
         <Trigger Property="IsMouseOver" Value="True">
           <Setter Property="Background" Value="#1000FF00"/>
@@ -121,6 +120,20 @@
         <Trigger Property="IsPressed" Value="True">
           <Setter Property="Background" Value="#006000"/>
         </Trigger>
+      </Style.Triggers>
+    </Style>
+
+    <Style x:Key="ParameterCellStyle" TargetType="DataGridCell" BasedOn="{StaticResource MatrixCellStyle}">
+      <Style.Triggers>
+         <!--Красный для плохого состояния (-1)--> 
+        <DataTrigger Binding="{Binding ParameterStates[0]}" Value="-1">
+          <Setter Property="Background" Value="#40FF0000"/>
+        </DataTrigger>
+         <!--Зеленый для хорошего состояния (1)--> 
+        <DataTrigger Binding="{Binding ParameterStates[0]}" Value="1">
+          <Setter Property="Background" Value="#4000FF00"/>
+        </DataTrigger>
+         <!--Для 0 и остальных - прозрачный--> 
       </Style.Triggers>
     </Style>
 
