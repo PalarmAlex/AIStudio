@@ -300,10 +300,18 @@ namespace AIStudio.Pages
         {
           selectedItem.StyleActivations = editor.ResultActivations;
           dataGrid.CommitEdit(DataGridEditingUnit.Row, true);
+
           // Отложенное обновление
           Dispatcher.BeginInvoke(new Action(() =>
           {
-            dataGrid.Items.Refresh();
+            try
+            {
+              dataGrid.Items.Refresh();
+            }
+            catch
+            {
+
+            }
           }), DispatcherPriority.Background);
         }
 

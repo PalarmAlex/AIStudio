@@ -121,10 +121,18 @@ namespace AIStudio.Pages
             action.Influences = editor.SelectedInfluences.ToDictionary(
                 kvp => kvp.Key,
                 kvp => GomeostasSystem.ClampInt(kvp.Value, -10, 10));
-            // Отложенное обновление
+
+            ExternInfluencesGrid.CommitEdit(DataGridEditingUnit.Row, true);
             Dispatcher.BeginInvoke(new Action(() =>
             {
-              ExternInfluencesGrid.Items.Refresh();
+              try
+              {
+                ExternInfluencesGrid.Items.Refresh();
+              }
+              catch
+              {
+
+              }
             }), DispatcherPriority.Background);
           }
         }
@@ -155,10 +163,18 @@ namespace AIStudio.Pages
           if (editor.ShowDialog() == true)
           {
             action.AntagonistInfluences = editor.SelectedInfluenceIds.ToList();
-            // Отложенное обновление
+
+            ExternInfluencesGrid.CommitEdit(DataGridEditingUnit.Row, true);
             Dispatcher.BeginInvoke(new Action(() =>
             {
-              ExternInfluencesGrid.Items.Refresh();
+              try
+              {
+                ExternInfluencesGrid.Items.Refresh();
+              }
+              catch
+              {
+
+              }
             }), DispatcherPriority.Background);
           }
         }
@@ -170,6 +186,9 @@ namespace AIStudio.Pages
     {
       if (sender is DataGridCell cell && cell.DataContext is InfluenceActionSystem.GomeostasisInfluenceAction action)
       {
+        ExternInfluencesGrid.CommitEdit(DataGridEditingUnit.Cell, true);
+        ExternInfluencesGrid.CommitEdit(DataGridEditingUnit.Row, true);
+
         var dialog = new TextInputDialog
         {
           Owner = Window.GetWindow(this),
@@ -181,11 +200,18 @@ namespace AIStudio.Pages
         if (dialog.ShowDialog() == true)
         {
           action.Description = dialog.Text;
+
           ExternInfluencesGrid.CommitEdit(DataGridEditingUnit.Row, true);
-          // Отложенное обновление
           Dispatcher.BeginInvoke(new Action(() =>
           {
-            ExternInfluencesGrid.Items.Refresh();
+            try
+            {
+              ExternInfluencesGrid.Items.Refresh();
+            }
+            catch
+            {
+
+            }
           }), DispatcherPriority.Background);
         }
       }

@@ -127,10 +127,17 @@ namespace AIStudio.Pages
           {
             behaviorStyle.AntagonistStyles = editor.SelectedStyleIds.ToList();
 
-            // Отложенное обновление
+            BehaviorStylesGrid.CommitEdit(DataGridEditingUnit.Row, true);
             Dispatcher.BeginInvoke(new Action(() =>
             {
-              BehaviorStylesGrid.Items.Refresh();
+              try
+              {
+                BehaviorStylesGrid.Items.Refresh();
+              }
+              catch
+              {
+
+              }
             }), DispatcherPriority.Background);
           }
         }
@@ -152,10 +159,18 @@ namespace AIStudio.Pages
           if (editor.ShowDialog() == true)
           {
             behaviorStyle.StileActionInfluence = editor.ActionInfluences;
-            // Отложенное обновление
+
+            BehaviorStylesGrid.CommitEdit(DataGridEditingUnit.Row, true);
             Dispatcher.BeginInvoke(new Action(() =>
             {
-              BehaviorStylesGrid.Items.Refresh();
+              try
+              {
+                BehaviorStylesGrid.Items.Refresh();
+              }
+              catch
+              {
+
+              }
             }), DispatcherPriority.Background);
           }
         }
@@ -178,11 +193,19 @@ namespace AIStudio.Pages
         if (dialog.ShowDialog() == true)
         {
           parameter.Description = dialog.Text;
+
           BehaviorStylesGrid.CommitEdit(DataGridEditingUnit.Row, true);
           // Отложенное обновление
           Dispatcher.BeginInvoke(new Action(() =>
           {
-            BehaviorStylesGrid.Items.Refresh();
+            try
+            {
+              BehaviorStylesGrid.Items.Refresh();
+            }
+            catch
+            {
+
+            }
           }), DispatcherPriority.Background);
         }
       }

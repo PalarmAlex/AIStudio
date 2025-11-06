@@ -106,27 +106,28 @@ namespace AIStudio.Pages
             element.DataContext is AdaptiveActionsSystem.AdaptiveAction action)
         {
           var editor = new ActionInfluencesEditor(
-              $"Влияния действия: {action.Name} (ID: {action.Id})",
-              vm.GetAllParameters(),
-              action.Influences);
+            $"Влияния действия: {action.Name} (ID: {action.Id})",
+            vm.GetAllParameters(),
+            action.Influences);
 
           if (editor.ShowDialog() == true)
           {
             action.Influences = editor.SelectedInfluences.ToDictionary(
                 kvp => kvp.Key,
                 kvp => GomeostasSystem.ClampInt(kvp.Value, -10, 10));
-            // Отложенное обновление
-            try
+
+            ActionsGrid.CommitEdit(DataGridEditingUnit.Row, true);
+            Dispatcher.BeginInvoke(new Action(() =>
             {
-              Dispatcher.BeginInvoke(new Action(() =>
+              try
               {
                 ActionsGrid.Items.Refresh();
-              }), DispatcherPriority.Background);
-            }
-            catch
-            {
+              }
+              catch
+              {
 
-            }
+              }
+            }), DispatcherPriority.Background);
           }
         }
         e.Handled = true;
@@ -148,10 +149,18 @@ namespace AIStudio.Pages
           if (editor.ShowDialog() == true)
           {
             action.AntagonistActions = editor.SelectedActionIds.ToList();
-            // Отложенное обновление
+
+            ActionsGrid.CommitEdit(DataGridEditingUnit.Row, true);
             Dispatcher.BeginInvoke(new Action(() =>
             {
-              ActionsGrid.Items.Refresh();
+              try
+              {
+                ActionsGrid.Items.Refresh();
+              }
+              catch
+              {
+
+              }
             }), DispatcherPriority.Background);
           }
         }
@@ -178,10 +187,17 @@ namespace AIStudio.Pages
                 kvp => kvp.Key,
                 kvp => GomeostasSystem.ClampInt(kvp.Value, -10, 10));
 
-            // Отложенное обновление
+            ActionsGrid.CommitEdit(DataGridEditingUnit.Row, true);
             Dispatcher.BeginInvoke(new Action(() =>
             {
-              ActionsGrid.Items.Refresh();
+              try
+              {
+                ActionsGrid.Items.Refresh();
+              }
+              catch
+              {
+
+              }
             }), DispatcherPriority.Background);
           }
         }
@@ -204,11 +220,18 @@ namespace AIStudio.Pages
         if (dialog.ShowDialog() == true)
         {
           action.Description = dialog.Text;
+
           ActionsGrid.CommitEdit(DataGridEditingUnit.Row, true);
-          // Отложенное обновление
           Dispatcher.BeginInvoke(new Action(() =>
           {
-            ActionsGrid.Items.Refresh();
+            try
+            {
+              ActionsGrid.Items.Refresh();
+            }
+            catch
+            {
+
+            }
           }), DispatcherPriority.Background);
         }
       }
