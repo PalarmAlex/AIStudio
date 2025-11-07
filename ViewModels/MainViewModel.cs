@@ -97,27 +97,36 @@ namespace AIStudio
 
     public MainViewModel()
     {
+      int v = 0;
       try
       {
+        // Инициализация логов
+        InitializeFileValidator();
+
         // Инициализация гомеостаза
         GomeostasSystem.InitializeInstance(AppConfig.DataGomeostasFolderPath, AppConfig.DataGomeostasTemplateFolderPath);
         _gomeostas = GomeostasSystem.Instance;
+        v = 1;
 
         // Инициализация первичных адаптивных действий
         AdaptiveActionsSystem.InitializeInstance(_gomeostas, AppConfig.DataActionsFolderPath, AppConfig.DataActionsTemplateFolderPath);
         _actionsSystem = AdaptiveActionsSystem.Instance;
+        v = 2;
 
         // Инициализация внешних действий
         InfluenceActionSystem.InitializeInstance(_gomeostas, AppConfig.DataActionsFolderPath, AppConfig.DataActionsTemplateFolderPath);
         _influenceActionSystem = InfluenceActionSystem.Instance;
+        v = 3;
 
         // Инициализация сенсорной системы
         SensorySystem.InitializeInstance(_gomeostas, AppConfig.SensorsFolderPath, AppConfig.SensorsTemplateFolderPath);
         _sensorySystem = SensorySystem.Instance;
+        v = 4;
 
         // Инициализация безусловных рефлексов
         GeneticReflexesSystem.InitializeInstance(_gomeostas, AppConfig.ReflexesFolderPath, AppConfig.ReflexesTemplateFolderPath);
         _geneticReflexesSystem = GeneticReflexesSystem.Instance;
+        v = 5;
 
         // Инициализация образов рефлексов
         PerceptionImagesSystem.InitializeInstance(_gomeostas, _geneticReflexesSystem);
@@ -125,28 +134,34 @@ namespace AIStudio
         _gomeostas.SetPerceptionImagesSystem(_perceptionImagesSystem);
         _influenceActionSystem.SetPerceptionImagesSystem(_perceptionImagesSystem);
         _sensorySystem.SetDependentSystems(_geneticReflexesSystem, _perceptionImagesSystem);
+        v = 6;
 
         // Инициализация условных рефлексов
         ConditionedReflexesSystem.InitializeInstance(_gomeostas, _geneticReflexesSystem, _perceptionImagesSystem);
         _conditionedReflexesSystem = ConditionedReflexesSystem.Instance;
+        v = 7;
 
         // Инициализация дерева рефлексов
         ReflexTreeSystem.InitializeInstance(_geneticReflexesSystem, _perceptionImagesSystem);
         _reflexTree = ReflexTreeSystem.Instance;
+        v = 8;
 
         // Инициализация сервиса запуска рефлексов
         ReflexExecutionService.InitializeInstance(_actionsSystem, _influenceActionSystem);
         _reflexExecution = ReflexExecutionService.Instance;
+        v = 9;
 
         // Инициализация активатора рефлексов
         ReflexesActivator.InitializeInstance(_gomeostas, _geneticReflexesSystem, _conditionedReflexesSystem, _influenceActionSystem, _reflexTree, _reflexExecution, _actionsSystem);
         _reflexesActivator = ReflexesActivator.Instance;
+        v = 10;
 
         _researchLogger = new ResearchLogger(
             _gomeostas,
             _perceptionImagesSystem,
             _reflexesActivator,
             _actionsSystem,
+            logsDirectory: AppConfig.LogsFolderPath,
             format: AppConfig.LogFormat,
             clearOnStart: AppConfig.LogEnabled,
             enabled: AppConfig.LogEnabled
@@ -154,6 +169,7 @@ namespace AIStudio
         _gomeostas.SetResearchLogger(_researchLogger);
         ResearchLogger.SetMemoryLogWriter(MemoryLogManager.Instance);
         GlobalTimer.InitializeSystems(_gomeostas,_actionsSystem, _reflexesActivator);
+        v = 11;
 
         _gomeostas.DefaultStileId = AppConfig.DefaultStileId;
         _gomeostas.CompareLevel = AppConfig.CompareLevel;
@@ -167,7 +183,7 @@ namespace AIStudio
       catch (Exception ex)
       {
         Debug.WriteLine($"Ошибка инициализации систем: {ex.Message}");
-        MessageBox.Show("Ошибка инициализации", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
+        MessageBox.Show($"v: {v}, Ошибка инициализации: {ex.Message}", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
         return;
       }
 
@@ -199,6 +215,19 @@ namespace AIStudio
       IsAgentExpanded = true;
       OpenAgent();
       UpdateAgentState();
+    }
+
+    private void InitializeFileValidator()
+    {
+      var logsPath = AppConfig.LogsFolderPath;
+      if(logsPath == null)
+        logsPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData),
+                               "ISIDA", "Logs");
+
+      if (!Directory.Exists(logsPath))
+        Directory.CreateDirectory(logsPath);
+
+      FileValidator.SetLogsPath(logsPath);
     }
 
     private void UpdateAgentState()

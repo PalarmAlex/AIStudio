@@ -32,6 +32,7 @@ namespace AIStudio.ViewModels
     private string _sensorsTemplateFolderPath;
     private string _reflexesFolderPath;
     private string _reflexesTemplateFolderPath;
+    private string _logsFolderPath;
     private int _defaultStileId;
     private int _defaultAdaptiveActionId;
     private int _defaultFormatLog;
@@ -135,6 +136,16 @@ namespace AIStudio.ViewModels
         OnPropertyChanged(nameof(ReflexesTemplateFolderPath));
       }
     }
+    public string LogsFolderPath
+    {
+      get => _logsFolderPath;
+      set
+      {
+        _logsFolderPath = value;
+        OnPropertyChanged(nameof(LogsFolderPath));
+      }
+    }
+
     public int DefaultStileId
     {
       get => _defaultStileId;
@@ -429,6 +440,7 @@ namespace AIStudio.ViewModels
       SensorsTemplateFolderPath = AppConfig.SensorsTemplateFolderPath;
       ReflexesFolderPath = AppConfig.ReflexesFolderPath;
       ReflexesTemplateFolderPath = AppConfig.ReflexesTemplateFolderPath;
+      LogsFolderPath = AppConfig.LogsFolderPath;
       DefaultStileId = AppConfig.DefaultStileId;
       DefaultAdaptiveActionId = AppConfig.DefaultAdaptiveActionId;
       LogEnabled = AppConfig.LogEnabled;
@@ -577,6 +589,9 @@ namespace AIStudio.ViewModels
         case nameof(ReflexesTemplateFolderPath):
           initialPath = Directory.Exists(ReflexesTemplateFolderPath) ? ReflexesTemplateFolderPath : "";
           break;
+        case nameof(LogsFolderPath):
+          initialPath = Directory.Exists(LogsFolderPath) ? LogsFolderPath : "";
+          break;
         default:
           initialPath = "";
           break;
@@ -614,6 +629,9 @@ namespace AIStudio.ViewModels
             break;
           case nameof(ReflexesTemplateFolderPath):
             ReflexesTemplateFolderPath = dialog.SelectedPath;
+            break;
+          case nameof(LogsFolderPath):
+            LogsFolderPath = dialog.SelectedPath;
             break;
         }
       }
@@ -657,6 +675,7 @@ namespace AIStudio.ViewModels
         AppConfig.SetSetting(nameof(SensorsTemplateFolderPath), SensorsTemplateFolderPath);
         AppConfig.SetSetting(nameof(ReflexesFolderPath), ReflexesFolderPath);
         AppConfig.SetSetting(nameof(ReflexesTemplateFolderPath), ReflexesTemplateFolderPath);
+        AppConfig.SetSetting(nameof(LogsFolderPath), LogsFolderPath);
         AppConfig.SetIntSetting(nameof(DefaultStileId), DefaultStileId);
         AppConfig.SetIntSetting(nameof(DefaultAdaptiveActionId), DefaultAdaptiveActionId);
         AppConfig.SetIntSetting(nameof(RecognitionThreshold), RecognitionThreshold);

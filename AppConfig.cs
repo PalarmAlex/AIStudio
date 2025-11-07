@@ -31,6 +31,7 @@ public static class AppConfig
   public static string ReflexesFolderPath => GetSetting("ReflexesFolderPath");
   public static string ReflexesTemplateFolderPath => GetSetting("ReflexesTemplateFolderPath");
   public static string SettingsPath => GetSetting("SettingsPath");
+  public static string LogsFolderPath => GetSetting("LogsFolderPath");
   public static ResearchLogger.LogFormat LogFormat => GetLogFormatSetting("DefaultFormatLog", ResearchLogger.LogFormat.All);
   public static int FirstRun => GetIntSetting("FirstRun", (int)GetDefaultValueSettings("FirstRun"));
   public static bool LogEnabled => GetBoolSetting("LogEnabled", (bool)GetDefaultValueSettings("LogEnabled"));
@@ -99,6 +100,7 @@ public static class AppConfig
           new XElement("SensorsTemplateFolderPath", @"C:\ProgramData\ISIDA\Templates\Sensors"),
           new XElement("ReflexesTemplateFolderPath", @"C:\ProgramData\ISIDA\Templates\Reflexes"),
           new XElement("SettingsPath", @"C:\ProgramData\ISIDA\Settings"),
+          new XElement("LogsFolderPath", @"C:\ProgramData\ISIDA\Logs"),
           new XElement("DefaultStileId", 0),
           new XElement("DefaultAdaptiveActionId", 0),
           new XElement("DefaultGeneticReflexId", 0),
@@ -180,6 +182,7 @@ public static class AppConfig
       SetSetting("SensorsTemplateFolderPath", Path.Combine(installPath, "Templates", "Sensors"));
       SetSetting("ReflexesTemplateFolderPath", Path.Combine(installPath, "Templates", "Reflexes"));
       SetSetting("SettingsPath", Path.Combine(installPath, "Settings"));
+      SetSetting("LogsFolderPath", Path.Combine(installPath, "Logs"));
 
       Debug.WriteLine($"Конфигурационные пути обновлены для установки в: {installPath}");
     }
