@@ -42,6 +42,7 @@ public static class AppConfig
   public static int CompareLevel => GetIntSetting("CompareLevel", (int)GetDefaultValueSettings("CompareLevel"));
   public static float DifSensorPar => GetFloatSetting("DifSensorPar", (float)GetDefaultValueSettings("DifSensorPar"));
   public static int DynamicTime => GetIntSetting("DynamicTime", (int)GetDefaultValueSettings("DynamicTime"));
+  public static int ReflexActionDisplayDuration => GetIntSetting("ReflexActionDisplayDuration", (int)GetDefaultValueSettings("ReflexActionDisplayDuration"));
   public static float DefaultBaseThreshold => GetFloatSetting("DefaultBaseThreshold", (float)GetDefaultValueSettings("DefaultBaseThreshold"));
   public static float DefaultKCompetition => GetFloatSetting("DefaultKCompetition", (float)GetDefaultValueSettings("DefaultKCompetition"));
 
@@ -108,6 +109,7 @@ public static class AppConfig
           new XElement("CompareLevel", 30),
           new XElement("DifSensorPar", 0.02),
           new XElement("DynamicTime", 50),
+          new XElement("ReflexActionDisplayDuration", 10),
           new XElement("DefaultKCompetition", 0.3),
           new XElement("DefaultBaseThreshold", 0.2),
           new XElement("FirstRun", 1),
@@ -384,6 +386,8 @@ public static class AppConfig
         return 3;
       case "DynamicTime":
         return 50;
+      case "ReflexActionDisplayDuration":
+        return 1;
       case "CompareLevel":
         return 30;
       case "DifSensorPar":

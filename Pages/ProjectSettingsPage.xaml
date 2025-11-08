@@ -225,6 +225,7 @@
         <RowDefinition Height="Auto"/>
         <RowDefinition Height="Auto"/>
         <RowDefinition Height="Auto"/>
+        <RowDefinition Height="Auto"/>
       </Grid.RowDefinitions>
 
       <!-- Интегральный порог состояния гомеостаза агента -->
@@ -266,8 +267,21 @@
           IsReadOnly="False"/>
       </StackPanel>
 
-      <!-- Число повторов для сохранения нового сенсора -->
+      <!-- Время удержания рефлексов -->
       <StackPanel Grid.Column="0" Grid.Row="3" Orientation="Horizontal" Margin="100,0,0,5">
+        <TextBlock Text="Время удержания рефлексов сек.:" 
+          Width="250"
+          VerticalAlignment="Center"/>
+
+        <TextBox Text="{Binding ReflexActionDisplayDuration, Mode=TwoWay, UpdateSourceTrigger=LostFocus}"
+          Width="100"
+          Margin="25,0"
+          Background="#FFFFFFFF"
+          IsReadOnly="False"/>
+      </StackPanel>
+
+      <!-- Число повторов для сохранения нового сенсора -->
+      <StackPanel Grid.Column="0" Grid.Row="4" Orientation="Horizontal" Margin="100,0,0,5">
         <TextBlock Text="Число повторов для записи сенсора:" 
           Width="250"
           VerticalAlignment="Center"/>
@@ -280,7 +294,7 @@
       </StackPanel>
 
       <!-- Порог активации стилей реагирования -->
-      <StackPanel Grid.Column="0" Grid.Row="4" Orientation="Horizontal" Margin="100,0,0,5">
+      <StackPanel Grid.Column="0" Grid.Row="5" Orientation="Horizontal" Margin="100,0,0,5">
         <TextBlock Text="Порог активации стилей:" 
           Width="250"
           VerticalAlignment="Center"/>
@@ -293,7 +307,7 @@
       </StackPanel>
 
       <!-- Коэфф. конкурентного подавления при латеральном торможении -->
-      <StackPanel Grid.Column="0" Grid.Row="5" Orientation="Horizontal" Margin="100,0,0,5">
+      <StackPanel Grid.Column="0" Grid.Row="6" Orientation="Horizontal" Margin="100,0,0,5">
         <TextBlock Text="Коэфф. латерального торможения стилей:" 
           Width="250"
           VerticalAlignment="Center"/>

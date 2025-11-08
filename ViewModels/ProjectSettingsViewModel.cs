@@ -55,6 +55,9 @@ namespace AIStudio.ViewModels
     private int _dynamicTime;
     private int _previousDynamicTime;
 
+    private int _reflexActionDisplayDuration;
+    private int _previousReflexActionDisplayDuration;
+
     public string SettingsPath
     {
       get => _settingsPath;
@@ -405,6 +408,33 @@ namespace AIStudio.ViewModels
       }
     }
 
+    public int ReflexActionDisplayDuration
+    {
+      get => _reflexActionDisplayDuration;
+      set
+      {
+        if (!_isInitialized)
+        {
+          _reflexActionDisplayDuration = value;
+          _previousReflexActionDisplayDuration = value;
+          return;
+        }
+
+        if (value < _dynamicTime)
+        {
+          _previousReflexActionDisplayDuration = _reflexActionDisplayDuration;
+          _reflexActionDisplayDuration = value;
+          OnPropertyChanged(nameof(ReflexActionDisplayDuration));
+        }
+        else
+        {
+          MessageBox.Show("Время удержания рефлексов не может быть больше или равно времени удержания состояний", "Ошибка ввода");
+          _reflexActionDisplayDuration = _previousReflexActionDisplayDuration;
+          OnPropertyChanged(nameof(ReflexActionDisplayDuration));
+        }
+      }
+    }
+
     public int DefaultFormatLog
     {
       get => _defaultFormatLog;
@@ -457,6 +487,9 @@ namespace AIStudio.ViewModels
 
       _dynamicTime = AppConfig.DynamicTime;
       _previousDynamicTime = _dynamicTime;
+
+      _reflexActionDisplayDuration = AppConfig.ReflexActionDisplayDuration;
+      _previousReflexActionDisplayDuration = _reflexActionDisplayDuration;
 
       _defaultBaseThreshold = AppConfig.DefaultBaseThreshold;
       _defaultKCompetition = AppConfig.DefaultKCompetition;
@@ -645,7 +678,6 @@ namespace AIStudio.ViewModels
         SettingsValidator.ValidateCompareLevel(CompareLevel),
         SettingsValidator.ValidateDifSensorPar(DifSensorPar),
         SettingsValidator.ValidateDynamicTime(DynamicTime)
-        // Добавьте другие проверки по необходимости
     };
 
       var failedValidations = validations.Where(v => !v.isValid).ToList();
@@ -682,6 +714,7 @@ namespace AIStudio.ViewModels
         AppConfig.SetIntSetting(nameof(CompareLevel), CompareLevel);
         AppConfig.SetFloatSetting(nameof(DifSensorPar), DifSensorPar);
         AppConfig.SetIntSetting(nameof(DynamicTime), DynamicTime);
+        AppConfig.SetIntSetting(nameof(ReflexActionDisplayDuration), ReflexActionDisplayDuration);
         AppConfig.SetBoolSetting(nameof(LogEnabled), LogEnabled);
         AppConfig.SetLogFormatSetting(nameof(DefaultFormatLog), (ResearchLogger.LogFormat)DefaultFormatLog);
 
