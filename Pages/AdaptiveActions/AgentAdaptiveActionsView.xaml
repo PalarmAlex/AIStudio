@@ -142,7 +142,7 @@
                 BorderThickness="0,1,1,0" 
                 BorderBrush="#FFE0E0E0" 
                 Padding="5"
-                Height="100">
+                Height="60">
           <StackPanel>
             <TextBlock Text="Нет корректирующих действий"
                   Style="{StaticResource NoAdaptationTextStyle}"
@@ -163,7 +163,7 @@
                 BorderThickness="0,1,1,0" 
                 BorderBrush="#FFE0E0E0" 
                 Padding="5"
-                Height="100">
+                Height="60">
           <StackPanel>
             <TextBlock Text="Нет безусловных рефлексов"
                   Style="{StaticResource NoAdaptationTextStyle}"
@@ -184,7 +184,7 @@
                 BorderThickness="0,1,1,0" 
                 BorderBrush="#FFE0E0E0" 
                 Padding="5"
-                Height="100">
+                Height="60">
           <StackPanel>
             <TextBlock Text="Нет условных рефлексов"
                   Style="{StaticResource NoAdaptationTextStyle}"
@@ -205,7 +205,7 @@
                 BorderThickness="0,1,0,0" 
                 BorderBrush="#FFE0E0E0" 
                 Padding="5"
-                Height="100">
+                Height="60">
           <TextBlock Text="{Binding ReflexWordsText}"
                      Style="{StaticResource ReflexWordsTextStyle}"
                      TextWrapping="Wrap"

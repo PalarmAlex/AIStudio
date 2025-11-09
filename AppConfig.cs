@@ -53,10 +53,16 @@ public static class AppConfig
   {
     try
     {
+      // Если конфиг не существует -создаем
       if (!File.Exists(ConfigFullPath))
-      {
-        Directory.CreateDirectory(ConfigDirectory);
         CreateDefaultConfig();
+
+      // Проверяем первый запуск
+      int firstRunValue = GetIntSetting("FirstRun", 0);
+      if (firstRunValue == 0)
+      {
+        UpdateConfigPaths();
+        SetIntSetting("FirstRun", 1);
       }
     }
     catch (Exception ex)
@@ -111,22 +117,26 @@ public static class AppConfig
   /// <summary>
   /// Обновляет пути в конфигурации на основе пути установки
   /// </summary>
-  public static void UpdateConfigPaths(string installPath)
+  public static void UpdateConfigPaths()
   {
+    string programDataPath = Environment.GetFolderPath(
+    Environment.SpecialFolder.CommonApplicationData);
+
+    string appDataPath = Path.Combine(programDataPath, "ISIDA");
     try
     {
-      SetSetting("DataGomeostasFolderPath", Path.Combine(installPath, "Data", "Gomeostas"));
-      SetSetting("DataActionsFolderPath", Path.Combine(installPath, "Data", "Actions"));
-      SetSetting("SensorsFolderPath", Path.Combine(installPath, "Data", "Sensors"));
-      SetSetting("ReflexesFolderPath", Path.Combine(installPath, "Data", "Reflexes"));
-      SetSetting("DataGomeostasTemplateFolderPath", Path.Combine(installPath, "Templates", "Gomeostas"));
-      SetSetting("DataActionsTemplateFolderPath", Path.Combine(installPath, "Templates", "Actions"));
-      SetSetting("SensorsTemplateFolderPath", Path.Combine(installPath, "Templates", "Sensors"));
-      SetSetting("ReflexesTemplateFolderPath", Path.Combine(installPath, "Templates", "Reflexes"));
-      SetSetting("SettingsPath", Path.Combine(installPath, "Settings"));
-      SetSetting("LogsFolderPath", Path.Combine(installPath, "Logs"));
+      SetSetting("DataGomeostasFolderPath", Path.Combine(appDataPath, "Data", "Gomeostas"));
+      SetSetting("DataActionsFolderPath", Path.Combine(appDataPath, "Data", "Actions"));
+      SetSetting("SensorsFolderPath", Path.Combine(appDataPath, "Data", "Sensors"));
+      SetSetting("ReflexesFolderPath", Path.Combine(appDataPath, "Data", "Reflexes"));
+      SetSetting("DataGomeostasTemplateFolderPath", Path.Combine(appDataPath, "Templates", "Gomeostas"));
+      SetSetting("DataActionsTemplateFolderPath", Path.Combine(appDataPath, "Templates", "Actions"));
+      SetSetting("SensorsTemplateFolderPath", Path.Combine(appDataPath, "Templates", "Sensors"));
+      SetSetting("ReflexesTemplateFolderPath", Path.Combine(appDataPath, "Templates", "Reflexes"));
+      SetSetting("SettingsPath", Path.Combine(appDataPath, "Settings"));
+      SetSetting("LogsFolderPath", Path.Combine(appDataPath, "Logs"));
 
-      Debug.WriteLine($"Конфигурационные пути обновлены для установки в: {installPath}");
+      Debug.WriteLine($"Конфигурационные пути обновлены для установки в: {appDataPath}");
     }
     catch (Exception ex)
     {

@@ -102,31 +102,32 @@ namespace AIStudio
       {
         // Инициализация логов
         InitializeFileValidator();
+        _stepInzialized = 1;
 
         // Инициализация гомеостаза
         GomeostasSystem.InitializeInstance(AppConfig.DataGomeostasFolderPath, AppConfig.DataGomeostasTemplateFolderPath);
         _gomeostas = GomeostasSystem.Instance;
-        _stepInzialized = 1;
+        _stepInzialized = 2;
 
         // Инициализация первичных адаптивных действий
         AdaptiveActionsSystem.InitializeInstance(_gomeostas, AppConfig.DataActionsFolderPath, AppConfig.DataActionsTemplateFolderPath);
         _actionsSystem = AdaptiveActionsSystem.Instance;
-        _stepInzialized = 2;
+        _stepInzialized = 3;
 
         // Инициализация внешних действий
         InfluenceActionSystem.InitializeInstance(_gomeostas, AppConfig.DataActionsFolderPath, AppConfig.DataActionsTemplateFolderPath);
         _influenceActionSystem = InfluenceActionSystem.Instance;
-        _stepInzialized = 3;
+        _stepInzialized = 4;
 
         // Инициализация сенсорной системы
         SensorySystem.InitializeInstance(_gomeostas, AppConfig.SensorsFolderPath, AppConfig.SensorsTemplateFolderPath);
         _sensorySystem = SensorySystem.Instance;
-        _stepInzialized = 4;
+        _stepInzialized = 5;
 
         // Инициализация безусловных рефлексов
         GeneticReflexesSystem.InitializeInstance(_gomeostas, AppConfig.ReflexesFolderPath, AppConfig.ReflexesTemplateFolderPath);
         _geneticReflexesSystem = GeneticReflexesSystem.Instance;
-        _stepInzialized = 5;
+        _stepInzialized = 6;
 
         // Инициализация образов рефлексов
         PerceptionImagesSystem.InitializeInstance(_gomeostas, _geneticReflexesSystem);
@@ -134,27 +135,27 @@ namespace AIStudio
         _gomeostas.SetPerceptionImagesSystem(_perceptionImagesSystem);
         _influenceActionSystem.SetPerceptionImagesSystem(_perceptionImagesSystem);
         _sensorySystem.SetDependentSystems(_geneticReflexesSystem, _perceptionImagesSystem);
-        _stepInzialized = 6;
+        _stepInzialized = 7;
 
         // Инициализация условных рефлексов
         ConditionedReflexesSystem.InitializeInstance(_gomeostas, _geneticReflexesSystem, _perceptionImagesSystem);
         _conditionedReflexesSystem = ConditionedReflexesSystem.Instance;
-        _stepInzialized = 7;
+        _stepInzialized = 8;
 
         // Инициализация дерева рефлексов
         ReflexTreeSystem.InitializeInstance(_geneticReflexesSystem, _perceptionImagesSystem);
         _reflexTree = ReflexTreeSystem.Instance;
-        _stepInzialized = 8;
+        _stepInzialized = 9;
 
         // Инициализация сервиса запуска рефлексов
         ReflexExecutionService.InitializeInstance(_actionsSystem, _influenceActionSystem);
         _reflexExecution = ReflexExecutionService.Instance;
-        _stepInzialized = 9;
+        _stepInzialized = 10;
 
         // Инициализация активатора рефлексов
         ReflexesActivator.InitializeInstance(_gomeostas, _geneticReflexesSystem, _conditionedReflexesSystem, _influenceActionSystem, _reflexTree, _reflexExecution, _actionsSystem);
         _reflexesActivator = ReflexesActivator.Instance;
-        _stepInzialized = 10;
+        _stepInzialized = 11;
 
         _researchLogger = new ResearchLogger(
             _gomeostas,
@@ -169,7 +170,7 @@ namespace AIStudio
         _gomeostas.SetResearchLogger(_researchLogger);
         ResearchLogger.SetMemoryLogWriter(MemoryLogManager.Instance);
         GlobalTimer.InitializeSystems(_gomeostas,_actionsSystem, _reflexesActivator);
-        _stepInzialized = 11;
+        _stepInzialized = 12;
 
         _gomeostas.DefaultStileId = AppConfig.DefaultStileId;
         _gomeostas.CompareLevel = AppConfig.CompareLevel;
@@ -181,7 +182,7 @@ namespace AIStudio
         _actionsSystem.DefaultAdaptiveActionId = AppConfig.DefaultAdaptiveActionId;
         _sensorySystem.VerbalRecognitionThreshold = AppConfig.RecognitionThreshold;
 
-        _stepInzialized = 12;
+        _stepInzialized = 13;
       }
       catch (Exception ex)
       {
@@ -222,12 +223,7 @@ namespace AIStudio
 
     private void InitializeFileValidator()
     {
-      var logsPath = AppConfig.LogsFolderPath;
-
-      if(logsPath == null)
-        logsPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData),
-                               "ISIDA", "Logs");
-
+      var logsPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData), "ISIDA", "Logs");
       if (!Directory.Exists(logsPath))
         Directory.CreateDirectory(logsPath);
 
@@ -237,7 +233,7 @@ namespace AIStudio
     private void UpdateAgentState()
     {
       try
-      {
+      { 
         var agentInfo = _gomeostas.GetAgentState();
         if (agentInfo != null)
         {
@@ -261,6 +257,11 @@ namespace AIStudio
       {
         GlobalTimer.Stop();
         IsPulsating = false;
+
+        OnPropertyChanged(nameof(IsPulsating));
+        OnPropertyChanged(nameof(PulseButtonText));
+        OnPropertyChanged(nameof(PulseButtonColor));
+        OnPropertyChanged(nameof(PulseStatus));
 
         // Показываем сообщение о остановке пульсации
         MessageBox.Show("Пульсация автоматически остановлена - агент мертв",
@@ -760,23 +761,23 @@ namespace AIStudio
         });
       };
 
-      // Обработка завершения пульса (логирование и обновление UI)
-      GlobalTimer.OnPulseCompleted += pulseCount =>
-      {
-        Application.Current.Dispatcher.Invoke(() =>
-        {
-          // Логируем состояние системы ПОСЛЕ завершения всех операций пульса
-          _researchLogger?.LogSystemState(pulseCount);
+      //// Обработка завершения пульса (логирование и обновление UI)
+      //GlobalTimer.OnPulseCompleted += pulseCount =>
+      //{
+      //  Application.Current.Dispatcher.Invoke(() =>
+      //  {
+      //    // Логируем состояние системы ПОСЛЕ завершения всех операций пульса
+      //    _researchLogger?.LogSystemState(pulseCount);
 
-          // Обновляем UI
-          OnPropertyChanged(nameof(PulseStatus));
-          OnPropertyChanged(nameof(LifeTimeStatus));
-          UpdateAgentState();
+      //    // Обновляем UI
+      //    OnPropertyChanged(nameof(PulseStatus));
+      //    OnPropertyChanged(nameof(LifeTimeStatus));
+      //    UpdateAgentState();
 
-          if (IsAgentDead && IsPulsating)
-            StopPulsationDueToDeath();
-        });
-      };
+      //    if (IsAgentDead && IsPulsating)
+      //      StopPulsationDueToDeath();
+      //  });
+      //};
     }
 
     #endregion
