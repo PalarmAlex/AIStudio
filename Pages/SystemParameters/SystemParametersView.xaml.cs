@@ -300,19 +300,7 @@ namespace AIStudio.Pages
         {
           selectedItem.StyleActivations = editor.ResultActivations;
           dataGrid.CommitEdit(DataGridEditingUnit.Row, true);
-
-          // Отложенное обновление
-          Dispatcher.BeginInvoke(new Action(() =>
-          {
-            try
-            {
-              dataGrid.Items.Refresh();
-            }
-            catch
-            {
-
-            }
-          }), DispatcherPriority.Background);
+          dataGrid.Items.Refresh();
         }
 
         e.Handled = true;
@@ -353,11 +341,7 @@ namespace AIStudio.Pages
           parameter.WellStateInfluence = newInfluences;
 
         dataGrid.CommitEdit(DataGridEditingUnit.Row, true);
-        // Отложенное обновление
-        Dispatcher.BeginInvoke(new Action(() =>
-        {
-          dataGrid.Items.Refresh();
-        }), DispatcherPriority.Background);
+        dataGrid.Items.Refresh();
       }
     }
 

@@ -53,29 +53,10 @@ public static class AppConfig
   {
     try
     {
-      string currentInstallPath = GetApplicationInstallPath();
-
-      if (!IsProgramFilesPath(currentInstallPath))
-      {
-        ConfigDirectory = Path.Combine(currentInstallPath, "Settings");
-        ConfigFullPath = Path.Combine(ConfigDirectory, ConfigFileName);
-      }
-     
-      bool isNoConfig = !File.Exists(ConfigFullPath);
-
-      if (isNoConfig)
+      if (!File.Exists(ConfigFullPath))
       {
         Directory.CreateDirectory(ConfigDirectory);
         CreateDefaultConfig();
-      }
-      else
-      {
-        int firstRunValue = GetIntSetting("FirstRun", 0);
-        if (firstRunValue == 0)
-        {
-          CheckAndUpdatePaths(currentInstallPath);
-          SetIntSetting("FirstRun", 1);
-        }
       }
     }
     catch (Exception ex)
@@ -89,19 +70,24 @@ public static class AppConfig
   /// </summary>
   private static void CreateDefaultConfig()
   {
+    string programDataPath = Environment.GetFolderPath(
+        Environment.SpecialFolder.CommonApplicationData);
+
+    string appDataPath = Path.Combine(programDataPath, "ISIDA");
+
     var defaultConfig = new XDocument(
       new XElement("Configuration",
         new XElement("AppSettings",
-          new XElement("DataGomeostasFolderPath", @"C:\ProgramData\ISIDA\Data\Gomeostas"),
-          new XElement("DataActionsFolderPath", @"C:\ProgramData\ISIDA\Data\Actions"),
-          new XElement("SensorsFolderPath", @"C:\ProgramData\ISIDA\Data\Sensors"),
-          new XElement("ReflexesFolderPath", @"C:\ProgramData\ISIDA\Data\Reflexes"),
-          new XElement("DataGomeostasTemplateFolderPath", @"C:\ProgramData\ISIDA\Templates\Gomeostas"),
-          new XElement("DataActionsTemplateFolderPath", @"C:\ProgramData\ISIDA\Templates\Actions"),
-          new XElement("SensorsTemplateFolderPath", @"C:\ProgramData\ISIDA\Templates\Sensors"),
-          new XElement("ReflexesTemplateFolderPath", @"C:\ProgramData\ISIDA\Templates\Reflexes"),
-          new XElement("SettingsPath", @"C:\ProgramData\ISIDA\Settings"),
-          new XElement("LogsFolderPath", @"C:\ProgramData\ISIDA\Logs"),
+          new XElement("DataGomeostasFolderPath", Path.Combine(appDataPath, "Data", "Gomeostas")),
+          new XElement("DataActionsFolderPath", Path.Combine(appDataPath, "Data", "Actions")),
+          new XElement("SensorsFolderPath", Path.Combine(appDataPath, "Data", "Sensors")),
+          new XElement("ReflexesFolderPath", Path.Combine(appDataPath, "Data", "Reflexes")),
+          new XElement("DataGomeostasTemplateFolderPath", Path.Combine(appDataPath, "Templates", "Gomeostas")),
+          new XElement("DataActionsTemplateFolderPath", Path.Combine(appDataPath, "Templates", "Actions")),
+          new XElement("SensorsTemplateFolderPath", Path.Combine(appDataPath, "Templates", "Sensors")),
+          new XElement("ReflexesTemplateFolderPath", Path.Combine(appDataPath, "Templates", "Reflexes")),
+          new XElement("SettingsPath", Path.Combine(appDataPath, "Settings")),
+          new XElement("LogsFolderPath", Path.Combine(appDataPath, "Logs")),
           new XElement("DefaultStileId", 0),
           new XElement("DefaultAdaptiveActionId", 0),
           new XElement("DefaultGeneticReflexId", 0),
@@ -120,52 +106,6 @@ public static class AppConfig
     );
 
     defaultConfig.Save(ConfigFullPath);
-  }
-
-  /// <summary>
-  /// Проверяет и обновляет пути при необходимости
-  /// </summary>
-  private static void CheckAndUpdatePaths(string currentInstallPath)
-  {
-    try
-    {
-      // Если программа установлена в Program Files
-      if (IsProgramFilesPath(currentInstallPath))
-      {
-        string programData = Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData);
-        currentInstallPath = Path.Combine(programData, "ISIDA");
-      }
-      UpdateConfigPaths(currentInstallPath);
-    }
-    catch (Exception ex)
-    {
-      Debug.WriteLine($"Ошибка при проверке путей: {ex.Message}");
-    }
-  }
-
-  /// <summary>
-  /// Получает путь установки приложения
-  /// </summary>
-  public static string GetApplicationInstallPath()
-  {
-    return Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
-  }
-
-  /// <summary>
-  /// Проверяет, находится ли путь в Program Files
-  /// </summary>
-  private static bool IsProgramFilesPath(string path)
-  {
-    if (string.IsNullOrEmpty(path))
-      return false;
-
-    string pathUpper = path.ToUpperInvariant();
-
-    // Всегда проверяем оба возможных Program Files пути
-    string pf64 = @"C:\PROGRAM FILES";
-    string pf32 = @"C:\PROGRAM FILES (X86)";
-
-    return pathUpper.StartsWith(pf64) || pathUpper.StartsWith(pf32);
   }
 
   /// <summary>

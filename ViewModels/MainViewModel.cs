@@ -223,6 +223,7 @@ namespace AIStudio
     private void InitializeFileValidator()
     {
       var logsPath = AppConfig.LogsFolderPath;
+
       if(logsPath == null)
         logsPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData),
                                "ISIDA", "Logs");

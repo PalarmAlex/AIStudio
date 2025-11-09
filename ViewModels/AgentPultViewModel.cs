@@ -36,7 +36,6 @@ namespace AIStudio.ViewModels
     private bool _isAgentDead;
     private bool _authoritativeMode;
     private string _messageText;
-    private string _agentResponse;
     private string _recognitionDisplayText;
 
     public bool IsEditingEnabled => !IsAgentDead;
@@ -78,19 +77,6 @@ namespace AIStudio.ViewModels
           OnPropertyChanged();
           if(_messageText != "")
             UpdateRecognitionDisplay();
-        }
-      }
-    }
-
-    public string AgentResponse
-    {
-      get => _agentResponse;
-      set
-      {
-        if (_agentResponse != value)
-        {
-          _agentResponse = value;
-          OnPropertyChanged();
         }
       }
     }

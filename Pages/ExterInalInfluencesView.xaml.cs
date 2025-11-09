@@ -123,17 +123,7 @@ namespace AIStudio.Pages
                 kvp => GomeostasSystem.ClampInt(kvp.Value, -10, 10));
 
             ExternInfluencesGrid.CommitEdit(DataGridEditingUnit.Row, true);
-            Dispatcher.BeginInvoke(new Action(() =>
-            {
-              try
-              {
-                ExternInfluencesGrid.Items.Refresh();
-              }
-              catch
-              {
-
-              }
-            }), DispatcherPriority.Background);
+            ExternInfluencesGrid.Items.Refresh();
           }
         }
         e.Handled = true;
@@ -163,19 +153,8 @@ namespace AIStudio.Pages
           if (editor.ShowDialog() == true)
           {
             action.AntagonistInfluences = editor.SelectedInfluenceIds.ToList();
-
             ExternInfluencesGrid.CommitEdit(DataGridEditingUnit.Row, true);
-            Dispatcher.BeginInvoke(new Action(() =>
-            {
-              try
-              {
-                ExternInfluencesGrid.Items.Refresh();
-              }
-              catch
-              {
-
-              }
-            }), DispatcherPriority.Background);
+            ExternInfluencesGrid.Items.Refresh();
           }
         }
         e.Handled = true;
@@ -200,19 +179,8 @@ namespace AIStudio.Pages
         if (dialog.ShowDialog() == true)
         {
           action.Description = dialog.Text;
-
           ExternInfluencesGrid.CommitEdit(DataGridEditingUnit.Row, true);
-          Dispatcher.BeginInvoke(new Action(() =>
-          {
-            try
-            {
-              ExternInfluencesGrid.Items.Refresh();
-            }
-            catch
-            {
-
-            }
-          }), DispatcherPriority.Background);
+          ExternInfluencesGrid.Items.Refresh();
         }
       }
     }

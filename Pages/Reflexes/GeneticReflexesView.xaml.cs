@@ -167,11 +167,8 @@ namespace AIStudio.Pages.Reflexes
           if (selector.ShowDialog() == true)
           {
             reflex.WordId = selector.SelectedWordId;
-            // Отложенное обновление
-            Dispatcher.BeginInvoke(new Action(() =>
-            {
-              GeneticReflexesGrid.Items.Refresh();
-            }), DispatcherPriority.Background);
+            GeneticReflexesGrid.CommitEdit(DataGridEditingUnit.Row, true);
+            GeneticReflexesGrid.Items.Refresh();
           }
         }
         e.Handled = true;

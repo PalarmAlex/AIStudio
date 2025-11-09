@@ -117,17 +117,7 @@ namespace AIStudio.Pages
                 kvp => GomeostasSystem.ClampInt(kvp.Value, -10, 10));
 
             ActionsGrid.CommitEdit(DataGridEditingUnit.Row, true);
-            Dispatcher.BeginInvoke(new Action(() =>
-            {
-              try
-              {
-                ActionsGrid.Items.Refresh();
-              }
-              catch
-              {
-
-              }
-            }), DispatcherPriority.Background);
+            ActionsGrid.Items.Refresh();
           }
         }
         e.Handled = true;
@@ -149,19 +139,8 @@ namespace AIStudio.Pages
           if (editor.ShowDialog() == true)
           {
             action.AntagonistActions = editor.SelectedActionIds.ToList();
-
             ActionsGrid.CommitEdit(DataGridEditingUnit.Row, true);
-            Dispatcher.BeginInvoke(new Action(() =>
-            {
-              try
-              {
-                ActionsGrid.Items.Refresh();
-              }
-              catch
-              {
-
-              }
-            }), DispatcherPriority.Background);
+            ActionsGrid.Items.Refresh();
           }
         }
         e.Handled = true;
@@ -188,17 +167,7 @@ namespace AIStudio.Pages
                 kvp => GomeostasSystem.ClampInt(kvp.Value, -10, 10));
 
             ActionsGrid.CommitEdit(DataGridEditingUnit.Row, true);
-            Dispatcher.BeginInvoke(new Action(() =>
-            {
-              try
-              {
-                ActionsGrid.Items.Refresh();
-              }
-              catch
-              {
-
-              }
-            }), DispatcherPriority.Background);
+            ActionsGrid.Items.Refresh();
           }
         }
         e.Handled = true;
@@ -220,19 +189,8 @@ namespace AIStudio.Pages
         if (dialog.ShowDialog() == true)
         {
           action.Description = dialog.Text;
-
           ActionsGrid.CommitEdit(DataGridEditingUnit.Row, true);
-          Dispatcher.BeginInvoke(new Action(() =>
-          {
-            try
-            {
-              ActionsGrid.Items.Refresh();
-            }
-            catch
-            {
-
-            }
-          }), DispatcherPriority.Background);
+          ActionsGrid.Items.Refresh();
         }
       }
     }
@@ -257,13 +215,13 @@ namespace AIStudio.Pages
       }
       else if (e.Column.Header.ToString() == "К. усталости")
       {
-        if (!TryParseFloat(input, out float value) || value < 0.05f || value > 0.8f)
-          msgText = "Введите число от 0.05 до 0.8";
+        if (!TryParseFloat(input, out float value) || value < 0.0f || value > 0.8f)
+          msgText = "Введите число от 0.0 до 0.8";
       }
       else if (e.Column.Header.ToString() == "К. восстановления")
       {
-        if (!TryParseFloat(input, out float value) || value < 0.01f || value > 0.2f)
-          msgText = "Введите число от 0.01 до 0.2";
+        if (!TryParseFloat(input, out float value) || value < 0.01f || value > 1.0f)
+          msgText = "Введите число от 0.01 до 1.0";
       }
 
       if (msgText != "")
@@ -308,7 +266,7 @@ namespace AIStudio.Pages
         if (TryParseFloat(textBox.Text, out float value))
         {
           // Применяем ограничения диапазона
-          value = Math.Max(0.05f, Math.Min(0.8f, value));
+          value = Math.Max(0.0f, Math.Min(0.8f, value));
           action.FatigueCoefficient = value;
 
           // Обновляем отображение
@@ -352,7 +310,7 @@ namespace AIStudio.Pages
         if (TryParseFloat(textBox.Text, out float value))
         {
           // Применяем ограничения диапазона
-          value = Math.Max(0.01f, Math.Min(0.2f, value));
+          value = Math.Max(0.01f, Math.Min(1.0f, value));
           action.RecoveryCoefficient = value;
 
           // Обновляем отображение
