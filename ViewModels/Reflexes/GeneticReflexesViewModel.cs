@@ -30,7 +30,7 @@ namespace AIStudio.ViewModels
     private readonly AdaptiveActionsSystem _actionsSystem;
     private readonly InfluenceActionSystem _influenceActionSystem;
     private readonly GomeostasSystem _gomeostas;
-    public GomeostasSystem Gomeostas => _gomeostas; // для формы
+    public GomeostasSystem Gomeostas => _gomeostas;
     private string _currentAgentName;
     private string _currentAgentDescription;
     private int _currentAgentStage;
@@ -40,7 +40,6 @@ namespace AIStudio.ViewModels
     private int? _selectedLevel2Filter;
     private int? _selectedLevel3Filter;
     private int? _selectedAdaptiveActionsFilter;
-    private int? _selectedWordFilter;
 
     public bool IsStageZero => _currentAgentStage == 0;
 
@@ -87,8 +86,7 @@ namespace AIStudio.ViewModels
       return (!SelectedLevel1Filter.HasValue || reflex.Level1 == SelectedLevel1Filter.Value) &&
              (!SelectedLevel2Filter.HasValue || (reflex.Level2 != null && reflex.Level2.Contains(SelectedLevel2Filter.Value))) &&
              (!SelectedLevel3Filter.HasValue || (reflex.Level3 != null && reflex.Level3.Contains(SelectedLevel3Filter.Value))) &&
-             (!SelectedAdaptiveActionsFilter.HasValue || (reflex.AdaptiveActions != null && reflex.AdaptiveActions.Contains(SelectedAdaptiveActionsFilter.Value))) &&
-             (!SelectedWordFilter.HasValue || reflex.WordId == SelectedWordFilter.Value);
+             (!SelectedAdaptiveActionsFilter.HasValue || (reflex.AdaptiveActions != null && reflex.AdaptiveActions.Contains(SelectedAdaptiveActionsFilter.Value)));
     }
 
     private void OnPulsationStateChanged()
@@ -174,17 +172,6 @@ namespace AIStudio.ViewModels
       }
     }
 
-    public int? SelectedWordFilter
-    {
-      get => _selectedWordFilter;
-      set
-      {
-        _selectedWordFilter = value;
-        OnPropertyChanged(nameof(SelectedWordFilter));
-        ApplyFilters();
-      }
-    }
-
     private void ApplyFilters()
     {
       _geneticReflexesView.Refresh();
@@ -196,7 +183,6 @@ namespace AIStudio.ViewModels
       SelectedLevel2Filter = null;
       SelectedLevel3Filter = null;
       SelectedAdaptiveActionsFilter = null;
-      SelectedWordFilter = null;
     }
 
     private void LoadFilterOptions()
@@ -216,26 +202,9 @@ namespace AIStudio.ViewModels
       var adaptiveItems = _actionsSystem?.GetAllAdaptiveActions()?.ToList() ?? new List<AdaptiveActionsSystem.AdaptiveAction>();
       AdaptiveActionsFilterOptions.AddRange(adaptiveItems.Select(x => new KeyValuePair<int?, string>(x.Id, x.Name)));
 
-      WordFilterOptions = new List<KeyValuePair<int?, string>> { new KeyValuePair<int?, string>(null, "Все слова") };
-      if (SensorySystem.IsInitialized)
-      {
-        try
-        {
-          var sensorySystem = SensorySystem.Instance;
-          var allWords = sensorySystem.VerbalChannel.GetAllWords();
-          if (allWords != null)
-            WordFilterOptions.AddRange(allWords.Select(w => new KeyValuePair<int?, string>(w.Key, w.Value)));
-        }
-        catch (Exception ex)
-        {
-          Console.WriteLine($"Ошибка загрузки слов для фильтра: {ex.Message}");
-        }
-      }
-
       OnPropertyChanged(nameof(Level2FilterOptions));
       OnPropertyChanged(nameof(Level3FilterOptions));
       OnPropertyChanged(nameof(AdaptiveActionsFilterOptions));
-      OnPropertyChanged(nameof(WordFilterOptions));
     }
 
     #endregion
@@ -277,7 +246,6 @@ namespace AIStudio.ViewModels
           Level1 = reflex.Level1,
           Level2 = new List<int>(reflex.Level2),
           Level3 = new List<int>(reflex.Level3),
-          WordId = reflex.WordId,
           AdaptiveActions = new List<int>(reflex.AdaptiveActions)
         };
 
@@ -408,8 +376,7 @@ namespace AIStudio.ViewModels
                 reflex.Level1,
                 new List<int>(reflex.Level2),
                 new List<int>(reflex.Level3),
-                new List<int>(reflex.AdaptiveActions),
-                reflex.WordId
+                new List<int>(reflex.AdaptiveActions)
             );
 
             if (warnings != null && warnings.Length > 0)

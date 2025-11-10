@@ -37,11 +37,11 @@ namespace AIStudio.ViewModels
       _sensorySystem = SensorySystem.Instance;
     }
 
-    private string _reflexWordsText = string.Empty;
-    public string ReflexWordsText
+    private string _reflexPhrasesText = string.Empty;
+    public string ReflexPhrasesText
     {
-      get => _reflexWordsText;
-      private set => SetProperty(ref _reflexWordsText, value);
+      get => _reflexPhrasesText;
+      private set => SetProperty(ref _reflexPhrasesText, value);
     }
 
     private int _minSignificance = 1;
@@ -68,7 +68,7 @@ namespace AIStudio.ViewModels
       var activeSignificances = CurrentActiveActions.Select(a => a.GetSignificance()).ToList();
       MinSignificance = activeSignificances.Any() ? activeSignificances.Min() : 1;
       MaxSignificance = activeSignificances.Any() ? activeSignificances.Max() : 1;
-      UpdateReflexWordsText();
+      UpdateReflexPhrasesText();
     }
 
     private void UpdateGroupedActions()
@@ -99,55 +99,53 @@ namespace AIStudio.ViewModels
       OnPropertyChanged(nameof(ConditionedReflexActions));
     }
 
-    private void UpdateReflexWordsText()
+    private void UpdateReflexPhrasesText()
     {
       try
       {
-        var reflexWords = new List<string>();
+        var reflexPhrases = new List<string>();
 
-        // Собираем слова только для рефлекторных действий (не элементарных)
+        // Собираем фразы только для рефлекторных действий (не элементарных)
         foreach (var action in CurrentActiveActions)
         {
           if (!action.IsElementary)
           {
-            // Получаем слово, связанное с действием
-            int wordId = _adaptiveActionsSystem.GetWordIdForAction(action.Id);
-            string wordText = GetWordText(wordId);
+            // Получаем фразу, связанную с действием
+            int phraseId = _adaptiveActionsSystem.GetPhraseIdForAction(action.Id);
+            string phraseText = GetPhraseText(phraseId);
 
-            if (!string.IsNullOrEmpty(wordText))
-            {
-              reflexWords.Add(wordText);
-            }
+            if (!string.IsNullOrEmpty(phraseText))
+              reflexPhrases.Add(phraseText);
           }
         }
 
         // Формируем текст для отображения
-        if (reflexWords.Any())
-          ReflexWordsText = $"{string.Join(", ", reflexWords)}";
+        if (reflexPhrases.Any())
+          ReflexPhrasesText = $"{string.Join(", ", reflexPhrases)}";
         else
-          ReflexWordsText = "";
+          ReflexPhrasesText = "";
       }
       catch (Exception ex)
       {
-        ReflexWordsText = $"Ошибка получения рефлексов: {ex.Message}";
+        ReflexPhrasesText = $"Ошибка получения рефлексов: {ex.Message}";
       }
     }
 
-    private string GetWordText(int wordId)
+    private string GetPhraseText(int phraseId)
     {
-      if (wordId <= 0) return string.Empty;
+      if (phraseId <= 0) return string.Empty;
 
       try
       {
-        var allWords = _sensorySystem.VerbalChannel.GetAllWords();
-        if (allWords.TryGetValue(wordId, out string wordText))
+        var allphrases = _sensorySystem.VerbalChannel.GetAllPhrases();
+        if (allphrases.TryGetValue(phraseId, out string phraseText))
         {
-          return wordText;
+          return phraseText;
         }
       }
       catch (Exception ex)
       {
-        System.Diagnostics.Debug.WriteLine($"Ошибка получения слова {wordId}: {ex.Message}");
+        System.Diagnostics.Debug.WriteLine($"Ошибка получения фразы {phraseId}: {ex.Message}");
       }
 
       return string.Empty;

@@ -99,7 +99,6 @@ namespace AIStudio.Pages.Reflexes
         Level1 = 0,
         Level2 = new List<int>(),
         Level3 = new List<int>(),
-        WordId = 0,
         AdaptiveActions = new List<int>()
       };
     }
@@ -152,28 +151,5 @@ namespace AIStudio.Pages.Reflexes
         }
       }
     }
-
-    private void WordCell_MouseDown(object sender, MouseButtonEventArgs e)
-    {
-      if (e.ClickCount == 2)
-      {
-        if (sender is FrameworkElement element &&
-            element.DataContext is GeneticReflexesSystem.GeneticReflex reflex)
-        {
-          var selector = new WordSelectorDialog(
-              $"Выбор слова для рефлекса ID: {reflex.Id}",
-              reflex.WordId);
-
-          if (selector.ShowDialog() == true)
-          {
-            reflex.WordId = selector.SelectedWordId;
-            GeneticReflexesGrid.CommitEdit(DataGridEditingUnit.Row, true);
-            GeneticReflexesGrid.Items.Refresh();
-          }
-        }
-        e.Handled = true;
-      }
-    }
-
   }
 }

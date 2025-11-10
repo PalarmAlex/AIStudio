@@ -124,18 +124,6 @@
                     Height="25"/>
         </StackPanel>
 
-        <!-- Фильтр по словам -->
-        <StackPanel Orientation="Vertical" Margin="0,0,15,0" Width="150">
-          <TextBlock Text="Слова" FontSize="12" Margin="0,0,0,2"/>
-          <ComboBox Style="{StaticResource AgentComboBoxStyle}"
-                ItemsSource="{Binding WordFilterOptions}"
-                SelectedValue="{Binding SelectedWordFilter}"
-                DisplayMemberPath="Value"
-                SelectedValuePath="Key"
-                Height="25"/>
-        </StackPanel>
-
-
         <!-- Кнопка сброса фильтров -->
         <Button Content="Сбросить фильтры" 
                 Command="{Binding ClearFiltersCommand}"
@@ -246,30 +234,6 @@
               </Style>
             </DataGridTemplateColumn.CellStyle>
           </DataGridTemplateColumn>
-
-          <DataGridTextColumn Header="Слово" 
-                    Binding="{Binding WordId, Converter={StaticResource WordIdToTextConverter}}" 
-                    IsReadOnly="True" 
-                    Width="150">
-            <DataGridTextColumn.ElementStyle>
-              <Style TargetType="TextBlock">
-                <EventSetter Event="MouseDown" Handler="WordCell_MouseDown"/>
-              </Style>
-            </DataGridTextColumn.ElementStyle>
-            <DataGridTextColumn.HeaderStyle>
-              <Style TargetType="DataGridColumnHeader">
-                <Setter Property="ToolTip">
-                  <Setter.Value>
-                    <TextBlock TextWrapping="Wrap" Width="200">
-                        Слово, сопровождающее действие, или активируемое отдельно от действия.
-                        Для рефлексов это коммуникативный сигнал демонстрации своего состояния, обычно "крик о помощи".
-                        ДБ клик запускает редактор ввода.
-                    </TextBlock>
-                  </Setter.Value>
-                </Setter>
-              </Style>
-            </DataGridTextColumn.HeaderStyle>
-          </DataGridTextColumn>
 
           <!-- Адаптивные действия -->
           <DataGridTemplateColumn Header="Адаптивные действия" Width="*">

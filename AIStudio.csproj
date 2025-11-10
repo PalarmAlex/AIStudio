@@ -166,9 +166,6 @@
     <Compile Include="Pages\StyleLogsView.xaml.cs">
       <DependentUpon>StyleLogsView.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Pages\WordSelectorDialog.xaml.cs">
-      <DependentUpon>WordSelectorDialog.xaml</DependentUpon>
-    </Compile>
     <Compile Include="Pages\Reflexes\AdaptiveActionsSelectionDialog.xaml.cs">
       <DependentUpon>AdaptiveActionsSelectionDialog.xaml</DependentUpon>
     </Compile>
@@ -317,10 +314,6 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="Pages\StyleLogsView.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="Pages\WordSelectorDialog.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
