@@ -134,7 +134,7 @@
 
         <!-- Колонка 4: Вербальный ответ агента -->
         <StackPanel Grid.Column="3" Grid.Row="0">
-          <TextBlock Text="Вербальный рефлекс" Style="{StaticResource SectionHeaderStyle}"/>
+          <TextBlock Text="Ответные фразы" Style="{StaticResource SectionHeaderStyle}"/>
         </StackPanel>
 
         <!-- Колонка 1: Корректирующие действия -->

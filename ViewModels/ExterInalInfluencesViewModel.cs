@@ -31,7 +31,7 @@ namespace AIStudio.ViewModels
 
     public ObservableCollection<InfluenceActionSystem.GomeostasisInfluenceAction> InfluenceActions { get; } = new ObservableCollection<InfluenceActionSystem.GomeostasisInfluenceAction>();
 
-    public string CurrentAgentTitle => $"Внешние воздействия на Агента: {_currentAgentName ?? "Не определен"}";
+    public string CurrentAgentTitle => $"Воздействия Оператора на Агента: {_currentAgentName ?? "Не определен"}";
     public string CurrentAgentDescription => _currentAgentDescription ?? "Нет описания";
 
     public ICommand SaveCommand { get; }

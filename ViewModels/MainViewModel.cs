@@ -233,16 +233,18 @@ namespace AIStudio
     private void UpdateAgentState()
     {
       try
-      { 
+      {
         var agentInfo = _gomeostas.GetAgentState();
         if (agentInfo != null)
         {
           bool wasDead = IsAgentDead;
           IsAgentDead = agentInfo.IsDead;
-
           // Если агент только что умер и пульсация активна
           if (!wasDead && IsAgentDead && IsPulsating)
+          {
+            Debug.WriteLine("UpdateAgentState: Агент умер, останавливаем пульсацию");
             StopPulsationDueToDeath();
+          }
         }
       }
       catch (Exception ex)
@@ -253,24 +255,7 @@ namespace AIStudio
 
     private void StopPulsationDueToDeath()
     {
-      if (IsPulsating)
-      {
-        GlobalTimer.Stop();
-        IsPulsating = false;
-
-        OnPropertyChanged(nameof(IsPulsating));
-        OnPropertyChanged(nameof(PulseButtonText));
-        OnPropertyChanged(nameof(PulseButtonColor));
-        OnPropertyChanged(nameof(PulseStatus));
-
-        // Показываем сообщение о остановке пульсации
-        MessageBox.Show("Пульсация автоматически остановлена - агент мертв",
-            "Агент мертв",
-            MessageBoxButton.OK,
-            MessageBoxImage.Warning);
-
-        Debug.WriteLine("Пульсация остановлена из-за смерти агента");
-      }
+      SafeStopPulsation("агент мертв");
     }
 
     #region Левое меню проекта
@@ -735,49 +720,106 @@ namespace AIStudio
 
     private void SetupPulseHandlers()
     {
-      // Обработка анимации яркости
       GlobalTimer.OnPulseBrightnessChanged += brightness =>
       {
         Application.Current.Dispatcher.Invoke(() =>
         {
-          byte minBrightness = 80; // Минимальный уровень "серого" (из 255)
-
-          var color = Color.FromRgb(
-              (byte)(minBrightness + (0xAD - minBrightness) * brightness),
-              (byte)(minBrightness + (0xFF - minBrightness) * brightness),
-              (byte)(minBrightness + (0x2E - minBrightness) * brightness));
-
-          PulseIndicatorColor = new SolidColorBrush(color);
-
-          if (brightness >= 0.99)
+          try
           {
-            OnPropertyChanged(nameof(PulseStatus));
-            OnPropertyChanged(nameof(LifeTimeStatus));
-            UpdateAgentState(); // Обновляем состояние агента после каждого пульса
+            byte minBrightness = 80;
+            var color = Color.FromRgb(
+                (byte)(minBrightness + (0xAD - minBrightness) * brightness),
+                (byte)(minBrightness + (0xFF - minBrightness) * brightness),
+                (byte)(minBrightness + (0x2E - minBrightness) * brightness));
+            PulseIndicatorColor = new SolidColorBrush(color);
 
-            if (IsAgentDead && IsPulsating)
-              StopPulsationDueToDeath();
+            //if (brightness >= 0.99)
+            //  Debug.WriteLine("PulseBrightness: Анимация завершена");
+          }
+          catch (Exception ex)
+          {
+            Debug.WriteLine($"PulseBrightness ERROR: {ex.Message}");
           }
         });
       };
 
-      //// Обработка завершения пульса (логирование и обновление UI)
-      //GlobalTimer.OnPulseCompleted += pulseCount =>
-      //{
-      //  Application.Current.Dispatcher.Invoke(() =>
-      //  {
-      //    // Логируем состояние системы ПОСЛЕ завершения всех операций пульса
-      //    _researchLogger?.LogSystemState(pulseCount);
+      GlobalTimer.OnPulseCompleted += pulseCount =>
+      {
+        Application.Current.Dispatcher.Invoke(() =>
+        {
+          try
+          {
+            // Обновляем UI
+            OnPropertyChanged(nameof(PulseStatus));
+            OnPropertyChanged(nameof(LifeTimeStatus));
 
-      //    // Обновляем UI
-      //    OnPropertyChanged(nameof(PulseStatus));
-      //    OnPropertyChanged(nameof(LifeTimeStatus));
-      //    UpdateAgentState();
+            // Логируем состояние (если агент жив)
+            if (!IsAgentDead)
+              _researchLogger?.LogSystemState(pulseCount);
+          }
+          catch (Exception ex)
+          {
+            Debug.WriteLine($"OnPulseCompleted ERROR: {ex.Message}");
+          }
+        });
+      };
 
-      //    if (IsAgentDead && IsPulsating)
-      //      StopPulsationDueToDeath();
-      //  });
-      //};
+      // ОБРАБОТЧИК ОШИБОК
+      GlobalTimer.OnPulseError += errorMessage =>
+      {
+        Application.Current.Dispatcher.Invoke(() =>
+        {
+          // Безопасно останавливаем пульсацию
+          SafeStopPulsation(errorMessage);
+        });
+      };
+    }
+
+    /// <summary>
+    /// Безопасная остановка пульсации
+    /// </summary>
+    private void SafeStopPulsation(string reason = "Неизвестная причина")
+    {
+      if (IsPulsating)
+      {
+        try
+        {
+          IsPulsating = false;
+
+          OnPropertyChanged(nameof(IsPulsating));
+          OnPropertyChanged(nameof(PulseButtonText));
+          OnPropertyChanged(nameof(PulseButtonColor));
+          OnPropertyChanged(nameof(PulseStatus));
+
+          // Обновляем состояние агента
+          UpdateAgentState();
+
+          if (IsAgentDead)
+          {
+            MessageBox.Show($"Пульсация остановлена - агент мертв\nПричина: {reason}",
+                "Агент мертв",
+                MessageBoxButton.OK,
+                MessageBoxImage.Warning);
+          }
+          else if (reason.Contains("Критическая ошибка") || reason.Contains("Ошибка получения состояния"))
+          {
+            MessageBox.Show($"Пульсация остановлена:\n{reason}",
+                "Критическая ошибка",
+                MessageBoxButton.OK,
+                MessageBoxImage.Error);
+          }
+          Debug.WriteLine($"Пульсация остановлена: {reason}");
+        }
+        catch (Exception ex)
+        {
+          Debug.WriteLine($"Критическая ошибка при остановке пульсации: {ex.Message}");
+
+          // Принудительно устанавливаем состояние
+          IsPulsating = false;
+          OnPropertyChanged(nameof(IsPulsating));
+          OnPropertyChanged(nameof(PulseButtonText));
+        }
+      }
     }
 
     #endregion

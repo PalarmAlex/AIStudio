@@ -136,7 +136,7 @@
 
       <Border Height="2" Background="{Binding HeaderBackground}" Margin="0,0,0,5"/>
 
-      <!-- Заголовок адаптивных действий -->
+      <!-- Заголовок действий -->
       <TextBlock Text="Действия агента"
            Foreground="{Binding HeaderBackground}"
            FontSize="18"

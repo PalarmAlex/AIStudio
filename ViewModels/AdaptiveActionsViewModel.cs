@@ -28,7 +28,7 @@ namespace AIStudio.ViewModels
     private int _currentAgentStage;
     public bool IsStageZero => _currentAgentStage == 0;
 
-    public string CurrentAgentTitle => $"Адаптивные действия Агента: {_currentAgentName ?? "Не определен"}";
+    public string CurrentAgentTitle => $"Ответные действия Агента: {_currentAgentName ?? "Не определен"}";
     public string CurrentAgentDescription => _currentAgentDescription ?? "Нет описания";
     public ObservableCollection<AdaptiveActionsSystem.AdaptiveAction> AdaptiveActions { get; } = new ObservableCollection<AdaptiveActionsSystem.AdaptiveAction>();
 
