@@ -117,49 +117,28 @@
           <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
-        <!-- Колонка 1: Корректирующие действия -->
+        <!-- Колонка 1: Безусловные рефлексы -->
         <StackPanel Grid.Column="0" Grid.Row="0">
-          <TextBlock Text="Корректирующие действия" Style="{StaticResource SectionHeaderStyle}"/>
-        </StackPanel>
-
-        <!-- Колонка 2: Безусловные рефлексы -->
-        <StackPanel Grid.Column="1" Grid.Row="0">
           <TextBlock Text="Безусловные рефлексы" Style="{StaticResource SectionHeaderStyle}"/>
         </StackPanel>
 
-        <!-- Колонка 3: Условные рефлексы -->
-        <StackPanel Grid.Column="2" Grid.Row="0">
+        <!-- Колонка 2: Условные рефлексы -->
+        <StackPanel Grid.Column="1" Grid.Row="0">
           <TextBlock Text="Условные рефлексы" Style="{StaticResource SectionHeaderStyle}"/>
         </StackPanel>
 
-        <!-- Колонка 4: Вербальный ответ агента -->
+        <!-- Колонка 3: Автоматизмы -->
+        <StackPanel Grid.Column="2" Grid.Row="0">
+          <TextBlock Text="Автоматизмы" Style="{StaticResource SectionHeaderStyle}"/>
+        </StackPanel>
+
+        <!-- Колонка 4: Ответные фразы -->
         <StackPanel Grid.Column="3" Grid.Row="0">
           <TextBlock Text="Ответные фразы" Style="{StaticResource SectionHeaderStyle}"/>
         </StackPanel>
 
-        <!-- Колонка 1: Корректирующие действия -->
+        <!-- Колонка 1: Безусловные рефлексы -->
         <Border Grid.Column="0" Grid.Row="1" 
-                BorderThickness="0,1,1,0" 
-                BorderBrush="#FFE0E0E0" 
-                Padding="5"
-                Height="60">
-          <StackPanel>
-            <TextBlock Text="Нет корректирующих действий"
-                  Style="{StaticResource NoAdaptationTextStyle}"
-                  Visibility="{Binding ElementaryActions.Count, Converter={StaticResource IntToVisibilityConverter}, ConverterParameter=true}"/>
-
-            <ItemsControl ItemsSource="{Binding ElementaryActions}" ItemTemplate="{StaticResource ActionItemTemplate}">
-              <ItemsControl.ItemsPanel>
-                <ItemsPanelTemplate>
-                  <WrapPanel Orientation="Horizontal" HorizontalAlignment="Center"/>
-                </ItemsPanelTemplate>
-              </ItemsControl.ItemsPanel>
-            </ItemsControl>
-          </StackPanel>
-        </Border>
-
-        <!-- Колонка 2: Безусловные рефлексы -->
-        <Border Grid.Column="1" Grid.Row="1" 
                 BorderThickness="0,1,1,0" 
                 BorderBrush="#FFE0E0E0" 
                 Padding="5"
@@ -179,8 +158,8 @@
           </StackPanel>
         </Border>
 
-        <!-- Колонка 3: Условные рефлексы -->
-        <Border Grid.Column="2" Grid.Row="1" 
+        <!-- Колонка 2: Условные рефлексы -->
+        <Border Grid.Column="1" Grid.Row="1" 
                 BorderThickness="0,1,1,0" 
                 BorderBrush="#FFE0E0E0" 
                 Padding="5"
@@ -200,7 +179,27 @@
           </StackPanel>
         </Border>
 
-        <!-- Колонка 4: Фразы агента -->
+        <!-- Колонка 4: Автоматизмы -->
+        <Border Grid.Column="2" Grid.Row="1" 
+                BorderThickness="0,1,1,0" 
+                BorderBrush="#FFE0E0E0" 
+                Padding="5"
+                Height="60">
+          <StackPanel>
+            <TextBlock Text="Нет автоматизмов"
+                  Style="{StaticResource NoAdaptationTextStyle}"/>
+
+            <ItemsControl ItemTemplate="{StaticResource ActionItemTemplate}">
+              <ItemsControl.ItemsPanel>
+                <ItemsPanelTemplate>
+                  <WrapPanel Orientation="Horizontal" HorizontalAlignment="Center"/>
+                </ItemsPanelTemplate>
+              </ItemsControl.ItemsPanel>
+            </ItemsControl>
+          </StackPanel>
+        </Border>
+
+        <!-- Колонка 3: Фразы агента -->
         <Border Grid.Column="3" Grid.Row="1" 
                 BorderThickness="0,1,0,0" 
                 BorderBrush="#FFE0E0E0" 

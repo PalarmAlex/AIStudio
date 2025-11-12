@@ -46,10 +46,7 @@ namespace AIStudio.Pages
       {
         Name = "Новое действие",
         Description = string.Empty,
-        Influences = new Dictionary<int, int>(),
         AntagonistActions = new List<int>(),
-        FatigueCoefficient = 0.2f,
-        RecoveryCoefficient = 0.05f
       };
     }
 
@@ -95,32 +92,6 @@ namespace AIStudio.Pages
       {
         var grid = (DataGrid)sender;
         grid.CommitEdit(DataGridEditingUnit.Row, true);
-      }
-    }
-
-    private void InfluencesCell_MouseDown(object sender, MouseButtonEventArgs e)
-    {
-      if (e.ClickCount == 2 && DataContext is AdaptiveActionsViewModel vm)
-      {
-        if (sender is FrameworkElement element &&
-            element.DataContext is AdaptiveActionsSystem.AdaptiveAction action)
-        {
-          var editor = new ActionInfluencesEditor(
-            $"Влияния действия: {action.Name} (ID: {action.Id})",
-            vm.GetAllParameters(),
-            action.Influences);
-
-          if (editor.ShowDialog() == true)
-          {
-            action.Influences = editor.SelectedInfluences.ToDictionary(
-                kvp => kvp.Key,
-                kvp => GomeostasSystem.ClampInt(kvp.Value, -10, 10));
-
-            ActionsGrid.CommitEdit(DataGridEditingUnit.Row, true);
-            ActionsGrid.Items.Refresh();
-          }
-        }
-        e.Handled = true;
       }
     }
 
@@ -236,94 +207,6 @@ namespace AIStudio.Pages
       }
     }
 
-    private void FatigueCoefficient_PreviewTextInput(object sender, TextCompositionEventArgs e)
-    {
-      var textBox = e.OriginalSource as TextBox;
-      if (textBox == null) return;
-
-      string newText = textBox.Text.Remove(textBox.SelectionStart, textBox.SelectionLength) + e.Text;
-
-      // Разрешаем только цифры, точку и запятую
-      if (!IsValidFloatInput(newText))
-      {
-        e.Handled = true;
-        return;
-      }
-
-      // Автозамена запятой на точку
-      if (e.Text == ",")
-      {
-        e.Handled = true;
-        textBox.SelectedText = ".";
-        textBox.CaretIndex = textBox.SelectionStart + 1;
-      }
-    }
-
-    private void FatigueCoefficient_LostFocus(object sender, RoutedEventArgs e)
-    {
-      if (sender is TextBox textBox && textBox.DataContext is AdaptiveActionsSystem.AdaptiveAction action)
-      {
-        if (TryParseFloat(textBox.Text, out float value))
-        {
-          // Применяем ограничения диапазона
-          value = Math.Max(0.0f, Math.Min(0.8f, value));
-          action.FatigueCoefficient = value;
-
-          // Обновляем отображение
-          textBox.Text = value.ToString("F2", CultureInfo.InvariantCulture);
-        }
-        else
-        {
-          // Восстанавливаем предыдущее значение при ошибке
-          textBox.Text = action.FatigueCoefficient.ToString("F2", CultureInfo.InvariantCulture);
-        }
-      }
-    }
-
-    private void RecoveryCoefficient_PreviewTextInput(object sender, TextCompositionEventArgs e)
-    {
-      var textBox = e.OriginalSource as TextBox;
-      if (textBox == null) return;
-
-      string newText = textBox.Text.Remove(textBox.SelectionStart, textBox.SelectionLength) + e.Text;
-
-      // Разрешаем только цифры, точку и запятую
-      if (!IsValidFloatInput(newText))
-      {
-        e.Handled = true;
-        return;
-      }
-
-      // Автозамена запятой на точку
-      if (e.Text == ",")
-      {
-        e.Handled = true;
-        textBox.SelectedText = ".";
-        textBox.CaretIndex = textBox.SelectionStart + 1;
-      }
-    }
-
-    private void RecoveryCoefficient_LostFocus(object sender, RoutedEventArgs e)
-    {
-      if (sender is TextBox textBox && textBox.DataContext is AdaptiveActionsSystem.AdaptiveAction action)
-      {
-        if (TryParseFloat(textBox.Text, out float value))
-        {
-          // Применяем ограничения диапазона
-          value = Math.Max(0.01f, Math.Min(1.0f, value));
-          action.RecoveryCoefficient = value;
-
-          // Обновляем отображение
-          textBox.Text = value.ToString("F2", CultureInfo.InvariantCulture);
-        }
-        else
-        {
-          // Восстанавливаем предыдущее значение при ошибке
-          textBox.Text = action.RecoveryCoefficient.ToString("F2", CultureInfo.InvariantCulture);
-        }
-      }
-    }
-
     private void NumericColumn_PreviewTextInput(object sender, TextCompositionEventArgs e)
     {
       // Разрешаем: цифры, запятые, двоеточия, минусы и точки
@@ -338,18 +221,6 @@ namespace AIStudio.Pages
     }
 
     #region Вспомогательные методы
-
-    /// <summary>
-    /// Проверяет валидность ввода для дробного числа
-    /// </summary>
-    private bool IsValidFloatInput(string input)
-    {
-      if (string.IsNullOrEmpty(input)) return true;
-
-      // Разрешаем только цифры, точку, запятую и знак минус в начале
-      var regex = new Regex(@"^-?[0-9]*[,.]?[0-9]*$");
-      return regex.IsMatch(input);
-    }
 
     /// <summary>
     /// Парсит строку в float с поддержкой и точки, и запятой как разделителя

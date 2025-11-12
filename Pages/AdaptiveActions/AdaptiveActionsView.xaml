@@ -90,7 +90,7 @@
           <DataGridTextColumn Header="ID" Binding="{Binding Id}" Width="50" IsReadOnly="True"/>
           <DataGridTextColumn Header="Наименование" Binding="{Binding Name}" Width="150"/>
 
-          <DataGridTextColumn Header="Описание" Binding="{Binding Description, Mode=TwoWay}" Width="300">
+          <DataGridTextColumn Header="Описание" Binding="{Binding Description, Mode=TwoWay}" Width="400">
             <DataGridTextColumn.CellStyle>
               <Style TargetType="DataGridCell" BasedOn="{StaticResource {x:Type DataGridCell}}">
                 <Setter Property="ToolTip" Value="{Binding Description}"/>
@@ -110,9 +110,7 @@
                 <Setter Property="ToolTip">
                   <Setter.Value>
                     <TextBlock TextWrapping="Wrap" Width="200">
-                        Интенсивность действия — уровень активности, скорости, физической нагрузки.
-                        Используется для модуляции силы реакции через поведенческие стили.
-                        Не определяет тип действия, только его "масштаб".
+                        Интенсивность действия. Не определяет тип действия, только его "масштаб".
                     </TextBlock>
                   </Setter.Value>
                 </Setter>
@@ -125,64 +123,10 @@
             </DataGridTextColumn.EditingElementStyle>
           </DataGridTextColumn>
 
-          <DataGridTemplateColumn Width="70">
-            <DataGridTemplateColumn.Header>
-              <TextBlock Text="Элементарное" 
-                   ToolTipService.ShowDuration="30000">
-                <TextBlock.ToolTip>
-                  <TextBlock TextWrapping="Wrap" Width="200"
-                           Text="Признак того, что действие является самым примитивным, запускаемым только напрямую по факту состояния &quot;Плохо&quot; 
-                             параметров гомеостаза. Предназначенно исключительно для прямой компенсации параметров гомеостаза. 
-                             Такие действия могут использоваться системой самоподдержания напрямую. ДБ клик открывает окно ввода."/>
-                </TextBlock.ToolTip>
-              </TextBlock>
-          </DataGridTemplateColumn.Header>
-          <DataGridTemplateColumn.CellTemplate>
-            <DataTemplate>
-              <CheckBox IsChecked="{Binding IsElementary}"
-                    IsHitTestVisible="False"
-                    Focusable="False"
-                    VerticalAlignment="Center"
-                    HorizontalAlignment="Center"/>
-            </DataTemplate>
-          </DataGridTemplateColumn.CellTemplate>
-          <DataGridTemplateColumn.CellEditingTemplate>
-            <DataTemplate>
-              <CheckBox IsChecked="{Binding IsElementary}"
-                    VerticalAlignment="Center"
-                    HorizontalAlignment="Center"/>
-            </DataTemplate>
-          </DataGridTemplateColumn.CellEditingTemplate>
-        </DataGridTemplateColumn>
-
-          <DataGridTextColumn Header="Влияния" 
-                              Binding="{Binding Influences, Converter={StaticResource IntDictionaryToStringConverter}}" 
-                              IsReadOnly="True" 
-                              Width="*">
-            <DataGridTextColumn.ElementStyle>
-              <Style TargetType="TextBlock">
-                <EventSetter Event="MouseDown" Handler="InfluencesCell_MouseDown"/>
-              </Style>
-            </DataGridTextColumn.ElementStyle>
-            <DataGridTextColumn.HeaderStyle>
-              <Style TargetType="DataGridColumnHeader">
-                <Setter Property="ToolTip">
-                  <Setter.Value>
-                    <TextBlock TextWrapping="Wrap" Width="200">
-                        Влияние действия на параметры гомеостаза (положительное или отрицательное).
-                        Ключ - ID параметра, значение - величина воздействия.
-                        ДБ клик открывает окно ввода".
-                    </TextBlock>
-                  </Setter.Value>
-                </Setter>
-              </Style>
-            </DataGridTextColumn.HeaderStyle>
-          </DataGridTextColumn>
-
           <DataGridTextColumn Header="Затраты" 
             Binding="{Binding Costs, Converter={StaticResource IntDictionaryToStringConverter}}" 
             IsReadOnly="True" 
-            Width="*">
+             Width="150">
             <DataGridTextColumn.ElementStyle>
               <Style TargetType="TextBlock">
                 <EventSetter Event="MouseDown" Handler="CostsCell_MouseDown"/>
@@ -201,48 +145,6 @@
                 </Setter>
               </Style>
             </DataGridTextColumn.HeaderStyle>
-          </DataGridTextColumn>
-
-          <DataGridTextColumn Header="К. усталости" Binding="{Binding FatigueCoefficient}" Width="70">
-            <DataGridTextColumn.HeaderStyle>
-              <Style TargetType="DataGridColumnHeader">
-                <Setter Property="ToolTip">
-                  <Setter.Value>
-                    <TextBlock TextWrapping="Wrap" Width="200">
-                      Показывает, насколько снижается энергичность при каждом применении в % от текущей энергичности за применение.
-                      Значение 0 отключает систему усталости.
-                    </TextBlock>
-                  </Setter.Value>
-                </Setter>
-              </Style>
-            </DataGridTextColumn.HeaderStyle>
-            <DataGridTextColumn.CellStyle>
-              <Style TargetType="DataGridCell" BasedOn="{StaticResource {x:Type DataGridCell}}">
-                <EventSetter Event="PreviewTextInput" Handler="FatigueCoefficient_PreviewTextInput"/>
-                <EventSetter Event="LostFocus" Handler="FatigueCoefficient_LostFocus"/>
-              </Style>
-            </DataGridTextColumn.CellStyle>
-          </DataGridTextColumn>
-
-          <DataGridTextColumn Header="К. восстановления" Binding="{Binding RecoveryCoefficient}" Width="70">
-            <DataGridTextColumn.HeaderStyle>
-              <Style TargetType="DataGridColumnHeader">
-                <Setter Property="ToolTip">
-                  <Setter.Value>
-                    <TextBlock TextWrapping="Wrap" Width="200">
-                      Скорость возврата к базовой энергичности за секунду в % от базовой энергичности в секунду.
-                      Значение 1 обеспечивает мгновенное восстановление.
-                    </TextBlock>
-                  </Setter.Value>
-                </Setter>
-              </Style>
-            </DataGridTextColumn.HeaderStyle>
-            <DataGridTextColumn.CellStyle>
-              <Style TargetType="DataGridCell" BasedOn="{StaticResource {x:Type DataGridCell}}">
-                <EventSetter Event="PreviewTextInput" Handler="RecoveryCoefficient_PreviewTextInput"/>
-                <EventSetter Event="LostFocus" Handler="RecoveryCoefficient_LostFocus"/>
-              </Style>
-            </DataGridTextColumn.CellStyle>
           </DataGridTextColumn>
 
           <DataGridTextColumn Header="Антагонисты" 

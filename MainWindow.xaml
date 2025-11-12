@@ -99,7 +99,7 @@
 
         <Expander Header="Гомеостаз" Style="{StaticResource MenuExpanderStyle}">
           <StackPanel>
-            <Button Content="Ответные действия" Margin="20,2,5,2"
+            <Button Content="Адаптивные действия" Margin="20,2,5,2"
               Style="{StaticResource MenuButtonStyle}"
               Command="{Binding VerticalMenuItemClickedCommand}"
               CommandParameter="3"/>            

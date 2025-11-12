@@ -36,7 +36,9 @@ namespace AIStudio.Dialogs
         }
 
         var adaptiveSystem = AdaptiveActionsSystem.Instance;
-        var allActions = adaptiveSystem.GetNonElementarActions();
+
+        // ИСПРАВЛЕНИЕ: Используем GetAllAdaptiveActions() вместо GetActiveAdaptiveActions()
+        var allActions = adaptiveSystem.GetAllAdaptiveActions();
 
         foreach (var action in allActions.OrderBy(a => a.Id))
         {

@@ -28,7 +28,7 @@ namespace AIStudio.ViewModels
     private int _currentAgentStage;
     public bool IsStageZero => _currentAgentStage == 0;
 
-    public string CurrentAgentTitle => $"Ответные действия Агента: {_currentAgentName ?? "Не определен"}";
+    public string CurrentAgentTitle => $"Адаптивные действия Агента: {_currentAgentName ?? "Не определен"}";
     public string CurrentAgentDescription => _currentAgentDescription ?? "Нет описания";
     public ObservableCollection<AdaptiveActionsSystem.AdaptiveAction> AdaptiveActions { get; } = new ObservableCollection<AdaptiveActionsSystem.AdaptiveAction>();
 
@@ -79,11 +79,7 @@ namespace AIStudio.ViewModels
           Id = action.Id,
           Name = action.Name,
           Description = action.Description,
-          IsElementary = action.IsElementary,
           Vigor = action.Vigor,
-          FatigueCoefficient = action.FatigueCoefficient,
-          RecoveryCoefficient = action.RecoveryCoefficient,
-          Influences = new Dictionary<int, int>(action.Influences),
           Costs = new Dictionary<int, int>(action.Costs),
           AntagonistActions = new List<int>(action.AntagonistActions)
         });
@@ -210,11 +206,7 @@ namespace AIStudio.ViewModels
           var existingAction = currentActions[action.Id];
           existingAction.Name = action.Name;
           existingAction.Description = action.Description;
-          existingAction.IsElementary = action.IsElementary;
           existingAction.Vigor = action.Vigor;
-          existingAction.FatigueCoefficient = action.FatigueCoefficient;
-          existingAction.RecoveryCoefficient = action.RecoveryCoefficient;
-          existingAction.Influences = new Dictionary<int, int>(action.Influences);
           existingAction.Costs = new Dictionary<int, int>(action.Costs);
           existingAction.AntagonistActions = new List<int>(action.AntagonistActions);
         }
@@ -224,14 +216,10 @@ namespace AIStudio.ViewModels
           var (newId, warnings) = _actionsSystem.AddAction(
               action.Name,
               action.Description,
-              new Dictionary<int, int>(action.Influences),
               new Dictionary<int, int>(action.Costs),
               new List<int>(action.AntagonistActions),
               false,
-              action.Vigor,
-              action.IsElementary,
-              action.FatigueCoefficient,
-              action.RecoveryCoefficient
+              action.Vigor
           );
           action.Id = newId;
         }

@@ -11,10 +11,10 @@ namespace AIStudio.Converters
     {
       if (value is AdaptiveAction action)
       {
-        int vigorPercentage = (int)((action.CurrentVigor / action.Vigor) * 100);
+        int vigorPercentage = (int)(action.Vigor);
 
-        // Компактный формат: "Имя [Э%]"
-        return $"{action.Name} [{vigorPercentage}%]";
+        // Компактный формат: "Имя [Интенсивность]"
+        return $"{action.Name} [{vigorPercentage}]";
       }
 
       return string.Empty;

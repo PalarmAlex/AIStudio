@@ -24,7 +24,6 @@ namespace AIStudio.ViewModels
       }
     }
 
-    public ObservableCollection<AdaptiveAction> ElementaryActions { get; } = new ObservableCollection<AdaptiveAction>();
     public ObservableCollection<AdaptiveAction> GeneticReflexActions { get; } = new ObservableCollection<AdaptiveAction>();
     public ObservableCollection<AdaptiveAction> ConditionedReflexActions { get; } = new ObservableCollection<AdaptiveAction>();
 
@@ -73,7 +72,6 @@ namespace AIStudio.ViewModels
 
     private void UpdateGroupedActions()
     {
-      ElementaryActions.Clear();
       GeneticReflexActions.Clear();
       ConditionedReflexActions.Clear();
 
@@ -82,9 +80,6 @@ namespace AIStudio.ViewModels
       {
         switch (action.ActivationSource)
         {
-          case ActionActivationSource.Elementary:
-            ElementaryActions.Add(action);
-            break;
           case ActionActivationSource.GeneticReflex:
             GeneticReflexActions.Add(action);
             break;
@@ -93,8 +88,6 @@ namespace AIStudio.ViewModels
             break;
         }
       }
-
-      OnPropertyChanged(nameof(ElementaryActions));
       OnPropertyChanged(nameof(GeneticReflexActions));
       OnPropertyChanged(nameof(ConditionedReflexActions));
     }
@@ -105,18 +98,16 @@ namespace AIStudio.ViewModels
       {
         var reflexPhrases = new List<string>();
 
-        // Собираем фразы только для рефлекторных действий (не элементарных)
+        // Собираем фразы
         foreach (var action in CurrentActiveActions)
         {
-          if (!action.IsElementary)
-          {
-            // Получаем фразу, связанную с действием
-            int phraseId = _adaptiveActionsSystem.GetPhraseIdForAction(action.Id);
-            string phraseText = GetPhraseText(phraseId);
 
-            if (!string.IsNullOrEmpty(phraseText))
-              reflexPhrases.Add(phraseText);
-          }
+          // Получаем фразу, связанную с действием
+          int phraseId = _adaptiveActionsSystem.GetPhraseIdForAction(action.Id);
+          string phraseText = GetPhraseText(phraseId);
+
+          if (!string.IsNullOrEmpty(phraseText))
+            reflexPhrases.Add(phraseText);
         }
 
         // Формируем текст для отображения
