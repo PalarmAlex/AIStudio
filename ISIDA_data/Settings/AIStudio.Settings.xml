@@ -1,24 +1,26 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Configuration>
   <AppSettings>
-    <DataGomeostasFolderPath>D:\ISIDA\Programms\app\AIStudio\bin\Debug\Data\Gomeostas</DataGomeostasFolderPath>
-    <SettingsPath>D:\ISIDA\Programms\app\AIStudio\bin\Debug\Settings</SettingsPath>
-    <DataGomeostasTemplateFolderPath>D:\ISIDA\Programms\app\AIStudio\bin\Debug\Templates\Gomeostas</DataGomeostasTemplateFolderPath>
-    <DataActionsFolderPath>D:\ISIDA\Programms\app\AIStudio\bin\Debug\Data\Actions</DataActionsFolderPath>
-    <DataActionsTemplateFolderPath>D:\ISIDA\Programms\app\AIStudio\bin\Debug\Templates\Actions</DataActionsTemplateFolderPath>
+    <DataGomeostasFolderPath>C:\ProgramData\ISIDA\Data\Gomeostas</DataGomeostasFolderPath>
+    <SettingsPath>C:\ProgramData\ISIDA\Settings</SettingsPath>
+    <DataGomeostasTemplateFolderPath>C:\ProgramData\ISIDA\Templates\Gomeostas</DataGomeostasTemplateFolderPath>
+    <DataActionsFolderPath>C:\ProgramData\ISIDA\Data\Actions</DataActionsFolderPath>
+    <DataActionsTemplateFolderPath>C:\ProgramData\ISIDA\Templates\Actions</DataActionsTemplateFolderPath>
     <DefaultStileId>6</DefaultStileId>
     <DefaultAdaptiveActionId>3</DefaultAdaptiveActionId>
-    <SensorsFolderPath>D:\ISIDA\Programms\app\AIStudio\bin\Debug\Data\Sensors</SensorsFolderPath>
-    <SensorsTemplateFolderPath>D:\ISIDA\Programms\app\AIStudio\bin\Debug\Templates\Sensors</SensorsTemplateFolderPath>
+    <SensorsFolderPath>C:\ProgramData\ISIDA\Data\Sensors</SensorsFolderPath>
+    <SensorsTemplateFolderPath>C:\ProgramData\ISIDA\Templates\Sensors</SensorsTemplateFolderPath>
     <RecognitionThreshold>3</RecognitionThreshold>
     <CompareLevel>30</CompareLevel>
-    <DifSensorPar>1.2</DifSensorPar>
+    <DifSensorPar>0.2</DifSensorPar>
     <DynamicTime>7</DynamicTime>
-    <ReflexesFolderPath>D:\ISIDA\Programms\app\AIStudio\bin\Debug\Data\Reflexes</ReflexesFolderPath>
-    <ReflexesTemplateFolderPath>D:\ISIDA\Programms\app\AIStudio\bin\Debug\Templates\Reflexes</ReflexesTemplateFolderPath>
+    <ReflexesFolderPath>C:\ProgramData\ISIDA\Data\Reflexes</ReflexesFolderPath>
+    <ReflexesTemplateFolderPath>C:\ProgramData\ISIDA\Templates\Reflexes</ReflexesTemplateFolderPath>
     <DefaultGeneticReflexId>0</DefaultGeneticReflexId>
     <FirstRun>1</FirstRun>
     <LogEnabled>true</LogEnabled>
-    <DefaultFormatLog>Csv</DefaultFormatLog>
+    <DefaultFormatLog>All</DefaultFormatLog>
+    <LogsFolderPath>C:\ProgramData\ISIDA\Logs</LogsFolderPath>
+    <ReflexActionDisplayDuration>3</ReflexActionDisplayDuration>
   </AppSettings>
 </Configuration>
