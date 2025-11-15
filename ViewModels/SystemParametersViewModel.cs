@@ -162,7 +162,6 @@ namespace AIStudio.ViewModels
                 param.Weight,
                 param.NormaWell,
                 param.Speed,
-                param.RequiresExternalResources,
                 param.IsVital,
                 param.CriticalMinValue,
                 param.CriticalMaxValue);

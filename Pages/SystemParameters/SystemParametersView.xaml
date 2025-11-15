@@ -268,37 +268,6 @@
             </DataGridTextColumn.HeaderStyle>
           </DataGridTextColumn>
 
-          <DataGridTemplateColumn Header="Зависимый" Width="50">
-            <DataGridTemplateColumn.HeaderStyle>
-              <Style TargetType="DataGridColumnHeader">
-                <Setter Property="ToolTip">
-                  <Setter.Value>
-                    <TextBlock TextWrapping="Wrap" Width="200">
-                        Признак того, что параметр требует внешних ресурсов.
-                        Агент не может восстановить его самостоятельно.
-                    </TextBlock>
-                  </Setter.Value>
-                </Setter>
-              </Style>
-            </DataGridTemplateColumn.HeaderStyle>
-            <DataGridTemplateColumn.CellTemplate>
-              <DataTemplate>
-                <CheckBox IsChecked="{Binding RequiresExternalResources}"
-                IsHitTestVisible="False"
-                Focusable="False"
-                VerticalAlignment="Center"
-                HorizontalAlignment="Center"/>
-              </DataTemplate>
-            </DataGridTemplateColumn.CellTemplate>
-            <DataGridTemplateColumn.CellEditingTemplate>
-              <DataTemplate>
-                <CheckBox IsChecked="{Binding RequiresExternalResources}"
-                VerticalAlignment="Center"
-                HorizontalAlignment="Center"/>
-              </DataTemplate>
-            </DataGridTemplateColumn.CellEditingTemplate>
-          </DataGridTemplateColumn>
-
           <DataGridTemplateColumn Header="Жизн. важный" Width="50">
             <DataGridTemplateColumn.HeaderStyle>
               <Style TargetType="DataGridColumnHeader">

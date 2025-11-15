@@ -15,6 +15,7 @@ using System.Configuration;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
@@ -39,6 +40,7 @@ namespace AIStudio
     private readonly ReflexExecutionService _reflexExecution;
     private readonly ResearchLogger _researchLogger;
     public event PropertyChangedEventHandler PropertyChanged;
+    private AgentViewModel _agentViewModel;
 
     private ICommand _openAgentCommand;
     public ICommand OpenAgentCommand => _openAgentCommand ?? (_openAgentCommand = new RelayCommand(_ => OpenAgent()));
@@ -491,8 +493,8 @@ namespace AIStudio
     private void OpenAgent()
     {
       var agentView = new AgentView();
-      var agentViewModel = new AgentViewModel(_gomeostas);
-      agentView.DataContext = agentViewModel;
+      _agentViewModel = new AgentViewModel(_gomeostas);
+      agentView.DataContext = _agentViewModel;
       CurrentContent = agentView;
       UpdateAgentState();
     }
@@ -692,9 +694,10 @@ namespace AIStudio
         if (IsAgentDead)
         {
           MessageBox.Show("Невозможно управлять пульсацией мертвого агента",
-              "Агент мертв",
-              MessageBoxButton.OK,
-              MessageBoxImage.Error);
+            "Агент мертв",
+            MessageBoxButton.OK,
+            MessageBoxImage.Error);
+
           return;
         }
 
@@ -732,9 +735,6 @@ namespace AIStudio
                 (byte)(minBrightness + (0xFF - minBrightness) * brightness),
                 (byte)(minBrightness + (0x2E - minBrightness) * brightness));
             PulseIndicatorColor = new SolidColorBrush(color);
-
-            //if (brightness >= 0.99)
-            //  Debug.WriteLine("PulseBrightness: Анимация завершена");
           }
           catch (Exception ex)
           {
@@ -796,10 +796,11 @@ namespace AIStudio
 
           if (IsAgentDead)
           {
+            _agentViewModel.IsAgentDead = IsAgentDead;
             MessageBox.Show($"Пульсация остановлена - агент мертв\nПричина: {reason}",
-                "Агент мертв",
-                MessageBoxButton.OK,
-                MessageBoxImage.Warning);
+              "Агент мертв",
+              MessageBoxButton.OK,
+              MessageBoxImage.Warning);
           }
           else if (reason.Contains("Критическая ошибка") || reason.Contains("Ошибка получения состояния"))
           {
