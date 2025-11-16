@@ -108,27 +108,27 @@ namespace AIStudio
         _stepInzialized = 1;
 
         // Инициализация гомеостаза
-        GomeostasSystem.InitializeInstance(AppConfig.DataGomeostasFolderPath, AppConfig.DataGomeostasTemplateFolderPath);
+        GomeostasSystem.InitializeInstance(AppConfig.DataGomeostasFolderPath);
         _gomeostas = GomeostasSystem.Instance;
         _stepInzialized = 2;
 
         // Инициализация первичных адаптивных действий
-        AdaptiveActionsSystem.InitializeInstance(_gomeostas, AppConfig.DataActionsFolderPath, AppConfig.DataActionsTemplateFolderPath);
+        AdaptiveActionsSystem.InitializeInstance(_gomeostas, AppConfig.DataActionsFolderPath);
         _actionsSystem = AdaptiveActionsSystem.Instance;
         _stepInzialized = 3;
 
         // Инициализация внешних действий
-        InfluenceActionSystem.InitializeInstance(_gomeostas, AppConfig.DataActionsFolderPath, AppConfig.DataActionsTemplateFolderPath);
+        InfluenceActionSystem.InitializeInstance(_gomeostas, AppConfig.DataActionsFolderPath);
         _influenceActionSystem = InfluenceActionSystem.Instance;
         _stepInzialized = 4;
 
         // Инициализация сенсорной системы
-        SensorySystem.InitializeInstance(_gomeostas, AppConfig.SensorsFolderPath, AppConfig.SensorsTemplateFolderPath);
+        SensorySystem.InitializeInstance(_gomeostas, AppConfig.SensorsFolderPath);
         _sensorySystem = SensorySystem.Instance;
         _stepInzialized = 5;
 
         // Инициализация безусловных рефлексов
-        GeneticReflexesSystem.InitializeInstance(_gomeostas, AppConfig.ReflexesFolderPath, AppConfig.ReflexesTemplateFolderPath);
+        GeneticReflexesSystem.InitializeInstance(_gomeostas, AppConfig.ReflexesFolderPath);
         _geneticReflexesSystem = GeneticReflexesSystem.Instance;
         _stepInzialized = 6;
 

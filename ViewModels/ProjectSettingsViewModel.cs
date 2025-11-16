@@ -25,13 +25,9 @@ namespace AIStudio.ViewModels
     private bool _logEnabled = false;
     private string _settingsPath;
     private string _dataGomeostasFolderPath;
-    private string _dataGomeostasTemplateFolderPath;
     private string _dataActionsFolderPath;
-    private string _dataActionsTemplateFolderPath;
     private string _sensorsFolderPath;
-    private string _sensorsTemplateFolderPath;
     private string _reflexesFolderPath;
-    private string _reflexesTemplateFolderPath;
     private string _logsFolderPath;
     private int _defaultStileId;
     private int _defaultAdaptiveActionId;
@@ -76,15 +72,6 @@ namespace AIStudio.ViewModels
         OnPropertyChanged(nameof(DataGomeostasFolderPath));
       }
     }
-    public string DataGomeostasTemplateFolderPath
-    {
-      get => _dataGomeostasTemplateFolderPath;
-      set
-      {
-        _dataGomeostasTemplateFolderPath = value;
-        OnPropertyChanged(nameof(DataGomeostasTemplateFolderPath));
-      }
-    }
     public string DataActionsFolderPath
     {
       get => _dataActionsFolderPath;
@@ -92,15 +79,6 @@ namespace AIStudio.ViewModels
       {
         _dataActionsFolderPath = value;
         OnPropertyChanged(nameof(DataActionsFolderPath));
-      }
-    }
-    public string DataActionsTemplateFolderPath
-    {
-      get => _dataActionsTemplateFolderPath;
-      set
-      {
-        _dataActionsTemplateFolderPath = value;
-        OnPropertyChanged(nameof(DataActionsTemplateFolderPath));
       }
     }
     public string SensorsFolderPath
@@ -112,15 +90,6 @@ namespace AIStudio.ViewModels
         OnPropertyChanged(nameof(SensorsFolderPath));
       }
     }
-    public string SensorsTemplateFolderPath
-    {
-      get => _sensorsTemplateFolderPath;
-      set
-      {
-        _sensorsTemplateFolderPath = value;
-        OnPropertyChanged(nameof(SensorsTemplateFolderPath));
-      }
-    }
     public string ReflexesFolderPath
     {
       get => _reflexesFolderPath;
@@ -128,15 +97,6 @@ namespace AIStudio.ViewModels
       {
         _reflexesFolderPath = value;
         OnPropertyChanged(nameof(ReflexesFolderPath));
-      }
-    }
-    public string ReflexesTemplateFolderPath
-    {
-      get => _reflexesTemplateFolderPath;
-      set
-      {
-        _reflexesTemplateFolderPath = value;
-        OnPropertyChanged(nameof(ReflexesTemplateFolderPath));
       }
     }
     public string LogsFolderPath
@@ -176,7 +136,6 @@ namespace AIStudio.ViewModels
         OnPropertyChanged(nameof(DefaultAdaptiveActionId));
       }
     }
-
     public int RecognitionThreshold
     {
       get => _recognitionThreshold;
@@ -204,7 +163,6 @@ namespace AIStudio.ViewModels
         }
       }
     }
-
     public int CompareLevel
     {
       get => _compareLevel;
@@ -232,7 +190,6 @@ namespace AIStudio.ViewModels
         }
       }
     }
-
     public string DifSensorParText
     {
       get => _difSensorParText ?? _difSensorPar.ToString(CultureInfo.InvariantCulture);
@@ -263,7 +220,6 @@ namespace AIStudio.ViewModels
           OnPropertyChanged(nameof(DifSensorParText));
       }
     }
-
     public float DifSensorPar
     {
       get => _difSensorPar;
@@ -281,7 +237,6 @@ namespace AIStudio.ViewModels
           MessageBox.Show(validation.errorMessage, "Ошибка ввода");
       }
     }
-
     public string DefaultBaseThresholdText
     {
       get => _defaultBaseThresholdText ?? _defaultBaseThreshold.ToString(CultureInfo.InvariantCulture);
@@ -312,7 +267,6 @@ namespace AIStudio.ViewModels
           OnPropertyChanged(nameof(DefaultBaseThresholdText));
       }
     }
-
     public float DefaultBaseThreshold
     {
       get => _defaultBaseThreshold;
@@ -330,7 +284,6 @@ namespace AIStudio.ViewModels
           MessageBox.Show(validation.errorMessage, "Ошибка ввода");
       }
     }
-
     public string DefaultKCompetitionText
     {
       get => _defaultKCompetitionText ?? _defaultKCompetition.ToString(CultureInfo.InvariantCulture);
@@ -361,7 +314,6 @@ namespace AIStudio.ViewModels
           OnPropertyChanged(nameof(DefaultKCompetitionText));
       }
     }
-
     public float DefaultKCompetition
     {
       get => _defaultKCompetition;
@@ -379,7 +331,6 @@ namespace AIStudio.ViewModels
           MessageBox.Show(validation.errorMessage, "Ошибка ввода");
       }
     }
-
     public int DynamicTime
     {
       get => _dynamicTime;
@@ -407,7 +358,6 @@ namespace AIStudio.ViewModels
         }
       }
     }
-
     public int ReflexActionDisplayDuration
     {
       get => _reflexActionDisplayDuration;
@@ -434,7 +384,6 @@ namespace AIStudio.ViewModels
         }
       }
     }
-
     public int DefaultFormatLog
     {
       get => _defaultFormatLog;
@@ -444,7 +393,6 @@ namespace AIStudio.ViewModels
         OnPropertyChanged(nameof(DefaultFormatLog));
       }
     }
-
     public ICommand BrowseFolderCommand { get; }
     public ICommand SaveSettingsCommand { get; }
 
@@ -463,13 +411,9 @@ namespace AIStudio.ViewModels
     {
       SettingsPath = AppConfig.SettingsPath;
       DataGomeostasFolderPath = AppConfig.DataGomeostasFolderPath;
-      DataGomeostasTemplateFolderPath = AppConfig.DataGomeostasTemplateFolderPath;
       DataActionsFolderPath = AppConfig.DataActionsFolderPath;
-      DataActionsTemplateFolderPath = AppConfig.DataActionsTemplateFolderPath;
       SensorsFolderPath = AppConfig.SensorsFolderPath;
-      SensorsTemplateFolderPath = AppConfig.SensorsTemplateFolderPath;
       ReflexesFolderPath = AppConfig.ReflexesFolderPath;
-      ReflexesTemplateFolderPath = AppConfig.ReflexesTemplateFolderPath;
       LogsFolderPath = AppConfig.LogsFolderPath;
       DefaultStileId = AppConfig.DefaultStileId;
       DefaultAdaptiveActionId = AppConfig.DefaultAdaptiveActionId;
@@ -501,17 +445,12 @@ namespace AIStudio.ViewModels
         if (!AdaptiveActionsSystem.IsInitialized)
         {
           AdaptiveActionsSystem.InitializeInstance(_gomeostas,
-              DataActionsFolderPath,
-              DataActionsTemplateFolderPath);
+              DataActionsFolderPath);
         }
         _actionsSystem = AdaptiveActionsSystem.Instance;
 
         if (!GeneticReflexesSystem.IsInitialized)
-        {
-          GeneticReflexesSystem.InitializeInstance(_gomeostas,
-              ReflexesFolderPath,
-              ReflexesTemplateFolderPath);
-        }
+          GeneticReflexesSystem.InitializeInstance(_gomeostas, ReflexesFolderPath);
         _geneticReflexesSystem = GeneticReflexesSystem.Instance;
       }
       catch (Exception ex)
@@ -601,26 +540,14 @@ namespace AIStudio.ViewModels
         case nameof(DataGomeostasFolderPath):
           initialPath = Directory.Exists(DataGomeostasFolderPath) ? DataGomeostasFolderPath : "";
           break;
-        case nameof(DataGomeostasTemplateFolderPath):
-          initialPath = Directory.Exists(DataGomeostasTemplateFolderPath) ? DataGomeostasTemplateFolderPath : "";
-          break;
         case nameof(DataActionsFolderPath):
           initialPath = Directory.Exists(DataActionsFolderPath) ? DataActionsFolderPath : "";
-          break;
-        case nameof(DataActionsTemplateFolderPath):
-          initialPath = Directory.Exists(DataActionsTemplateFolderPath) ? DataActionsTemplateFolderPath : "";
           break;
         case nameof(SensorsFolderPath):
           initialPath = Directory.Exists(SensorsFolderPath) ? SensorsFolderPath : "";
           break;
-        case nameof(SensorsTemplateFolderPath):
-          initialPath = Directory.Exists(SensorsTemplateFolderPath) ? SensorsTemplateFolderPath : "";
-          break;
         case nameof(ReflexesFolderPath):
           initialPath = Directory.Exists(ReflexesFolderPath) ? ReflexesFolderPath : "";
-          break;
-        case nameof(ReflexesTemplateFolderPath):
-          initialPath = Directory.Exists(ReflexesTemplateFolderPath) ? ReflexesTemplateFolderPath : "";
           break;
         case nameof(LogsFolderPath):
           initialPath = Directory.Exists(LogsFolderPath) ? LogsFolderPath : "";
@@ -642,26 +569,14 @@ namespace AIStudio.ViewModels
           case nameof(DataGomeostasFolderPath):
             DataGomeostasFolderPath = dialog.SelectedPath;
             break;
-          case nameof(DataGomeostasTemplateFolderPath):
-            DataGomeostasTemplateFolderPath = dialog.SelectedPath;
-            break;
           case nameof(DataActionsFolderPath):
             DataActionsFolderPath = dialog.SelectedPath;
-            break;
-          case nameof(DataActionsTemplateFolderPath):
-            DataActionsTemplateFolderPath = dialog.SelectedPath;
             break;
           case nameof(SensorsFolderPath):
             SensorsFolderPath = dialog.SelectedPath;
             break;
-          case nameof(SensorsTemplateFolderPath):
-            SensorsTemplateFolderPath = dialog.SelectedPath;
-            break;
           case nameof(ReflexesFolderPath):
             ReflexesFolderPath = dialog.SelectedPath;
-            break;
-          case nameof(ReflexesTemplateFolderPath):
-            ReflexesTemplateFolderPath = dialog.SelectedPath;
             break;
           case nameof(LogsFolderPath):
             LogsFolderPath = dialog.SelectedPath;
@@ -700,13 +615,9 @@ namespace AIStudio.ViewModels
       {
         AppConfig.SetSetting(nameof(SettingsPath), SettingsPath);
         AppConfig.SetSetting(nameof(DataGomeostasFolderPath), DataGomeostasFolderPath);
-        AppConfig.SetSetting(nameof(DataGomeostasTemplateFolderPath), DataGomeostasTemplateFolderPath);
         AppConfig.SetSetting(nameof(DataActionsFolderPath), DataActionsFolderPath);
-        AppConfig.SetSetting(nameof(DataActionsTemplateFolderPath), DataActionsTemplateFolderPath);
         AppConfig.SetSetting(nameof(SensorsFolderPath), SensorsFolderPath);
-        AppConfig.SetSetting(nameof(SensorsTemplateFolderPath), SensorsTemplateFolderPath);
         AppConfig.SetSetting(nameof(ReflexesFolderPath), ReflexesFolderPath);
-        AppConfig.SetSetting(nameof(ReflexesTemplateFolderPath), ReflexesTemplateFolderPath);
         AppConfig.SetSetting(nameof(LogsFolderPath), LogsFolderPath);
         AppConfig.SetIntSetting(nameof(DefaultStileId), DefaultStileId);
         AppConfig.SetIntSetting(nameof(DefaultAdaptiveActionId), DefaultAdaptiveActionId);

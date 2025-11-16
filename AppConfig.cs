@@ -23,13 +23,9 @@ public static class AppConfig
   }
 
   public static string DataGomeostasFolderPath => GetSetting("DataGomeostasFolderPath");
-  public static string DataGomeostasTemplateFolderPath => GetSetting("DataGomeostasTemplateFolderPath");
   public static string DataActionsFolderPath => GetSetting("DataActionsFolderPath");
-  public static string DataActionsTemplateFolderPath => GetSetting("DataActionsTemplateFolderPath");
   public static string SensorsFolderPath => GetSetting("SensorsFolderPath");
-  public static string SensorsTemplateFolderPath => GetSetting("SensorsTemplateFolderPath");
   public static string ReflexesFolderPath => GetSetting("ReflexesFolderPath");
-  public static string ReflexesTemplateFolderPath => GetSetting("ReflexesTemplateFolderPath");
   public static string SettingsPath => GetSetting("SettingsPath");
   public static string LogsFolderPath => GetSetting("LogsFolderPath");
   public static ResearchLogger.LogFormat LogFormat => GetLogFormatSetting("DefaultFormatLog", ResearchLogger.LogFormat.All);
@@ -88,10 +84,6 @@ public static class AppConfig
           new XElement("DataActionsFolderPath", Path.Combine(appDataPath, "Data", "Actions")),
           new XElement("SensorsFolderPath", Path.Combine(appDataPath, "Data", "Sensors")),
           new XElement("ReflexesFolderPath", Path.Combine(appDataPath, "Data", "Reflexes")),
-          new XElement("DataGomeostasTemplateFolderPath", Path.Combine(appDataPath, "Templates", "Gomeostas")),
-          new XElement("DataActionsTemplateFolderPath", Path.Combine(appDataPath, "Templates", "Actions")),
-          new XElement("SensorsTemplateFolderPath", Path.Combine(appDataPath, "Templates", "Sensors")),
-          new XElement("ReflexesTemplateFolderPath", Path.Combine(appDataPath, "Templates", "Reflexes")),
           new XElement("SettingsPath", Path.Combine(appDataPath, "Settings")),
           new XElement("LogsFolderPath", Path.Combine(appDataPath, "Logs")),
           new XElement("DefaultStileId", 0),
@@ -129,10 +121,6 @@ public static class AppConfig
       SetSetting("DataActionsFolderPath", Path.Combine(appDataPath, "Data", "Actions"));
       SetSetting("SensorsFolderPath", Path.Combine(appDataPath, "Data", "Sensors"));
       SetSetting("ReflexesFolderPath", Path.Combine(appDataPath, "Data", "Reflexes"));
-      SetSetting("DataGomeostasTemplateFolderPath", Path.Combine(appDataPath, "Templates", "Gomeostas"));
-      SetSetting("DataActionsTemplateFolderPath", Path.Combine(appDataPath, "Templates", "Actions"));
-      SetSetting("SensorsTemplateFolderPath", Path.Combine(appDataPath, "Templates", "Sensors"));
-      SetSetting("ReflexesTemplateFolderPath", Path.Combine(appDataPath, "Templates", "Reflexes"));
       SetSetting("SettingsPath", Path.Combine(appDataPath, "Settings"));
       SetSetting("LogsFolderPath", Path.Combine(appDataPath, "Logs"));
 
