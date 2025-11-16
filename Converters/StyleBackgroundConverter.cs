@@ -8,52 +8,55 @@ using static ISIDA.Gomeostas.GomeostasSystem;
 
 namespace AIStudio.Converters
 {
-  public class StyleColorConverter : IMultiValueConverter
+  public class StyleBackgroundConverter : IMultiValueConverter
   {
     public object Convert(object[] values, Type targetType, object parameter, CultureInfo culture)
     {
       if (values.Length < 3 || !(values[1] is BehaviorStyle currentStyle))
-        return new SolidColorBrush(Colors.Gray); // Неактивные - серые
+        return new SolidColorBrush(Color.FromArgb(0x20, 0x80, 0x80, 0x80)); // Бледно-серый для неактивных
 
       var activeStyles = values[2] as IList<BehaviorStyle>;
       if (activeStyles == null || !activeStyles.Any(s => s?.Id == currentStyle.Id))
-        return new SolidColorBrush(Colors.Gray);
+        return new SolidColorBrush(Color.FromArgb(0x20, 0x80, 0x80, 0x80)); // Бледно-серый для неактивных
 
       int currentWeight = (values[0] as int?) ?? 0;
       int maxWeight = activeStyles.Max(s => s?.Weight ?? 0);
 
-      if (maxWeight == 0) return new SolidColorBrush(Colors.Violet);
+      if (maxWeight == 0)
+        return new SolidColorBrush(Color.FromArgb(0x30, 0xEE, 0x82, 0xEE)); // Бледно-фиолетовый
 
       double ratio = (double)currentWeight / maxWeight;
 
-      // Яркая цветовая шкала для рамки
+      // Цветовая шкала по спектру (от красного к фиолетовому) с прозрачностью
       Color color = CalculateSpectrumColor(ratio);
-      return new SolidColorBrush(color);
+      // Делаем цвет бледным (добавляем прозрачность)
+      Color paleColor = Color.FromArgb(0x30, color.R, color.G, color.B);
+      return new SolidColorBrush(paleColor);
     }
 
     private Color CalculateSpectrumColor(double ratio)
     {
-      // Более яркие цвета для рамки
+      // Нормализованный спектр (0.0-1.0 соответствует 620-380 нм)
       if (ratio < 0.25)
       {
-        // Ярко-красный -> Оранжевый
-        return Color.FromRgb(255, (byte)(ratio * 4 * 200), 0);
+        // Красный -> Оранжевый (620-590 нм)
+        return Color.FromRgb(255, (byte)(ratio * 4 * 255), 0);
       }
       else if (ratio < 0.5)
       {
-        // Ярко-оранжевый -> Желтый
-        return Color.FromRgb(255, 200, 0);
+        // Оранжевый -> Желтый (590-570 нм)
+        return Color.FromRgb(255, 255, 0);
       }
       else if (ratio < 0.75)
       {
-        // Ярко-желтый -> Зеленый
+        // Желтый -> Зеленый (570-495 нм)
         byte red = (byte)(255 * (1 - (ratio - 0.5) * 4));
         return Color.FromRgb(red, 255, 0);
       }
       else
       {
-        // Ярко-зеленый -> Синий -> Фиолетовый
-        byte green = (byte)(200 * (1 - (ratio - 0.75) * 4));
+        // Зеленый -> Синий -> Фиолетовый (495-380 нм)
+        byte green = (byte)(255 * (1 - (ratio - 0.75) * 4));
         byte blue = (byte)(255 * (ratio - 0.75) * 4);
         return Color.FromRgb(0, green, blue);
       }

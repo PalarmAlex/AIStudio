@@ -102,6 +102,7 @@
     <Compile Include="Converters\ParameterValueToIndicatorPositionConverter.cs" />
     <Compile Include="Converters\PerceptionImageIdToTooltipConverter.cs" />
     <Compile Include="Converters\PerceptionImageIdToTextConverter.cs" />
+    <Compile Include="Converters\StyleBackgroundConverter.cs" />
     <Compile Include="Converters\StyleTooltipMultiConverter.cs" />
     <Compile Include="Converters\TriggerTooltipMultiConverter.cs" />
     <Compile Include="Converters\WordIdToTextConverter.cs" />

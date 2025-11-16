@@ -11,18 +11,19 @@
   <UserControl.Resources>
     <!-- Конвертеры -->
     <converters:StyleColorConverter x:Key="StyleColorConverter"/>
+    <converters:StyleBackgroundConverter x:Key="StyleBackgroundConverter"/>
     <converters:IsActiveStyleConverter x:Key="IsActiveStyleConverter"/>
 
     <!-- Стиль для контейнера стилей поведения -->
     <Style x:Key="StyleContainerStyle" TargetType="Border">
       <Setter Property="Background" Value="#FFF0F0F0"/>
       <Setter Property="CornerRadius" Value="5"/>
-      <Setter Property="Padding" Value="5"/>
+      <Setter Property="Padding" Value="8"/>
       <Setter Property="Margin" Value="5"/>
       <Setter Property="Width" Value="Auto"/>
-      <Setter Property="Height" Value="40"/>
-      <Setter Property="BorderThickness" Value="1"/>
-      <Setter Property="BorderBrush" Value="#FFCCCCCC"/>
+      <Setter Property="Height" Value="50"/>
+      <Setter Property="BorderThickness" Value="2"/>
+      <Setter Property="BorderBrush" Value="Gray"/>
       <Setter Property="RenderTransformOrigin" Value="0.5,0.5"/>
       <Setter Property="RenderTransform">
         <Setter.Value>
@@ -51,9 +52,10 @@
       <Setter Property="Foreground" Value="Black"/>
     </Style>
 
-    <Storyboard x:Key="ActiveStyleAnimation">
+    <!-- Анимация для активных стилей -->
+    <Storyboard x:Key="ActiveStyleAnimation" RepeatBehavior="Forever" AutoReverse="True">
       <DoubleAnimation Storyboard.TargetProperty="Opacity"
-                    From="1" To="1.05" 
+                    From="1" To="0.8" 
                     Duration="0:0:1"/>
 
       <DoubleAnimation Storyboard.TargetProperty="RenderTransform.ScaleX"
@@ -71,7 +73,7 @@
       <ItemsControl.ItemsPanel>
         <ItemsPanelTemplate>
           <WrapPanel Orientation="Horizontal" 
-                              Width="{Binding ActualWidth, RelativeSource={RelativeSource AncestorType=ScrollViewer}}"/>
+                     Width="{Binding ActualWidth, RelativeSource={RelativeSource AncestorType=ScrollViewer}}"/>
         </ItemsPanelTemplate>
       </ItemsControl.ItemsPanel>
 
@@ -81,31 +83,43 @@
             <Border.Style>
               <Style TargetType="Border" BasedOn="{StaticResource StyleContainerStyle}">
                 <Style.Triggers>
-
                   <DataTrigger Value="True">
                     <DataTrigger.Binding>
                       <MultiBinding Converter="{StaticResource IsActiveStyleConverter}">
                         <Binding Path="."/>
                         <Binding Path="DataContext.ActiveStyles" 
-                                                        RelativeSource="{RelativeSource AncestorType={x:Type UserControl}}"/>
+                                 RelativeSource="{RelativeSource AncestorType={x:Type UserControl}}"/>
                       </MultiBinding>
                     </DataTrigger.Binding>
+
                     <DataTrigger.EnterActions>
                       <BeginStoryboard Storyboard="{StaticResource ActiveStyleAnimation}"/>
                     </DataTrigger.EnterActions>
-                  </DataTrigger>
 
+                    <!-- Увеличиваем толщину рамки для активных стилей -->
+                    <Setter Property="BorderThickness" Value="3"/>
+                  </DataTrigger>
                 </Style.Triggers>
               </Style>
             </Border.Style>
 
-            <!-- Фон с цветом в зависимости от веса и активности -->
-            <Border.Background>
+            <!-- Цветная рамка -->
+            <Border.BorderBrush>
               <MultiBinding Converter="{StaticResource StyleColorConverter}">
                 <Binding Path="Weight"/>
                 <Binding Path="."/>
                 <Binding Path="DataContext.ActiveStyles" 
-                                        RelativeSource="{RelativeSource AncestorType={x:Type UserControl}}"/>
+                         RelativeSource="{RelativeSource AncestorType={x:Type UserControl}}"/>
+              </MultiBinding>
+            </Border.BorderBrush>
+
+            <!-- Бледный цветной фон -->
+            <Border.Background>
+              <MultiBinding Converter="{StaticResource StyleBackgroundConverter}">
+                <Binding Path="Weight"/>
+                <Binding Path="."/>
+                <Binding Path="DataContext.ActiveStyles" 
+                         RelativeSource="{RelativeSource AncestorType={x:Type UserControl}}"/>
               </MultiBinding>
             </Border.Background>
 
@@ -117,13 +131,13 @@
               </Grid.RowDefinitions>
 
               <TextBlock Grid.Row="0" 
-                                      Text="{Binding Name}" 
-                                      Style="{StaticResource StyleNameTextStyle}"
-                                      ToolTip="{Binding Description}"/>
+                         Text="{Binding Name}" 
+                         Style="{StaticResource StyleNameTextStyle}"
+                         ToolTip="{Binding Description}"/>
 
               <TextBlock Grid.Row="1" 
-                                      Text="{Binding Weight, StringFormat={}{0}%}" 
-                                      Style="{StaticResource WeightTextStyle}"/>
+                         Text="{Binding Weight, StringFormat={}{0}}" 
+                         Style="{StaticResource WeightTextStyle}"/>
             </Grid>
           </Border>
         </DataTemplate>
