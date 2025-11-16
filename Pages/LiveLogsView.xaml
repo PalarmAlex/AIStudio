@@ -11,7 +11,6 @@
 
     <converters:StyleTooltipMultiConverter x:Key="StyleTooltipConverter"/>
     <converters:TriggerTooltipMultiConverter x:Key="TriggerTooltipConverter"/>
-    <converters:ElementaryActionTooltipMultiConverter x:Key="ElementaryActionTooltipConverter"/>
 
     <!-- Стиль для текста матрицы -->
     <Style x:Key="MatrixTextStyle" TargetType="TextBlock">
@@ -180,18 +179,6 @@
       </Setter>
     </Style>
 
-    <!-- Стиль для ячейки Действие -->
-    <Style x:Key="ElementaryActionCellStyle" TargetType="DataGridCell" BasedOn="{StaticResource MatrixCellStyle}">
-      <Setter Property="ToolTip">
-        <Setter.Value>
-          <MultiBinding Converter="{StaticResource ElementaryActionTooltipConverter}">
-            <Binding Path="DataContext" RelativeSource="{RelativeSource AncestorType=UserControl}"/>
-            <Binding Path="DisplayElementaryActionID"/>
-          </MultiBinding>
-        </Setter.Value>
-      </Setter>
-    </Style>
-
   </UserControl.Resources>
 
   <Grid Background="Black">
@@ -286,15 +273,6 @@
               <DataGridColumnHeader Style="{StaticResource MatrixHeaderStyle}" 
                             Content="ОР1"
                             ToolTip="Ориентировочный рефлекс по критическим изменениям параметров гомеостаза"/>
-            </DataGridTextColumn.Header>
-          </DataGridTextColumn>
-
-          <DataGridTextColumn Binding="{Binding DisplayElementaryActionID}" Width="70"
-                              CellStyle="{StaticResource ElementaryActionCellStyle}">
-            <DataGridTextColumn.Header>
-              <DataGridColumnHeader Style="{StaticResource MatrixHeaderStyle}" 
-                            Content="Действие"
-                            ToolTip="ID элементарного действия"/>
             </DataGridTextColumn.Header>
           </DataGridTextColumn>
 

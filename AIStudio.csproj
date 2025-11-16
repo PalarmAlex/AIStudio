@@ -83,7 +83,6 @@
     <Compile Include="Converters\BooleanToVisibilityConverter.cs" />
     <Compile Include="Converters\DictionaryToStringActionConverter.cs" />
     <Compile Include="Converters\DictionaryToStringConverter.cs" />
-    <Compile Include="Converters\ElementaryActionTooltipMultiConverter.cs" />
     <Compile Include="Converters\IdListToNamesConverter.cs" />
     <Compile Include="Converters\InfluenceValidationRule.cs" />
     <Compile Include="Converters\IntDictionaryToStringConverter.cs" />

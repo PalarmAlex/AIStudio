@@ -149,35 +149,6 @@ namespace AIStudio.ViewModels
     #region Конвертеры для ToolTip'ов
 
     /// <summary>
-    /// Получает текст подсказки для элементарного действия
-    /// </summary>
-    public string GetElementaryActionTooltip(string displayElementaryActionID)
-    {
-      if (string.IsNullOrEmpty(displayElementaryActionID) || !int.TryParse(displayElementaryActionID, out int actionId) || actionId <= 0)
-        return "Нет данных об элементарных действиях";
-
-      try
-      {
-        var actions = _adaptiveActionsSystem.GetAllAdaptiveActions();
-        var actionList = actions.ToList();
-
-        if (actionList != null)
-        {
-          var actionNames = actionList
-              .Where(a => a.Id == actionId)
-              .Select(a => a.Name ?? $"Элементарное действие: {a.Id}")
-              .Where(name => !string.IsNullOrEmpty(name)); return string.Join(", ", actionNames);
-        }
-      }
-      catch (Exception ex)
-      {
-        return $"Ошибка загрузки действий: {ex.Message}";
-      }
-
-      return "Нет данных об элементарных действиях";
-    }
-
-    /// <summary>
     /// Получает текст подсказки для стиля поведения
     /// </summary>
     public string GetStyleTooltip(string displayBaseStyleID)

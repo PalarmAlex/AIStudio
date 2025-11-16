@@ -79,6 +79,7 @@ namespace AIStudio.ViewModels
           OnPropertyChanged(nameof(PulseWarningMessage));
           OnPropertyChanged(nameof(AgentBaseSost));
           OnPropertyChanged(nameof(IsAnyControlEnabled));
+          OnPropertyChanged(nameof(HomeostasisStatusColor));
 
           // Обновляем команды
           (_updateCommand as RelayCommand)?.RaiseCanExecuteChanged();
@@ -202,7 +203,7 @@ namespace AIStudio.ViewModels
         : AppConfig.GetBaseStateDisplay((int)(CurrentHomeostasisState?.OverallState ?? HomeostasisOverallState.Normal));
 
     public Brush HomeostasisStatusColor => IsAgentDead
-        ? Brushes.DarkRed
+        ? Brushes.Black
         : AppConfig.GetBaseStateColor((int)(CurrentHomeostasisState?.OverallState ?? HomeostasisOverallState.Normal));
 
     public AgentViewModel(GomeostasSystem gomeostas)
@@ -346,7 +347,7 @@ namespace AIStudio.ViewModels
         {
           // Устанавливаем визуальные индикации смерти
           HeaderBackground = Brushes.Black;
-          TextForeground = Brushes.DarkRed;
+          TextForeground = Brushes.Black;
           AgentName = $"{agentInfo.Name} - МЕРТВ";
 
           // Блокируем все свойства

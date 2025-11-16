@@ -21,6 +21,7 @@ using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Xml.Serialization;
+using static System.Windows.Forms.VisualStyles.VisualStyleElement.ExplorerBar;
 
 namespace AIStudio
 {
@@ -797,6 +798,9 @@ namespace AIStudio
           if (IsAgentDead)
           {
             _agentViewModel.IsAgentDead = IsAgentDead;
+            _agentViewModel.HeaderBackground = Brushes.Black;
+            _agentViewModel.TextForeground = Brushes.Black;
+
             MessageBox.Show($"Пульсация остановлена - агент мертв\nПричина: {reason}",
               "Агент мертв",
               MessageBoxButton.OK,
