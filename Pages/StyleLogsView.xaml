@@ -159,7 +159,7 @@
           CanUserSortColumns="True"
           SelectionUnit="FullRow"
           SelectionMode="Single"
-          RowHeight="80">
+          RowHeight="120">
 
         <DataGrid.Columns>
           <DataGridTextColumn Binding="{Binding DisplayTime}" Width="80" Header="Время" HeaderStyle="{StaticResource MatrixHeaderStyle}"/>
@@ -181,7 +181,7 @@
                         <TextBlock TextWrapping="Wrap" MaxWidth="300" Margin="0,8,0,0"
                                        Text="Формат записи:" FontWeight="Bold"/>
                         <TextBlock TextWrapping="Wrap" MaxWidth="300"
-                                       Text="Стиль | Вес | Вес после контрастирования."/>
+                                       Text="Стиль | Вес"/>
                       </StackPanel>
                     </ToolTip>
                   </Setter.Value>
@@ -211,7 +211,7 @@
                         <TextBlock TextWrapping="Wrap" MaxWidth="300" Margin="0,8,0,0"
                                        Text="Формат записи:" FontWeight="Bold"/>
                         <TextBlock TextWrapping="Wrap" MaxWidth="300"
-                                       Text="Стиль | Вес | Вес после контрастирования."/>
+                                       Text="Стиль | Вес"/>
                       </StackPanel>
                     </ToolTip>                    
                   </Setter.Value>
@@ -241,7 +241,7 @@
                         <TextBlock TextWrapping="Wrap" MaxWidth="300" Margin="0,8,0,0"
                                        Text="Формат записи:" FontWeight="Bold"/>
                         <TextBlock TextWrapping="Wrap" MaxWidth="300"
-                                       Text="Стиль | Вес | Вес после контрастирования."/>
+                                       Text="Стиль | Вес"/>
                       </StackPanel>
                     </ToolTip>
                   </Setter.Value>

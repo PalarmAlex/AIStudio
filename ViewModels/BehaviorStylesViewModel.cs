@@ -1,4 +1,8 @@
-﻿using System;
+﻿using AIStudio.Common;
+using AIStudio.Pages;
+using ISIDA.Common;
+using ISIDA.Gomeostas;
+using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
@@ -6,9 +10,6 @@ using System.Linq;
 using System.Windows;
 using System.Windows.Input;
 using System.Windows.Media;
-using AIStudio.Common;
-using ISIDA.Common;
-using ISIDA.Gomeostas;
 
 namespace AIStudio.ViewModels
 {
@@ -47,6 +48,8 @@ namespace AIStudio.ViewModels
     public ICommand SaveCommand { get; }
     public ICommand RemoveStyleCommand { get; }
     public ICommand RemoveAllCommand { get; }
+    private ICommand _showMatrixCommand;
+    public ICommand ShowMatrixCommand => _showMatrixCommand ?? (_showMatrixCommand = new RelayCommand(ShowAntagonistMatrix));
 
     public BehaviorStylesViewModel(GomeostasSystem gomeostas)
     {
@@ -113,7 +116,29 @@ namespace AIStudio.ViewModels
       Brushes.Gray;
 
     #endregion
-    
+
+    private void ShowAntagonistMatrix(object parameter)
+    {
+      try
+      {
+        var matrixView = new AntagonistMatrixView();
+        var matrixViewModel = new AntagonistMatrixViewModel();
+        matrixView.DataContext = matrixViewModel;
+
+        // Получаем главное окно и меняем контент
+        var mainWindow = Application.Current.MainWindow as MainWindow;
+        if (mainWindow?.DataContext is MainViewModel mainViewModel)
+        {
+          mainViewModel.CurrentContent = matrixView;
+        }
+      }
+      catch (Exception ex)
+      {
+        MessageBox.Show($"Ошибка открытия матрицы антагонистов: {ex.Message}",
+            "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
+      }
+    }
+
     private void LoadAgentData()
     {
       try

@@ -63,8 +63,7 @@ namespace AIStudio.ViewModels
                            {
                              StyleId = e.StyleId,
                              StyleName = e.StyleName,
-                             Weight = e.Weight,
-                             Activity = e.Activity
+                             Weight = e.Weight
                            })
                            .ToList(),
             AfterAntagonistStyles = g.Where(e => e.Stage == "AfterAntagonists")
@@ -72,8 +71,7 @@ namespace AIStudio.ViewModels
                                      {
                                        StyleId = e.StyleId,
                                        StyleName = e.StyleName,
-                                       Weight = e.Weight,
-                                       Activity = e.Activity
+                                       Weight = e.Weight
                                      })
                                      .ToList(),
             FinalStyles = g.Where(e => e.Stage == "Final")
@@ -81,8 +79,7 @@ namespace AIStudio.ViewModels
                            {
                              StyleId = e.StyleId,
                              StyleName = e.StyleName,
-                             Weight = e.Weight,
-                             Activity = e.Activity
+                             Weight = e.Weight
                            })
                            .ToList()
           })
@@ -175,11 +172,9 @@ namespace AIStudio.ViewModels
       public int StyleId { get; set; }
       public string StyleName { get; set; } = string.Empty;
       public int Weight { get; set; }
-      public float Activity { get; set; }
-
       public override string ToString()
       {
-        return $"{StyleName} (ID:{StyleId}) | Вес:{Weight} | Актив:{Activity:F2}";
+        return $"{StyleName} (ID:{StyleId}) | Вес:{Weight}";
       }
     }
   }

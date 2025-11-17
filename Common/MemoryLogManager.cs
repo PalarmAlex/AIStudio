@@ -46,7 +46,7 @@ namespace AIStudio.Common
     /// Запись лога стилей
     /// </summary>
     public void WriteStyleLog(int pulse, string stage, int styleId, string styleName,
-                             int weight, float activity)
+                             int weight)
     {
       if (_disposed) return;
 
@@ -57,7 +57,6 @@ namespace AIStudio.Common
         StyleId = styleId,
         StyleName = styleName,
         Weight = weight,
-        Activity = activity,
         Timestamp = DateTime.Now
       };
 
@@ -346,7 +345,6 @@ namespace AIStudio.Common
     public int StyleId { get; set; }
     public string StyleName { get; set; } = string.Empty;
     public int Weight { get; set; }
-    public float Activity { get; set; }
 
     public string DisplayTime => Timestamp.ToString("HH:mm:ss");
     public string DisplayPulse => Pulse.ToString();
@@ -354,7 +352,6 @@ namespace AIStudio.Common
     public string DisplayStyleId => StyleId.ToString();
     public string DisplayStyleName => StyleName;
     public string DisplayWeight => Weight.ToString();
-    public string DisplayActivity => Activity.ToString("F2");
   }
 
   public class ParameterLogEntry

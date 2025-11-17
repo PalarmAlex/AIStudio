@@ -61,6 +61,43 @@
       </Style.Triggers>
     </Style>
 
+    <Style x:Key="MatrixButtonStyle" TargetType="Button">
+      <Setter Property="Background" Value="#002000"/>
+      <Setter Property="Foreground" Value="#00FF00"/>
+      <Setter Property="BorderBrush" Value="#00FF00"/>
+      <Setter Property="BorderThickness" Value="1"/>
+      <Setter Property="Padding" Value="10,5"/>
+      <Setter Property="FontFamily" Value="Consolas"/>
+      <Setter Property="FontSize" Value="14"/>
+      <Setter Property="FontWeight" Value="Bold"/>
+      <Setter Property="Template">
+        <Setter.Value>
+          <ControlTemplate TargetType="Button">
+            <Border Background="{TemplateBinding Background}" 
+                        BorderBrush="{TemplateBinding BorderBrush}" 
+                        BorderThickness="{TemplateBinding BorderThickness}"
+                        CornerRadius="2">
+              <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+            </Border>
+          </ControlTemplate>
+        </Setter.Value>
+      </Setter>
+      <Style.Triggers>
+        <Trigger Property="IsMouseOver" Value="True">
+          <Setter Property="Background" Value="#004000"/>
+          <Setter Property="Foreground" Value="#80FF80"/>
+        </Trigger>
+        <Trigger Property="IsPressed" Value="True">
+          <Setter Property="Background" Value="#006000"/>
+        </Trigger>
+        <Trigger Property="IsEnabled" Value="False">
+          <Setter Property="Background" Value="#101010"/>
+          <Setter Property="Foreground" Value="#808080"/>
+          <Setter Property="BorderBrush" Value="#404040"/>
+        </Trigger>
+      </Style.Triggers>
+    </Style>
+
   </UserControl.Resources>
 
   <Grid Margin="12">
@@ -214,30 +251,38 @@
         <ColumnDefinition Width="Auto"/>
       </Grid.ColumnDefinitions>
 
-      <!-- Текст предупреждения -->
-      <TextBlock Grid.Column="0"
-           Text="{Binding PulseWarningMessage}"
-           Foreground="{Binding WarningMessageColor}"
-           FontStyle="Italic"
-           VerticalAlignment="Center"
-           Margin="8,0,0,0"
-           TextWrapping="Wrap"
-           Visibility="{Binding IsEditingEnabled, Converter={StaticResource InverseBooleanToVisibilityConverter}}"/>
+      <!-- Левая часть - кнопка матрицы и предупреждение -->
+      <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
+        <!-- Кнопка матрицы антагонистов -->
+        <Button Content="МАТРИЦА АНТАГОНИСТОВ"
+                Command="{Binding ShowMatrixCommand}"
+                Style="{StaticResource MatrixButtonStyle}"
+                Margin="8,0,20,0"
+                ToolTip="Показать матрицу антагонистических связей между стилями"/>
 
-      <!-- Кнопки -->
+        <!-- Текст предупреждения -->
+        <TextBlock Text="{Binding PulseWarningMessage}"
+                   Foreground="{Binding WarningMessageColor}"
+                   FontStyle="Italic"
+                   VerticalAlignment="Center"
+                   TextWrapping="Wrap"
+                   Visibility="{Binding IsEditingEnabled, Converter={StaticResource InverseBooleanToVisibilityConverter}}"/>
+      </StackPanel>
+
+      <!-- Правая часть - кнопки управления таблицей -->
       <StackPanel Grid.Column="1" 
-                  Orientation="Horizontal" 
-                  HorizontalAlignment="Right">
+                Orientation="Horizontal" 
+                HorizontalAlignment="Right">
         <Button Content="Очистить"
                 Command="{Binding RemoveAllCommand}"
                 IsEnabled="{Binding IsEditingEnabled}"
                 Style="{StaticResource RedButtonStyle}"
                 ToolTip="Удалить все данные из таблицы"/>
         <Button Content="Сохранить" 
-          Command="{Binding SaveCommand}"
-          IsEnabled="{Binding IsEditingEnabled}"
-          Style="{StaticResource ActionButtonStyle}"
-          ToolTip="Сохранить данные текущей вкладки"/>
+                Command="{Binding SaveCommand}"
+                IsEnabled="{Binding IsEditingEnabled}"
+                Style="{StaticResource ActionButtonStyle}"
+                ToolTip="Сохранить данные текущей вкладки"/>
       </StackPanel>
     </Grid>
 

@@ -81,6 +81,7 @@
     <Compile Include="Converters\ActionSizeConverter.cs" />
     <Compile Include="Converters\ActiveBrushConverter.cs" />
     <Compile Include="Converters\BooleanToVisibilityConverter.cs" />
+    <Compile Include="Converters\CollectionCountToVisibilityConverter.cs" />
     <Compile Include="Converters\DictionaryToStringActionConverter.cs" />
     <Compile Include="Converters\DictionaryToStringConverter.cs" />
     <Compile Include="Converters\IdListToNamesConverter.cs" />
@@ -94,6 +95,7 @@
     <Compile Include="Converters\IsActiveStyleConverter.cs" />
     <Compile Include="Converters\Level1ToTextConverter.cs" />
     <Compile Include="Converters\ListToStringConverter.cs" />
+    <Compile Include="Converters\MatrixColumnsConverter.cs" />
     <Compile Include="Converters\NameToReadOnlyConverter.cs" />
     <Compile Include="Converters\NumericWithCommaValidationRule.cs" />
     <Compile Include="Converters\ParameterGradientConverter.cs" />
@@ -141,6 +143,9 @@
     </Compile>
     <Compile Include="Pages\AntagonistInfluenceEditor.xaml.cs">
       <DependentUpon>AntagonistInfluenceEditor.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Pages\AntagonistMatrixView.xaml.cs">
+      <DependentUpon>AntagonistMatrixView.xaml</DependentUpon>
     </Compile>
     <Compile Include="Pages\AntagonistStylesEditor.xaml.cs">
       <DependentUpon>AntagonistStylesEditor.xaml</DependentUpon>
@@ -219,6 +224,7 @@
     <Compile Include="ViewModels\AgentParametersViewModel.cs" />
     <Compile Include="ViewModels\AgentPultViewModel.cs" />
     <Compile Include="ViewModels\AgentViewModel.cs" />
+    <Compile Include="ViewModels\AntagonistMatrixViewModel.cs" />
     <Compile Include="ViewModels\BehaviorStylesViewModel.cs" />
     <Compile Include="ViewModels\AgentInfo.cs" />
     <Compile Include="ViewModels\ExterInalInfluencesViewModel.cs" />
@@ -282,6 +288,10 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="Pages\AntagonistInfluenceEditor.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Pages\AntagonistMatrixView.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
