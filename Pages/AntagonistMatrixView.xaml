@@ -97,7 +97,7 @@
         </ItemsControl.ItemsPanel>
         <ItemsControl.ItemTemplate>
           <DataTemplate>
-            <Border Width="40" Height="40"
+            <Border Width="60" Height="40"
                     Background="{Binding BackgroundColor}"
                     BorderBrush="{Binding BorderColor}"
                     BorderThickness="1"

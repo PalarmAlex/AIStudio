@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.Linq;
 using System.Windows;
 using System.Windows.Input;
@@ -33,22 +34,23 @@ namespace AIStudio.ViewModels
     public List<int> UnpairedStyleIds => _unpairedStyleIds;
 
     public ICommand BackCommand { get; }
+    public ICommand RefreshCommand { get; }
 
-    public AntagonistMatrixViewModel()
+    public AntagonistMatrixViewModel(GomeostasSystem gomeostas, List<GomeostasSystem.BehaviorStyle> currentStyles)
     {
-      _gomeostas = GomeostasSystem.Instance;
-      BackCommand = new RelayCommand(_ => NavigateBack());
+      _gomeostas = gomeostas ?? throw new ArgumentNullException(nameof(gomeostas));
+      BackCommand = new RelayCommand(_ => NavigateBack(currentStyles));
 
       MatrixCells = new ObservableCollection<MatrixCell>();
       _unpairedStyleIds = new List<int>();
-      LoadMatrix();
+
+      LoadMatrixFromStyles(currentStyles);
     }
 
-    private void LoadMatrix()
+    internal void LoadMatrixFromStyles(List<GomeostasSystem.BehaviorStyle> styles)
     {
       try
       {
-        var styles = _gomeostas.GetAllBehaviorStyles();
         var cells = new ObservableCollection<MatrixCell>();
 
         if (!styles.Any())
@@ -58,7 +60,7 @@ namespace AIStudio.ViewModels
           return;
         }
 
-        var styleList = styles.Values.OrderBy(s => s.Id).ToList();
+        var styleList = styles.OrderBy(s => s.Id).ToList();
         int size = styleList.Count;
 
         // Находим стили без парных антагонистов
@@ -73,45 +75,57 @@ namespace AIStudio.ViewModels
 
             if (row == 0 && col == 0)
             {
-              // Левый верхний угол - пустая ячейка
               cell.Content = "";
               cell.IsHeader = true;
-              cell.ToolTip = "Матрица антагонистов";
+              cell.ToolTip = "Матрица антагонистов (несохраненные данные)";
             }
             else if (row == 0)
             {
-              // Заголовки столбцов
               var style = styleList[col - 1];
               cell.Content = style.Id.ToString();
               cell.IsHeader = true;
               cell.StyleName = style.Name;
-              cell.ToolTip = $"{style.Name}\n{style.Description}";
+              cell.ToolTip = GenerateTooltip(style, styleList);
               cell.IsUnpaired = _unpairedStyleIds.Contains(style.Id);
             }
             else if (col == 0)
             {
-              // Заголовки строк
               var style = styleList[row - 1];
               cell.Content = style.Id.ToString();
               cell.IsHeader = true;
               cell.StyleName = style.Name;
-              cell.ToolTip = $"{style.Name}\n{style.Description}";
+              cell.ToolTip = GenerateTooltip(style, styleList);
               cell.IsUnpaired = _unpairedStyleIds.Contains(style.Id);
             }
             else
             {
-              // Ячейки матрицы
               var rowStyle = styleList[row - 1];
               var colStyle = styleList[col - 1];
 
               bool isAntagonist = rowStyle.AntagonistStyles.Contains(colStyle.Id) &&
-                                 colStyle.AntagonistStyles.Contains(rowStyle.Id);
+                               colStyle.AntagonistStyles.Contains(rowStyle.Id);
 
               cell.Content = isAntagonist ? "╳" : "";
               cell.IsAntagonist = isAntagonist;
-              cell.ToolTip = isAntagonist ?
-                  $"{rowStyle.Name} ↔ {colStyle.Name}\nАнтагонисты" :
-                  $"{rowStyle.Name} - {colStyle.Name}\nНет связи";
+
+              if (isAntagonist)
+              {
+                cell.ToolTip = $"✓ {rowStyle.Name} ↔ {colStyle.Name}\nВзаимные антагонисты";
+              }
+              else if (rowStyle.AntagonistStyles.Contains(colStyle.Id) &&
+                      !colStyle.AntagonistStyles.Contains(rowStyle.Id))
+              {
+                cell.ToolTip = $"⚠ {rowStyle.Name} → {colStyle.Name}\nОдносторонняя связь";
+              }
+              else if (!rowStyle.AntagonistStyles.Contains(colStyle.Id) &&
+                       colStyle.AntagonistStyles.Contains(rowStyle.Id))
+              {
+                cell.ToolTip = $"⚠ {colStyle.Name} → {rowStyle.Name}\nОдносторонняя связь";
+              }
+              else
+              {
+                cell.ToolTip = $"{rowStyle.Name} - {colStyle.Name}\nНет связи";
+              }
             }
 
             cells.Add(cell);
@@ -134,33 +148,127 @@ namespace AIStudio.ViewModels
     {
       _unpairedStyleIds.Clear();
 
+      var styleDict = styles.ToDictionary(s => s.Id, s => s);
+
       foreach (var style in styles)
       {
-        bool hasPair = false;
+        List<int> unpairedAntagonists = new List<int>();
+        List<int> nonExistentAntagonists = new List<int>();
+
         foreach (var antagonistId in style.AntagonistStyles)
         {
-          var antagonist = styles.FirstOrDefault(s => s.Id == antagonistId);
-          if (antagonist != null && antagonist.AntagonistStyles.Contains(style.Id))
+          if (styleDict.ContainsKey(antagonistId))
           {
-            hasPair = true;
-            break;
+            var antagonist = styleDict[antagonistId];
+
+            if (!antagonist.AntagonistStyles.Contains(style.Id))
+            {
+              unpairedAntagonists.Add(antagonistId);
+            }
+          }
+          else
+          {
+            nonExistentAntagonists.Add(antagonistId);
           }
         }
 
-        if (!hasPair && style.AntagonistStyles.Any())
+        // Если есть проблемы с антагонистами
+        if (unpairedAntagonists.Any() || nonExistentAntagonists.Any())
         {
-          _unpairedStyleIds.Add(style.Id);
+          if (!_unpairedStyleIds.Contains(style.Id))
+          {
+            _unpairedStyleIds.Add(style.Id);
+          }
         }
       }
     }
 
-    private void NavigateBack()
+    private string GenerateTooltip(GomeostasSystem.BehaviorStyle style, List<GomeostasSystem.BehaviorStyle> allStyles)
+    {
+      var styleDict = allStyles.ToDictionary(s => s.Id, s => s);
+      var unpairedAntagonists = new List<int>();
+      var nonExistentAntagonists = new List<int>();
+      var validAntagonists = new List<int>();
+
+      // Анализируем антагонистов
+      foreach (var antagonistId in style.AntagonistStyles)
+      {
+        if (styleDict.ContainsKey(antagonistId))
+        {
+          var antagonist = styleDict[antagonistId];
+
+          if (antagonist.AntagonistStyles.Contains(style.Id))
+          {
+            validAntagonists.Add(antagonistId);
+          }
+          else
+          {
+            unpairedAntagonists.Add(antagonistId);
+          }
+        }
+        else
+        {
+          nonExistentAntagonists.Add(antagonistId);
+        }
+      }
+
+      // Формируем подсказку
+      var tooltip = new System.Text.StringBuilder();
+      tooltip.AppendLine($"{style.Name} (ID:{style.Id})");
+      tooltip.AppendLine($"{style.Description}");
+      tooltip.AppendLine();
+
+      if (!unpairedAntagonists.Any() && !nonExistentAntagonists.Any())
+      {
+        tooltip.AppendLine("✓ Все антагонисты симметричны");
+
+        if (validAntagonists.Any())
+        {
+          var antagonistNames = string.Join(", ", validAntagonists.Select(id =>
+              $"{styleDict[id].Name} (ID:{id})"));
+          tooltip.AppendLine($"Антагонисты: {antagonistNames}");
+        }
+        else
+        {
+          tooltip.AppendLine("Нет антагонистов");
+        }
+      }
+      else
+      {
+        tooltip.AppendLine("⚠ Нарушена симметрия антагонистов:");
+
+        if (unpairedAntagonists.Any())
+        {
+          var unpairedNames = string.Join(", ", unpairedAntagonists.Select(id =>
+              $"{styleDict[id].Name} (ID:{id})"));
+          tooltip.AppendLine($"• Без обратной связи: {unpairedNames}");
+        }
+
+        if (nonExistentAntagonists.Any())
+        {
+          tooltip.AppendLine($"• Несуществующие ID: {string.Join(", ", nonExistentAntagonists)}");
+        }
+
+        if (validAntagonists.Any())
+        {
+          var validNames = string.Join(", ", validAntagonists.Select(id =>
+              $"{styleDict[id].Name} (ID:{id})"));
+          tooltip.AppendLine($"✓ Корректные: {validNames}");
+        }
+      }
+
+      return tooltip.ToString();
+    }
+
+    private void NavigateBack(List<GomeostasSystem.BehaviorStyle> currentStyles)
     {
       var mainWindow = Application.Current.MainWindow as MainWindow;
       if (mainWindow?.DataContext is MainViewModel mainViewModel)
       {
         var behaviorStylesView = new BehaviorStylesView();
-        var viewModel = new BehaviorStylesViewModel(_gomeostas);
+
+        // Передаем текущие данные обратно в BehaviorStylesViewModel
+        var viewModel = new BehaviorStylesViewModel(_gomeostas, currentStyles);
         behaviorStylesView.DataContext = viewModel;
         mainViewModel.CurrentContent = behaviorStylesView;
       }

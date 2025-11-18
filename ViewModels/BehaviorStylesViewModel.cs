@@ -51,7 +51,7 @@ namespace AIStudio.ViewModels
     private ICommand _showMatrixCommand;
     public ICommand ShowMatrixCommand => _showMatrixCommand ?? (_showMatrixCommand = new RelayCommand(ShowAntagonistMatrix));
 
-    public BehaviorStylesViewModel(GomeostasSystem gomeostas)
+    public BehaviorStylesViewModel(GomeostasSystem gomeostas, List<GomeostasSystem.BehaviorStyle> currentStyles = null)
     {
       _gomeostas = gomeostas;
       SaveCommand = new RelayCommand(SaveData);
@@ -59,7 +59,11 @@ namespace AIStudio.ViewModels
       RemoveAllCommand = new RelayCommand(RemoveAllStyles);
 
       GlobalTimer.PulsationStateChanged += OnPulsationStateChanged;
-      LoadAgentData();
+
+      if (currentStyles != null)
+        LoadAgentDataFromStyles(currentStyles);
+      else
+        LoadAgentData();
     }
 
     private void OnPulsationStateChanged()
@@ -122,10 +126,19 @@ namespace AIStudio.ViewModels
       try
       {
         var matrixView = new AntagonistMatrixView();
-        var matrixViewModel = new AntagonistMatrixViewModel();
+        var currentStyles = BehaviorStyles.Select(bs => new GomeostasSystem.BehaviorStyle
+        {
+          Id = bs.Id,
+          Name = bs.Name,
+          Description = bs.Description,
+          Weight = bs.Weight,
+          AntagonistStyles = bs.AntagonistStyles,
+          StileActionInfluence = bs.StileActionInfluence
+        }).ToList();
+
+        var matrixViewModel = new AntagonistMatrixViewModel(_gomeostas, currentStyles);
         matrixView.DataContext = matrixViewModel;
 
-        // Получаем главное окно и меняем контент
         var mainWindow = Application.Current.MainWindow as MainWindow;
         if (mainWindow?.DataContext is MainViewModel mainViewModel)
         {
@@ -136,6 +149,45 @@ namespace AIStudio.ViewModels
       {
         MessageBox.Show($"Ошибка открытия матрицы антагонистов: {ex.Message}",
             "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
+      }
+    }
+
+    private void LoadAgentDataFromStyles(List<GomeostasSystem.BehaviorStyle> styles)
+    {
+      try
+      {
+        var agentInfo = _gomeostas.GetAgentState();
+        _currentAgentStage = agentInfo?.EvolutionStage ?? 0;
+        _currentAgentDescription = agentInfo.Description;
+        _currentAgentName = agentInfo.Name;
+
+        BehaviorStyles.Clear();
+
+        // Используем переданные стили
+        foreach (var style in styles.OrderBy(s => s.Id))
+        {
+          BehaviorStyles.Add(new GomeostasSystem.BehaviorStyle
+          {
+            Id = style.Id,
+            Name = style.Name,
+            Description = style.Description,
+            Weight = style.Weight,
+            AntagonistStyles = style.AntagonistStyles,
+            StileActionInfluence = style.StileActionInfluence
+          });
+        }
+
+        OnPropertyChanged(nameof(IsStageZero));
+        OnPropertyChanged(nameof(IsEditingEnabled));
+        OnPropertyChanged(nameof(PulseWarningMessage));
+        OnPropertyChanged(nameof(WarningMessageColor));
+        OnPropertyChanged(nameof(CurrentAgentDescription));
+        OnPropertyChanged(nameof(CurrentAgentTitle));
+      }
+      catch (Exception ex)
+      {
+        MessageBox.Show($"Ошибка загрузки стилей: {ex.Message}", "Ошибка",
+            MessageBoxButton.OK, MessageBoxImage.Error);
       }
     }
 
@@ -168,6 +220,7 @@ namespace AIStudio.ViewModels
               MessageBoxButton.OK,
               MessageBoxImage.Information);
           RefreshAllCollections();
+          NotifyMatrixUpdate();
         }
         else
         {
@@ -188,31 +241,66 @@ namespace AIStudio.ViewModels
 
     private bool UpdateGomeostasStylesFromTable()
     {
-      if (!_gomeostas.ValidateAgentBehaviorStyles(BehaviorStyles, out string erroMsg))
+      if (!_gomeostas.ValidateAgentBehaviorStyles(BehaviorStyles, out string errorMsg))
       {
-        MessageBox.Show($"Ошибка валидации стилей:\n{erroMsg}",
-            "Ошибка сохранения",
-            MessageBoxButton.OK,
-            MessageBoxImage.Error);
-        return false;
+        if (errorMsg.Contains("AsymmetricStyles"))
+        {
+          var asymmetricStyles = _gomeostas.FindAsymmetricStyles(BehaviorStyles);
+          if (asymmetricStyles.Any())
+          {
+            var asymmetricList = string.Join(", ", asymmetricStyles.Select(s => $"{s.Name} (ID:{s.Id})"));
+
+            var result = MessageBox.Show(
+                $"Обнаружены асимметричные антагонистические связи:\n{asymmetricList}\n\n" +
+                "Выберите действие:\n" +
+                "• Да - автоматически исправить все связи\n" +
+                "• Нет - сохранить без изменений\n" +
+                "• Отмена - не сохранять",
+                "Асимметричные антагонисты",
+                MessageBoxButton.YesNoCancel,
+                MessageBoxImage.Warning);
+
+            switch (result)
+            {
+              case MessageBoxResult.Yes:
+                int fixesCount = _gomeostas.FixAntagonistSymmetry();
+                MessageBox.Show($"Исправлено {fixesCount} асимметричных связей",
+                    "Автокоррекция завершена",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Information);
+                RefreshAllCollections();
+                break;
+
+              case MessageBoxResult.No:
+                break;
+
+              case MessageBoxResult.Cancel:
+                return false;
+            }
+          }
+        }
+        else
+        {
+          MessageBox.Show($"Ошибка валидации стилей:\n{errorMsg}",
+              "Ошибка сохранения",
+              MessageBoxButton.OK,
+              MessageBoxImage.Error);
+          return false;
+        }
       }
-      
-      // Получаем текущие стили из гомеостаза
+
       var currentStyles = _gomeostas.GetAllBehaviorStyles();
 
-      // Удаляем стили, которых нет в таблице
       var stylesToRemove = currentStyles.Keys.Except(BehaviorStyles.Select(s => s.Id)).ToList();
       foreach (var styleId in stylesToRemove)
       {
         _gomeostas.RemoveBehaviorStyle(styleId);
       }
 
-      // Добавляем/обновляем стили из таблицы
       foreach (var style in BehaviorStyles)
       {
         if (currentStyles.ContainsKey(style.Id))
         {
-          // Обновляем существующий стиль
           var existingStyle = currentStyles[style.Id];
           existingStyle.Name = style.Name;
           existingStyle.Description = style.Description;
@@ -222,17 +310,16 @@ namespace AIStudio.ViewModels
         }
         else
         {
-          // Добавляем новый стиль
           var (newId, warnings) = _gomeostas.AddBehaviorStyle(
               style.Name,
               style.Description,
               style.Weight,
               style.AntagonistStyles,
               style.StileActionInfluence);
-
           style.Id = newId;
         }
       }
+
       return true;
     }
 
@@ -278,6 +365,29 @@ namespace AIStudio.ViewModels
         {
           MessageBox.Show($"Ошибка удаления стиля: {ex.Message}", "Ошибка",
               MessageBoxButton.OK, MessageBoxImage.Error);
+        }
+      }
+    }
+
+    private void NotifyMatrixUpdate()
+    {
+      // Уведомляем матрицу об обновлении данных
+      var mainWindow = Application.Current.MainWindow as MainWindow;
+      if (mainWindow?.DataContext is MainViewModel mainViewModel && mainViewModel.CurrentContent is AntagonistMatrixView matrixView)
+      {
+        if (matrixView.DataContext is AntagonistMatrixViewModel matrixViewModel)
+        {
+          var currentStyles = BehaviorStyles.Select(bs => new GomeostasSystem.BehaviorStyle
+          {
+            Id = bs.Id,
+            Name = bs.Name,
+            Description = bs.Description,
+            Weight = bs.Weight,
+            AntagonistStyles = bs.AntagonistStyles,
+            StileActionInfluence = bs.StileActionInfluence
+          }).ToList();
+
+          matrixViewModel.LoadMatrixFromStyles(currentStyles);
         }
       }
     }
