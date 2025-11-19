@@ -290,7 +290,6 @@ namespace AIStudio.ViewModels
       }
 
       var currentStyles = _gomeostas.GetAllBehaviorStyles();
-
       var stylesToRemove = currentStyles.Keys.Except(BehaviorStyles.Select(s => s.Id)).ToList();
       foreach (var styleId in stylesToRemove)
       {

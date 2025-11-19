@@ -1,4 +1,8 @@
-﻿using System;
+﻿using AIStudio.Common;
+using ISIDA.Actions;
+using ISIDA.Common;
+using ISIDA.Gomeostas;
+using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
@@ -6,10 +10,7 @@ using System.Linq;
 using System.Windows;
 using System.Windows.Input;
 using System.Windows.Media;
-using AIStudio.Common;
-using ISIDA.Actions;
-using ISIDA.Common;
-using ISIDA.Gomeostas;
+using static ISIDA.Gomeostas.GomeostasSystem;
 
 namespace AIStudio.ViewModels
 {
@@ -169,11 +170,50 @@ namespace AIStudio.ViewModels
       var (isValid, errors, validate_warnings) = _actionsSystem.ValidateAction(AdaptiveActions);
       if (!isValid)
       {
-        MessageBox.Show(errors,
+        if (errors.Contains("AsymmetricAction"))
+        {
+          var asymmetricActions = _actionsSystem.FindAsymmetricActions(AdaptiveActions);
+          if (asymmetricActions.Any())
+          {
+            var asymmetricList = string.Join(", ", asymmetricActions.Select(s => $"{s.Name} (ID:{s.Id})"));
+
+            var result = MessageBox.Show(
+                $"Обнаружены асимметричные антагонистические связи:\n{asymmetricList}\n\n" +
+                "Выберите действие:\n" +
+                "• Да - автоматически исправить все связи\n" +
+                "• Нет - сохранить без изменений\n" +
+                "• Отмена - не сохранять",
+                "Асимметричные антагонисты",
+                MessageBoxButton.YesNoCancel,
+                MessageBoxImage.Warning);
+
+            switch (result)
+            {
+              case MessageBoxResult.Yes:
+                int fixesCount = _actionsSystem.FixActionAntagonistSymmetry();
+                MessageBox.Show($"Исправлено {fixesCount} асимметричных связей",
+                    "Автокоррекция завершена",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Information);
+                RefreshAllCollections();
+                break;
+
+              case MessageBoxResult.No:
+                break;
+
+              case MessageBoxResult.Cancel:
+                return false;
+            }
+          }
+        }
+        else
+        {
+          MessageBox.Show(errors,
             "Ошибки валидации",
             MessageBoxButton.OK,
             MessageBoxImage.Error);
-        return false;
+          return false;
+        }
       }
       if (validate_warnings != "")
       {

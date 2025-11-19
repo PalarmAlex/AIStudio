@@ -11,6 +11,7 @@ using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Input;
 using System.Windows.Media;
+using static ISIDA.Gomeostas.GomeostasSystem;
 
 namespace AIStudio.ViewModels
 {
@@ -242,23 +243,66 @@ namespace AIStudio.ViewModels
     }
 
     private bool UpdateInfluenceActionsSystemFromTable()
-    {          
-      // Получаем текущие действия из системы
-      var currentActions = _influenceActionSystem.GetAllInfluenceActions().ToDictionary(a => a.Id);
+    {
+      if (!_influenceActionSystem.ValidateAllInfluenceActions(InfluenceActions, out string errorMsg))
+      {
+        if (errorMsg.Contains("AsymmetricInfluences"))
+        {
+          var asymmetricStyles = _influenceActionSystem.FindAsymmetricInfluences(InfluenceActions);
+          if (asymmetricStyles.Any())
+          {
+            var asymmetricList = string.Join(", ", asymmetricStyles.Select(s => $"{s.Name} (ID:{s.Id})"));
 
-      // Удаляем действия, которых нет в таблице
+            var result = MessageBox.Show(
+                $"Обнаружены асимметричные антагонистические связи:\n{asymmetricList}\n\n" +
+                "Выберите действие:\n" +
+                "• Да - автоматически исправить все связи\n" +
+                "• Нет - сохранить без изменений\n" +
+                "• Отмена - не сохранять",
+                "Асимметричные антагонисты",
+                MessageBoxButton.YesNoCancel,
+                MessageBoxImage.Warning);
+
+            switch (result)
+            {
+              case MessageBoxResult.Yes:
+                int fixesCount = _influenceActionSystem.FixInfluenceAntagonistSymmetry();
+                MessageBox.Show($"Исправлено {fixesCount} асимметричных связей",
+                    "Автокоррекция завершена",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Information);
+                RefreshAllCollections();
+                break;
+
+              case MessageBoxResult.No:
+                break;
+
+              case MessageBoxResult.Cancel:
+                return false;
+            }
+          }
+        }
+        else
+        {
+          MessageBox.Show($"Ошибка валидации гомеостатических воздействий:\n{errorMsg}",
+              "Ошибка сохранения",
+              MessageBoxButton.OK,
+              MessageBoxImage.Error);
+          return false;
+        }
+      }
+
+      var currentActions = _influenceActionSystem.GetAllInfluenceActions().ToDictionary(a => a.Id);
       var actionsToRemove = currentActions.Keys.Except(InfluenceActions.Select(a => a.Id)).ToList();
       foreach (var actionId in actionsToRemove)
       {
         _influenceActionSystem.RemoveAction(actionId);
       }
 
-      // Добавляем/обновляем действия из таблицы
       foreach (var action in InfluenceActions)
       {
         if (currentActions.ContainsKey(action.Id))
         {
-          // Обновляем существующее действие
           var existingAction = currentActions[action.Id];
           existingAction.Name = action.Name;
           existingAction.Description = action.Description;
