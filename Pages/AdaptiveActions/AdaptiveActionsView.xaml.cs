@@ -118,33 +118,6 @@ namespace AIStudio.Pages
       }
     }
 
-    private void CostsCell_MouseDown(object sender, MouseButtonEventArgs e)
-    {
-      if (e.ClickCount == 2 && DataContext is AdaptiveActionsViewModel vm)
-      {
-        if (sender is FrameworkElement element &&
-            element.DataContext is AdaptiveActionsSystem.AdaptiveAction action)
-        {
-          var editor = new ActionInfluencesEditor(
-              $"Затраты действия: {action.Name} (ID: {action.Id})",
-              vm.GetAllParameters(),
-              action.Costs); // Передаём Costs вместо Influences
-
-          if (editor.ShowDialog() == true)
-          {
-            // Обновляем Costs, применяя Clamp
-            action.Costs = editor.SelectedInfluences.ToDictionary(
-                kvp => kvp.Key,
-                kvp => GomeostasSystem.ClampInt(kvp.Value, -10, 10));
-
-            ActionsGrid.CommitEdit(DataGridEditingUnit.Row, true);
-            ActionsGrid.Items.Refresh();
-          }
-        }
-        e.Handled = true;
-      }
-    }
-
     private void DescriptionCell_DoubleClick(object sender, MouseButtonEventArgs e)
     {
       if (sender is DataGridCell cell && cell.DataContext is AdaptiveActionsSystem.AdaptiveAction action)

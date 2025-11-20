@@ -171,6 +171,7 @@ namespace AIStudio
             enabled: AppConfig.LogEnabled
         );
         _gomeostas.SetResearchLogger(_researchLogger);
+        _reflexesActivator.SetResearchLogger(_researchLogger);
         ResearchLogger.SetMemoryLogWriter(MemoryLogManager.Instance);
         GlobalTimer.InitializeSystems(_gomeostas,_actionsSystem, _reflexesActivator);
         _stepInzialized = 12;
@@ -754,9 +755,9 @@ namespace AIStudio
             OnPropertyChanged(nameof(PulseStatus));
             OnPropertyChanged(nameof(LifeTimeStatus));
 
-            // Логируем состояние (если агент жив)
+            //// Логируем состояние (если агент жив)
             if (!IsAgentDead)
-              _researchLogger?.LogSystemState(pulseCount);
+            _researchLogger?.LogSystemState(pulseCount);
           }
           catch (Exception ex)
           {

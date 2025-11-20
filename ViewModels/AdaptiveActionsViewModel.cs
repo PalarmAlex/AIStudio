@@ -81,7 +81,6 @@ namespace AIStudio.ViewModels
           Name = action.Name,
           Description = action.Description,
           Vigor = action.Vigor,
-          Costs = new Dictionary<int, int>(action.Costs),
           AntagonistActions = new List<int>(action.AntagonistActions)
         });
       }
@@ -247,7 +246,6 @@ namespace AIStudio.ViewModels
           existingAction.Name = action.Name;
           existingAction.Description = action.Description;
           existingAction.Vigor = action.Vigor;
-          existingAction.Costs = new Dictionary<int, int>(action.Costs);
           existingAction.AntagonistActions = new List<int>(action.AntagonistActions);
         }
         else
@@ -256,7 +254,6 @@ namespace AIStudio.ViewModels
           var (newId, warnings) = _actionsSystem.AddAction(
               action.Name,
               action.Description,
-              new Dictionary<int, int>(action.Costs),
               new List<int>(action.AntagonistActions),
               false,
               action.Vigor

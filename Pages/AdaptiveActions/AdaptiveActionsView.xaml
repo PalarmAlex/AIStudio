@@ -12,7 +12,6 @@
 
   <UserControl.Resources>
     <converters:ListToStringConverter x:Key="ListToStringConverter"/>
-    <converters:IntDictionaryToStringConverter x:Key="IntDictionaryToStringConverter"/>
     <converters:InverseBooleanConverter x:Key="InverseBooleanConverter"/>
     <converters:InverseBooleanToVisibilityConverter x:Key="InverseBooleanToVisibilityConverter"/>
 
@@ -104,7 +103,7 @@
             </DataGridTextColumn.HeaderStyle>
           </DataGridTextColumn>
 
-          <DataGridTextColumn Header="Энергичность" Binding="{Binding Vigor, Mode=TwoWay}" Width="60">
+          <DataGridTextColumn Header="Энергичность" Binding="{Binding Vigor, Mode=TwoWay}" Width="80">
             <DataGridTextColumn.HeaderStyle>
               <Style TargetType="DataGridColumnHeader">
                 <Setter Property="ToolTip">
@@ -121,30 +120,6 @@
                 <EventSetter Event="PreviewTextInput" Handler="NumericColumn_PreviewTextInput"/>
               </Style>
             </DataGridTextColumn.EditingElementStyle>
-          </DataGridTextColumn>
-
-          <DataGridTextColumn Header="Затраты" 
-            Binding="{Binding Costs, Converter={StaticResource IntDictionaryToStringConverter}}" 
-            IsReadOnly="True" 
-             Width="150">
-            <DataGridTextColumn.ElementStyle>
-              <Style TargetType="TextBlock">
-                <EventSetter Event="MouseDown" Handler="CostsCell_MouseDown"/>
-              </Style>
-            </DataGridTextColumn.ElementStyle>
-            <DataGridTextColumn.HeaderStyle>
-              <Style TargetType="DataGridColumnHeader">
-                <Setter Property="ToolTip">
-                  <Setter.Value>
-                    <TextBlock TextWrapping="Wrap" Width="200">
-                      Затраты действия на параметры гомеостаза, например Энергия.
-                      Ключ - ID параметра, значение - величина ухудшения (знак влияния зависит от типа параметра: дефицит или избыток ориентированный)
-                      ДБ клик открывает окно ввода.
-                    </TextBlock>
-                  </Setter.Value>
-                </Setter>
-              </Style>
-            </DataGridTextColumn.HeaderStyle>
           </DataGridTextColumn>
 
           <DataGridTextColumn Header="Антагонисты" 

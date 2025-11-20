@@ -107,7 +107,7 @@ namespace AIStudio.ViewModels
       _column1Actions = new ObservableCollection<InfluenceActionItem>();
       _column2Actions = new ObservableCollection<InfluenceActionItem>();
       _recognitionDisplayText = "";
-      MessageText = "Привет";
+      MessageText = "";
 
       LoadInfluenceActions();
       UpdateAgentState();

@@ -178,10 +178,6 @@
                                        Text="Стили поведения, активированные напрямую параметрами гомеостаза."/>
                         <TextBlock TextWrapping="Wrap" MaxWidth="300"
                                        Text="На этом этапе могут быть конфликты между стилями."/>
-                        <TextBlock TextWrapping="Wrap" MaxWidth="300" Margin="0,8,0,0"
-                                       Text="Формат записи:" FontWeight="Bold"/>
-                        <TextBlock TextWrapping="Wrap" MaxWidth="300"
-                                       Text="Стиль | Вес"/>
                       </StackPanel>
                     </ToolTip>
                   </Setter.Value>
@@ -208,10 +204,6 @@
                                        Text="Стили после разрешения конфликтов между антагонистами."/>
                         <TextBlock TextWrapping="Wrap" MaxWidth="300"
                                        Text="Если два стиля несовместимы, один из них (кто слабее) подавляется."/>
-                        <TextBlock TextWrapping="Wrap" MaxWidth="300" Margin="0,8,0,0"
-                                       Text="Формат записи:" FontWeight="Bold"/>
-                        <TextBlock TextWrapping="Wrap" MaxWidth="300"
-                                       Text="Стиль | Вес"/>
                       </StackPanel>
                     </ToolTip>                    
                   </Setter.Value>
@@ -238,10 +230,6 @@
                                        Text="Финальные стили после контрастирования."/>
                         <TextBlock TextWrapping="Wrap" MaxWidth="300"
                                        Text="Самые сильные стили подавляют слабые конкурирующие стили."/>
-                        <TextBlock TextWrapping="Wrap" MaxWidth="300" Margin="0,8,0,0"
-                                       Text="Формат записи:" FontWeight="Bold"/>
-                        <TextBlock TextWrapping="Wrap" MaxWidth="300"
-                                       Text="Стиль | Вес"/>
                       </StackPanel>
                     </ToolTip>
                   </Setter.Value>
