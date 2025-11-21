@@ -32,6 +32,44 @@
         </Setter.Value>
       </Setter>
     </Style>
+
+    <Style x:Key="MatrixButtonStyle" TargetType="Button">
+      <Setter Property="Background" Value="#002000"/>
+      <Setter Property="Foreground" Value="#00FF00"/>
+      <Setter Property="BorderBrush" Value="#00FF00"/>
+      <Setter Property="BorderThickness" Value="1"/>
+      <Setter Property="Padding" Value="10,5"/>
+      <Setter Property="FontFamily" Value="Consolas"/>
+      <Setter Property="FontSize" Value="14"/>
+      <Setter Property="FontWeight" Value="Bold"/>
+      <Setter Property="Template">
+        <Setter.Value>
+          <ControlTemplate TargetType="Button">
+            <Border Background="{TemplateBinding Background}" 
+                        BorderBrush="{TemplateBinding BorderBrush}" 
+                        BorderThickness="{TemplateBinding BorderThickness}"
+                        CornerRadius="2">
+              <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+            </Border>
+          </ControlTemplate>
+        </Setter.Value>
+      </Setter>
+      <Style.Triggers>
+        <Trigger Property="IsMouseOver" Value="True">
+          <Setter Property="Background" Value="#004000"/>
+          <Setter Property="Foreground" Value="#80FF80"/>
+        </Trigger>
+        <Trigger Property="IsPressed" Value="True">
+          <Setter Property="Background" Value="#006000"/>
+        </Trigger>
+        <Trigger Property="IsEnabled" Value="False">
+          <Setter Property="Background" Value="#101010"/>
+          <Setter Property="Foreground" Value="#808080"/>
+          <Setter Property="BorderBrush" Value="#404040"/>
+        </Trigger>
+      </Style.Triggers>
+    </Style>
+
   </UserControl.Resources>
 
   <Grid Margin="12">
@@ -310,8 +348,15 @@
         <ColumnDefinition Width="Auto"/>
       </Grid.ColumnDefinitions>
 
-      <!-- Текст предупреждения -->
-      <TextBlock Grid.Column="0"
+      <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
+        <Button Content="МАТРИЦА СВЯЗЕЙ"
+        Command="{Binding ShowMatrixCommand}"
+        Style="{StaticResource MatrixButtonStyle}"
+        Margin="8,0,20,0"
+        ToolTip="Показать матрицу связей параметров и стилей"/>
+
+        <!-- Текст предупреждения -->
+        <TextBlock Grid.Column="0"
            Text="{Binding PulseWarningMessage}"
            Foreground="{Binding WarningMessageColor}"
            FontStyle="Italic"
@@ -320,16 +365,18 @@
            TextWrapping="Wrap"
            Visibility="{Binding IsEditingEnabled, Converter={StaticResource InverseBooleanToVisibilityConverter}}"/>
 
-      <!-- Кнопки -->
+      </StackPanel>
+
       <StackPanel Grid.Column="1" 
                   Orientation="Horizontal" 
                   HorizontalAlignment="Right">
+
         <Button Content="Очистить"
                 Command="{Binding RemoveAllCommand}"
                 IsEnabled="{Binding IsEditingEnabled}"
                 Style="{StaticResource RedButtonStyle}"
                 ToolTip="Удалить все данные из таблицы"/>
-        
+
         <Button Content="Сохранить" 
           Command="{Binding SaveCommand}"
           IsEnabled="{Binding IsEditingEnabled}"
@@ -337,5 +384,6 @@
           ToolTip="Сохранить данные гомеостаза агента"/>
       </StackPanel>
     </Grid>
+
   </Grid>
 </UserControl>

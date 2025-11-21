@@ -1,16 +1,17 @@
-﻿using System;
+﻿using AIStudio.Common;
+using AIStudio.Pages;
+using ISIDA.Common;
+using ISIDA.Gomeostas;
+using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
-using System.Windows.Media;
+using System.Globalization;
 using System.Linq;
 using System.Windows;
-using System.Windows.Input;
-using AIStudio.Common;
-using ISIDA.Gomeostas;
 using System.Windows.Controls;
-using System.Globalization;
-using ISIDA.Common;
+using System.Windows.Input;
+using System.Windows.Media;
 
 namespace AIStudio.ViewModels
 {
@@ -53,6 +54,32 @@ namespace AIStudio.ViewModels
     public ICommand RemoveAllCommand { get; }
     public ICommand SelectAgentCommand { get; }
 
+    private ICommand _showMatrixCommand;
+    public ICommand ShowMatrixCommand => _showMatrixCommand ?? (_showMatrixCommand = new RelayCommand(ShowParametersStylesMatrix));
+
+    private void ShowParametersStylesMatrix(object parameter)
+    {
+      try
+      {
+        var matrixView = new ParametersStylesMatrixView();
+        var currentParameters = SystemParameters.ToList();
+
+        var matrixViewModel = new ParametersStylesMatrixViewModel(_gomeostas, currentParameters);
+        matrixView.DataContext = matrixViewModel;
+
+        var mainWindow = Application.Current.MainWindow as MainWindow;
+        if (mainWindow?.DataContext is MainViewModel mainViewModel)
+        {
+          mainViewModel.CurrentContent = matrixView;
+        }
+      }
+      catch (Exception ex)
+      {
+        MessageBox.Show($"Ошибка открытия матрицы связей: {ex.Message}",
+            "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
+      }
+    }
+
     public SystemParametersViewModel(GomeostasSystem gomeostas)
     {
       _gomeostas = gomeostas;
@@ -60,6 +87,7 @@ namespace AIStudio.ViewModels
       SaveCommand = new RelayCommand(_ => SaveParameters());
       RemoveAllCommand = new RelayCommand(_ => RemoveAllParameters());
       GlobalTimer.PulsationStateChanged += OnPulsationStateChanged;
+      RefreshParameters();
     }
 
     /// <summary>

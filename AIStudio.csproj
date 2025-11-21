@@ -99,6 +99,7 @@
     <Compile Include="Converters\NameToReadOnlyConverter.cs" />
     <Compile Include="Converters\NumericWithCommaValidationRule.cs" />
     <Compile Include="Converters\ParameterGradientConverter.cs" />
+    <Compile Include="Converters\ParametersStylesColumnsConverter.cs" />
     <Compile Include="Converters\ParameterStateToBrushConverter.cs" />
     <Compile Include="Converters\ParameterValueToGradientConverter.cs" />
     <Compile Include="Converters\ParameterValueToIndicatorPositionConverter.cs" />
@@ -161,6 +162,9 @@
     </Compile>
     <Compile Include="Pages\ParameterLogsView.xaml.cs">
       <DependentUpon>ParameterLogsView.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Pages\ParametersStylesMatrixView.xaml.cs">
+      <DependentUpon>ParametersStylesMatrixView.xaml</DependentUpon>
     </Compile>
     <Compile Include="Pages\Reflexes\ConditionedReflexesView.xaml.cs">
       <DependentUpon>ConditionedReflexesView.xaml</DependentUpon>
@@ -231,6 +235,7 @@
     <Compile Include="ViewModels\LiveLogsViewModel.cs" />
     <Compile Include="ViewModels\MainViewModel.cs" />
     <Compile Include="ViewModels\ParameterLogsViewModel.cs" />
+    <Compile Include="ViewModels\ParametersStylesMatrixViewModel.cs" />
     <Compile Include="ViewModels\ProjectSettingsViewModel.cs" />
     <Compile Include="ViewModels\Reflexes\ConditionedReflexesViewModel.cs" />
     <Compile Include="ViewModels\Reflexes\GeneticReflexesViewModel.cs" />
@@ -312,6 +317,10 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="Pages\ParameterLogsView.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Pages\ParametersStylesMatrixView.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
