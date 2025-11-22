@@ -131,13 +131,39 @@
                   ItemContainerStyle="{StaticResource ComboBoxItemStyle}"
                   Width="350"
                   Height="35"
-                  ToolTip="Выберите стиль для подсветки ячеек">
+                  ToolTip="Выберите стиль для подсветки ячеек"
+                  Margin="0,0,20,0">
           <ComboBox.ItemTemplate>
             <DataTemplate>
               <TextBlock Text="{Binding}" 
-                         Foreground="#006400"
-                         FontFamily="Consolas"
-                         FontSize="14"/>
+                             Foreground="#006400"
+                             FontFamily="Consolas"
+                             FontSize="14"/>
+            </DataTemplate>
+          </ComboBox.ItemTemplate>
+        </ComboBox>
+
+        <!-- Фильтр по группам стилей -->
+        <TextBlock Text="Фильтр по группам:" 
+                   Foreground="#00FF00"
+                   FontFamily="Consolas"
+                   FontSize="14"
+                   VerticalAlignment="Center"
+                   Margin="0,0,10,0"/>
+
+        <ComboBox ItemsSource="{Binding StyleGroupFilterItems}"
+                  SelectedItem="{Binding SelectedStyleGroupFilter}"
+                  Style="{StaticResource ComboBoxStyle}"
+                  ItemContainerStyle="{StaticResource ComboBoxItemStyle}"
+                  Width="400"
+                  Height="35"
+                  ToolTip="Выберите группу стилей для подсветки дубликатов">
+          <ComboBox.ItemTemplate>
+            <DataTemplate>
+              <TextBlock Text="{Binding}" 
+                             Foreground="#006400"
+                             FontFamily="Consolas"
+                             FontSize="14"/>
             </DataTemplate>
           </ComboBox.ItemTemplate>
         </ComboBox>
@@ -192,7 +218,13 @@
           <Border Width="20" Height="20" BorderBrush="#00FF00" BorderThickness="1" Background="#808000" Margin="0,0,5,0"/>
           <TextBlock Text="Выбранный стиль" Foreground="#00FF00" FontFamily="Consolas" FontSize="12"/>
         </StackPanel>
+
+        <StackPanel Orientation="Horizontal">
+          <Border Width="20" Height="20" BorderBrush="#00FF00" BorderThickness="1" Background="#0050A0" Margin="0,0,5,0"/>
+          <TextBlock Text="Дублирующиеся группы" Foreground="#00FF00" FontFamily="Consolas" FontSize="12"/>
+        </StackPanel>
       </StackPanel>
     </Border>
+
   </Grid>
 </UserControl>

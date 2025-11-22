@@ -59,6 +59,8 @@ namespace AIStudio.Pages
         {
           UpdateParameterStyles(parameter, cell.ZoneId, editor.SelectedStyleIds.ToList());
           viewModel.LoadMatrixFromParameters(viewModel.GetAllParameters());
+          viewModel.ApplyStyleFilter();
+          viewModel.ApplyStyleGroupFilter();
         }
       }
     }
