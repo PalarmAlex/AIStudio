@@ -121,17 +121,17 @@
                     BorderBrush="{Binding BorderColor}"
                     BorderThickness="1"
                     ToolTip="{Binding ToolTip}">
-              <Button Style="{StaticResource CellButtonStyle}"
-                      Click="CellButton_Click"
+                <Button Style="{StaticResource CellButtonStyle}"
+                        Click="CellButton_Click"
                       DataContext="{Binding}">
-                <TextBlock Text="{Binding Content}" 
-                           Foreground="{Binding TextColor}"
-                           FontFamily="Consolas, Courier New"
-                           FontSize="14"
-                           FontWeight="Normal"
-                           VerticalAlignment="Center"
-                           HorizontalAlignment="Center"/>
-              </Button>
+                  <TextBlock Text="{Binding Content}" 
+                             Foreground="{Binding TextColor}"
+                             FontFamily="Consolas, Courier New"
+                             FontSize="14"
+                             FontWeight="Normal"
+                             VerticalAlignment="Center"
+                             HorizontalAlignment="Center"/>
+                </Button>
             </Border>
           </DataTemplate>
         </ItemsControl.ItemTemplate>

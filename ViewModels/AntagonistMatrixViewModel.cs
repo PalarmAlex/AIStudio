@@ -57,16 +57,23 @@ namespace AIStudio.ViewModels
     {
       if (clickedCell == null) return;
 
+      // Сбрасываем предыдущее выделение
       ClearSelection();
+
+      // Если это не заголовок и есть антагонистическая связь
       if (!clickedCell.IsHeader && clickedCell.IsAntagonist)
       {
         _selectedCell = clickedCell;
         _selectedCell.IsSelected = true;
 
+        // Находим парную ячейку
         _pairedCell = FindPairedCell(clickedCell);
         if (_pairedCell != null)
+        {
           _pairedCell.IsSelected = true;
+        }
 
+        // Обновляем отображение
         RefreshAllCells();
       }
     }
@@ -141,7 +148,7 @@ namespace AIStudio.ViewModels
             {
               cell.Content = "";
               cell.IsHeader = true;
-              cell.ToolTip = "Матрица антагонистов";
+              cell.ToolTip = "Матрица антагонистов\n(Двойной клик по заголовкам для редактирования)";
               cell.RowIndex = row;
               cell.ColIndex = col;
             }
@@ -151,10 +158,12 @@ namespace AIStudio.ViewModels
               cell.Content = style.Id.ToString();
               cell.IsHeader = true;
               cell.StyleName = style.Name;
-              cell.ToolTip = GenerateTooltip(style, styleList);
+              cell.ToolTip = GenerateTooltip(style, styleList) + "\n\nДвойной клик для редактирования антагонистов";
               cell.IsUnpaired = _unpairedStyleIds.Contains(style.Id);
               cell.RowIndex = row;
               cell.ColIndex = col;
+              cell.RowStyleId = -1;
+              cell.ColStyleId = style.Id;
             }
             else if (col == 0)
             {
@@ -162,10 +171,12 @@ namespace AIStudio.ViewModels
               cell.Content = style.Id.ToString();
               cell.IsHeader = true;
               cell.StyleName = style.Name;
-              cell.ToolTip = GenerateTooltip(style, styleList);
+              cell.ToolTip = GenerateTooltip(style, styleList) + "\n\nДвойной клик для редактирования антагонистов";
               cell.IsUnpaired = _unpairedStyleIds.Contains(style.Id);
               cell.RowIndex = row;
               cell.ColIndex = col;
+              cell.RowStyleId = style.Id;
+              cell.ColStyleId = -1;
             }
             else
             {

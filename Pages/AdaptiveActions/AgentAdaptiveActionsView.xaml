@@ -21,7 +21,7 @@
       <Setter Property="FontStyle" Value="Italic"/>
       <Setter Property="HorizontalAlignment" Value="Center"/>
       <Setter Property="VerticalAlignment" Value="Center"/>
-      <Setter Property="Margin" Value="10"/>
+      <Setter Property="Margin" Value="5"/>
     </Style>
 
     <Style x:Key="SectionHeaderStyle" TargetType="TextBlock">
@@ -30,7 +30,7 @@
       <Setter Property="FontWeight" Value="SemiBold"/>
       <Setter Property="HorizontalAlignment" Value="Center"/>
       <Setter Property="VerticalAlignment" Value="Center"/>
-      <Setter Property="Margin" Value="0,0,0,10"/>
+      <Setter Property="Margin" Value="0,0,0,5"/>
     </Style>
 
     <Style x:Key="ReflexWordsTextStyle" TargetType="TextBlock">
@@ -104,7 +104,7 @@
     <StackPanel>
 
       <!-- Таблица с четырьмя колонками -->
-      <Grid Margin="0,10">
+      <Grid Margin="0,5">
         <Grid.ColumnDefinitions>
           <ColumnDefinition Width="*"/>
           <ColumnDefinition Width="*"/>
@@ -142,7 +142,7 @@
                 BorderThickness="0,1,1,0" 
                 BorderBrush="#FFE0E0E0" 
                 Padding="5"
-                Height="60">
+                Height="50">
           <StackPanel>
             <TextBlock Text="Нет безусловных рефлексов"
                   Style="{StaticResource NoAdaptationTextStyle}"
@@ -163,7 +163,7 @@
                 BorderThickness="0,1,1,0" 
                 BorderBrush="#FFE0E0E0" 
                 Padding="5"
-                Height="60">
+                Height="50">
           <StackPanel>
             <TextBlock Text="Нет условных рефлексов"
                   Style="{StaticResource NoAdaptationTextStyle}"
@@ -184,7 +184,7 @@
                 BorderThickness="0,1,1,0" 
                 BorderBrush="#FFE0E0E0" 
                 Padding="5"
-                Height="60">
+                Height="50">
           <StackPanel>
             <TextBlock Text="Нет автоматизмов"
                   Style="{StaticResource NoAdaptationTextStyle}"/>
@@ -204,7 +204,7 @@
                 BorderThickness="0,1,0,0" 
                 BorderBrush="#FFE0E0E0" 
                 Padding="5"
-                Height="60">
+                Height="50">
           <TextBlock Text="{Binding ReflexPhrasesText}"
                      Style="{StaticResource ReflexWordsTextStyle}"
                      TextWrapping="Wrap"

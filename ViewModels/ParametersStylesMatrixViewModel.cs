@@ -90,9 +90,14 @@ namespace AIStudio.ViewModels
         _selectedStyleGroupFilter = value;
         if (value != null)
         {
+          // Сохраняем базовое название без количества групп
+          string baseGroupKey = value.GroupKey.StartsWith("Все группы")
+              ? "Все группы"
+              : value.GroupKey.Split('(')[0].Trim();
+
           _lastSelectedGroupFilter = new StyleGroupFilterItem
           {
-            GroupKey = value.GroupKey,
+            GroupKey = baseGroupKey,
             StyleIds = new List<int>(value.StyleIds)
           };
         }
@@ -139,8 +144,6 @@ namespace AIStudio.ViewModels
 
         InitializeStyleFilter();
         CreateMatrix();
-
-        // Инициализируем групповой фильтр после создания матрицы
         InitializeStyleGroupFilter();
       }
       catch (Exception ex)
@@ -186,15 +189,15 @@ namespace AIStudio.ViewModels
 
     private void InitializeStyleGroupFilter()
     {
+      var duplicateGroups = FindDuplicateStyleGroups();
+      int groupCount = duplicateGroups.Count;
+
       var groupFilterItems = new ObservableCollection<StyleGroupFilterItem>
-        {
-            new StyleGroupFilterItem { GroupKey = "Все группы", StyleIds = new List<int>() }
-        };
+    {
+        new StyleGroupFilterItem { GroupKey = $"Все группы ({groupCount})", StyleIds = new List<int>() }
+    };
 
-      // Находим все уникальные группы стилей
-      var styleGroups = FindDuplicateStyleGroups();
-
-      foreach (var group in styleGroups)
+      foreach (var group in duplicateGroups)
       {
         groupFilterItems.Add(new StyleGroupFilterItem
         {
@@ -207,11 +210,10 @@ namespace AIStudio.ViewModels
       {
         StyleGroupFilterItems = groupFilterItems;
 
-        // Восстанавливаем предыдущий фильтр групп или выбираем "Все группы" по умолчанию
         if (_lastSelectedGroupFilter != null)
         {
           var restoredFilter = groupFilterItems.FirstOrDefault(f =>
-              f.GroupKey == _lastSelectedGroupFilter.GroupKey);
+              f.GroupKey.StartsWith(_lastSelectedGroupFilter.GroupKey.Split(' ')[0])); // Сравниваем только начало названия
           SelectedStyleGroupFilter = restoredFilter ?? groupFilterItems.First();
         }
         else
@@ -240,9 +242,13 @@ namespace AIStudio.ViewModels
       }
 
       // Оставляем только группы, которые встречаются более 1 раза
+      // и сортируем по количеству повторов по убыванию
       var duplicateGroups = styleGroups
           .Where(g => groupCounts[g.Key] > 1)
-          .ToDictionary(g => $"Группа [{g.Key}] (встречается {groupCounts[g.Key]} раз)", g => g.Value);
+          .OrderByDescending(g => groupCounts[g.Key])
+          .ToDictionary(
+              g => $"Группа [{g.Key}] (встречается {groupCounts[g.Key]} раз)",
+              g => g.Value);
 
       return duplicateGroups;
     }
@@ -262,7 +268,7 @@ namespace AIStudio.ViewModels
           continue;
         }
 
-        if (selectedGroupKey == "Все группы")
+        if (selectedGroupKey.StartsWith("Все группы"))
         {
           cell.IsGroupHighlighted = false;
         }
@@ -276,7 +282,6 @@ namespace AIStudio.ViewModels
         }
       }
 
-      // Обновляем отображение
       RefreshMatrixDisplay();
     }
 
