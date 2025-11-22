@@ -12,6 +12,7 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
+using AIStudio.ViewModels;
 
 namespace AIStudio.Pages
 {
@@ -23,6 +24,15 @@ namespace AIStudio.Pages
     public AntagonistMatrixView()
     {
       InitializeComponent();
+    }
+
+    private void CellButton_Click(object sender, RoutedEventArgs e)
+    {
+      if (sender is Button button && button.DataContext is AntagonistMatrixViewModel.MatrixCell cell)
+      {
+        var viewModel = DataContext as AntagonistMatrixViewModel;
+        viewModel?.HandleCellClick(cell);
+      }
     }
   }
 }

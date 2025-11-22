@@ -20,6 +20,9 @@ namespace AIStudio.ViewModels
     private readonly GomeostasSystem _gomeostas;
     private ObservableCollection<MatrixCell> _matrixCells;
     private List<int> _unpairedStyleIds;
+    private List<GomeostasSystem.BehaviorStyle> _currentStyles;
+    private MatrixCell _selectedCell;
+    private MatrixCell _pairedCell;
 
     public ObservableCollection<MatrixCell> MatrixCells
     {
@@ -35,10 +38,13 @@ namespace AIStudio.ViewModels
 
     public ICommand BackCommand { get; }
     public ICommand RefreshCommand { get; }
+    public ICommand CellClickCommand { get; }
 
     public AntagonistMatrixViewModel(GomeostasSystem gomeostas, List<GomeostasSystem.BehaviorStyle> currentStyles)
     {
       _gomeostas = gomeostas ?? throw new ArgumentNullException(nameof(gomeostas));
+      _currentStyles = currentStyles;
+
       BackCommand = new RelayCommand(_ => NavigateBack(currentStyles));
 
       MatrixCells = new ObservableCollection<MatrixCell>();
@@ -47,11 +53,69 @@ namespace AIStudio.ViewModels
       LoadMatrixFromStyles(currentStyles);
     }
 
+    public void HandleCellClick(MatrixCell clickedCell)
+    {
+      if (clickedCell == null) return;
+
+      ClearSelection();
+      if (!clickedCell.IsHeader && clickedCell.IsAntagonist)
+      {
+        _selectedCell = clickedCell;
+        _selectedCell.IsSelected = true;
+
+        _pairedCell = FindPairedCell(clickedCell);
+        if (_pairedCell != null)
+          _pairedCell.IsSelected = true;
+
+        RefreshAllCells();
+      }
+    }
+
+    private MatrixCell FindPairedCell(MatrixCell cell)
+    {
+      if (cell.IsHeader || !cell.IsAntagonist) return null;
+
+      // Используем координаты для поиска парной ячейки
+      int targetRow = cell.ColIndex; // Столбец текущей ячейки становится строкой парной
+      int targetCol = cell.RowIndex; // Строка текущей ячейки становится столбцом парной
+
+      // Ищем ячейку с такими координатами
+      var pairedCell = MatrixCells.FirstOrDefault(c =>
+          !c.IsHeader &&
+          c.RowIndex == targetRow &&
+          c.ColIndex == targetCol &&
+          c.IsAntagonist);
+
+      return pairedCell;
+    }
+
+    private void ClearSelection()
+    {
+      if (_selectedCell != null)
+      {
+        _selectedCell.IsSelected = false;
+        _selectedCell = null;
+      }
+
+      if (_pairedCell != null)
+      {
+        _pairedCell.IsSelected = false;
+        _pairedCell = null;
+      }
+    }
+
+    private void RefreshAllCells()
+    {
+      var newCells = new ObservableCollection<MatrixCell>(MatrixCells);
+      MatrixCells = newCells;
+    }
+
     internal void LoadMatrixFromStyles(List<GomeostasSystem.BehaviorStyle> styles)
     {
       try
       {
         var cells = new ObservableCollection<MatrixCell>();
+        _currentStyles = styles;
 
         if (!styles.Any())
         {
@@ -77,7 +141,9 @@ namespace AIStudio.ViewModels
             {
               cell.Content = "";
               cell.IsHeader = true;
-              cell.ToolTip = "Матрица антагонистов (несохраненные данные)";
+              cell.ToolTip = "Матрица антагонистов";
+              cell.RowIndex = row;
+              cell.ColIndex = col;
             }
             else if (row == 0)
             {
@@ -87,6 +153,8 @@ namespace AIStudio.ViewModels
               cell.StyleName = style.Name;
               cell.ToolTip = GenerateTooltip(style, styleList);
               cell.IsUnpaired = _unpairedStyleIds.Contains(style.Id);
+              cell.RowIndex = row;
+              cell.ColIndex = col;
             }
             else if (col == 0)
             {
@@ -96,6 +164,8 @@ namespace AIStudio.ViewModels
               cell.StyleName = style.Name;
               cell.ToolTip = GenerateTooltip(style, styleList);
               cell.IsUnpaired = _unpairedStyleIds.Contains(style.Id);
+              cell.RowIndex = row;
+              cell.ColIndex = col;
             }
             else
             {
@@ -107,10 +177,14 @@ namespace AIStudio.ViewModels
 
               cell.Content = isAntagonist ? "╳" : "";
               cell.IsAntagonist = isAntagonist;
+              cell.RowIndex = row;
+              cell.ColIndex = col;
+              cell.RowStyleId = rowStyle.Id;
+              cell.ColStyleId = colStyle.Id;
 
               if (isAntagonist)
               {
-                cell.ToolTip = $"✓ {rowStyle.Name} ↔ {colStyle.Name}\nВзаимные антагонисты";
+                cell.ToolTip = $"✓ {rowStyle.Name} ↔ {colStyle.Name}\nВзаимные антагонисты\n(Клик для выделения пары)";
               }
               else if (rowStyle.AntagonistStyles.Contains(colStyle.Id) &&
                       !colStyle.AntagonistStyles.Contains(rowStyle.Id))
@@ -281,19 +355,23 @@ namespace AIStudio.ViewModels
 
     public class MatrixCell
     {
-      public int RowId { get; set; }
-      public int ColId { get; set; }
+      public int RowIndex { get; set; }
+      public int ColIndex { get; set; }
+      public int RowStyleId { get; set; }
+      public int ColStyleId { get; set; }
       public string Content { get; set; } = string.Empty;
       public string StyleName { get; set; } = string.Empty;
       public bool IsHeader { get; set; }
       public bool IsAntagonist { get; set; }
       public bool IsUnpaired { get; set; }
+      public bool IsSelected { get; set; }
       public string ToolTip { get; set; } = string.Empty;
 
       public Brush BackgroundColor
       {
         get
         {
+          if (IsSelected) return new SolidColorBrush(Color.FromRgb(128, 128, 0)); // Желтый для выделения
           if (IsHeader && IsUnpaired) return new SolidColorBrush(Color.FromRgb(128, 0, 0)); // Красный для заголовков без пар
           if (IsHeader) return new SolidColorBrush(Color.FromRgb(16, 16, 16)); // Темно-серый для обычных заголовков
           if (IsAntagonist) return new SolidColorBrush(Color.FromRgb(0, 80, 0)); // Зеленый для антагонистов
@@ -305,6 +383,7 @@ namespace AIStudio.ViewModels
       {
         get
         {
+          if (IsSelected) return new SolidColorBrush(Color.FromRgb(255, 255, 0)); // Ярко-желтый для выделенного текста
           if (IsHeader && IsUnpaired) return new SolidColorBrush(Color.FromRgb(255, 128, 128)); // Светло-красный для текста без пар
           if (IsHeader) return new SolidColorBrush(Color.FromRgb(255, 255, 0)); // желтый для номеров стилей
           if (IsAntagonist) return new SolidColorBrush(Color.FromRgb(0, 255, 0)); // Зеленый для антагонистов
@@ -314,5 +393,6 @@ namespace AIStudio.ViewModels
 
       public Brush BorderColor => new SolidColorBrush(Color.FromRgb(32, 32, 32));
     }
+
   }
 }

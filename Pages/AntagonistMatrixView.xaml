@@ -49,6 +49,25 @@
       </Style.Triggers>
     </Style>
 
+    <Style x:Key="CellButtonStyle" TargetType="Button">
+      <Setter Property="Background" Value="Transparent"/>
+      <Setter Property="BorderBrush" Value="Transparent"/>
+      <Setter Property="BorderThickness" Value="0"/>
+      <Setter Property="Padding" Value="0"/>
+      <Setter Property="Cursor" Value="Hand"/>
+      <Setter Property="Template">
+        <Setter.Value>
+          <ControlTemplate TargetType="Button">
+            <Border Background="{TemplateBinding Background}" 
+                    BorderBrush="{TemplateBinding BorderBrush}" 
+                    BorderThickness="{TemplateBinding BorderThickness}">
+              <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+            </Border>
+          </ControlTemplate>
+        </Setter.Value>
+      </Setter>
+    </Style>
+
     <Style x:Key="WarningTextStyle" TargetType="TextBlock">
       <Setter Property="Foreground" Value="#FFFF0000"/>
       <Setter Property="FontFamily" Value="Consolas"/>
@@ -102,13 +121,17 @@
                     BorderBrush="{Binding BorderColor}"
                     BorderThickness="1"
                     ToolTip="{Binding ToolTip}">
-              <TextBlock Text="{Binding Content}" 
-                         Foreground="{Binding TextColor}"
-                         FontFamily="Consolas, Courier New"
-                         FontSize="14"
-                         FontWeight="Normal"
-                         VerticalAlignment="Center"
-                         HorizontalAlignment="Center"/>
+              <Button Style="{StaticResource CellButtonStyle}"
+                      Click="CellButton_Click"
+                      DataContext="{Binding}">
+                <TextBlock Text="{Binding Content}" 
+                           Foreground="{Binding TextColor}"
+                           FontFamily="Consolas, Courier New"
+                           FontSize="14"
+                           FontWeight="Normal"
+                           VerticalAlignment="Center"
+                           HorizontalAlignment="Center"/>
+              </Button>
             </Border>
           </DataTemplate>
         </ItemsControl.ItemTemplate>
@@ -125,6 +148,10 @@
         <StackPanel Orientation="Horizontal" Margin="0,0,20,0">
           <Border Width="20" Height="20" BorderBrush="#00FF00" BorderThickness="1" Background="#800000" Margin="0,0,5,0"/>
           <TextBlock Text="Стиль без пары" Foreground="#00FF00" FontFamily="Consolas" FontSize="11"/>
+        </StackPanel>
+        <StackPanel Orientation="Horizontal">
+          <Border Width="20" Height="20" BorderBrush="#00FF00" BorderThickness="1" Background="#808000" Margin="0,0,5,0"/>
+          <TextBlock Text="Выделенная пара" Foreground="#00FF00" FontFamily="Consolas" FontSize="11"/>
         </StackPanel>
       </StackPanel>
     </Border>
