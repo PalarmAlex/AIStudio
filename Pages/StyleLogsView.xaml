@@ -162,23 +162,19 @@
           RowHeight="120">
 
         <DataGrid.Columns>
-          <DataGridTextColumn Binding="{Binding DisplayTime}" Width="80" Header="Время" HeaderStyle="{StaticResource MatrixHeaderStyle}"/>
-          <DataGridTextColumn Binding="{Binding DisplayPulse}" Width="60" Header="Пульс" HeaderStyle="{StaticResource MatrixHeaderStyle}"/>
+          <DataGridTextColumn Binding="{Binding DisplayTime}" Width="Auto" Header="Время" HeaderStyle="{StaticResource MatrixHeaderStyle}"/>
+          <DataGridTextColumn Binding="{Binding DisplayPulse}" Width="Auto" Header="Пульс" HeaderStyle="{StaticResource MatrixHeaderStyle}"/>
 
-          <!-- Базовые стили -->
-          <DataGridTextColumn Binding="{Binding DisplayBaseStyles}" Width="*" 
-                    Header="Базовые стили">
+          <!-- Параметр → Зона → Стиль -->
+          <DataGridTextColumn Binding="{Binding DisplayParameterActivations}" Width="Auto" 
+              Header="Начальная активация стилей">
             <DataGridTextColumn.HeaderStyle>
               <Style TargetType="DataGridColumnHeader" BasedOn="{StaticResource MatrixHeaderStyle}">
                 <Setter Property="ToolTip">
                   <Setter.Value>
                     <ToolTip Style="{StaticResource MatrixToolTipStyle}">
-                      <StackPanel>
-                        <TextBlock TextWrapping="Wrap" MaxWidth="300"
-                                       Text="Стили поведения, активированные напрямую параметрами гомеостаза."/>
-                        <TextBlock TextWrapping="Wrap" MaxWidth="300"
-                                       Text="На этом этапе могут быть конфликты между стилями."/>
-                      </StackPanel>
+                      <TextBlock TextWrapping="Wrap" MaxWidth="400"
+                                   Text="Связи параметров гомеостаза и активированных стилей.&#x0a;Формат: Параметр → Зона → Стиль | Вес"/>
                     </ToolTip>
                   </Setter.Value>
                 </Setter>

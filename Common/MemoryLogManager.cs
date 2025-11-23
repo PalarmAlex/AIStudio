@@ -34,12 +34,15 @@ namespace AIStudio.Common
     private readonly ObservableCollection<ParameterLogEntry> _parameterLogEntries = new ObservableCollection<ParameterLogEntry>();
     public ReadOnlyObservableCollection<StyleLogEntry> StyleLogEntries { get; }
     public ReadOnlyObservableCollection<ParameterLogEntry> ParameterLogEntries { get; }
+    private readonly ObservableCollection<StyleParameterActivationEntry> _styleParameterActivationEntries = new ObservableCollection<StyleParameterActivationEntry>();
+    public ReadOnlyObservableCollection<StyleParameterActivationEntry> StyleParameterActivationEntries { get; }
 
     private MemoryLogManager()
     {
       LogEntries = new ReadOnlyObservableCollection<LogEntry>(_logEntries);
       StyleLogEntries = new ReadOnlyObservableCollection<StyleLogEntry>(_styleLogEntries);
       ParameterLogEntries = new ReadOnlyObservableCollection<ParameterLogEntry>(_parameterLogEntries);
+      StyleParameterActivationEntries = new ReadOnlyObservableCollection<StyleParameterActivationEntry>(_styleParameterActivationEntries);
     }
 
     /// <summary>
@@ -113,6 +116,89 @@ namespace AIStudio.Common
       };
 
       AddLogEntry(entry);
+    }
+
+
+    /// <summary>
+    /// Запись лога активации стилей от параметров
+    /// </summary>
+    public void WriteStyleParameterActivation(int pulse, string stage, int parameterId, string parameterName,
+                                             int zoneId, string zoneDescription, int styleId, string styleName,
+                                             int weight, string activationDetails)
+    {
+      if (_disposed) return;
+
+      var entry = new StyleParameterActivationEntry
+      {
+        Pulse = pulse,
+        Stage = stage,
+        ParameterId = parameterId,
+        ParameterName = parameterName,
+        ZoneId = zoneId,
+        ZoneDescription = zoneDescription,
+        StyleId = styleId,
+        StyleName = styleName,
+        Weight = weight,
+        ActivationDetails = activationDetails,
+        Timestamp = DateTime.Now
+      };
+
+      AddStyleParameterActivationEntry(entry);
+    }
+
+    private void AddStyleParameterActivationEntry(StyleParameterActivationEntry entry)
+    {
+      if (Application.Current != null && Application.Current.Dispatcher.CheckAccess())
+      {
+        AddStyleParameterActivationEntryInternal(entry);
+      }
+      else if (Application.Current != null)
+      {
+        Application.Current.Dispatcher.BeginInvoke(new Action<StyleParameterActivationEntry>(AddStyleParameterActivationEntryInternal),
+            DispatcherPriority.Background, entry);
+      }
+      else
+      {
+        AddStyleParameterActivationEntryInternal(entry);
+      }
+    }
+
+    private void AddStyleParameterActivationEntryInternal(StyleParameterActivationEntry entry)
+    {
+      lock (_lock)
+      {
+        _styleParameterActivationEntries.Insert(0, entry);
+
+        while (_styleParameterActivationEntries.Count > _maxLogEntries)
+        {
+          _styleParameterActivationEntries.RemoveAt(_styleParameterActivationEntries.Count - 1);
+        }
+      }
+    }
+
+    public void ClearStyleParameterActivations()
+    {
+      if (Application.Current != null && Application.Current.Dispatcher.CheckAccess())
+      {
+        ClearStyleParameterActivationsInternal();
+      }
+      else if (Application.Current != null)
+      {
+        Application.Current.Dispatcher.BeginInvoke(new Action(ClearStyleParameterActivationsInternal),
+            DispatcherPriority.Background);
+      }
+      else
+      {
+        ClearStyleParameterActivationsInternal();
+      }
+    }
+
+    private void ClearStyleParameterActivationsInternal()
+    {
+      lock (_lock)
+      {
+        _styleParameterActivationEntries.Clear();
+      }
     }
 
     private void AddLogEntry(LogEntry entry)
@@ -379,5 +465,32 @@ namespace AIStudio.Common
     public string DisplayUrgencyFunction => UrgencyFunction.ToString("F4");
     public string DisplayParameterState => ParameterState;
     public string DisplayActivationZone => ActivationZone;
+  }
+
+  public class StyleParameterActivationEntry
+  {
+    public DateTime Timestamp { get; set; } = DateTime.Now;
+    public int Pulse { get; set; }
+    public string Stage { get; set; } = string.Empty;
+    public int ParameterId { get; set; }
+    public string ParameterName { get; set; } = string.Empty;
+    public int ZoneId { get; set; }
+    public string ZoneDescription { get; set; } = string.Empty;
+    public int StyleId { get; set; }
+    public string StyleName { get; set; } = string.Empty;
+    public int Weight { get; set; }
+    public string ActivationDetails { get; set; } = string.Empty;
+
+    public string DisplayTime => Timestamp.ToString("HH:mm:ss");
+    public string DisplayPulse => Pulse.ToString();
+    public string DisplayStage => Stage;
+    public string DisplayParameterId => ParameterId.ToString();
+    public string DisplayParameterName => ParameterName;
+    public string DisplayZoneId => ZoneId.ToString();
+    public string DisplayZoneDescription => ZoneDescription;
+    public string DisplayStyleId => StyleId.ToString();
+    public string DisplayStyleName => StyleName;
+    public string DisplayWeight => Weight.ToString();
+    public string DisplayActivationDetails => ActivationDetails;
   }
 }

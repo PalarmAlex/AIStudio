@@ -47,48 +47,59 @@ namespace AIStudio.ViewModels
     {
       if (_disposed) return;
 
-      // Сохраняем текущее выделение перед обновлением
       var previouslySelectedPulse = SelectedRow?.Pulse;
 
       // Группируем данные по пульсу
       var groupedData = MemoryLogManager.Instance.StyleLogEntries
           .GroupBy(entry => entry.Pulse)
-          .OrderByDescending(g => g.Key) // Сначала новые пульсы
+          .OrderByDescending(g => g.Key)
           .Select(g => new StyleLogGroup
           {
             Pulse = g.Key,
-            Timestamp = g.First().Timestamp, // Берем время первого элемента группы
+            Timestamp = g.First().Timestamp,
             BaseStyles = g.Where(e => e.Stage == "Base")
-                           .Select(e => new StyleInfo
-                           {
-                             StyleId = e.StyleId,
-                             StyleName = e.StyleName,
-                             Weight = e.Weight
-                           })
-                           .ToList(),
+                             .Select(e => new StyleInfo
+                             {
+                               StyleId = e.StyleId,
+                               StyleName = e.StyleName,
+                               Weight = e.Weight
+                             })
+                             .ToList(),
             AfterAntagonistStyles = g.Where(e => e.Stage == "AfterAntagonists")
-                                     .Select(e => new StyleInfo
-                                     {
-                                       StyleId = e.StyleId,
-                                       StyleName = e.StyleName,
-                                       Weight = e.Weight
-                                     })
-                                     .ToList(),
+                                       .Select(e => new StyleInfo
+                                       {
+                                         StyleId = e.StyleId,
+                                         StyleName = e.StyleName,
+                                         Weight = e.Weight
+                                       })
+                                       .ToList(),
             FinalStyles = g.Where(e => e.Stage == "Final")
-                           .Select(e => new StyleInfo
-                           {
-                             StyleId = e.StyleId,
-                             StyleName = e.StyleName,
-                             Weight = e.Weight
-                           })
-                           .ToList()
+                             .Select(e => new StyleInfo
+                             {
+                               StyleId = e.StyleId,
+                               StyleName = e.StyleName,
+                               Weight = e.Weight
+                             })
+                             .ToList(),
+            // Собираем активации параметров
+            ParameterActivations = MemoryLogManager.Instance.StyleParameterActivationEntries
+                  .Where(e => e.Pulse == g.Key)
+                  .Select(e => new ParameterActivationInfo
+                  {
+                    ParameterId = e.ParameterId,
+                    ParameterName = e.ParameterName,
+                    ZoneId = e.ZoneId,
+                    ZoneDescription = e.ZoneDescription,
+                    StyleId = e.StyleId,
+                    StyleName = e.StyleName,
+                    Weight = e.Weight
+                  })
+                  .ToList()
           })
           .ToList();
 
-      // Обновляем коллекцию
       Application.Current.Dispatcher.Invoke(() =>
       {
-        // Сохраняем выделение
         StyleLogGroup rowToSelect = null;
 
         StyleLogGroups.Clear();
@@ -96,14 +107,12 @@ namespace AIStudio.ViewModels
         {
           StyleLogGroups.Add(group);
 
-          // Восстанавливаем выделение если нужно
           if (previouslySelectedPulse.HasValue && group.Pulse == previouslySelectedPulse.Value)
           {
             rowToSelect = group;
           }
         }
 
-        // Восстанавливаем выделение после обновления данных
         if (rowToSelect != null)
         {
           SelectedRow = rowToSelect;
@@ -137,7 +146,6 @@ namespace AIStudio.ViewModels
       _disposed = true;
     }
 
-
     /// <summary>
     /// Группированные данные по пульсам
     /// </summary>
@@ -155,6 +163,9 @@ namespace AIStudio.ViewModels
       // Финальные стили
       public List<StyleInfo> FinalStyles { get; set; } = new List<StyleInfo>();
 
+      // Активации параметров
+      public List<ParameterActivationInfo> ParameterActivations { get; set; } = new List<ParameterActivationInfo>();
+
       public string DisplayTime => Timestamp.ToString("HH:mm:ss");
       public string DisplayPulse => Pulse.ToString();
 
@@ -162,6 +173,36 @@ namespace AIStudio.ViewModels
       public string DisplayBaseStyles => string.Join("\n", BaseStyles.Select(s => s.ToString()));
       public string DisplayAfterAntagonistStyles => string.Join("\n", AfterAntagonistStyles.Select(s => s.ToString()));
       public string DisplayFinalStyles => string.Join("\n", FinalStyles.Select(s => s.ToString()));
+
+      // НОВЫЙ СТОЛБЕЦ: Объединенная информация об активациях
+      public string DisplayParameterActivations => GetParameterActivationsDisplay();
+
+      private string GetParameterActivationsDisplay()
+      {
+        var activations = new List<string>();
+
+        // Группируем по параметру и зоне, затем по стилю
+        var groupedByParamAndZone = ParameterActivations
+            .GroupBy(pa => new { pa.ParameterName, pa.ParameterId, pa.ZoneDescription, pa.ZoneId })
+            .OrderBy(g => g.Key.ParameterName)
+            .ThenBy(g => g.Key.ZoneId);
+
+        foreach (var paramZoneGroup in groupedByParamAndZone)
+        {
+          var paramName = paramZoneGroup.Key.ParameterName;
+          var paramId = paramZoneGroup.Key.ParameterId;
+          var zoneDesc = paramZoneGroup.Key.ZoneDescription;
+          var zoneId = paramZoneGroup.Key.ZoneId;
+
+          // Для каждой пары параметр-зона выводим все стили
+          foreach (var activation in paramZoneGroup.OrderBy(a => a.StyleName))
+          {
+            activations.Add($"{paramName} (ID:{paramId}) → {zoneDesc} (ID:{zoneId}) → {activation.StyleName} (ID:{activation.StyleId}) | Вес:{activation.Weight}");
+          }
+        }
+
+        return string.Join("\n", activations);
+      }
     }
 
     /// <summary>
@@ -177,5 +218,20 @@ namespace AIStudio.ViewModels
         return $"{StyleName} (ID:{StyleId}) | Вес:{Weight}";
       }
     }
+
+    /// <summary>
+    /// Информация об активации параметра
+    /// </summary>
+    public class ParameterActivationInfo
+    {
+      public int ParameterId { get; set; }
+      public string ParameterName { get; set; } = string.Empty;
+      public int ZoneId { get; set; }
+      public string ZoneDescription { get; set; } = string.Empty;
+      public int StyleId { get; set; }
+      public string StyleName { get; set; } = string.Empty;
+      public int Weight { get; set; }
+    }
+    
   }
 }
