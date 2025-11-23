@@ -4,7 +4,7 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              mc:Ignorable="d" 
-             d:DesignHeight="600" d:DesignWidth="800">
+             d:DesignHeight="600" d:DesignWidth="1200">
 
   <UserControl.Resources>
     <Style x:Key="MatrixTextStyle" TargetType="TextBlock">
@@ -31,16 +31,16 @@
       <Setter Property="FontFamily" Value="Consolas, Courier New"/>
       <Setter Property="FontSize" Value="12"/>
       <Setter Property="Background" Value="Transparent"/>
-      <Setter Property="BorderBrush" Value="#202020"/>
-      <Setter Property="BorderThickness" Value="0,0,1,1"/>
+      <Setter Property="BorderBrush" Value="Transparent"/>
+      <Setter Property="BorderThickness" Value="0"/>
       <Setter Property="Padding" Value="5,3"/>
       <Setter Property="Template">
         <Setter.Value>
           <ControlTemplate TargetType="DataGridCell">
             <Border Background="{TemplateBinding Background}" 
-                    BorderBrush="{TemplateBinding BorderBrush}" 
-                    BorderThickness="{TemplateBinding BorderThickness}"
-                    Padding="{TemplateBinding Padding}">
+                        BorderBrush="{TemplateBinding BorderBrush}" 
+                        BorderThickness="{TemplateBinding BorderThickness}"
+                        Padding="{TemplateBinding Padding}">
               <ContentPresenter VerticalAlignment="Center"/>
             </Border>
           </ControlTemplate>
@@ -73,9 +73,9 @@
       <Setter Property="HeadersVisibility" Value="Column"/>
       <Setter Property="RowBackground" Value="Transparent"/>
       <Setter Property="AlternatingRowBackground" Value="#080808"/>
-      <Setter Property="GridLinesVisibility" Value="None"/>
-      <Setter Property="HorizontalGridLinesBrush" Value="Transparent"/>
-      <Setter Property="VerticalGridLinesBrush" Value="Transparent"/>
+      <Setter Property="GridLinesVisibility" Value="All"/>
+      <Setter Property="HorizontalGridLinesBrush" Value="#202020"/>
+      <Setter Property="VerticalGridLinesBrush" Value="#202020"/>
       <Setter Property="ScrollViewer.CanContentScroll" Value="True"/>
     </Style>
 
@@ -144,37 +144,75 @@
                  VerticalAlignment="Center"/>
     </Border>
 
-    <!-- Таблица с группировкой -->
+    <!-- Таблица -->
     <Border Grid.Row="1" Margin="5" BorderBrush="#00FF00" BorderThickness="1" Background="#080808">
       <DataGrid ItemsSource="{Binding StyleLogGroups}"
-          SelectedItem="{Binding SelectedRow, Mode=TwoWay}"
-          Style="{StaticResource MatrixDataGridStyle}"
-          AutoGenerateColumns="False"
-          IsReadOnly="True"
-          RowStyle="{StaticResource MatrixRowStyle}"
-          CellStyle="{StaticResource MatrixCellStyle}"
-          VerticalScrollBarVisibility="Auto"
-          HorizontalScrollBarVisibility="Auto"
-          CanUserResizeColumns="True"
-          CanUserSortColumns="True"
-          SelectionUnit="FullRow"
-          SelectionMode="Single"
-          RowHeight="120">
+      SelectedItem="{Binding SelectedRow, Mode=TwoWay}"
+      Style="{StaticResource MatrixDataGridStyle}"
+      AutoGenerateColumns="False"
+      IsReadOnly="True"
+      CellStyle="{StaticResource MatrixCellStyle}"
+      VerticalScrollBarVisibility="Auto"
+      HorizontalScrollBarVisibility="Auto"
+      CanUserResizeColumns="True"
+      CanUserSortColumns="True"
+      SelectionUnit="FullRow"
+      SelectionMode="Single">
+
+        <DataGrid.RowStyle>
+          <Style TargetType="DataGridRow" BasedOn="{StaticResource MatrixRowStyle}">
+            <Setter Property="Height" Value="{Binding RowHeight}"/>
+            <Setter Property="Background" Value="Transparent"/>
+            <Style.Triggers>
+              <Trigger Property="IsMouseOver" Value="True">
+                <Setter Property="Background" Value="#1000FF00"/>
+              </Trigger>
+              <Trigger Property="IsSelected" Value="True">
+                <Setter Property="Background" Value="#3000FF00"/>
+              </Trigger>
+            </Style.Triggers>
+          </Style>
+        </DataGrid.RowStyle>
 
         <DataGrid.Columns>
+          <!-- Время -->
           <DataGridTextColumn Binding="{Binding DisplayTime}" Width="Auto" Header="Время" HeaderStyle="{StaticResource MatrixHeaderStyle}"/>
+
+          <!-- Пульс -->
           <DataGridTextColumn Binding="{Binding DisplayPulse}" Width="Auto" Header="Пульс" HeaderStyle="{StaticResource MatrixHeaderStyle}"/>
 
-          <!-- Параметр → Зона → Стиль -->
-          <DataGridTextColumn Binding="{Binding DisplayParameterActivations}" Width="Auto" 
-              Header="Начальная активация стилей">
+          <!-- Объединенный столбец Параметр | Зона -->
+          <DataGridTextColumn Binding="{Binding DisplayParametersAndZones}" Width="Auto"
+              Header="Параметр | Зона">
             <DataGridTextColumn.HeaderStyle>
               <Style TargetType="DataGridColumnHeader" BasedOn="{StaticResource MatrixHeaderStyle}">
                 <Setter Property="ToolTip">
                   <Setter.Value>
                     <ToolTip Style="{StaticResource MatrixToolTipStyle}">
                       <TextBlock TextWrapping="Wrap" MaxWidth="400"
-                                   Text="Связи параметров гомеостаза и активированных стилей.&#x0a;Формат: Параметр → Зона → Стиль | Вес"/>
+                                         Text="Параметры гомеостаза и соответствующие зоны, активировавшие стили поведения"/>
+                    </ToolTip>
+                  </Setter.Value>
+                </Setter>
+              </Style>
+            </DataGridTextColumn.HeaderStyle>
+            <DataGridTextColumn.CellStyle>
+              <Style TargetType="DataGridCell" BasedOn="{StaticResource MatrixCellStyle}">
+                <Setter Property="TextBlock.TextWrapping" Value="Wrap"/>
+              </Style>
+            </DataGridTextColumn.CellStyle>
+          </DataGridTextColumn>
+
+          <!-- Начальные стили -->
+          <DataGridTextColumn Binding="{Binding DisplayBaseStyles}" Width="Auto"
+              Header="Начальные стили">
+            <DataGridTextColumn.HeaderStyle>
+              <Style TargetType="DataGridColumnHeader" BasedOn="{StaticResource MatrixHeaderStyle}">
+                <Setter Property="ToolTip">
+                  <Setter.Value>
+                    <ToolTip Style="{StaticResource MatrixToolTipStyle}">
+                      <TextBlock TextWrapping="Wrap" MaxWidth="400"
+                                         Text="Стили, активированные параметрами гомеостаза"/>
                     </ToolTip>
                   </Setter.Value>
                 </Setter>
@@ -189,7 +227,7 @@
 
           <!-- После антагонистов -->
           <DataGridTextColumn Binding="{Binding DisplayAfterAntagonistStyles}" Width="*"
-                    Header="После антагонистов">
+              Header="После антагонистов">
             <DataGridTextColumn.HeaderStyle>
               <Style TargetType="DataGridColumnHeader" BasedOn="{StaticResource MatrixHeaderStyle}">
                 <Setter Property="ToolTip">
@@ -197,11 +235,11 @@
                     <ToolTip Style="{StaticResource MatrixToolTipStyle}">
                       <StackPanel>
                         <TextBlock TextWrapping="Wrap" MaxWidth="300"
-                                       Text="Стили после разрешения конфликтов между антагонистами."/>
+                                               Text="Стили после разрешения конфликтов между антагонистами."/>
                         <TextBlock TextWrapping="Wrap" MaxWidth="300"
-                                       Text="Если два стиля несовместимы, один из них (кто слабее) подавляется."/>
+                                               Text="Если два стиля несовместимы, один из них (кто слабее) подавляется."/>
                       </StackPanel>
-                    </ToolTip>                    
+                    </ToolTip>
                   </Setter.Value>
                 </Setter>
               </Style>
@@ -215,7 +253,7 @@
 
           <!-- Финальные стили -->
           <DataGridTextColumn Binding="{Binding DisplayFinalStyles}" Width="*"
-                    Header="Финальные стили">
+              Header="Финальные стили">
             <DataGridTextColumn.HeaderStyle>
               <Style TargetType="DataGridColumnHeader" BasedOn="{StaticResource MatrixHeaderStyle}">
                 <Setter Property="ToolTip">
@@ -223,9 +261,9 @@
                     <ToolTip Style="{StaticResource MatrixToolTipStyle}">
                       <StackPanel>
                         <TextBlock TextWrapping="Wrap" MaxWidth="300"
-                                       Text="Финальные стили после контрастирования."/>
+                                               Text="Финальные стили после контрастирования."/>
                         <TextBlock TextWrapping="Wrap" MaxWidth="300"
-                                       Text="Самые сильные стили подавляют слабые конкурирующие стили."/>
+                                               Text="Самые сильные стили подавляют слабые конкурирующие стили."/>
                       </StackPanel>
                     </ToolTip>
                   </Setter.Value>
@@ -239,6 +277,7 @@
             </DataGridTextColumn.CellStyle>
           </DataGridTextColumn>
         </DataGrid.Columns>
+
       </DataGrid>
     </Border>
 
