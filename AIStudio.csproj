@@ -101,6 +101,7 @@
     <Compile Include="Converters\ParameterGradientConverter.cs" />
     <Compile Include="Converters\ParametersStylesColumnsConverter.cs" />
     <Compile Include="Converters\ParameterStateToBrushConverter.cs" />
+    <Compile Include="Converters\ParameterStateToLightBackgroundConverter.cs" />
     <Compile Include="Converters\ParameterValueToGradientConverter.cs" />
     <Compile Include="Converters\ParameterValueToIndicatorPositionConverter.cs" />
     <Compile Include="Converters\PerceptionImageIdToTooltipConverter.cs" />

@@ -57,44 +57,28 @@ namespace AIStudio.ViewModels
           {
             Pulse = g.Key,
             Timestamp = g.First().Timestamp,
-            BaseStyles = g.Where(e => e.Stage == "Base")
-                           .Select(e => new StyleInfo
-                           {
-                             StyleId = e.StyleId,
-                             StyleName = e.StyleName,
-                             Weight = e.Weight
-                           })
-                           .ToList(),
-            AfterAntagonistStyles = g.Where(e => e.Stage == "AfterAntagonists")
-                                     .Select(e => new StyleInfo
-                                     {
-                                       StyleId = e.StyleId,
-                                       StyleName = e.StyleName,
-                                       Weight = e.Weight
-                                     })
-                                     .ToList(),
             FinalStyles = g.Where(e => e.Stage == "Final")
-                           .Select(e => new StyleInfo
-                           {
-                             StyleId = e.StyleId,
-                             StyleName = e.StyleName,
-                             Weight = e.Weight
-                           })
-                           .ToList(),
+                             .Select(e => new StyleInfo
+                             {
+                               StyleId = e.StyleId,
+                               StyleName = e.StyleName,
+                               Weight = e.Weight
+                             })
+                             .ToList(),
             // Собираем активации параметров
             ParameterActivations = MemoryLogManager.Instance.StyleParameterActivationEntries
-                    .Where(e => e.Pulse == g.Key)
-                    .Select(e => new ParameterActivationInfo
-                    {
-                      ParameterId = e.ParameterId,
-                      ParameterName = e.ParameterName,
-                      ZoneId = e.ZoneId,
-                      ZoneDescription = e.ZoneDescription,
-                      StyleId = e.StyleId,
-                      StyleName = e.StyleName,
-                      Weight = e.Weight
-                    })
-                    .ToList()
+                      .Where(e => e.Pulse == g.Key)
+                      .Select(e => new ParameterActivationInfo
+                      {
+                        ParameterId = e.ParameterId,
+                        ParameterName = e.ParameterName,
+                        ZoneId = e.ZoneId,
+                        ZoneDescription = e.ZoneDescription,
+                        StyleId = e.StyleId,
+                        StyleName = e.StyleName,
+                        Weight = e.Weight
+                      })
+                      .ToList()
           })
           .ToList();
 
@@ -125,14 +109,14 @@ namespace AIStudio.ViewModels
     private int CalculateRowHeight(StyleLogGroup group)
     {
       // Базовая высота для одной строки
-      const int baseHeightPerLine = 15;
+      const int baseHeightPerLine = 20;
 
-      // Считаем количество строк в столбце "Начальные стили"
-      var baseStylesText = group.DisplayBaseStyles;
-      var lineCount = string.IsNullOrEmpty(baseStylesText) ? 1 : baseStylesText.Split('\n').Length;
+      var linesInParameters = string.IsNullOrEmpty(group.DisplayParameters) ? 1 : group.DisplayParameters.Split('\n').Length;
+      var linesInZones = string.IsNullOrEmpty(group.DisplayZones) ? 1 : group.DisplayZones.Split('\n').Length;
+      var linesInActiveStyles = string.IsNullOrEmpty(group.DisplayActiveStyles) ? 1 : group.DisplayActiveStyles.Split('\n').Length;
+      var maxLines = Math.Max(linesInParameters, Math.Max(linesInZones, linesInActiveStyles));
 
-      // Вычисляем высоту: количество строк * высота строки
-      return Math.Max(baseHeightPerLine, lineCount * baseHeightPerLine);
+      return Math.Max(baseHeightPerLine, maxLines * baseHeightPerLine);
     }
 
     private void ClearLogs()
@@ -169,72 +153,39 @@ namespace AIStudio.ViewModels
       public DateTime Timestamp { get; set; }
       public int Pulse { get; set; }
       public int RowHeight { get; set; } = 30; // Базовая высота по умолчанию
-
-      // Базовые стили
-      public List<StyleInfo> BaseStyles { get; set; } = new List<StyleInfo>();
-
-      // Стили после антагонистов
-      public List<StyleInfo> AfterAntagonistStyles { get; set; } = new List<StyleInfo>();
-
-      // Финальные стили
       public List<StyleInfo> FinalStyles { get; set; } = new List<StyleInfo>();
-
-      // Активации параметров
       public List<ParameterActivationInfo> ParameterActivations { get; set; } = new List<ParameterActivationInfo>();
 
       public string DisplayTime => Timestamp.ToString("HH:mm:ss");
       public string DisplayPulse => Pulse.ToString();
 
       // Для отображения в таблице
-      public string DisplayAfterAntagonistStyles => string.Join("\n", AfterAntagonistStyles.Select(s => s.ToString()));
-      public string DisplayFinalStyles => string.Join("\n", FinalStyles.Select(s => s.ToString()));
+      public string DisplayActiveStyles => string.Join("\n", FinalStyles.Select(s => s.ToString()));
 
-      public string DisplayParametersAndZones => GetParametersAndZonesDisplay();
-      public string DisplayBaseStyles => GetBaseStylesDisplay();
+      // Разделяем параметры и зоны на два столбца
+      public string DisplayParameters => GetParametersDisplay();
+      public string DisplayZones => GetZonesDisplay();
 
-      private string GetParametersAndZonesDisplay()
+      private string GetParametersDisplay()
       {
-        var result = new List<string>();
-
-        // Группируем по параметру и зоне
-        var groupedByParamZone = ParameterActivations
-            .GroupBy(pa => new { pa.ParameterId, pa.ParameterName, pa.ZoneId, pa.ZoneDescription })
+        var uniqueParameters = ParameterActivations
+            .GroupBy(pa => new { pa.ParameterId, pa.ParameterName })
             .OrderBy(g => g.Key.ParameterName)
-            .ThenBy(g => g.Key.ZoneId);
+            .Select(g => $"{g.Key.ParameterName} (ID:{g.Key.ParameterId})")
+            .ToList();
 
-        foreach (var paramZoneGroup in groupedByParamZone)
-        {
-          result.Add($"{paramZoneGroup.Key.ParameterName} (ID:{paramZoneGroup.Key.ParameterId}) | {paramZoneGroup.Key.ZoneDescription} (ID:{paramZoneGroup.Key.ZoneId})");
-          for (int i = 1; i < paramZoneGroup.Count(); i++)
-          {
-            result.Add("");
-          }
-        }
-
-        return string.Join("\n", result);
+        return string.Join("\n", uniqueParameters);
       }
 
-      private string GetBaseStylesDisplay()
+      private string GetZonesDisplay()
       {
-        var result = new List<string>();
+        var uniqueZones = ParameterActivations
+            .GroupBy(pa => new { pa.ZoneId, pa.ZoneDescription })
+            .OrderBy(g => g.Key.ZoneId)
+            .Select(g => $"{g.Key.ZoneDescription} (ID:{g.Key.ZoneId})")
+            .ToList();
 
-        // Группируем по параметру и зоне
-        var groupedByParamZone = ParameterActivations
-            .GroupBy(pa => new { pa.ParameterId, pa.ParameterName, pa.ZoneId, pa.ZoneDescription })
-            .OrderBy(g => g.Key.ParameterName)
-            .ThenBy(g => g.Key.ZoneId);
-
-        foreach (var paramZoneGroup in groupedByParamZone)
-        {
-          // Для каждой группы параметр-зона выводим все стили
-          var stylesInGroup = paramZoneGroup
-              .OrderBy(pa => pa.StyleName)
-              .Select(pa => $"{pa.StyleName} (ID:{pa.StyleId}) | Вес:{pa.Weight}");
-
-          result.AddRange(stylesInGroup);
-        }
-
-        return string.Join("\n", result);
+        return string.Join("\n", uniqueZones);
       }
     }
 
@@ -265,5 +216,6 @@ namespace AIStudio.ViewModels
       public string StyleName { get; set; } = string.Empty;
       public int Weight { get; set; }
     }
+
   }
 }

@@ -10,6 +10,7 @@
     <converters:ParameterValueToGradientConverter x:Key="ValueToGradientConverter"/>
     <converters:ParameterGradientConverter x:Key="GradientConverter"/>
     <converters:ParameterValueToIndicatorPositionConverter x:Key="ValueToIndicatorConverter"/>
+    <converters:ParameterStateToLightBackgroundConverter x:Key="StateToBackgroundConverter"/>
 
     <!-- Стили для компактного отображения -->
     <Style x:Key="ParameterContainerStyle" TargetType="Border">
@@ -60,6 +61,7 @@
       <Setter Property="Fill" Value="Black"/>
       <Setter Property="VerticalAlignment" Value="Center"/>
     </Style>
+
   </UserControl.Resources>
 
   <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
@@ -73,7 +75,19 @@
 
       <ItemsControl.ItemTemplate>
         <DataTemplate>
-          <Border Style="{StaticResource ParameterContainerStyle}">
+          <Border>
+            <Border.Style>
+              <Style TargetType="Border" BasedOn="{StaticResource ParameterContainerStyle}">
+                <Style.Triggers>
+                  <DataTrigger Binding="{Binding IsDominant}" Value="True">
+                    <Setter Property="BorderBrush" Value="{Binding CurrentState, Converter={StaticResource StateToBrushConverter}}"/>
+                    <Setter Property="BorderThickness" Value="2"/>
+                    <Setter Property="Background" Value="{Binding CurrentState, Converter={StaticResource StateToBackgroundConverter}}"/>
+                  </DataTrigger>
+                </Style.Triggers>
+              </Style>
+            </Border.Style>
+
             <Grid>
               <Grid.RowDefinitions>
                 <RowDefinition Height="Auto"/>
@@ -88,11 +102,11 @@
                   <ColumnDefinition Width="Auto"/>
                 </Grid.ColumnDefinitions>
                 <Ellipse Grid.Column="0" Style="{StaticResource StateIndicatorStyle}" 
-                 Fill="{Binding CurrentState, Converter={StaticResource StateToBrushConverter}}"/>
+                         Fill="{Binding CurrentState, Converter={StaticResource StateToBrushConverter}}"/>
                 <TextBlock Grid.Column="1" Text="{Binding Name}" Style="{StaticResource ParameterNameStyle}" 
-                  HorizontalAlignment="Center" VerticalAlignment="Top" ToolTip="{Binding Description}"/>
+                          HorizontalAlignment="Center" VerticalAlignment="Top" ToolTip="{Binding Description}"/>
                 <TextBlock Grid.Column="2" Text="{Binding Value, StringFormat={}{0:F2}}" 
-                  Style="{StaticResource ValueTextStyle}" HorizontalAlignment="Right" VerticalAlignment="Top"/>
+                          Style="{StaticResource ValueTextStyle}" HorizontalAlignment="Right" VerticalAlignment="Top"/>
               </Grid>
 
               <!-- Индикаторная полоса -->
@@ -108,7 +122,7 @@
                   </Rectangle>
 
                   <Rectangle Style="{StaticResource ValueIndicatorStyle}" 
-                   HorizontalAlignment="Left">
+                             HorizontalAlignment="Left">
                     <Rectangle.Margin>
                       <MultiBinding Converter="{StaticResource ValueToIndicatorConverter}">
                         <Binding Path="Value"/>
@@ -119,11 +133,11 @@
                   </Rectangle>
                 </Grid>
               </Border>
-
             </Grid>
           </Border>
         </DataTemplate>
       </ItemsControl.ItemTemplate>
+
     </ItemsControl>
   </ScrollViewer>
 </UserControl>

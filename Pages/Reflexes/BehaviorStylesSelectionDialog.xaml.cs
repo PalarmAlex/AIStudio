@@ -164,7 +164,7 @@ namespace AIStudio.Dialogs
         if (result != MessageBoxResult.Yes) return;
 
         // Генерируем комбинации
-        var combinations = _gomeostasSystem.GenerateStyleCombinations(3, true, true);
+        var combinations = _gomeostasSystem.GenerateStyleCombinations(3, true);
 
         // Загружаем в список
         LoadCombinationsIntoList(combinations, _initiallySelected);
