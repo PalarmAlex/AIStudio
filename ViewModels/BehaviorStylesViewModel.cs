@@ -241,6 +241,8 @@ namespace AIStudio.ViewModels
 
     private bool UpdateGomeostasStylesFromTable()
     {
+      bool needRevalidation = false;
+
       if (!_gomeostas.ValidateAgentBehaviorStyles(BehaviorStyles, out string errorMsg))
       {
         if (errorMsg.Contains("AsymmetricStyles"))
@@ -263,12 +265,16 @@ namespace AIStudio.ViewModels
             switch (result)
             {
               case MessageBoxResult.Yes:
-                int fixesCount = _gomeostas.FixAntagonistSymmetry();
+                int fixesCount = _gomeostas.FixAntagonistSymmetry(BehaviorStyles);
                 MessageBox.Show($"Исправлено {fixesCount} асимметричных связей",
                     "Автокоррекция завершена",
                     MessageBoxButton.OK,
                     MessageBoxImage.Information);
+
+                ApplyLocalStylesToGomeostas();
                 RefreshAllCollections();
+
+                needRevalidation = true;
                 break;
 
               case MessageBoxResult.No:
@@ -289,37 +295,64 @@ namespace AIStudio.ViewModels
         }
       }
 
+      if (needRevalidation)
+      {
+        if (!_gomeostas.ValidateAgentBehaviorStyles(BehaviorStyles, out errorMsg))
+        {
+          MessageBox.Show($"Ошибка валидации после исправления асимметрии:\n{errorMsg}",
+              "Ошибка сохранения",
+              MessageBoxButton.OK,
+              MessageBoxImage.Error);
+          return false;
+        }
+      }
+
+      if (!needRevalidation)
+        ApplyLocalStylesToGomeostas();
+
+      return true;
+    }
+
+    /// <summary>
+    /// Применяет изменения из локальной коллекции в систему гомеостаза
+    /// </summary>
+    private void ApplyLocalStylesToGomeostas()
+    {
       var currentStyles = _gomeostas.GetAllBehaviorStyles();
+
+      // Удаляем стили, которых нет в локальной коллекции
       var stylesToRemove = currentStyles.Keys.Except(BehaviorStyles.Select(s => s.Id)).ToList();
       foreach (var styleId in stylesToRemove)
       {
         _gomeostas.RemoveBehaviorStyle(styleId);
       }
 
+      // Обновляем или добавляем стили
       foreach (var style in BehaviorStyles)
       {
         if (currentStyles.ContainsKey(style.Id))
         {
+          // Обновляем существующий стиль
           var existingStyle = currentStyles[style.Id];
           existingStyle.Name = style.Name;
           existingStyle.Description = style.Description;
           existingStyle.Weight = style.Weight;
-          existingStyle.AntagonistStyles = style.AntagonistStyles;
-          existingStyle.StileActionInfluence = style.StileActionInfluence;
+          existingStyle.AntagonistStyles = new List<int>(style.AntagonistStyles);
+          existingStyle.StileActionInfluence = new Dictionary<int, int>(style.StileActionInfluence);
         }
         else
         {
+          // Добавляем новый стиль
           var (newId, warnings) = _gomeostas.AddBehaviorStyle(
               style.Name,
               style.Description,
               style.Weight,
-              style.AntagonistStyles,
-              style.StileActionInfluence);
+              new List<int>(style.AntagonistStyles),
+              new Dictionary<int, int>(style.StileActionInfluence));
+
           style.Id = newId;
         }
       }
-
-      return true;
     }
 
     public void RemoveSelectedStyle(object parameter)

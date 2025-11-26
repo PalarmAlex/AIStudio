@@ -244,14 +244,16 @@ namespace AIStudio.ViewModels
 
     private bool UpdateInfluenceActionsSystemFromTable()
     {
+      bool needRevalidation = false;
+
       if (!_influenceActionSystem.ValidateAllInfluenceActions(InfluenceActions, out string errorMsg))
       {
         if (errorMsg.Contains("AsymmetricInfluences"))
         {
-          var asymmetricStyles = _influenceActionSystem.FindAsymmetricInfluences(InfluenceActions);
-          if (asymmetricStyles.Any())
+          var asymmetricInfluences = _influenceActionSystem.FindAsymmetricInfluences(InfluenceActions);
+          if (asymmetricInfluences.Any())
           {
-            var asymmetricList = string.Join(", ", asymmetricStyles.Select(s => $"{s.Name} (ID:{s.Id})"));
+            var asymmetricList = string.Join(", ", asymmetricInfluences.Select(s => $"{s.Name} (ID:{s.Id})"));
 
             var result = MessageBox.Show(
                 $"Обнаружены асимметричные антагонистические связи:\n{asymmetricList}\n\n" +
@@ -266,12 +268,16 @@ namespace AIStudio.ViewModels
             switch (result)
             {
               case MessageBoxResult.Yes:
-                int fixesCount = _influenceActionSystem.FixInfluenceAntagonistSymmetry();
+                int fixesCount = _influenceActionSystem.FixInfluenceAntagonistSymmetry(InfluenceActions);
                 MessageBox.Show($"Исправлено {fixesCount} асимметричных связей",
                     "Автокоррекция завершена",
                     MessageBoxButton.OK,
                     MessageBoxImage.Information);
+
+                ApplyLocalInfluencesToSystem();
                 RefreshAllCollections();
+
+                needRevalidation = true;
                 break;
 
               case MessageBoxResult.No:
@@ -292,8 +298,34 @@ namespace AIStudio.ViewModels
         }
       }
 
+      if (needRevalidation)
+      {
+        if (!_influenceActionSystem.ValidateAllInfluenceActions(InfluenceActions, out errorMsg))
+        {
+          MessageBox.Show($"Ошибка валидации после исправления асимметрии:\n{errorMsg}",
+              "Ошибка сохранения",
+              MessageBoxButton.OK,
+              MessageBoxImage.Error);
+          return false;
+        }
+      }
+
+      if (!needRevalidation)
+      {
+        ApplyLocalInfluencesToSystem();
+      }
+
+      return true;
+    }
+
+    /// <summary>
+    /// Применяет изменения из локальной коллекции в систему гомеостатических воздействий
+    /// </summary>
+    private void ApplyLocalInfluencesToSystem()
+    {
       var currentActions = _influenceActionSystem.GetAllInfluenceActions().ToDictionary(a => a.Id);
       var actionsToRemove = currentActions.Keys.Except(InfluenceActions.Select(a => a.Id)).ToList();
+
       foreach (var actionId in actionsToRemove)
       {
         _influenceActionSystem.RemoveAction(actionId);
@@ -311,7 +343,6 @@ namespace AIStudio.ViewModels
         }
         else
         {
-          // Добавляем новое действие
           var (newId, warnings) = _influenceActionSystem.AddInfluenceAction(
               action.Name,
               action.Description,
@@ -321,7 +352,6 @@ namespace AIStudio.ViewModels
           action.Id = newId;
         }
       }
-      return true;
     }
   }
 }

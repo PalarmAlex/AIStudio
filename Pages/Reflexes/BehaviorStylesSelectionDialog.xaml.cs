@@ -142,7 +142,7 @@ namespace AIStudio.Dialogs
     {
       if (_combinationsLoaded)
       {
-        StatusText.Text = $"Всего реально возможных комбинаций: {_totalPossibleCombinations}. Сформировано после контрастирования: {_actualCombinations}";
+        StatusText.Text = $"Всего теоретически возможных комбинаций (1...3): {_totalPossibleCombinations}. Сформировано по данным параметров гомеостаза: {_actualCombinations}";
       }
       else
       {
@@ -164,7 +164,7 @@ namespace AIStudio.Dialogs
         if (result != MessageBoxResult.Yes) return;
 
         // Генерируем комбинации
-        var combinations = _gomeostasSystem.GenerateStyleCombinations(3, true);
+        var combinations = _gomeostasSystem.GenerateStyleCombinations(true);
 
         // Загружаем в список
         LoadCombinationsIntoList(combinations, _initiallySelected);

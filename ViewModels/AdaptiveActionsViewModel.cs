@@ -166,6 +166,8 @@ namespace AIStudio.ViewModels
 
     private bool UpdateActionsSystemFromTable()
     {
+      bool needRevalidation = false;
+
       var (isValid, errors, validate_warnings) = _actionsSystem.ValidateAction(AdaptiveActions);
       if (!isValid)
       {
@@ -189,12 +191,16 @@ namespace AIStudio.ViewModels
             switch (result)
             {
               case MessageBoxResult.Yes:
-                int fixesCount = _actionsSystem.FixActionAntagonistSymmetry();
+                int fixesCount = _actionsSystem.FixActionAntagonistSymmetry(AdaptiveActions);
                 MessageBox.Show($"Исправлено {fixesCount} асимметричных связей",
                     "Автокоррекция завершена",
                     MessageBoxButton.OK,
                     MessageBoxImage.Information);
+
+                ApplyLocalActionsToSystem();
                 RefreshAllCollections();
+
+                needRevalidation = true;
                 break;
 
               case MessageBoxResult.No:
@@ -208,12 +214,26 @@ namespace AIStudio.ViewModels
         else
         {
           MessageBox.Show(errors,
-            "Ошибки валидации",
-            MessageBoxButton.OK,
-            MessageBoxImage.Error);
+              "Ошибки валидации",
+              MessageBoxButton.OK,
+              MessageBoxImage.Error);
           return false;
         }
       }
+
+      if (needRevalidation)
+      {
+        (isValid, errors, validate_warnings) = _actionsSystem.ValidateAction(AdaptiveActions);
+        if (!isValid)
+        {
+          MessageBox.Show($"Ошибка валидации после исправления асимметрии:\n{errors}",
+              "Ошибка сохранения",
+              MessageBoxButton.OK,
+              MessageBoxImage.Error);
+          return false;
+        }
+      }
+
       if (validate_warnings != "")
       {
         var resultMsg = MessageBox.Show(
@@ -226,22 +246,28 @@ namespace AIStudio.ViewModels
           return false;
       }
 
-      // Получаем текущие действия из системы
-      var currentActions = _actionsSystem.GetAllAdaptiveActions().ToDictionary(a => a.Id);
+      if (!needRevalidation)
+        ApplyLocalActionsToSystem();
 
-      // Удаляем действия, которых нет в таблице
+      return true;
+    }
+
+    /// <summary>
+    /// Применяет изменения из локальной коллекции в систему адаптивных действий
+    /// </summary>
+    private void ApplyLocalActionsToSystem()
+    {
+      var currentActions = _actionsSystem.GetAllAdaptiveActions().ToDictionary(a => a.Id);
       var actionsToRemove = currentActions.Keys.Except(AdaptiveActions.Select(a => a.Id)).ToList();
       foreach (var actionId in actionsToRemove)
       {
         _actionsSystem.RemoveAction(actionId);
       }
 
-      // Добавляем/обновляем действия из таблицы
       foreach (var action in AdaptiveActions)
       {
         if (currentActions.ContainsKey(action.Id))
         {
-          // Обновляем существующее действие
           var existingAction = currentActions[action.Id];
           existingAction.Name = action.Name;
           existingAction.Description = action.Description;
@@ -250,7 +276,6 @@ namespace AIStudio.ViewModels
         }
         else
         {
-          // Добавляем новое действие
           var (newId, warnings) = _actionsSystem.AddAction(
               action.Name,
               action.Description,
@@ -261,7 +286,6 @@ namespace AIStudio.ViewModels
           action.Id = newId;
         }
       }
-      return true;
     }
 
     public void RemoveSelectedAction(object parameter)

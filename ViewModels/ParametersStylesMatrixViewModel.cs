@@ -63,7 +63,8 @@ namespace AIStudio.ViewModels
           {
             Id = value.Id,
             Name = value.Name,
-            Description = value.Description
+            Description = value.Description,
+            Count = value.Count
           };
         }
 
@@ -142,8 +143,8 @@ namespace AIStudio.ViewModels
         _parameters = parameters.OrderBy(p => p.Id).ToList();
         _styles = _gomeostas.GetAllBehaviorStyles().Values.OrderBy(s => s.Id).ToList();
 
-        InitializeStyleFilter();
         CreateMatrix();
+        InitializeStyleFilter();
         InitializeStyleGroupFilter();
       }
       catch (Exception ex)
@@ -155,19 +156,46 @@ namespace AIStudio.ViewModels
 
     private void InitializeStyleFilter()
     {
-      var filterItems = new ObservableCollection<StyleFilterItem>
-        {
-            new StyleFilterItem { Id = 0, Name = "Все", Description = "Показать все стили" }
-        };
+      // Для каждого стиля считаем количество назначений в матрице
+      var styleCounts = new List<StyleFilterItem>();
 
       foreach (var style in _styles)
       {
-        filterItems.Add(new StyleFilterItem
+        int styleCount = MatrixCells
+            .Where(c => !c.IsHeader)
+            .SelectMany(c => c.StyleIds)
+            .Count(id => id == style.Id || id == -style.Id);
+
+        styleCounts.Add(new StyleFilterItem
         {
           Id = style.Id,
           Name = style.Name,
-          Description = style.Description
+          Description = style.Description,
+          Count = styleCount
         });
+      }
+
+      // Сортируем по количеству назначений по возрастанию
+      var sortedStyles = styleCounts
+          .OrderBy(s => s.Count)
+          .ThenBy(s => s.Name)
+          .ToList();
+
+      var filterItems = new ObservableCollection<StyleFilterItem>
+    {
+        new StyleFilterItem
+        {
+            Id = 0,
+            Name = "Все",
+            Description = "Показать все стили",
+            Count = 0
+        }
+    };
+
+      // Добавляем отсортированные стили
+      foreach (var style in sortedStyles)
+      {
+        filterItems.Add(style);
       }
 
       InitializeStyleGroupFilter();
@@ -556,10 +584,14 @@ namespace AIStudio.ViewModels
       public int Id { get; set; }
       public string Name { get; set; } = string.Empty;
       public string Description { get; set; } = string.Empty;
+      public int Count { get; set; } // Количество назначений в матрице
 
       public override string ToString()
       {
-        return Id == 0 ? "Все" : $"{Name} (ID:{Id})";
+        if (Id == 0)
+          return "Все";
+        else
+          return $"{Name} (ID:{Id}) - {Count} назначений";
       }
     }
 
