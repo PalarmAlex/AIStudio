@@ -66,7 +66,7 @@ namespace AIStudio.ViewModels
 
     #endregion
 
-    public List<GomeostasSystem.ParameterData> GetAllParameters()
+    public List<ParameterData> GetAllParameters()
     {
       return _gomeostas.GetAllParameters().ToList();
     }

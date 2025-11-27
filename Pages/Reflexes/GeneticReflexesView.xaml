@@ -272,30 +272,42 @@
         <ColumnDefinition Width="Auto"/>
       </Grid.ColumnDefinitions>
 
-      <!-- Текст предупреждения -->
-      <TextBlock Grid.Column="0"
-                 Text="{Binding PulseWarningMessage}"
-                 Foreground="{Binding WarningMessageColor}"
-                 FontStyle="Italic"
-                 VerticalAlignment="Center"
-                 Margin="8,0,0,0"
-                 TextWrapping="Wrap"
-                 Visibility="{Binding IsEditingEnabled, Converter={StaticResource InverseBooleanToVisibilityConverter}}"/>
+      <!-- Левая часть - текст предупреждения и кнопка генерации -->
+      <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
+        <!-- Кнопка генерации -->
+        <Button Content="Сгенерировать рефлексы"
+                    Command="{Binding GenerateReflexesCommand}"
+                    IsEnabled="{Binding IsEditingEnabled}"
+                    Style="{StaticResource ActionButtonStyle}"
+                    ToolTip="Создать рефлексы для всех состояний и комбинаций стилей"
+                    Margin="8,0,15,0"
+                    Height="30"
+                    Width="185" Cursor="Hand"/>
 
-      <!-- Кнопки -->
+        <!-- Текст предупреждения -->
+        <TextBlock Text="{Binding PulseWarningMessage}"
+                     Foreground="{Binding WarningMessageColor}"
+                     FontStyle="Italic"
+                     VerticalAlignment="Center"
+                     TextWrapping="Wrap"
+                     Visibility="{Binding IsEditingEnabled, Converter={StaticResource InverseBooleanToVisibilityConverter}}"/>
+      </StackPanel>
+
+      <!-- Правая часть - кнопки очистки и сохранения -->
       <StackPanel Grid.Column="1" 
                   Orientation="Horizontal" 
                   HorizontalAlignment="Right">
         <Button Content="Очистить"
-                Command="{Binding RemoveAllCommand}"
-                IsEnabled="{Binding IsEditingEnabled}"
-                Style="{StaticResource RedButtonStyle}"
-                ToolTip="Удалить все данные из таблицы"/>
+                    Command="{Binding RemoveAllCommand}"
+                    IsEnabled="{Binding IsEditingEnabled}"
+                    Style="{StaticResource RedButtonStyle}"
+                    ToolTip="Удалить все данные из таблицы"
+                    Margin="0,0,8,0"/>
         <Button Content="Сохранить" 
-                Command="{Binding SaveCommand}"
-                IsEnabled="{Binding IsEditingEnabled}"
-                Style="{StaticResource ActionButtonStyle}"
-                ToolTip="Сохранить данные" Cursor="Hand"/>
+                    Command="{Binding SaveCommand}"
+                    IsEnabled="{Binding IsEditingEnabled}"
+                    Style="{StaticResource ActionButtonStyle}"
+                    ToolTip="Сохранить данные" Cursor="Hand"/>
       </StackPanel>
     </Grid>
 

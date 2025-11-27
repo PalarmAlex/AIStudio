@@ -54,6 +54,7 @@ namespace AIStudio.ViewModels
     public ICommand RemoveCommand { get; }
     public ICommand ClearFiltersCommand { get; }
     public ICommand RemoveAllCommand { get; }
+    public ICommand GenerateReflexesCommand { get; }
 
     public GeneticReflexesViewModel(
       GomeostasSystem gomeostasSystem,
@@ -73,6 +74,7 @@ namespace AIStudio.ViewModels
       RemoveCommand = new RelayCommand(RemoveSelectedReflexes);
       ClearFiltersCommand = new RelayCommand(ClearFilters);
       RemoveAllCommand = new RelayCommand(RemoveAllReflexes);
+      GenerateReflexesCommand = new RelayCommand(GenerateReflexes);
 
       GlobalTimer.PulsationStateChanged += OnPulsationStateChanged;
       LoadAgentData();
@@ -479,5 +481,66 @@ namespace AIStudio.ViewModels
         }
       }
     }
+
+    /// <summary>
+    /// Генерация рефлексов по всем состояниям и комбинациям стилей
+    /// </summary>
+    private void GenerateReflexes(object parameter)
+    {
+      if (!IsEditingEnabled)
+      {
+        MessageBox.Show("Генерация рефлексов доступна только в стадии 0 при выключенной пульсации",
+            "Невозможно выполнить",
+            MessageBoxButton.OK,
+            MessageBoxImage.Warning);
+        return;
+      }
+
+      var result = MessageBox.Show(
+          "Вы действительно хотите сгенерировать безусловные рефлексы для всех состояний и комбинаций стилей?\n\n" +
+          "Это действие:\n" +
+          "• Создаст рефлексы для состояний: Плохо, Норма, Хорошо\n" +
+          "• Использует все существующие комбинации стилей поведения\n" +
+          "• Применит действие по умолчанию для всех рефлексов\n" +
+          "• Автоматически заполнит дерево рефлексов и образы восприятия\n" +
+          "• Существующие рефлексы не будут дублироваться\n\n" +
+          "Существующие рефлексы будут сохранены, новые добавятся к ним.",
+          "Подтверждение генерации рефлексов",
+          MessageBoxButton.YesNo,
+          MessageBoxImage.Question);
+
+      if (result == MessageBoxResult.Yes)
+      {
+        try
+        {
+          var (success, createdCount, errorMessage) = _geneticReflexesSystem.CreateGeneticReflexesForAllStatesAndStyles(_gomeostas);
+
+          if (success)
+          {
+            RefreshAllCollections();
+
+            MessageBox.Show(errorMessage,
+                "Генерация завершена",
+                MessageBoxButton.OK,
+                MessageBoxImage.Information);
+          }
+          else
+          {
+            MessageBox.Show($"Не удалось сгенерировать рефлексы:\n{errorMessage}",
+                "Ошибка генерации",
+                MessageBoxButton.OK,
+                MessageBoxImage.Error);
+          }
+        }
+        catch (Exception ex)
+        {
+          MessageBox.Show($"Ошибка при генерации рефлексов:\n{ex.Message}",
+              "Ошибка",
+              MessageBoxButton.OK,
+              MessageBoxImage.Error);
+        }
+      }
+    }
+
   }
 }
