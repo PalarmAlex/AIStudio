@@ -105,6 +105,12 @@ namespace AIStudio.Pages.Reflexes
 
     private void Level2Cell_DoubleClick(object sender, MouseButtonEventArgs e)
     {
+      if (!IsFormEnabled)
+      {
+        e.Handled = true;
+        return;
+      }    
+
       if (sender is DataGridCell cell && cell.DataContext is GeneticReflexesSystem.GeneticReflex reflex)
       {
         if (DataContext is GeneticReflexesViewModel viewModel)
@@ -126,6 +132,12 @@ namespace AIStudio.Pages.Reflexes
 
     private void Level3Cell_DoubleClick(object sender, MouseButtonEventArgs e)
     {
+      if (!IsFormEnabled)
+      {
+        e.Handled = true;
+        return;
+      }
+
       if (sender is DataGridCell cell && cell.DataContext is GeneticReflexesSystem.GeneticReflex reflex)
       {
         var dialog = new InfluenceActionsSelectionDialog(reflex.Level3);
@@ -140,6 +152,12 @@ namespace AIStudio.Pages.Reflexes
 
     private void AdaptiveActionsCell_DoubleClick(object sender, MouseButtonEventArgs e)
     {
+      if (!IsFormEnabled)
+      {
+        e.Handled = true;
+        return;
+      }
+
       if (sender is DataGridCell cell && cell.DataContext is GeneticReflexesSystem.GeneticReflex reflex)
       {
         var dialog = new AdaptiveActionsSelectionDialog(reflex.AdaptiveActions);
@@ -151,5 +169,23 @@ namespace AIStudio.Pages.Reflexes
         }
       }
     }
+
+    private bool IsFormEnabled
+    {
+      get
+      {
+        if (DataContext is GeneticReflexesViewModel viewModel && !viewModel.IsEditingEnabled)
+        {
+          MessageBox.Show(
+              viewModel.PulseWarningMessage,
+              "Редактирование недоступно",
+              MessageBoxButton.OK,
+              MessageBoxImage.Warning);
+          return false;
+        }
+        return true;
+      }
+    }
+
   }
 }

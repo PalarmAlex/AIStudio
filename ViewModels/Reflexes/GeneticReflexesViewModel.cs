@@ -98,18 +98,23 @@ namespace AIStudio.ViewModels
         OnPropertyChanged(nameof(IsEditingEnabled));
         OnPropertyChanged(nameof(PulseWarningMessage));
         OnPropertyChanged(nameof(WarningMessageColor));
+        OnPropertyChanged(nameof(IsReadOnlyMode));
       });
     }
 
     #region Блокировка страницы в зависимости от стажа
 
     public bool IsEditingEnabled => IsStageZero && !GlobalTimer.IsPulsationRunning;
+
+    public bool IsReadOnlyMode => !IsEditingEnabled;
+
     public string PulseWarningMessage =>
         !IsStageZero
             ? "[КРИТИЧНО] Редактирование параметров доступно только в стадии 0"
             : GlobalTimer.IsPulsationRunning
                 ? "Редактирование параметров доступно только при выключенной пульсации"
                 : string.Empty;
+
     public Brush WarningMessageColor =>
         !IsStageZero ? Brushes.Red :
         Brushes.Gray;
@@ -263,6 +268,7 @@ namespace AIStudio.ViewModels
       OnPropertyChanged(nameof(WarningMessageColor));
       OnPropertyChanged(nameof(CurrentAgentDescription));
       OnPropertyChanged(nameof(CurrentAgentTitle));
+      OnPropertyChanged(nameof(IsReadOnlyMode));
     }
 
     private void SaveData(object parameter)

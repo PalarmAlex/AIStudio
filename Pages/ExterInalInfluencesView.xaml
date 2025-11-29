@@ -90,10 +90,11 @@
             Margin="0,0,0,5">
       <DataGrid ItemsSource="{Binding InfluenceActions}"
                 x:Name="ExternInfluencesGrid"
-                IsEnabled="{Binding IsEditingEnabled}"
-                IsReadOnly="{Binding IsEditingEnabled, Converter={StaticResource InverseBooleanConverter}}"
+                IsEnabled="True"
+                IsReadOnly="{Binding IsReadOnlyMode}"
                 AutoGenerateColumns="False"
-                CanUserAddRows="True"
+                CanUserAddRows="{Binding IsEditingEnabled}"
+                CanUserDeleteRows="{Binding IsEditingEnabled}"
                 SelectionMode="Extended"
                 BorderThickness="0"
                 Background="White"
@@ -128,19 +129,14 @@
                 <EventSetter Event="MouseDown" Handler="InfluencesCell_MouseDown"/>
               </Style>
             </DataGridTextColumn.ElementStyle>
+
             <DataGridTextColumn.HeaderStyle>
               <Style TargetType="DataGridColumnHeader">
-                <Setter Property="ToolTip">
-                  <Setter.Value>
-                    <TextBlock TextWrapping="Wrap" Width="200">
-                        Влияние воздействия на параметры гомеостаза (положительное или отрицательное).
-                        Ключ - ID параметра, значение - величина воздействия.
-                        ДБ клик открывает окно ввода".
-                    </TextBlock>
-                  </Setter.Value>
-                </Setter>
+                <Setter Property="ToolTip" 
+                    Value="Влияние воздействия на параметры гомеостаза (положительное или отрицательное).&#x0a;Ключ - ID параметра, значение - величина воздействия.&#x0a;ДБ клик открывает окно ввода."/>
               </Style>
             </DataGridTextColumn.HeaderStyle>
+        
           </DataGridTextColumn>
 
           <DataGridTextColumn Header="Антагонисты" 
@@ -152,19 +148,14 @@
                 <EventSetter Event="MouseDown" Handler="AntagonistCell_MouseDown"/>
               </Style>
             </DataGridTextColumn.ElementStyle>
+
             <DataGridTextColumn.HeaderStyle>
               <Style TargetType="DataGridColumnHeader">
-                <Setter Property="ToolTip">
-                  <Setter.Value>
-                    <TextBlock TextWrapping="Wrap" Width="200">
-                      Список ID воздействий-антагонистов, которые несовместимы с данным воздействием.
-                      При активации данного воздействия, все указанные здесь воздействия будут деактивированы.
-                      ДБ клик открывает окно ввода.
-                    </TextBlock>
-                  </Setter.Value>
-                </Setter>
+                <Setter Property="ToolTip" 
+                    Value="Список ID воздействий-антагонистов, которые несовместимы с данным воздействием.&#x0a;При активации данного воздействия, все указанные здесь воздействия будут деактивированы.&#x0a;ДБ клик открывает окно ввода."/>
               </Style>
             </DataGridTextColumn.HeaderStyle>
+            
           </DataGridTextColumn>
 
         </DataGrid.Columns>

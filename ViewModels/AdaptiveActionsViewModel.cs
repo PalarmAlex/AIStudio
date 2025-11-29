@@ -29,6 +29,7 @@ namespace AIStudio.ViewModels
     private int _currentAgentStage;
     public bool IsStageZero => _currentAgentStage == 0;
 
+    public bool IsReadOnlyMode => !IsEditingEnabled;
     public string CurrentAgentTitle => $"Адаптивные действия Агента: {_currentAgentName ?? "Не определен"}";
     public string CurrentAgentDescription => _currentAgentDescription ?? "Нет описания";
     public ObservableCollection<AdaptiveActionsSystem.AdaptiveAction> AdaptiveActions { get; } = new ObservableCollection<AdaptiveActionsSystem.AdaptiveAction>();
@@ -49,7 +50,7 @@ namespace AIStudio.ViewModels
       LoadAgentData();
     }
 
-    public List<GomeostasSystem.ParameterData> GetAllParameters()
+    public List<ParameterData> GetAllParameters()
     {
       return _gomeostas.GetAllParameters().ToList();
     }
@@ -61,6 +62,7 @@ namespace AIStudio.ViewModels
         OnPropertyChanged(nameof(IsEditingEnabled));
         OnPropertyChanged(nameof(PulseWarningMessage));
         OnPropertyChanged(nameof(WarningMessageColor));
+        OnPropertyChanged(nameof(IsReadOnlyMode));
       });
     }
 
@@ -91,6 +93,7 @@ namespace AIStudio.ViewModels
       OnPropertyChanged(nameof(WarningMessageColor));
       OnPropertyChanged(nameof(CurrentAgentDescription));
       OnPropertyChanged(nameof(CurrentAgentTitle));
+      OnPropertyChanged(nameof(IsReadOnlyMode));
     }
 
     #region Блокировка страницы в зависимости от стажа

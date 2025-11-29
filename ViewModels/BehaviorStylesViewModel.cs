@@ -26,6 +26,7 @@ namespace AIStudio.ViewModels
     private string _currentAgentDescription;
     private int _currentAgentStage;
     public bool IsStageZero => _currentAgentStage == 0;
+    public bool IsReadOnlyMode => !IsEditingEnabled;
 
     private string _description;
     public string Description
@@ -73,6 +74,7 @@ namespace AIStudio.ViewModels
         OnPropertyChanged(nameof(IsEditingEnabled));
         OnPropertyChanged(nameof(PulseWarningMessage));
         OnPropertyChanged(nameof(WarningMessageColor));
+        OnPropertyChanged(nameof(IsReadOnlyMode));
       });
     }
 
@@ -104,6 +106,7 @@ namespace AIStudio.ViewModels
       OnPropertyChanged(nameof(WarningMessageColor));
       OnPropertyChanged(nameof(CurrentAgentDescription));
       OnPropertyChanged(nameof(CurrentAgentTitle));
+      OnPropertyChanged(nameof(IsReadOnlyMode));
     }
 
     #region Блокировка страницы в зависимости от стажа

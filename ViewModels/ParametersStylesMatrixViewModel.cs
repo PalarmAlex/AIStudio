@@ -92,8 +92,8 @@ namespace AIStudio.ViewModels
         if (value != null)
         {
           // Сохраняем базовое название без количества групп
-          string baseGroupKey = value.GroupKey.StartsWith("Все группы")
-              ? "Все группы"
+          string baseGroupKey = value.GroupKey.StartsWith("Всего дублеров")
+              ? "Всего дублеров"
               : value.GroupKey.Split('(')[0].Trim();
 
           _lastSelectedGroupFilter = new StyleGroupFilterItem
@@ -222,7 +222,7 @@ namespace AIStudio.ViewModels
 
       var groupFilterItems = new ObservableCollection<StyleGroupFilterItem>
     {
-        new StyleGroupFilterItem { GroupKey = $"Все группы ({groupCount})", StyleIds = new List<int>() }
+        new StyleGroupFilterItem { GroupKey = $"Всего дублеров ({groupCount})", StyleIds = new List<int>() }
     };
 
       foreach (var group in duplicateGroups)
@@ -296,7 +296,7 @@ namespace AIStudio.ViewModels
           continue;
         }
 
-        if (selectedGroupKey.StartsWith("Все группы"))
+        if (selectedGroupKey.StartsWith("Всего дублеров"))
         {
           cell.IsGroupHighlighted = false;
         }

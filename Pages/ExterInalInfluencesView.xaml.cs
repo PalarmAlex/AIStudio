@@ -108,6 +108,12 @@ namespace AIStudio.Pages
     {
       if (e.ClickCount == 2 && DataContext is ExterInalInfluencesViewModel vm)
       {
+        if (!IsFormEnabled)
+        {
+          e.Handled = true;
+          return;
+        }
+
         if (sender is FrameworkElement element &&
             element.DataContext is InfluenceActionSystem.GomeostasisInfluenceAction action)
         {
@@ -134,6 +140,12 @@ namespace AIStudio.Pages
     {
       if (e.ClickCount == 2 && DataContext is ExterInalInfluencesViewModel vm)
       {
+        if (!IsFormEnabled)
+        {
+          e.Handled = true;
+          return;
+        }
+
         if (sender is FrameworkElement element &&
             element.DataContext is InfluenceActionSystem.GomeostasisInfluenceAction action)
         {
@@ -182,6 +194,23 @@ namespace AIStudio.Pages
           ExternInfluencesGrid.CommitEdit(DataGridEditingUnit.Row, true);
           ExternInfluencesGrid.Items.Refresh();
         }
+      }
+    }
+
+    private bool IsFormEnabled
+    {
+      get
+      {
+        if (DataContext is ExterInalInfluencesViewModel viewModel && !viewModel.IsEditingEnabled)
+        {
+          MessageBox.Show(
+              viewModel.PulseWarningMessage,
+              "Редактирование недоступно",
+              MessageBoxButton.OK,
+              MessageBoxImage.Warning);
+          return false;
+        }
+        return true;
       }
     }
 

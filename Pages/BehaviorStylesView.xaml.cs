@@ -115,6 +115,12 @@ namespace AIStudio.Pages
     {
       if (e.ClickCount == 2 && DataContext is BehaviorStylesViewModel vm)
       {
+        if (!IsFormEnabled)
+        {
+          e.Handled = true;
+          return;
+        }
+
         if (sender is FrameworkElement element &&
             element.DataContext is GomeostasSystem.BehaviorStyle behaviorStyle)
         {
@@ -138,6 +144,12 @@ namespace AIStudio.Pages
     {
       if (e.ClickCount == 2 && DataContext is BehaviorStylesViewModel vm)
       {
+        if (!IsFormEnabled)
+        {
+          e.Handled = true;
+          return;
+        }
+
         if (sender is FrameworkElement element &&
             element.DataContext is GomeostasSystem.BehaviorStyle behaviorStyle)
         {
@@ -217,6 +229,23 @@ namespace AIStudio.Pages
           e.Text != ".")
       {
         e.Handled = true;
+      }
+    }
+
+    private bool IsFormEnabled
+    {
+      get
+      {
+        if (DataContext is BehaviorStylesViewModel viewModel && !viewModel.IsEditingEnabled)
+        {
+          MessageBox.Show(
+              viewModel.PulseWarningMessage,
+              "Редактирование недоступно",
+              MessageBoxButton.OK,
+              MessageBoxImage.Warning);
+          return false;
+        }
+        return true;
       }
     }
 

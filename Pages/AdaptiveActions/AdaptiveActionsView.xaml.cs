@@ -99,6 +99,12 @@ namespace AIStudio.Pages
     {
       if (e.ClickCount == 2 && DataContext is AdaptiveActionsViewModel vm)
       {
+        if (!IsFormEnabled)
+        {
+          e.Handled = true;
+          return;
+        }
+
         if (sender is FrameworkElement element &&
             element.DataContext is AdaptiveActionsSystem.AdaptiveAction action)
         {
@@ -209,6 +215,23 @@ namespace AIStudio.Pages
       string normalizedInput = input.Replace(',', '.');
 
       return float.TryParse(normalizedInput, NumberStyles.Float, CultureInfo.InvariantCulture, out result);
+    }
+
+    private bool IsFormEnabled
+    {
+      get
+      {
+        if (DataContext is AdaptiveActionsViewModel viewModel && !viewModel.IsEditingEnabled)
+        {
+          MessageBox.Show(
+              viewModel.PulseWarningMessage,
+              "Редактирование недоступно",
+              MessageBoxButton.OK,
+              MessageBoxImage.Warning);
+          return false;
+        }
+        return true;
+      }
     }
 
     #endregion

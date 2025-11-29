@@ -26,6 +26,7 @@ namespace AIStudio.ViewModels
 
     public GomeostasSystem Gomeostas => _gomeostas;
     public bool IsStageZero => _currentAgentStage == 0;
+    public bool IsReadOnlyMode => !IsEditingEnabled;
     public Brush WarningMessageColor =>
         !IsStageZero ? Brushes.Red :
         Brushes.Gray;
@@ -110,6 +111,7 @@ namespace AIStudio.ViewModels
         OnPropertyChanged(nameof(IsEditingEnabled));
         OnPropertyChanged(nameof(PulseWarningMessage));
         OnPropertyChanged(nameof(WarningMessageColor));
+        OnPropertyChanged(nameof(IsReadOnlyMode));
       });
     }
 
@@ -151,6 +153,7 @@ namespace AIStudio.ViewModels
         OnPropertyChanged(nameof(PulseWarningMessage));
         OnPropertyChanged(nameof(WarningMessageColor));
         OnPropertyChanged(nameof(CurrentAgentDescription));
+        OnPropertyChanged(nameof(IsReadOnlyMode));
 
         var parameters = _gomeostas.GetAllParameters()?
             .OrderBy(p => p.Id)

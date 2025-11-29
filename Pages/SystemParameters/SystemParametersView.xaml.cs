@@ -287,6 +287,12 @@ namespace AIStudio.Pages
 
       if (selectedItem != null && dataGrid.CurrentColumn?.Header?.ToString() == "Активации стилей")
       {
+        if (!IsFormEnabled)
+        {
+          e.Handled = true;
+          return;
+        }
+
         var viewModel = (SystemParametersViewModel)DataContext;
         var allStyles = viewModel.GetAllBehaviorStyles();
 
@@ -310,6 +316,12 @@ namespace AIStudio.Pages
     private void InfluenceCell_DoubleClick(object sender, MouseButtonEventArgs e)
     {
       if (e.ChangedButton != MouseButton.Left) return;
+
+      if (!IsFormEnabled)
+      {
+        e.Handled = true;
+        return;
+      }
 
       var cell = sender as DataGridCell;
       if (cell == null) return;
@@ -366,7 +378,6 @@ namespace AIStudio.Pages
       }
     }
 
-    // Вспомогательный метод для поиска родительского DataGrid
     private static T FindVisualParent<T>(DependencyObject child) where T : DependencyObject
     {
       while (child != null && !(child is T))
@@ -374,6 +385,23 @@ namespace AIStudio.Pages
         child = VisualTreeHelper.GetParent(child);
       }
       return child as T;
+    }
+
+    private bool IsFormEnabled
+    {
+      get
+      {
+        if (DataContext is SystemParametersViewModel viewModel && !viewModel.IsEditingEnabled)
+        {
+          MessageBox.Show(
+              viewModel.PulseWarningMessage,
+              "Редактирование недоступно",
+              MessageBoxButton.OK,
+              MessageBoxImage.Warning);
+          return false;
+        }
+        return true;
+      }
     }
 
   }

@@ -141,28 +141,30 @@
             CornerRadius="4"
             Margin="0,0,0,5">
       <DataGrid ItemsSource="{Binding GeneticReflexesView}"
-          x:Name="GeneticReflexesGrid"
-          IsEnabled="{Binding IsEditingEnabled}"
-          IsReadOnly="{Binding IsEditingEnabled, Converter={StaticResource InverseBooleanConverter}}"
-          AutoGenerateColumns="False"
-          CanUserAddRows="True"
-          SelectionMode="Extended"
-          BorderThickness="0"
-          Background="White"
-          RowBackground="#FFF9F9F9"
-          AlternatingRowBackground="White"
-          GridLinesVisibility="None"
-          VerticalScrollBarVisibility="Auto"
-          HorizontalScrollBarVisibility="Auto"
-          PreviewKeyDown="DataGrid_PreviewKeyDown"
-          RowEditEnding="DataGrid_RowEditEnding"
-          AddingNewItem="DataGrid_AddingNewItem">
+            x:Name="GeneticReflexesGrid"
+            IsEnabled="True"
+            IsReadOnly="{Binding IsReadOnlyMode}"
+            AutoGenerateColumns="False"
+            CanUserAddRows="{Binding IsEditingEnabled}"
+            CanUserDeleteRows="{Binding IsEditingEnabled}"
+            SelectionMode="Extended"
+            BorderThickness="0"
+            Background="White"
+            RowBackground="#FFF9F9F9"
+            AlternatingRowBackground="White"
+            GridLinesVisibility="None"
+            VerticalScrollBarVisibility="Auto"
+            HorizontalScrollBarVisibility="Auto"
+            PreviewKeyDown="DataGrid_PreviewKeyDown"
+            RowEditEnding="DataGrid_RowEditEnding"
+            AddingNewItem="DataGrid_AddingNewItem">
 
         <DataGrid.Columns>
           <DataGridTextColumn Header="ID" Binding="{Binding Id}" Width="50" IsReadOnly="True"/>
 
           <!-- Интегральное состояние - комбобокс -->
-          <DataGridTemplateColumn Header="Интегральное состояние" Width="Auto">
+          <DataGridTemplateColumn Header="Интегральное состояние" Width="Auto" 
+                           CanUserSort="True" SortMemberPath="Level1">
             <DataGridTemplateColumn.HeaderStyle>
               <Style TargetType="DataGridColumnHeader">
                 <Setter Property="ToolTip" Value="Первый уровень дерева триггера рефлекса: Интегральное базовое состояние гомеостаза"/>
@@ -184,19 +186,16 @@
           </DataGridTemplateColumn>
 
           <!-- Контексты реагирования -->
-          <DataGridTemplateColumn Header="Контексты реагирования" Width="250">
+          <DataGridTemplateColumn Header="Контексты реагирования" Width="250" 
+                           CanUserSort="True" SortMemberPath="Level2">
+
             <DataGridTemplateColumn.HeaderStyle>
               <Style TargetType="DataGridColumnHeader">
-                <Setter Property="ToolTip">
-                  <Setter.Value>
-                    <TextBlock TextWrapping="Wrap" Width="200">
-                        Второй уровень дерева триггера рефлекса: Контексты реагирования.
-                        ДБ клик запускает редактор ввода.
-                    </TextBlock>
-                  </Setter.Value>
-                </Setter>
+                <Setter Property="ToolTip" 
+                    Value="Второй уровень дерева триггера рефлекса: Контексты реагирования.&#x0a;ДБ клик открывает окно ввода."/>
               </Style>
             </DataGridTemplateColumn.HeaderStyle>
+            
             <DataGridTemplateColumn.CellTemplate>
               <DataTemplate>
                 <TextBlock Text="{Binding Level2, Converter={StaticResource IdListToNamesConverter}, ConverterParameter='Level2'}"/>
@@ -210,19 +209,16 @@
           </DataGridTemplateColumn>
 
           <!-- Внешние стимулы -->
-          <DataGridTemplateColumn Header="Внешние стимулы" Width="250">
+          <DataGridTemplateColumn Header="Внешние стимулы" Width="250" 
+                           CanUserSort="True" SortMemberPath="Level3">
+
             <DataGridTemplateColumn.HeaderStyle>
               <Style TargetType="DataGridColumnHeader">
-                <Setter Property="ToolTip">
-                  <Setter.Value>
-                    <TextBlock TextWrapping="Wrap" Width="200">
-                        Третий уровень дерева триггера рефлекса: Гомеостатические воздействия.
-                        ДБ клик запускает редактор ввода.
-                    </TextBlock>
-                  </Setter.Value>
-                </Setter>
+                <Setter Property="ToolTip" 
+                    Value="Третий уровень дерева триггера рефлекса: Гомеостатические воздействия.&#x0a;ДБ клик открывает окно ввода."/>
               </Style>
             </DataGridTemplateColumn.HeaderStyle>
+
             <DataGridTemplateColumn.CellTemplate>
               <DataTemplate>
                 <TextBlock Text="{Binding Level3, Converter={StaticResource IdListToNamesConverter}, ConverterParameter='Level3'}"/>
@@ -236,19 +232,16 @@
           </DataGridTemplateColumn>
 
           <!-- Адаптивные действия -->
-          <DataGridTemplateColumn Header="Адаптивные действия" Width="*">
+          <DataGridTemplateColumn Header="Адаптивные действия" Width="*" 
+                           CanUserSort="True" SortMemberPath="AdaptiveActions">
+
             <DataGridTemplateColumn.HeaderStyle>
               <Style TargetType="DataGridColumnHeader">
-                <Setter Property="ToolTip">
-                  <Setter.Value>
-                    <TextBlock TextWrapping="Wrap" Width="200">
-                        Действия запускаемые рефлексом.
-                        ДБ клик запускает редактор ввода.
-                    </TextBlock>
-                  </Setter.Value>
-                </Setter>
+                <Setter Property="ToolTip" 
+                    Value="Действия запускаемые рефлексом.&#x0a;ДБ клик открывает окно ввода."/>
               </Style>
             </DataGridTemplateColumn.HeaderStyle>
+            
             <DataGridTemplateColumn.CellTemplate>
               <DataTemplate>
                 <TextBlock Text="{Binding AdaptiveActions, Converter={StaticResource IdListToNamesConverter}, ConverterParameter='AdaptiveActions'}"/>

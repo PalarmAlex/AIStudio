@@ -68,10 +68,11 @@
             Margin="0,0,0,5">
       <DataGrid ItemsSource="{Binding AdaptiveActions}"
                 x:Name="ActionsGrid"
-                IsEnabled="{Binding IsEditingEnabled}"
-                IsReadOnly="{Binding IsEditingEnabled, Converter={StaticResource InverseBooleanConverter}}"
+                IsEnabled="True"
+                IsReadOnly="{Binding IsReadOnlyMode}"
                 AutoGenerateColumns="False"
-                CanUserAddRows="True"
+                CanUserAddRows="{Binding IsEditingEnabled}"
+                CanUserDeleteRows="{Binding IsEditingEnabled}"
                 SelectionMode="Extended"
                 BorderThickness="0"
                 Background="White"
@@ -104,17 +105,13 @@
           </DataGridTextColumn>
 
           <DataGridTextColumn Header="Энергичность" Binding="{Binding Vigor, Mode=TwoWay}" Width="80">
+
             <DataGridTextColumn.HeaderStyle>
-              <Style TargetType="DataGridColumnHeader">
-                <Setter Property="ToolTip">
-                  <Setter.Value>
-                    <TextBlock TextWrapping="Wrap" Width="200">
-                        Интенсивность действия. Не определяет тип действия, только его "масштаб".
-                    </TextBlock>
-                  </Setter.Value>
-                </Setter>
+              <Style TargetType="DataGridColumnHeader" BasedOn="{StaticResource {x:Type DataGridColumnHeader}}">
+                <Setter Property="ToolTip" Value="Интенсивность действия. Не определяет тип действия, только его 'масштаб'."/>
               </Style>
             </DataGridTextColumn.HeaderStyle>
+
             <DataGridTextColumn.EditingElementStyle>
               <Style TargetType="TextBox">
                 <EventSetter Event="PreviewTextInput" Handler="NumericColumn_PreviewTextInput"/>
@@ -131,19 +128,14 @@
                 <EventSetter Event="MouseDown" Handler="AntagonistCell_MouseDown"/>
               </Style>
             </DataGridTextColumn.ElementStyle>
+
             <DataGridTextColumn.HeaderStyle>
               <Style TargetType="DataGridColumnHeader">
-                <Setter Property="ToolTip">
-                  <Setter.Value>
-                    <TextBlock TextWrapping="Wrap" Width="200">
-                      Список ID действий-антагонистов, которые несовместимы с данным действием.
-                      При активации данного действия, все указанные здесь действия будут деактивированы.
-                      ДБ клик открывает окно ввода.
-                    </TextBlock>
-                  </Setter.Value>
-                </Setter>
+                <Setter Property="ToolTip" 
+                    Value="Список ID действий-антагонистов, которые несовместимы с данным действием.&#x0a;При активации данного действия, все указанные здесь действия будут деактивированы.&#x0a;ДБ клик открывает окно ввода."/>
               </Style>
             </DataGridTextColumn.HeaderStyle>
+      
           </DataGridTextColumn>
 
         </DataGrid.Columns>
