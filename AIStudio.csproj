@@ -119,9 +119,6 @@
     <Compile Include="Converters\StyleColorConverter.cs" />
     <Compile Include="Converters\StyleValidationRules.cs" />
     <Compile Include="Converters\ValidationErrorToVisibilityConverter.cs" />
-    <Compile Include="Pages\ActionInfluenceStileEditor.xaml.cs">
-      <DependentUpon>ActionInfluenceStileEditor.xaml</DependentUpon>
-    </Compile>
     <Compile Include="Pages\AdaptiveActions\ActionInfluencesEditor.xaml.cs">
       <DependentUpon>ActionInfluencesEditor.xaml</DependentUpon>
     </Compile>
@@ -257,10 +254,6 @@
       <DependentUpon>MainWindow.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
-    <Page Include="Pages\ActionInfluenceStileEditor.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
     <Page Include="Pages\AdaptiveActions\ActionInfluencesEditor.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>

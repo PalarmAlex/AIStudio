@@ -140,34 +140,6 @@ namespace AIStudio.Pages
       }
     }
 
-    private void ActionInfluenceCell_MouseDown(object sender, MouseButtonEventArgs e)
-    {
-      if (e.ClickCount == 2 && DataContext is BehaviorStylesViewModel vm)
-      {
-        if (!IsFormEnabled)
-        {
-          e.Handled = true;
-          return;
-        }
-
-        if (sender is FrameworkElement element &&
-            element.DataContext is GomeostasSystem.BehaviorStyle behaviorStyle)
-        {
-          var editor = new ActionInfluenceStileEditor(
-              "Редактирование влияния на действия для: " + behaviorStyle.Name + " (ID: " + behaviorStyle.Id + ")",
-              behaviorStyle);
-
-          if (editor.ShowDialog() == true)
-          {
-            behaviorStyle.StileActionInfluence = editor.ActionInfluences;
-            BehaviorStylesGrid.CommitEdit(DataGridEditingUnit.Row, true);
-            BehaviorStylesGrid.Items.Refresh();
-          }
-        }
-        e.Handled = true;
-      }
-    }
-
     private void DescriptionCell_DoubleClick(object sender, MouseButtonEventArgs e)
     {
       if (sender is DataGridCell cell && cell.DataContext is GomeostasSystem.BehaviorStyle parameter)

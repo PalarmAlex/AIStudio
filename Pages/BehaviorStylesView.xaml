@@ -184,34 +184,6 @@
             </DataGridTextColumn.EditingElementStyle>
           </DataGridTextColumn>
 
-          <DataGridTextColumn Header="Влияние на действия" 
-          Binding="{Binding StileActionInfluence, Converter={StaticResource DictionaryToStringActionConverter}}" 
-          IsReadOnly="True" 
-          Width="*">
-            <DataGridTextColumn.ElementStyle>
-              <Style TargetType="TextBlock">
-                <EventSetter Event="MouseDown" Handler="ActionInfluenceCell_MouseDown"/>
-              </Style>
-            </DataGridTextColumn.ElementStyle>
-            <DataGridTextColumn.EditingElementStyle>
-              <Style TargetType="TextBox">
-                <EventSetter Event="MouseDown" Handler="ActionInfluenceCell_MouseDown"/>
-              </Style>
-            </DataGridTextColumn.EditingElementStyle>
-            <DataGridTextColumn.HeaderStyle>
-              <Style TargetType="DataGridColumnHeader">
-                <Setter Property="ToolTip">
-                  <Setter.Value>
-                    <TextBlock TextWrapping="Wrap" Width="200">
-                        Список действий, которые модулируются по энергичности стилем.
-                        ДБ клик запускает редактор.
-                    </TextBlock>
-                  </Setter.Value>
-                </Setter>
-              </Style>
-            </DataGridTextColumn.HeaderStyle>
-          </DataGridTextColumn>
-
           <DataGridTextColumn Header="Антагонисты" 
                     Binding="{Binding AntagonistStyles, Converter={StaticResource ListToStringConverter}}" 
                     IsReadOnly="True" 

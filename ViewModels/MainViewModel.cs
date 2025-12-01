@@ -21,6 +21,7 @@ using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Xml.Serialization;
+using static ISIDA.Reflexes.ReflexChainsSystem;
 using static System.Windows.Forms.VisualStyles.VisualStyleElement.ExplorerBar;
 
 namespace AIStudio
@@ -38,6 +39,7 @@ namespace AIStudio
     private readonly PerceptionImagesSystem _perceptionImagesSystem;
     private readonly ReflexesActivator _reflexesActivator;
     private readonly ReflexTreeSystem _reflexTree;
+    private readonly ReflexChainsSystem _reflexChains;
     private readonly ReflexExecutionService _reflexExecution;
     private readonly ResearchLogger _researchLogger;
     public event PropertyChangedEventHandler PropertyChanged;
@@ -132,6 +134,9 @@ namespace AIStudio
         _geneticReflexesSystem = GeneticReflexesSystem.Instance;
         _stepInzialized = 6;
 
+        ReflexChainsSystem.InitializeInstance(_geneticReflexesSystem);
+        _reflexChains = ReflexChainsSystem.Instance;
+
         // Инициализация образов рефлексов
         PerceptionImagesSystem.InitializeInstance(_gomeostas, _geneticReflexesSystem);
         _perceptionImagesSystem = PerceptionImagesSystem.Instance;
@@ -146,7 +151,7 @@ namespace AIStudio
         _stepInzialized = 8;
 
         // Инициализация дерева рефлексов
-        ReflexTreeSystem.InitializeInstance(_geneticReflexesSystem, _perceptionImagesSystem);
+        ReflexTreeSystem.InitializeInstance(_geneticReflexesSystem, _perceptionImagesSystem, _reflexChains);
         _reflexTree = ReflexTreeSystem.Instance;
         _stepInzialized = 9;
 

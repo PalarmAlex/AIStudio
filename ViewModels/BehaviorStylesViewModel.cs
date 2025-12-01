@@ -95,8 +95,7 @@ namespace AIStudio.ViewModels
           Name = style.Name,
           Description = style.Description,
           Weight = style.Weight,
-          AntagonistStyles = style.AntagonistStyles,
-          StileActionInfluence = style.StileActionInfluence
+          AntagonistStyles = style.AntagonistStyles
         });
       }
 
@@ -135,8 +134,7 @@ namespace AIStudio.ViewModels
           Name = bs.Name,
           Description = bs.Description,
           Weight = bs.Weight,
-          AntagonistStyles = bs.AntagonistStyles,
-          StileActionInfluence = bs.StileActionInfluence
+          AntagonistStyles = bs.AntagonistStyles
         }).ToList();
 
         var matrixViewModel = new AntagonistMatrixViewModel(_gomeostas, currentStyles);
@@ -175,8 +173,7 @@ namespace AIStudio.ViewModels
             Name = style.Name,
             Description = style.Description,
             Weight = style.Weight,
-            AntagonistStyles = style.AntagonistStyles,
-            StileActionInfluence = style.StileActionInfluence
+            AntagonistStyles = style.AntagonistStyles
           });
         }
 
@@ -341,7 +338,6 @@ namespace AIStudio.ViewModels
           existingStyle.Description = style.Description;
           existingStyle.Weight = style.Weight;
           existingStyle.AntagonistStyles = new List<int>(style.AntagonistStyles);
-          existingStyle.StileActionInfluence = new Dictionary<int, int>(style.StileActionInfluence);
         }
         else
         {
@@ -350,8 +346,7 @@ namespace AIStudio.ViewModels
               style.Name,
               style.Description,
               style.Weight,
-              new List<int>(style.AntagonistStyles),
-              new Dictionary<int, int>(style.StileActionInfluence));
+              new List<int>(style.AntagonistStyles));
 
           style.Id = newId;
         }
@@ -418,8 +413,7 @@ namespace AIStudio.ViewModels
             Name = bs.Name,
             Description = bs.Description,
             Weight = bs.Weight,
-            AntagonistStyles = bs.AntagonistStyles,
-            StileActionInfluence = bs.StileActionInfluence
+            AntagonistStyles = bs.AntagonistStyles
           }).ToList();
 
           matrixViewModel.LoadMatrixFromStyles(currentStyles);
