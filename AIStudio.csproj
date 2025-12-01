@@ -185,9 +185,6 @@
     <Compile Include="Pages\Reflexes\InfluenceActionsSelectionDialog.xaml.cs">
       <DependentUpon>InfluenceActionsSelectionDialog.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Pages\SystemParameters\InfluenceEditor.xaml.cs">
-      <DependentUpon>InfluenceEditor.xaml</DependentUpon>
-    </Compile>
     <Compile Include="Pages\ProjectSettingsPage.xaml.cs">
       <DependentUpon>ProjectSettingsPage.xaml</DependentUpon>
     </Compile>
@@ -343,10 +340,6 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="Pages\Reflexes\InfluenceActionsSelectionDialog.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="Pages\SystemParameters\InfluenceEditor.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

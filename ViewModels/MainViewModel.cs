@@ -186,8 +186,6 @@ namespace AIStudio
         _gomeostas.DifSensorPar = AppConfig.DifSensorPar;
         _gomeostas.DynamicTime = AppConfig.DynamicTime;
         _actionsSystem.ReflexActionDisplayDuration = AppConfig.ReflexActionDisplayDuration;
-        _gomeostas.DefaultBaseThreshold = AppConfig.DefaultBaseThreshold;
-        _gomeostas.DefaultKCompetition = AppConfig.DefaultKCompetition;
         _actionsSystem.DefaultAdaptiveActionId = AppConfig.DefaultAdaptiveActionId;
         _sensorySystem.VerbalRecognitionThreshold = AppConfig.RecognitionThreshold;
 

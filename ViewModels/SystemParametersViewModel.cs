@@ -204,13 +204,8 @@ namespace AIStudio.ViewModels
                   MessageBoxButton.OK,
                   MessageBoxImage.Warning);
             }
-
-            // После создания параметра обновляем его влияния
             var createdParam = _gomeostas.GetAllParameters()
                 .First(p => p.Id == paramId);
-
-            createdParam.BadStateInfluence = new Dictionary<int, float>(param.BadStateInfluence);
-            createdParam.WellStateInfluence = new Dictionary<int, float>(param.WellStateInfluence);
             createdParam.StyleActivations = new Dictionary<int, List<int>>(param.StyleActivations);
 
             _gomeostas.UpdateParameter(createdParam);

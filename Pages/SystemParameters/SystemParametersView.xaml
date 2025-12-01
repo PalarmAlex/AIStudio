@@ -230,44 +230,6 @@
             </DataGridTextColumn.EditingElementStyle>
           </DataGridTextColumn>
 
-          <DataGridTextColumn Header="Влияние (Плохо)" Width="*" IsReadOnly="True">
-            <DataGridTextColumn.Binding>
-              <Binding Path="BadStateInfluence" 
-                 Converter="{StaticResource DictionaryToStringConverter}"/>
-            </DataGridTextColumn.Binding>
-            <DataGridTextColumn.CellStyle>
-              <Style TargetType="DataGridCell">
-                <EventSetter Event="MouseDoubleClick" Handler="InfluenceCell_DoubleClick"/>
-              </Style>
-            </DataGridTextColumn.CellStyle>
-
-            <DataGridTextColumn.HeaderStyle>
-              <Style TargetType="DataGridColumnHeader">
-                <Setter Property="ToolTip" 
-                    Value=" Влияние на другие параметры при состоянии 'Плохо'.&#x0a;Учитывается при латеральном торможении стилей.&#x0a;ДБ клик запускает редактор."/>
-              </Style>
-            </DataGridTextColumn.HeaderStyle>
-            
-          </DataGridTextColumn>
-
-          <DataGridTextColumn Header="Влияние (Хорошо)" Width="*" IsReadOnly="True">
-            <DataGridTextColumn.Binding>
-              <Binding Path="WellStateInfluence" 
-                 Converter="{StaticResource DictionaryToStringConverter}"/>
-            </DataGridTextColumn.Binding>
-            <DataGridTextColumn.CellStyle>
-              <Style TargetType="DataGridCell">
-                <EventSetter Event="MouseDoubleClick" Handler="InfluenceCell_DoubleClick"/>
-              </Style>
-            </DataGridTextColumn.CellStyle>
-            <DataGridTextColumn.HeaderStyle>
-              <Style TargetType="DataGridColumnHeader">
-                <Setter Property="ToolTip" 
-                    Value="Влияние на другие параметры при состоянии 'Хорошо'.&#x0a;Учитывается при латеральном торможении стилей.&#x0a;ДБ клик запускает редактор."/>
-              </Style>
-            </DataGridTextColumn.HeaderStyle>
-          </DataGridTextColumn>
-
           <DataGridTextColumn Header="Активации стилей" Width="*" IsReadOnly="True">
             <DataGridTextColumn.Binding>
               <Binding Path="StyleActivations" Converter="{StaticResource StyleActivationsToStringConverter}"/>

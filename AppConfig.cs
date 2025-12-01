@@ -39,8 +39,6 @@ public static class AppConfig
   public static float DifSensorPar => GetFloatSetting("DifSensorPar", (float)GetDefaultValueSettings("DifSensorPar"));
   public static int DynamicTime => GetIntSetting("DynamicTime", (int)GetDefaultValueSettings("DynamicTime"));
   public static int ReflexActionDisplayDuration => GetIntSetting("ReflexActionDisplayDuration", (int)GetDefaultValueSettings("ReflexActionDisplayDuration"));
-  public static float DefaultBaseThreshold => GetFloatSetting("DefaultBaseThreshold", (float)GetDefaultValueSettings("DefaultBaseThreshold"));
-  public static float DefaultKCompetition => GetFloatSetting("DefaultKCompetition", (float)GetDefaultValueSettings("DefaultKCompetition"));
 
   /// <summary>
   /// Инициализирует конфигурацию и проверяет первый запуск
@@ -94,8 +92,6 @@ public static class AppConfig
           new XElement("DifSensorPar", 0.02),
           new XElement("DynamicTime", 50),
           new XElement("ReflexActionDisplayDuration", 10),
-          new XElement("DefaultKCompetition", 0.3),
-          new XElement("DefaultBaseThreshold", 0.2),
           new XElement("FirstRun", 1),
           new XElement("LogEnabled", false),
           new XElement("LogFormat", "All")
@@ -330,10 +326,6 @@ public static class AppConfig
         return 30;
       case "DifSensorPar":
         return 0.02f;
-      case "DefaultBaseThreshold":
-        return 0.2f;
-      case "DefaultKCompetition":
-        return 0.3f;
       case "FirstRun":
         return 0;
       case "LogEnabled":

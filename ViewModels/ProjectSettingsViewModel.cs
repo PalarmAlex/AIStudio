@@ -42,12 +42,6 @@ namespace AIStudio.ViewModels
     private float _difSensorPar;
     private string _difSensorParText;
 
-    private float _defaultBaseThreshold;
-    private string _defaultBaseThresholdText;
-
-    private float _defaultKCompetition;
-    private string _defaultKCompetitionText;
-
     private int _dynamicTime;
     private int _previousDynamicTime;
 
@@ -237,100 +231,6 @@ namespace AIStudio.ViewModels
           MessageBox.Show(validation.errorMessage, "Ошибка ввода");
       }
     }
-    public string DefaultBaseThresholdText
-    {
-      get => _defaultBaseThresholdText ?? _defaultBaseThreshold.ToString(CultureInfo.InvariantCulture);
-      set
-      {
-        if (string.IsNullOrEmpty(value))
-          return;
-
-        string normalizedValue = value.Replace(',', '.');
-
-        if (float.TryParse(normalizedValue, NumberStyles.Float, CultureInfo.InvariantCulture, out float result))
-        {
-          var validation = SettingsValidator.ValidateDifSensorPar(result);
-          if (validation.isValid)
-          {
-            _defaultBaseThresholdText = normalizedValue;
-            _defaultBaseThreshold = result;
-            OnPropertyChanged(nameof(DefaultBaseThreshold));
-          }
-          else
-          {
-            MessageBox.Show(validation.errorMessage, "Ошибка ввода");
-            _defaultBaseThresholdText = _defaultBaseThreshold.ToString(CultureInfo.InvariantCulture);
-            OnPropertyChanged(nameof(DefaultBaseThresholdText));
-          }
-        }
-        else
-          OnPropertyChanged(nameof(DefaultBaseThresholdText));
-      }
-    }
-    public float DefaultBaseThreshold
-    {
-      get => _defaultBaseThreshold;
-      set
-      {
-        var validation = SettingsValidator.ValidateDefaultBaseThreshold(value);
-        if (validation.isValid)
-        {
-          _defaultBaseThreshold = value;
-          _defaultBaseThresholdText = value.ToString(CultureInfo.InvariantCulture);
-          OnPropertyChanged(nameof(DefaultBaseThreshold));
-          OnPropertyChanged(nameof(DefaultBaseThresholdText));
-        }
-        else
-          MessageBox.Show(validation.errorMessage, "Ошибка ввода");
-      }
-    }
-    public string DefaultKCompetitionText
-    {
-      get => _defaultKCompetitionText ?? _defaultKCompetition.ToString(CultureInfo.InvariantCulture);
-      set
-      {
-        if (string.IsNullOrEmpty(value))
-          return;
-
-        string normalizedValue = value.Replace(',', '.');
-
-        if (float.TryParse(normalizedValue, NumberStyles.Float, CultureInfo.InvariantCulture, out float result))
-        {
-          var validation = SettingsValidator.ValidateDifSensorPar(result);
-          if (validation.isValid)
-          {
-            _defaultKCompetitionText = normalizedValue;
-            _defaultKCompetition = result;
-            OnPropertyChanged(nameof(DefaultKCompetition));
-          }
-          else
-          {
-            MessageBox.Show(validation.errorMessage, "Ошибка ввода");
-            _defaultKCompetitionText = _defaultKCompetition.ToString(CultureInfo.InvariantCulture);
-            OnPropertyChanged(nameof(DefaultKCompetitionText));
-          }
-        }
-        else
-          OnPropertyChanged(nameof(DefaultKCompetitionText));
-      }
-    }
-    public float DefaultKCompetition
-    {
-      get => _defaultKCompetition;
-      set
-      {
-        var validation = SettingsValidator.ValidateDefaultKCompetition(value);
-        if (validation.isValid)
-        {
-          _defaultKCompetition = value;
-          _defaultKCompetitionText = value.ToString(CultureInfo.InvariantCulture);
-          OnPropertyChanged(nameof(DefaultKCompetition));
-          OnPropertyChanged(nameof(DefaultKCompetitionText));
-        }
-        else
-          MessageBox.Show(validation.errorMessage, "Ошибка ввода");
-      }
-    }
     public int DynamicTime
     {
       get => _dynamicTime;
@@ -418,26 +318,16 @@ namespace AIStudio.ViewModels
       DefaultStileId = AppConfig.DefaultStileId;
       DefaultAdaptiveActionId = AppConfig.DefaultAdaptiveActionId;
       LogEnabled = AppConfig.LogEnabled;
-
       _defaultFormatLog = (int)AppConfig.LogFormat;
-
       _recognitionThreshold = AppConfig.RecognitionThreshold;
       _previousRecognitionThreshold = _recognitionThreshold;
-
       _compareLevel = AppConfig.CompareLevel;
       _previousCompareLevel = _compareLevel;
-
       _difSensorPar = AppConfig.DifSensorPar;
-
       _dynamicTime = AppConfig.DynamicTime;
       _previousDynamicTime = _dynamicTime;
-
       _reflexActionDisplayDuration = AppConfig.ReflexActionDisplayDuration;
       _previousReflexActionDisplayDuration = _reflexActionDisplayDuration;
-
-      _defaultBaseThreshold = AppConfig.DefaultBaseThreshold;
-      _defaultKCompetition = AppConfig.DefaultKCompetition;
-
       _gomeostas = gomeostas;
 
       try

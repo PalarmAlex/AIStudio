@@ -313,50 +313,6 @@ namespace AIStudio.Pages
       }
     }
 
-    private void InfluenceCell_DoubleClick(object sender, MouseButtonEventArgs e)
-    {
-      if (e.ChangedButton != MouseButton.Left) return;
-
-      if (!IsFormEnabled)
-      {
-        e.Handled = true;
-        return;
-      }
-
-      var cell = sender as DataGridCell;
-      if (cell == null) return;
-
-      var dataGrid = FindVisualParent<DataGrid>(cell);
-      if (dataGrid == null) return;
-
-      var parameter = dataGrid.SelectedItem as GomeostasSystem.ParameterData;
-      if (parameter == null) return;
-
-      bool isBadInfluence = cell.Column.Header.ToString().Contains("Плохо");
-      var currentInfluences = isBadInfluence
-          ? parameter.BadStateInfluence
-          : parameter.WellStateInfluence;
-
-      var viewModel = (SystemParametersViewModel)DataContext;
-      var editor = new InfluenceEditor(
-          $"{parameter.Name}: {cell.Column.Header.ToString()}",
-          sourceParameterId: parameter.Id,
-          viewModel.GetAllParameters(),
-          currentInfluences.ToDictionary(kvp => kvp.Key, kvp => kvp.Value));
-
-      if (editor.ShowDialog() == true)
-      {
-        var newInfluences = editor.ResultInfluences;
-        if (isBadInfluence)
-          parameter.BadStateInfluence = newInfluences;
-        else
-          parameter.WellStateInfluence = newInfluences;
-
-        dataGrid.CommitEdit(DataGridEditingUnit.Row, true);
-        dataGrid.Items.Refresh();
-      }
-    }
-
     private void DescriptionCell_DoubleClick(object sender, MouseButtonEventArgs e)
     {
       if (sender is DataGridCell cell && cell.DataContext is GomeostasSystem.ParameterData parameter)
