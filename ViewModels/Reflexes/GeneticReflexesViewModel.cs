@@ -448,34 +448,27 @@ namespace AIStudio.ViewModels
       {
         try
         {
-          // Сохраняем дефолтный стиль
-          var defaultReflex = _allGeneticReflexes.FirstOrDefault(style => style.Id == AppConfig.DefaultGeneticReflexId);
+          var removeAll = _geneticReflexesSystem.RemoveAllGeneticReflex();
 
-          // Удаляем все рефлексы из системы (кроме дефолтного)
-          foreach (var reflex in _allGeneticReflexes.Where(reflex => reflex.Id != AppConfig.DefaultGeneticReflexId))
+          if (removeAll)
           {
-            _geneticReflexesSystem.RemoveGeneticReflex(reflex.Id);
-          }
+            _allGeneticReflexes.Clear();
 
-          // Очищаем и перезаполняем коллекцию только дефолтным стилем
-          _allGeneticReflexes.Clear();
-          if (defaultReflex != null)
-            _allGeneticReflexes.Add(defaultReflex);
-
-          var (success, error) = _geneticReflexesSystem.SaveGeneticReflexes(false); // все удалено - не надо валидаций 
-          if (success)
-          {
-            MessageBox.Show("Все безусловные рефлексы агента, кроме заданного по умолчанию, успешно удалены",
-                "Удаление завершено",
-                MessageBoxButton.OK,
-                MessageBoxImage.Information);
-          }
-          else
-          {
-            MessageBox.Show($"Не удалось удалить безусловные рефлексы агента:\n{error}",
-                "Ошибка сохранения после удаления",
-                MessageBoxButton.OK,
-                MessageBoxImage.Error);
+            var (success, error) = _geneticReflexesSystem.SaveGeneticReflexes(false); // все удалено - не надо валидаций 
+            if (success)
+            {
+              MessageBox.Show("Все безусловные рефлексы агента, кроме заданного по умолчанию, успешно удалены",
+                  "Удаление завершено",
+                  MessageBoxButton.OK,
+                  MessageBoxImage.Information);
+            }
+            else
+            {
+              MessageBox.Show($"Не удалось удалить безусловные рефлексы агента:\n{error}",
+                  "Ошибка сохранения после удаления",
+                  MessageBoxButton.OK,
+                  MessageBoxImage.Error);
+            }
           }
         }
         catch (Exception ex)

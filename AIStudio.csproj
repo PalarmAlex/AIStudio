@@ -106,6 +106,7 @@
     <Compile Include="Converters\ParameterValueToIndicatorPositionConverter.cs" />
     <Compile Include="Converters\PerceptionImageIdToTooltipConverter.cs" />
     <Compile Include="Converters\PerceptionImageIdToTextConverter.cs" />
+    <Compile Include="Converters\StringStartsWithConverter.cs" />
     <Compile Include="Converters\StyleBackgroundConverter.cs" />
     <Compile Include="Converters\StyleTooltipMultiConverter.cs" />
     <Compile Include="Converters\TriggerTooltipMultiConverter.cs" />
@@ -169,6 +170,9 @@
     </Compile>
     <Compile Include="Pages\Reflexes\PerceptionImageSelectionDialog.xaml.cs">
       <DependentUpon>PerceptionImageSelectionDialog.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Pages\Reflexes\ReflexChainsView.xaml.cs">
+      <DependentUpon>ReflexChainsView.xaml</DependentUpon>
     </Compile>
     <Compile Include="Pages\StyleLogsView.xaml.cs">
       <DependentUpon>StyleLogsView.xaml</DependentUpon>
@@ -234,6 +238,7 @@
     <Compile Include="ViewModels\ProjectSettingsViewModel.cs" />
     <Compile Include="ViewModels\Reflexes\ConditionedReflexesViewModel.cs" />
     <Compile Include="ViewModels\Reflexes\GeneticReflexesViewModel.cs" />
+    <Compile Include="ViewModels\Reflexes\ReflexChainsViewModel.cs" />
     <Compile Include="ViewModels\RelayCommand.cs" />
     <Compile Include="ViewModels\StyleLogsViewModel.cs" />
     <Compile Include="ViewModels\SystemParametersViewModel.cs" />
@@ -320,6 +325,10 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="Pages\Reflexes\PerceptionImageSelectionDialog.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Pages\Reflexes\ReflexChainsView.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

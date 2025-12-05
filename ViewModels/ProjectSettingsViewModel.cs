@@ -19,7 +19,6 @@ namespace AIStudio.ViewModels
   {
     private readonly GomeostasSystem _gomeostas;
     private readonly AdaptiveActionsSystem _actionsSystem;
-    private readonly GeneticReflexesSystem _geneticReflexesSystem;
 
     private bool _isInitialized = false;
     private bool _logEnabled = false;
@@ -341,7 +340,6 @@ namespace AIStudio.ViewModels
 
         if (!GeneticReflexesSystem.IsInitialized)
           GeneticReflexesSystem.InitializeInstance(_gomeostas, ReflexesFolderPath);
-        _geneticReflexesSystem = GeneticReflexesSystem.Instance;
       }
       catch (Exception ex)
       {

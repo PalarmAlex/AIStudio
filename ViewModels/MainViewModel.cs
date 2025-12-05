@@ -30,6 +30,7 @@ namespace AIStudio
   {
     #region Объявление констант и переменных
 
+    private readonly IsidaContext _isidaContext;
     private readonly GomeostasSystem _gomeostas;
     private readonly SensorySystem _sensorySystem;
     private readonly AdaptiveActionsSystem _actionsSystem;
@@ -105,96 +106,63 @@ namespace AIStudio
       int _stepInzialized = 0;
       try
       {
-        // Инициализация логов
-        InitializeFileValidator();
         _stepInzialized = 1;
 
-        // Инициализация гомеостаза
-        GomeostasSystem.InitializeInstance(AppConfig.DataGomeostasFolderPath);
-        _gomeostas = GomeostasSystem.Instance;
+        var config = new IsidaConfig();
+
+        config.BaseDirectory = Path.Combine(
+            Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData),
+            "ISIDA");
+
+        config.GomeostasFolder = AppConfig.DataGomeostasFolderPath;
+        config.ActionsFolder = AppConfig.DataActionsFolderPath;
+        config.SensorsFolder = AppConfig.SensorsFolderPath;
+        config.ReflexesFolder = AppConfig.ReflexesFolderPath;
+        config.LogsFolder = AppConfig.LogsFolderPath;
+        config.LogFormat = AppConfig.LogFormat;
+        config.LogEnabled = AppConfig.LogEnabled;
+        config.DefaultStileId = AppConfig.DefaultStileId;
+        config.CompareLevel = AppConfig.CompareLevel;
+        config.DifSensorPar = AppConfig.DifSensorPar;
+        config.DynamicTime = AppConfig.DynamicTime;
+        config.ReflexActionDisplayDuration = AppConfig.ReflexActionDisplayDuration;
+        config.DefaultAdaptiveActionId = AppConfig.DefaultAdaptiveActionId;
+        config.RecognitionThreshold = AppConfig.RecognitionThreshold;
+        config.MemoryLogWriter = MemoryLogManager.Instance;
+
         _stepInzialized = 2;
 
-        // Инициализация первичных адаптивных действий
-        AdaptiveActionsSystem.InitializeInstance(_gomeostas, AppConfig.DataActionsFolderPath);
-        _actionsSystem = AdaptiveActionsSystem.Instance;
+        _isidaContext = IsidaEngine.Create(config);
+
         _stepInzialized = 3;
 
-        // Инициализация внешних действий
-        InfluenceActionSystem.InitializeInstance(_gomeostas, AppConfig.DataActionsFolderPath);
-        _influenceActionSystem = InfluenceActionSystem.Instance;
+        _gomeostas = _isidaContext.Gomeostas;
+        _sensorySystem = _isidaContext.SensorySystem;
+        _actionsSystem = _isidaContext.AdaptiveActions;
+        _influenceActionSystem = _isidaContext.InfluenceActions;
+        _geneticReflexesSystem = _isidaContext.GeneticReflexes;
+        _conditionedReflexesSystem = _isidaContext.ConditionedReflexes;
+        _perceptionImagesSystem = _isidaContext.PerceptionImages;
+        _reflexesActivator = _isidaContext.ReflexesActivator;
+        _reflexTree = _isidaContext.ReflexTree;
+        _reflexChains = _isidaContext.ReflexChains;
+        _reflexExecution = _isidaContext.ReflexExecution;
+        _researchLogger = _isidaContext.ResearchLogger;
+
         _stepInzialized = 4;
-
-        // Инициализация сенсорной системы
-        SensorySystem.InitializeInstance(_gomeostas, AppConfig.SensorsFolderPath);
-        _sensorySystem = SensorySystem.Instance;
-        _stepInzialized = 5;
-
-        // Инициализация безусловных рефлексов
-        GeneticReflexesSystem.InitializeInstance(_gomeostas, AppConfig.ReflexesFolderPath);
-        _geneticReflexesSystem = GeneticReflexesSystem.Instance;
-        _stepInzialized = 6;
-
-        ReflexChainsSystem.InitializeInstance(_geneticReflexesSystem);
-        _reflexChains = ReflexChainsSystem.Instance;
-
-        // Инициализация образов рефлексов
-        PerceptionImagesSystem.InitializeInstance(_gomeostas, _geneticReflexesSystem);
-        _perceptionImagesSystem = PerceptionImagesSystem.Instance;
-        _gomeostas.SetPerceptionImagesSystem(_perceptionImagesSystem);
-        _influenceActionSystem.SetPerceptionImagesSystem(_perceptionImagesSystem);
-        _sensorySystem.SetDependentSystems(_geneticReflexesSystem, _perceptionImagesSystem);
-        _stepInzialized = 7;
-
-        // Инициализация условных рефлексов
-        ConditionedReflexesSystem.InitializeInstance(_gomeostas, _geneticReflexesSystem, _perceptionImagesSystem);
-        _conditionedReflexesSystem = ConditionedReflexesSystem.Instance;
-        _stepInzialized = 8;
-
-        // Инициализация дерева рефлексов
-        ReflexTreeSystem.InitializeInstance(_geneticReflexesSystem, _perceptionImagesSystem, _reflexChains);
-        _reflexTree = ReflexTreeSystem.Instance;
-        _stepInzialized = 9;
-
-        // Инициализация сервиса запуска рефлексов
-        ReflexExecutionService.InitializeInstance(_actionsSystem, _influenceActionSystem);
-        _reflexExecution = ReflexExecutionService.Instance;
-        _stepInzialized = 10;
-
-        // Инициализация активатора рефлексов
-        ReflexesActivator.InitializeInstance(_gomeostas, _geneticReflexesSystem, _conditionedReflexesSystem, _influenceActionSystem, _reflexTree, _reflexExecution, _actionsSystem);
-        _reflexesActivator = ReflexesActivator.Instance;
-        _stepInzialized = 11;
-
-        _researchLogger = new ResearchLogger(
-            _gomeostas,
-            _perceptionImagesSystem,
-            _reflexesActivator,
-            _actionsSystem,
-            logsDirectory: AppConfig.LogsFolderPath,
-            format: AppConfig.LogFormat,
-            clearOnStart: AppConfig.LogEnabled,
-            enabled: AppConfig.LogEnabled
-        );
-        _gomeostas.SetResearchLogger(_researchLogger);
-        _reflexesActivator.SetResearchLogger(_researchLogger);
-        ResearchLogger.SetMemoryLogWriter(MemoryLogManager.Instance);
-        GlobalTimer.InitializeSystems(_gomeostas,_actionsSystem, _reflexesActivator);
-        _stepInzialized = 12;
-
-        _gomeostas.DefaultStileId = AppConfig.DefaultStileId;
-        _gomeostas.CompareLevel = AppConfig.CompareLevel;
-        _gomeostas.DifSensorPar = AppConfig.DifSensorPar;
-        _gomeostas.DynamicTime = AppConfig.DynamicTime;
-        _actionsSystem.ReflexActionDisplayDuration = AppConfig.ReflexActionDisplayDuration;
-        _actionsSystem.DefaultAdaptiveActionId = AppConfig.DefaultAdaptiveActionId;
-        _sensorySystem.VerbalRecognitionThreshold = AppConfig.RecognitionThreshold;
-
-        _stepInzialized = 13;
+      }
+      catch (IsidaInitializationException ex)
+      {
+        Debug.WriteLine($"Ошибка инициализации ISIDA (шаг {ex.InitializationStep}): {ex.Message}");
+        MessageBox.Show($"StepInzialized: {_stepInzialized}, Ошибка инициализации ISIDA на шаге {ex.InitializationStep}: {ex.Message}",
+            "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
+        return;
       }
       catch (Exception ex)
       {
-        Debug.WriteLine($"Ошибка инициализации систем: {ex.Message}");
-        MessageBox.Show($"StepInzialized: {_stepInzialized}, Ошибка инициализации систем: {ex.Message}", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
+        Debug.WriteLine($"Общая ошибка инициализации: {ex.Message}");
+        MessageBox.Show($"StepInzialized: {_stepInzialized}, Общая ошибка инициализации: {ex.Message}",
+            "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
         return;
       }
 
@@ -226,15 +194,6 @@ namespace AIStudio
       IsAgentExpanded = true;
       OpenAgent();
       UpdateAgentState();
-    }
-
-    private void InitializeFileValidator()
-    {
-      var logsPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData), "ISIDA", "Logs");
-      if (!Directory.Exists(logsPath))
-        Directory.CreateDirectory(logsPath);
-
-      FileValidator.SetLogsPath(logsPath);
     }
 
     private void UpdateAgentState()
@@ -299,6 +258,9 @@ namespace AIStudio
             break;
           case "6": // Дерево рефлексов
             ShowStub("Дерево рефлексов");
+            break;
+          case "7": // Цепочки рефлексов
+            ShowReflexChains();
             break;
           case "8": // Таблица Автоматизмов
             ShowStub("Таблица Автоматизмов");
@@ -555,6 +517,18 @@ namespace AIStudio
           _perceptionImagesSystem);
       conditionedReflexesView.DataContext = viewModel;
       CurrentContent = conditionedReflexesView;
+    }
+
+    // Открыть страницу цепочек безусловных рефлексов
+    private void ShowReflexChains()
+    {
+      //var reflexChainsView = new ReflexChainsView();
+      //var viewModel = new ReflexChainsViewModel(
+      //    _reflexChains,
+      //    _geneticReflexesSystem,
+      //    _actionsSystem);
+      //reflexChainsView.DataContext = viewModel;
+      //CurrentContent = reflexChainsView;
     }
 
     // Метод-заглушка для отображения сообщения

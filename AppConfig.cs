@@ -33,7 +33,6 @@ public static class AppConfig
   public static bool LogEnabled => GetBoolSetting("LogEnabled", (bool)GetDefaultValueSettings("LogEnabled"));
   public static int DefaultStileId => GetIntSetting("DefaultStileId", (int)GetDefaultValueSettings("DefaultStileId"));
   public static int DefaultAdaptiveActionId => GetIntSetting("DefaultAdaptiveActionId", (int)GetDefaultValueSettings("DefaultAdaptiveActionId"));
-  public static int DefaultGeneticReflexId => GetIntSetting("DefaultGeneticReflexId", (int)GetDefaultValueSettings("DefaultGeneticReflexId"));
   public static int RecognitionThreshold => GetIntSetting("RecognitionThreshold", (int)GetDefaultValueSettings("RecognitionThreshold"));
   public static int CompareLevel => GetIntSetting("CompareLevel", (int)GetDefaultValueSettings("CompareLevel"));
   public static float DifSensorPar => GetFloatSetting("DifSensorPar", (float)GetDefaultValueSettings("DifSensorPar"));
@@ -86,7 +85,6 @@ public static class AppConfig
           new XElement("LogsFolderPath", Path.Combine(appDataPath, "Logs")),
           new XElement("DefaultStileId", 0),
           new XElement("DefaultAdaptiveActionId", 0),
-          new XElement("DefaultGeneticReflexId", 0),
           new XElement("RecognitionThreshold", 3),
           new XElement("CompareLevel", 30),
           new XElement("DifSensorPar", 0.02),

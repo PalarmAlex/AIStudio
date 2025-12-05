@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using static ISIDA.Actions.AdaptiveActionsSystem;
@@ -75,7 +76,6 @@ namespace AIStudio.ViewModels
       GeneticReflexActions.Clear();
       ConditionedReflexActions.Clear();
 
-      // Группируем действия по типам источников
       foreach (var action in CurrentActiveActions)
       {
         switch (action.ActivationSource)

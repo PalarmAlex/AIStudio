@@ -6,12 +6,21 @@ using System.Windows.Threading;
 namespace AIStudio.Common
 {
   /// <summary>
-  /// Менеджер логов в памяти для реального времени (клиентская часть)
+  /// Менеджер логов в памяти для отображения в реальном времени в пользовательском интерфейсе
   /// </summary>
+  /// <remarks>
+  /// Реализует singleton паттерн и интерфейс <see cref="ISIDA.Common.ILogWriter"/> для записи логов
+  /// из библиотеки ISIDA. Все операции потокобезопасны и выполняются в UI-потоке.
+  /// </remarks>
   public sealed class MemoryLogManager : IDisposable, ISIDA.Common.ILogWriter
   {
+    #region Singleton Implementation
+
     private static MemoryLogManager _instance;
 
+    /// <summary>
+    /// Единственный экземпляр менеджера логов в памяти
+    /// </summary>
     public static MemoryLogManager Instance
     {
       get
@@ -24,19 +33,49 @@ namespace AIStudio.Common
       }
     }
 
+    #endregion
+
+    #region Private Fields
+
     private readonly ObservableCollection<LogEntry> _logEntries = new ObservableCollection<LogEntry>();
+    private readonly ObservableCollection<StyleLogEntry> _styleLogEntries = new ObservableCollection<StyleLogEntry>();
+    private readonly ObservableCollection<ParameterLogEntry> _parameterLogEntries = new ObservableCollection<ParameterLogEntry>();
+    private readonly ObservableCollection<StyleParameterActivationEntry> _styleParameterActivationEntries = new ObservableCollection<StyleParameterActivationEntry>();
     private readonly int _maxLogEntries = 1000;
     private readonly object _lock = new object();
     private bool _disposed = false;
 
+    #endregion
+
+    #region Public Properties
+
+    /// <summary>
+    /// Коллекция записей системных логов в режиме только для чтения
+    /// </summary>
     public ReadOnlyObservableCollection<LogEntry> LogEntries { get; }
-    private readonly ObservableCollection<StyleLogEntry> _styleLogEntries = new ObservableCollection<StyleLogEntry>();
-    private readonly ObservableCollection<ParameterLogEntry> _parameterLogEntries = new ObservableCollection<ParameterLogEntry>();
+
+    /// <summary>
+    /// Коллекция записей логов стилей поведения в режиме только для чтения
+    /// </summary>
     public ReadOnlyObservableCollection<StyleLogEntry> StyleLogEntries { get; }
+
+    /// <summary>
+    /// Коллекция записей логов параметров гомеостаза в режиме только для чтения
+    /// </summary>
     public ReadOnlyObservableCollection<ParameterLogEntry> ParameterLogEntries { get; }
-    private readonly ObservableCollection<StyleParameterActivationEntry> _styleParameterActivationEntries = new ObservableCollection<StyleParameterActivationEntry>();
+
+    /// <summary>
+    /// Коллекция записей активации стилей от параметров в режиме только для чтения
+    /// </summary>
     public ReadOnlyObservableCollection<StyleParameterActivationEntry> StyleParameterActivationEntries { get; }
 
+    #endregion
+
+    #region Constructor
+
+    /// <summary>
+    /// Приватный конструктор для реализации singleton паттерна
+    /// </summary>
     private MemoryLogManager()
     {
       LogEntries = new ReadOnlyObservableCollection<LogEntry>(_logEntries);
@@ -45,11 +84,19 @@ namespace AIStudio.Common
       StyleParameterActivationEntries = new ReadOnlyObservableCollection<StyleParameterActivationEntry>(_styleParameterActivationEntries);
     }
 
+    #endregion
+
+    #region Public Methods
+
     /// <summary>
-    /// Запись лога стилей
+    /// Записывает лог стилей поведения в память
     /// </summary>
-    public void WriteStyleLog(int pulse, string stage, int styleId, string styleName,
-                             int weight)
+    /// <param name="pulse">Номер текущего пульса системы</param>
+    /// <param name="stage">Стадия процесса активации стилей</param>
+    /// <param name="styleId">Идентификатор стиля поведения</param>
+    /// <param name="styleName">Наименование стиля поведения</param>
+    /// <param name="weight">Вес стиля в текущей стадии</param>
+    public void WriteStyleLog(int pulse, string stage, int styleId, string styleName, int weight)
     {
       if (_disposed) return;
 
@@ -67,8 +114,18 @@ namespace AIStudio.Common
     }
 
     /// <summary>
-    /// Запись лога параметров
+    /// Записывает лог параметров гомеостаза в память
     /// </summary>
+    /// <param name="pulse">Номер текущего пульса системы</param>
+    /// <param name="paramId">Идентификатор параметра гомеостаза</param>
+    /// <param name="paramName">Наименование параметра гомеостаза</param>
+    /// <param name="weight">Вес параметра в системе гомеостаза</param>
+    /// <param name="normaWell">Значение нормы параметра</param>
+    /// <param name="speed">Скорость изменения параметра</param>
+    /// <param name="value">Текущее значение параметра</param>
+    /// <param name="urgencyFunction">Значение функции срочности</param>
+    /// <param name="parameterState">Текущее состояние параметра</param>
+    /// <param name="activationZone">Зона активации параметра</param>
     public void WriteParameterLog(int pulse, int paramId, string paramName, int weight,
                                  int normaWell, int speed, float value, float urgencyFunction,
                                  string parameterState, string activationZone)
@@ -94,10 +151,19 @@ namespace AIStudio.Common
     }
 
     /// <summary>
-    /// Реализация интерфейса ILogWriter - запись лога из библиотеки
+    /// Реализация интерфейса ILogWriter - записывает системный лог из библиотеки ISIDA
     /// </summary>
+    /// <param name="className">Имя класса, в котором произошло событие</param>
+    /// <param name="method">Имя метода, в котором произошло событие</param>
+    /// <param name="pulse">Номер пульса системы</param>
+    /// <param name="baseId">Идентификатор базового состояния</param>
+    /// <param name="baseStyleId">Идентификатор базового стиля поведения</param>
+    /// <param name="triggerStimulusId">Идентификатор триггерного стимула</param>
+    /// <param name="hasCriticalChanges">Флаг наличия критических изменений</param>
+    /// <param name="geneticReflexId">Идентификатор безусловного рефлекса</param>
+    /// <param name="conditionedReflexId">Идентификатор условного рефлекса</param>
     public void WriteLog(string className, string method, int? pulse, int? baseId,
-                       int? baseStyleId, int? triggerStimulusId, int? hasCriticalChanges, 
+                       int? baseStyleId, int? triggerStimulusId, int? hasCriticalChanges,
                        int? geneticReflexId, int? conditionedReflexId)
     {
       if (_disposed) return;
@@ -112,16 +178,26 @@ namespace AIStudio.Common
         TriggerStimulusID = triggerStimulusId == 0 ? null : triggerStimulusId,
         HasCriticalChanges = hasCriticalChanges == 0 ? null : hasCriticalChanges,
         GeneticReflexID = geneticReflexId == 0 ? null : geneticReflexId,
-        ConditionReflexID = conditionedReflexId == 0 ? null : conditionedReflexId
+        ConditionReflexID = conditionedReflexId == 0 ? null : conditionedReflexId,
+        Timestamp = DateTime.Now
       };
 
       AddLogEntry(entry);
     }
 
-
     /// <summary>
-    /// Запись лога активации стилей от параметров
+    /// Записывает лог активации стилей от параметров гомеостаза
     /// </summary>
+    /// <param name="pulse">Номер текущего пульса системы</param>
+    /// <param name="stage">Стадия процесса активации</param>
+    /// <param name="parameterId">Идентификатор параметра гомеостаза</param>
+    /// <param name="parameterName">Наименование параметра гомеостаза</param>
+    /// <param name="zoneId">Идентификатор зоны активации (0-6)</param>
+    /// <param name="zoneDescription">Описание зоны активации</param>
+    /// <param name="styleId">Идентификатор стиля поведения</param>
+    /// <param name="styleName">Наименование стиля поведения</param>
+    /// <param name="weight">Вес стиля при активации</param>
+    /// <param name="activationDetails">Детали процесса активации</param>
     public void WriteStyleParameterActivation(int pulse, string stage, int parameterId, string parameterName,
                                              int zoneId, string zoneDescription, int styleId, string styleName,
                                              int weight, string activationDetails)
@@ -146,36 +222,71 @@ namespace AIStudio.Common
       AddStyleParameterActivationEntry(entry);
     }
 
-    private void AddStyleParameterActivationEntry(StyleParameterActivationEntry entry)
+    /// <summary>
+    /// Полностью очищает все коллекции логов в памяти
+    /// </summary>
+    public void Clear()
     {
+      if (_disposed) return;
+
       if (Application.Current != null && Application.Current.Dispatcher.CheckAccess())
       {
-        AddStyleParameterActivationEntryInternal(entry);
+        ClearInternal();
       }
       else if (Application.Current != null)
       {
-        Application.Current.Dispatcher.BeginInvoke(new Action<StyleParameterActivationEntry>(AddStyleParameterActivationEntryInternal),
-            DispatcherPriority.Background, entry);
+        Application.Current.Dispatcher.BeginInvoke(new Action(ClearInternal),
+            DispatcherPriority.Background);
       }
       else
       {
-        AddStyleParameterActivationEntryInternal(entry);
+        ClearInternal();
       }
     }
 
-    private void AddStyleParameterActivationEntryInternal(StyleParameterActivationEntry entry)
+    /// <summary>
+    /// Очищает коллекцию логов стилей поведения
+    /// </summary>
+    public void ClearStyleLogs()
     {
-      lock (_lock)
+      if (Application.Current != null && Application.Current.Dispatcher.CheckAccess())
       {
-        _styleParameterActivationEntries.Insert(0, entry);
-
-        while (_styleParameterActivationEntries.Count > _maxLogEntries)
-        {
-          _styleParameterActivationEntries.RemoveAt(_styleParameterActivationEntries.Count - 1);
-        }
+        ClearStyleLogsInternal();
+      }
+      else if (Application.Current != null)
+      {
+        Application.Current.Dispatcher.BeginInvoke(new Action(ClearStyleLogsInternal),
+            DispatcherPriority.Background);
+      }
+      else
+      {
+        ClearStyleLogsInternal();
       }
     }
 
+    /// <summary>
+    /// Очищает коллекцию логов параметров гомеостаза
+    /// </summary>
+    public void ClearParameterLogs()
+    {
+      if (Application.Current != null && Application.Current.Dispatcher.CheckAccess())
+      {
+        ClearParameterLogsInternal();
+      }
+      else if (Application.Current != null)
+      {
+        Application.Current.Dispatcher.BeginInvoke(new Action(ClearParameterLogsInternal),
+            DispatcherPriority.Background);
+      }
+      else
+      {
+        ClearParameterLogsInternal();
+      }
+    }
+
+    /// <summary>
+    /// Очищает коллекцию записей активации стилей от параметров
+    /// </summary>
     public void ClearStyleParameterActivations()
     {
       if (Application.Current != null && Application.Current.Dispatcher.CheckAccess())
@@ -193,13 +304,30 @@ namespace AIStudio.Common
       }
     }
 
-    private void ClearStyleParameterActivationsInternal()
+    /// <summary>
+    /// Освобождает все ресурсы, используемые менеджером логов
+    /// </summary>
+    public void Dispose()
     {
-      lock (_lock)
+      if (_disposed) return;
+
+      if (Application.Current != null && Application.Current.Dispatcher.CheckAccess())
       {
-        _styleParameterActivationEntries.Clear();
+        DisposeInternal();
+      }
+      else if (Application.Current != null)
+      {
+        Application.Current.Dispatcher.Invoke(new Action(DisposeInternal));
+      }
+      else
+      {
+        DisposeInternal();
       }
     }
+
+    #endregion
+
+    #region Private Methods
 
     private void AddLogEntry(LogEntry entry)
     {
@@ -291,22 +419,33 @@ namespace AIStudio.Common
       }
     }
 
-    public void Clear()
+    private void AddStyleParameterActivationEntry(StyleParameterActivationEntry entry)
     {
-      if (_disposed) return;
-
       if (Application.Current != null && Application.Current.Dispatcher.CheckAccess())
       {
-        ClearInternal();
+        AddStyleParameterActivationEntryInternal(entry);
       }
       else if (Application.Current != null)
       {
-        Application.Current.Dispatcher.BeginInvoke(new Action(ClearInternal),
-            DispatcherPriority.Background);
+        Application.Current.Dispatcher.BeginInvoke(new Action<StyleParameterActivationEntry>(AddStyleParameterActivationEntryInternal),
+            DispatcherPriority.Background, entry);
       }
       else
       {
-        ClearInternal();
+        AddStyleParameterActivationEntryInternal(entry);
+      }
+    }
+
+    private void AddStyleParameterActivationEntryInternal(StyleParameterActivationEntry entry)
+    {
+      lock (_lock)
+      {
+        _styleParameterActivationEntries.Insert(0, entry);
+
+        while (_styleParameterActivationEntries.Count > _maxLogEntries)
+        {
+          _styleParameterActivationEntries.RemoveAt(_styleParameterActivationEntries.Count - 1);
+        }
       }
     }
 
@@ -320,45 +459,11 @@ namespace AIStudio.Common
       }
     }
 
-    public void ClearStyleLogs()
-    {
-      if (Application.Current != null && Application.Current.Dispatcher.CheckAccess())
-      {
-        ClearStyleLogsInternal();
-      }
-      else if (Application.Current != null)
-      {
-        Application.Current.Dispatcher.BeginInvoke(new Action(ClearStyleLogsInternal),
-            DispatcherPriority.Background);
-      }
-      else
-      {
-        ClearStyleLogsInternal();
-      }
-    }
-
     private void ClearStyleLogsInternal()
     {
       lock (_lock)
       {
         _styleLogEntries.Clear();
-      }
-    }
-
-    public void ClearParameterLogs()
-    {
-      if (Application.Current != null && Application.Current.Dispatcher.CheckAccess())
-      {
-        ClearParameterLogsInternal();
-      }
-      else if (Application.Current != null)
-      {
-        Application.Current.Dispatcher.BeginInvoke(new Action(ClearParameterLogsInternal),
-            DispatcherPriority.Background);
-      }
-      else
-      {
-        ClearParameterLogsInternal();
       }
     }
 
@@ -370,21 +475,11 @@ namespace AIStudio.Common
       }
     }
 
-    public void Dispose()
+    private void ClearStyleParameterActivationsInternal()
     {
-      if (_disposed) return;
-
-      if (Application.Current != null && Application.Current.Dispatcher.CheckAccess())
+      lock (_lock)
       {
-        DisposeInternal();
-      }
-      else if (Application.Current != null)
-      {
-        Application.Current.Dispatcher.Invoke(new Action(DisposeInternal));
-      }
-      else
-      {
-        DisposeInternal();
+        _styleParameterActivationEntries.Clear();
       }
     }
 
@@ -395,102 +490,409 @@ namespace AIStudio.Common
         _logEntries.Clear();
         _styleLogEntries.Clear();
         _parameterLogEntries.Clear();
+        _styleParameterActivationEntries.Clear();
         _disposed = true;
       }
     }
+
+    #endregion
   }
 
+  #region Log Entry Classes
+
+  /// <summary>
+  /// Запись системного лога для отображения в пользовательском интерфейсе
+  /// </summary>
   public class LogEntry
   {
+    /// <summary>
+    /// Временная метка создания записи
+    /// </summary>
     public DateTime Timestamp { get; set; } = DateTime.Now;
+
+    /// <summary>
+    /// Имя класса, в котором произошло событие
+    /// </summary>
     public string ClassName { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Имя метода, в котором произошло событие
+    /// </summary>
     public string Method { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Идентификатор базового состояния системы
+    /// </summary>
     public int? BaseID { get; set; }
+
+    /// <summary>
+    /// Номер текущего пульса системы
+    /// </summary>
     public int? Pulse { get; set; }
+
+    /// <summary>
+    /// Идентификатор базового стиля поведения
+    /// </summary>
     public int? BaseStyleID { get; set; }
+
+    /// <summary>
+    /// Идентификатор триггерного стимула
+    /// </summary>
     public int? TriggerStimulusID { get; set; }
+
+    /// <summary>
+    /// Флаг наличия критических изменений в системе
+    /// </summary>
     public int? HasCriticalChanges { get; set; }
+
+    /// <summary>
+    /// Идентификатор активного безусловного рефлекса
+    /// </summary>
     public int? GeneticReflexID { get; set; }
+
+    /// <summary>
+    /// Идентификатор активного условного рефлекса
+    /// </summary>
     public int? ConditionReflexID { get; set; }
 
+    /// <summary>
+    /// Отформатированное время для отображения в UI
+    /// </summary>
     public string DisplayTime => Timestamp.ToString("HH:mm:ss");
+
+    /// <summary>
+    /// Отформатированный номер пульса для отображения в UI
+    /// </summary>
     public string DisplayPulse => Pulse?.ToString() ?? "-";
+
+    /// <summary>
+    /// Отформатированный идентификатор базового состояния для отображения в UI
+    /// </summary>
     public string DisplayBaseID => BaseID?.ToString() ?? "-";
+
+    /// <summary>
+    /// Отформатированный идентификатор базового стиля для отображения в UI
+    /// </summary>
     public string DisplayBaseStyleID => BaseStyleID?.ToString() ?? "-";
+
+    /// <summary>
+    /// Отформатированный идентификатор триггерного стимула для отображения в UI
+    /// </summary>
     public string DisplayTriggerStimulusID => TriggerStimulusID?.ToString() ?? "-";
+
+    /// <summary>
+    /// Отформатированный флаг критических изменений для отображения в UI
+    /// </summary>
     public string DisplayHasCriticalChanges => HasCriticalChanges?.ToString() ?? "-";
+
+    /// <summary>
+    /// Отформатированный идентификатор безусловного рефлекса для отображения в UI
+    /// </summary>
     public string DisplayGeneticReflexID => GeneticReflexID?.ToString() ?? "-";
+
+    /// <summary>
+    /// Отформатированный идентификатор условного рефлекса для отображения в UI
+    /// </summary>
     public string DisplayConditionReflexID => ConditionReflexID?.ToString() ?? "-";
   }
 
+  /// <summary>
+  /// Запись лога стилей поведения для отображения в пользовательском интерфейсе
+  /// </summary>
   public class StyleLogEntry
   {
+    /// <summary>
+    /// Временная метка создания записи
+    /// </summary>
     public DateTime Timestamp { get; set; } = DateTime.Now;
+
+    /// <summary>
+    /// Номер текущего пульса системы
+    /// </summary>
     public int Pulse { get; set; }
+
+    /// <summary>
+    /// Стадия процесса активации стилей
+    /// </summary>
     public string Stage { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Идентификатор стиля поведения
+    /// </summary>
     public int StyleId { get; set; }
+
+    /// <summary>
+    /// Наименование стиля поведения
+    /// </summary>
     public string StyleName { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Вес стиля в текущей стадии
+    /// </summary>
     public int Weight { get; set; }
 
+    /// <summary>
+    /// Отформатированное время для отображения в UI
+    /// </summary>
     public string DisplayTime => Timestamp.ToString("HH:mm:ss");
+
+    /// <summary>
+    /// Отформатированный номер пульса для отображения в UI
+    /// </summary>
     public string DisplayPulse => Pulse.ToString();
+
+    /// <summary>
+    /// Стадия процесса для отображения в UI
+    /// </summary>
     public string DisplayStage => Stage;
+
+    /// <summary>
+    /// Отформатированный идентификатор стиля для отображения в UI
+    /// </summary>
     public string DisplayStyleId => StyleId.ToString();
+
+    /// <summary>
+    /// Наименование стиля для отображения в UI
+    /// </summary>
     public string DisplayStyleName => StyleName;
+
+    /// <summary>
+    /// Отформатированный вес стиля для отображения в UI
+    /// </summary>
     public string DisplayWeight => Weight.ToString();
   }
 
+  /// <summary>
+  /// Запись лога параметров гомеостаза для отображения в пользовательском интерфейсе
+  /// </summary>
   public class ParameterLogEntry
   {
+    /// <summary>
+    /// Временная метка создания записи
+    /// </summary>
     public DateTime Timestamp { get; set; } = DateTime.Now;
+
+    /// <summary>
+    /// Номер текущего пульса системы
+    /// </summary>
     public int Pulse { get; set; }
+
+    /// <summary>
+    /// Идентификатор параметра гомеостаза
+    /// </summary>
     public int ParamId { get; set; }
+
+    /// <summary>
+    /// Наименование параметра гомеостаза
+    /// </summary>
     public string ParamName { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Вес параметра в системе гомеостаза
+    /// </summary>
     public int Weight { get; set; }
+
+    /// <summary>
+    /// Значение нормы параметра
+    /// </summary>
     public int NormaWell { get; set; }
+
+    /// <summary>
+    /// Скорость изменения параметра
+    /// </summary>
     public int Speed { get; set; }
+
+    /// <summary>
+    /// Текущее значение параметра
+    /// </summary>
     public float Value { get; set; }
+
+    /// <summary>
+    /// Значение функции срочности
+    /// </summary>
     public float UrgencyFunction { get; set; }
+
+    /// <summary>
+    /// Текущее состояние параметра
+    /// </summary>
     public string ParameterState { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Зона активации параметра
+    /// </summary>
     public string ActivationZone { get; set; } = string.Empty;
 
+    /// <summary>
+    /// Отформатированное время для отображения в UI
+    /// </summary>
     public string DisplayTime => Timestamp.ToString("HH:mm:ss");
+
+    /// <summary>
+    /// Отформатированный номер пульса для отображения в UI
+    /// </summary>
     public string DisplayPulse => Pulse.ToString();
+
+    /// <summary>
+    /// Отформатированный идентификатор параметра для отображения в UI
+    /// </summary>
     public string DisplayParamId => ParamId.ToString();
+
+    /// <summary>
+    /// Наименование параметра для отображения в UI
+    /// </summary>
     public string DisplayParamName => ParamName;
+
+    /// <summary>
+    /// Отформатированный вес параметра для отображения в UI
+    /// </summary>
     public string DisplayWeight => Weight.ToString();
+
+    /// <summary>
+    /// Отформатированное значение нормы для отображения в UI
+    /// </summary>
     public string DisplayNormaWell => NormaWell.ToString();
+
+    /// <summary>
+    /// Отформатированная скорость изменения для отображения в UI
+    /// </summary>
     public string DisplaySpeed => Speed.ToString();
+
+    /// <summary>
+    /// Отформатированное текущее значение параметра для отображения в UI
+    /// </summary>
     public string DisplayValue => Value.ToString("F2");
+
+    /// <summary>
+    /// Отформатированное значение функции срочности для отображения в UI
+    /// </summary>
     public string DisplayUrgencyFunction => UrgencyFunction.ToString("F4");
+
+    /// <summary>
+    /// Состояние параметра для отображения в UI
+    /// </summary>
     public string DisplayParameterState => ParameterState;
+
+    /// <summary>
+    /// Зона активации для отображения в UI
+    /// </summary>
     public string DisplayActivationZone => ActivationZone;
   }
 
+  /// <summary>
+  /// Запись активации стилей поведения от параметров гомеостаза для отображения в пользовательском интерфейсе
+  /// </summary>
   public class StyleParameterActivationEntry
   {
+    /// <summary>
+    /// Временная метка создания записи
+    /// </summary>
     public DateTime Timestamp { get; set; } = DateTime.Now;
+
+    /// <summary>
+    /// Номер текущего пульса системы
+    /// </summary>
     public int Pulse { get; set; }
+
+    /// <summary>
+    /// Стадия процесса активации
+    /// </summary>
     public string Stage { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Идентификатор параметра гомеостаза
+    /// </summary>
     public int ParameterId { get; set; }
+
+    /// <summary>
+    /// Наименование параметра гомеостаза
+    /// </summary>
     public string ParameterName { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Идентификатор зоны активации (0-6)
+    /// </summary>
     public int ZoneId { get; set; }
+
+    /// <summary>
+    /// Описание зоны активации
+    /// </summary>
     public string ZoneDescription { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Идентификатор стиля поведения
+    /// </summary>
     public int StyleId { get; set; }
+
+    /// <summary>
+    /// Наименование стиля поведения
+    /// </summary>
     public string StyleName { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Вес стиля при активации
+    /// </summary>
     public int Weight { get; set; }
+
+    /// <summary>
+    /// Детали процесса активации
+    /// </summary>
     public string ActivationDetails { get; set; } = string.Empty;
 
+    /// <summary>
+    /// Отформатированное время для отображения в UI
+    /// </summary>
     public string DisplayTime => Timestamp.ToString("HH:mm:ss");
+
+    /// <summary>
+    /// Отформатированный номер пульса для отображения в UI
+    /// </summary>
     public string DisplayPulse => Pulse.ToString();
+
+    /// <summary>
+    /// Стадия процесса для отображения в UI
+    /// </summary>
     public string DisplayStage => Stage;
+
+    /// <summary>
+    /// Отформатированный идентификатор параметра для отображения в UI
+    /// </summary>
     public string DisplayParameterId => ParameterId.ToString();
+
+    /// <summary>
+    /// Наименование параметра для отображения в UI
+    /// </summary>
     public string DisplayParameterName => ParameterName;
+
+    /// <summary>
+    /// Отформатированный идентификатор зоны для отображения в UI
+    /// </summary>
     public string DisplayZoneId => ZoneId.ToString();
+
+    /// <summary>
+    /// Описание зоны для отображения в UI
+    /// </summary>
     public string DisplayZoneDescription => ZoneDescription;
+
+    /// <summary>
+    /// Отформатированный идентификатор стиля для отображения в UI
+    /// </summary>
     public string DisplayStyleId => StyleId.ToString();
+
+    /// <summary>
+    /// Наименование стиля для отображения в UI
+    /// </summary>
     public string DisplayStyleName => StyleName;
+
+    /// <summary>
+    /// Отформатированный вес стиля для отображения в UI
+    /// </summary>
     public string DisplayWeight => Weight.ToString();
+
+    /// <summary>
+    /// Детали активации для отображения в UI
+    /// </summary>
     public string DisplayActivationDetails => ActivationDetails;
   }
+
+  #endregion
 }
