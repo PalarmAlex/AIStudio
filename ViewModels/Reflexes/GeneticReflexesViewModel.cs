@@ -7,6 +7,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -29,6 +30,9 @@ namespace AIStudio.ViewModels
     private readonly GeneticReflexesSystem _geneticReflexesSystem;
     private readonly AdaptiveActionsSystem _actionsSystem;
     private readonly InfluenceActionSystem _influenceActionSystem;
+    private readonly ReflexTreeSystem _reflexTreeSystem;
+    private readonly ReflexChainsSystem _reflexChainsSystem;
+
     private readonly GomeostasSystem _gomeostas;
     public GomeostasSystem Gomeostas => _gomeostas;
     private string _currentAgentName;
@@ -60,12 +64,16 @@ namespace AIStudio.ViewModels
       GomeostasSystem gomeostasSystem,
       GeneticReflexesSystem geneticReflexesSystem,
       AdaptiveActionsSystem actionsSystem,
-      InfluenceActionSystem influenceActionSystem)
+      InfluenceActionSystem influenceActionSystem,
+      ReflexTreeSystem reflexTreeSystem,
+      ReflexChainsSystem reflexChainsSystem)
     {
       _gomeostas = gomeostasSystem;
       _geneticReflexesSystem = geneticReflexesSystem ?? throw new ArgumentNullException(nameof(geneticReflexesSystem));
       _actionsSystem = actionsSystem ?? throw new ArgumentNullException(nameof(actionsSystem));
       _influenceActionSystem = influenceActionSystem ?? throw new ArgumentNullException(nameof(influenceActionSystem));
+      _reflexTreeSystem = reflexTreeSystem ?? throw new ArgumentNullException(nameof(reflexTreeSystem));
+      _reflexChainsSystem = reflexChainsSystem ?? throw new ArgumentNullException(nameof(reflexChainsSystem));
 
       _geneticReflexesView = CollectionViewSource.GetDefaultView(_allGeneticReflexes);
       _geneticReflexesView.Filter = FilterGeneticReflexes;
@@ -78,6 +86,195 @@ namespace AIStudio.ViewModels
 
       GlobalTimer.PulsationStateChanged += OnPulsationStateChanged;
       LoadAgentData();
+    }
+
+    /// <summary>
+    /// Обновляет привязку цепочки к узлу дерева рефлексов
+    /// </summary>
+    public void UpdateChainBindingForReflex(GeneticReflexesSystem.GeneticReflex reflex)
+    {
+      try
+      {
+        if (!IsEditingEnabled)
+        {
+          MessageBox.Show("Обновление привязки цепочки доступно только при выключенной пульсации",
+              "Невозможно выполнить",
+              MessageBoxButton.OK,
+              MessageBoxImage.Warning);
+          return;
+        }
+
+        // Находим ID образа стилей поведения
+        int styleImageId = 0;
+        if (reflex.Level2 != null && reflex.Level2.Any())
+        {
+          // Используем PerceptionImagesSystem для получения ID образа
+          // Если система не инициализирована, используем хэш
+          if (PerceptionImagesSystem.IsInitialized)
+          {
+            try
+            {
+              // Получаем образ стилей поведения
+              styleImageId = PerceptionImagesSystem.Instance.AddBehaviorStyleImage(reflex.Level2);
+            }
+            catch (Exception ex)
+            {
+              Debug.WriteLine($"Ошибка получения образа стилей: {ex.Message}");
+              styleImageId = GetHashForList(reflex.Level2);
+            }
+          }
+          else
+          {
+            styleImageId = GetHashForList(reflex.Level2);
+          }
+        }
+
+        // Находим ID образа пусковых стимулов
+        int actionImageId = 0;
+        if (reflex.Level3 != null && reflex.Level3.Any())
+        {
+          if (PerceptionImagesSystem.IsInitialized)
+          {
+            try
+            {
+              // фразу не передаем - рефлексы не учитывают вербальное воздействие
+              actionImageId = PerceptionImagesSystem.Instance.AddPerceptionImage(reflex.Level3, new List<int>());
+            }
+            catch (Exception ex)
+            {
+              Debug.WriteLine($"Ошибка получения образа воздействий: {ex.Message}");
+              actionImageId = GetHashForList(reflex.Level3);
+            }
+          }
+          else
+          {
+            actionImageId = GetHashForList(reflex.Level3);
+          }
+        }
+
+        // Формируем массив условий для поиска узла
+        int[] conditionArr = new int[] { reflex.Level1, styleImageId, actionImageId };
+
+        // Ищем узел дерева по условиям
+        var (nodeId, node) = _reflexTreeSystem.FindReflexTreeNodeFromCondition(
+            reflex.Level1, styleImageId, actionImageId);
+
+        if (node != null)
+        {
+          if (reflex.ReflexChainID > 0)
+          {
+            // Привязываем цепочку к узлу
+            bool attached = _reflexTreeSystem.AttachChainToNode(nodeId, reflex.ReflexChainID);
+            if (attached)
+            {
+              Debug.WriteLine($"Цепочка {reflex.ReflexChainID} привязана к узлу {nodeId} для рефлекса {reflex.Id}");
+            }
+            else
+            {
+              MessageBox.Show($"Не удалось привязать цепочку {reflex.ReflexChainID} к узлу дерева",
+                  "Ошибка",
+                  MessageBoxButton.OK,
+                  MessageBoxImage.Warning);
+            }
+          }
+          else
+          {
+            // Отвязываем цепочку от узла
+            bool detached = _reflexTreeSystem.DetachChainFromNode(nodeId);
+            if (detached)
+            {
+              Debug.WriteLine($"Цепочка отвязана от узла {nodeId} для рефлекса {reflex.Id}");
+            }
+          }
+
+          // Сохраняем дерево рефлексов
+          var (saveSuccess, error) = _reflexTreeSystem.SaveReflexTree();
+          if (!saveSuccess)
+          {
+            Debug.WriteLine($"Ошибка сохранения дерева рефлексов: {error}");
+          }
+        }
+        else
+        {
+          MessageBox.Show($"Не найден узел дерева рефлексов для условий: [{reflex.Level1}, {styleImageId}, {actionImageId}]",
+              "Ошибка",
+              MessageBoxButton.OK,
+              MessageBoxImage.Warning);
+        }
+      }
+      catch (Exception ex)
+      {
+        MessageBox.Show($"Ошибка обновления привязки цепочки: {ex.Message}",
+            "Ошибка",
+            MessageBoxButton.OK,
+            MessageBoxImage.Error);
+      }
+    }
+
+    /// <summary>
+    /// Получает хэш для списка ID (для случая, когда PerceptionImagesSystem не доступен)
+    /// </summary>
+    private int GetHashForList(List<int> ids)
+    {
+      if (ids == null || !ids.Any()) return 0;
+
+      // Сортируем для обеспечения уникальности независимо от порядка
+      var sorted = ids.OrderBy(x => x).ToList();
+      return string.Join(",", sorted).GetHashCode();
+    }
+
+    /// <summary>
+    /// Обновляет все привязки цепочек для всех рефлексов
+    /// </summary>
+    public void UpdateAllChainBindings()
+    {
+      try
+      {
+        if (!IsEditingEnabled)
+        {
+          MessageBox.Show("Обновление привязок доступно только при выключенной пульсации",
+              "Невозможно выполнить",
+              MessageBoxButton.OK,
+              MessageBoxImage.Warning);
+          return;
+        }
+
+        int updatedCount = 0;
+        int errorCount = 0;
+
+        foreach (var reflex in _allGeneticReflexes)
+        {
+          try
+          {
+            UpdateChainBindingForReflex(reflex);
+            updatedCount++;
+          }
+          catch (Exception ex)
+          {
+            errorCount++;
+            Debug.WriteLine($"Ошибка обновления привязки для рефлекса {reflex.Id}: {ex.Message}");
+          }
+        }
+
+        if (errorCount > 0)
+        {
+          MessageBox.Show($"Обновлено {updatedCount} привязок, ошибок: {errorCount}",
+              "Результат обновления",
+              MessageBoxButton.OK,
+              MessageBoxImage.Information);
+        }
+        else
+        {
+          Debug.WriteLine($"Успешно обновлено {updatedCount} привязок цепочек");
+        }
+      }
+      catch (Exception ex)
+      {
+        MessageBox.Show($"Ошибка массового обновления привязок: {ex.Message}",
+            "Ошибка",
+            MessageBoxButton.OK,
+            MessageBoxImage.Error);
+      }
     }
 
     private bool FilterGeneticReflexes(object item)

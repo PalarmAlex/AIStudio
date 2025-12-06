@@ -501,7 +501,13 @@ namespace AIStudio
     private void ShowGeneticReflexes()
     {
       var geneticReflexesView = new GeneticReflexesView();
-      var viewModel = new GeneticReflexesViewModel(_gomeostas, _geneticReflexesSystem, _actionsSystem, _influenceActionSystem);
+      var viewModel = new GeneticReflexesViewModel(
+        _gomeostas, 
+        _geneticReflexesSystem, 
+        _actionsSystem, 
+        _influenceActionSystem,
+        _reflexTree,
+        _reflexChains);
       geneticReflexesView.DataContext = viewModel;
       CurrentContent = geneticReflexesView;
     }

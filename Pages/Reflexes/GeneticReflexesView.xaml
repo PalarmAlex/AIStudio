@@ -136,35 +136,35 @@
     </Border>
 
     <Border Grid.Row="3" 
-            BorderBrush="#FFE0E0E0" 
-            BorderThickness="1"
-            CornerRadius="4"
-            Margin="0,0,0,5">
+        BorderBrush="#FFE0E0E0" 
+        BorderThickness="1"
+        CornerRadius="4"
+        Margin="0,0,0,5">
       <DataGrid ItemsSource="{Binding GeneticReflexesView}"
-            x:Name="GeneticReflexesGrid"
-            IsEnabled="True"
-            IsReadOnly="{Binding IsReadOnlyMode}"
-            AutoGenerateColumns="False"
-            CanUserAddRows="{Binding IsEditingEnabled}"
-            CanUserDeleteRows="{Binding IsEditingEnabled}"
-            SelectionMode="Extended"
-            BorderThickness="0"
-            Background="White"
-            RowBackground="#FFF9F9F9"
-            AlternatingRowBackground="White"
-            GridLinesVisibility="None"
-            VerticalScrollBarVisibility="Auto"
-            HorizontalScrollBarVisibility="Auto"
-            PreviewKeyDown="DataGrid_PreviewKeyDown"
-            RowEditEnding="DataGrid_RowEditEnding"
-            AddingNewItem="DataGrid_AddingNewItem">
+        x:Name="GeneticReflexesGrid"
+        IsEnabled="True"
+        IsReadOnly="{Binding IsReadOnlyMode}"
+        AutoGenerateColumns="False"
+        CanUserAddRows="{Binding IsEditingEnabled}"
+        CanUserDeleteRows="{Binding IsEditingEnabled}"
+        SelectionMode="Extended"
+        BorderThickness="0"
+        Background="White"
+        RowBackground="#FFF9F9F9"
+        AlternatingRowBackground="White"
+        GridLinesVisibility="None"
+        VerticalScrollBarVisibility="Auto"
+        HorizontalScrollBarVisibility="Auto"
+        PreviewKeyDown="DataGrid_PreviewKeyDown"
+        RowEditEnding="DataGrid_RowEditEnding"
+        AddingNewItem="DataGrid_AddingNewItem">
 
         <DataGrid.Columns>
           <DataGridTextColumn Header="ID" Binding="{Binding Id}" Width="50" IsReadOnly="True"/>
 
           <!-- Интегральное состояние - комбобокс -->
           <DataGridTemplateColumn Header="Интегральное состояние" Width="Auto" 
-                           CanUserSort="True" SortMemberPath="Level1">
+                       CanUserSort="True" SortMemberPath="Level1">
             <DataGridTemplateColumn.HeaderStyle>
               <Style TargetType="DataGridColumnHeader">
                 <Setter Property="ToolTip" Value="Первый уровень дерева триггера рефлекса: Интегральное базовое состояние гомеостаза"/>
@@ -178,24 +178,24 @@
             <DataGridTemplateColumn.CellEditingTemplate>
               <DataTemplate>
                 <ComboBox ItemsSource="{Binding DataContext.Level1Options, RelativeSource={RelativeSource AncestorType=UserControl}}"
-                     SelectedValue="{Binding Level1}"
-                     DisplayMemberPath="Value"
-                     SelectedValuePath="Key"/>
+                 SelectedValue="{Binding Level1}"
+                 DisplayMemberPath="Value"
+                 SelectedValuePath="Key"/>
               </DataTemplate>
             </DataGridTemplateColumn.CellEditingTemplate>
           </DataGridTemplateColumn>
 
           <!-- Контексты реагирования -->
           <DataGridTemplateColumn Header="Контексты реагирования" Width="250" 
-                           CanUserSort="True" SortMemberPath="Level2">
+                       CanUserSort="True" SortMemberPath="Level2">
 
             <DataGridTemplateColumn.HeaderStyle>
               <Style TargetType="DataGridColumnHeader">
                 <Setter Property="ToolTip" 
-                    Value="Второй уровень дерева триггера рефлекса: Контексты реагирования.&#x0a;ДБ клик открывает окно ввода."/>
+                Value="Второй уровень дерева триггера рефлекса: Контексты реагирования.&#x0a;ДБ клик открывает окно ввода."/>
               </Style>
             </DataGridTemplateColumn.HeaderStyle>
-            
+
             <DataGridTemplateColumn.CellTemplate>
               <DataTemplate>
                 <TextBlock Text="{Binding Level2, Converter={StaticResource IdListToNamesConverter}, ConverterParameter='Level2'}"/>
@@ -210,12 +210,12 @@
 
           <!-- Внешние стимулы -->
           <DataGridTemplateColumn Header="Внешние стимулы" Width="250" 
-                           CanUserSort="True" SortMemberPath="Level3">
+                       CanUserSort="True" SortMemberPath="Level3">
 
             <DataGridTemplateColumn.HeaderStyle>
               <Style TargetType="DataGridColumnHeader">
                 <Setter Property="ToolTip" 
-                    Value="Третий уровень дерева триггера рефлекса: Гомеостатические воздействия.&#x0a;ДБ клик открывает окно ввода."/>
+                Value="Третий уровень дерева триггера рефлекса: Гомеостатические воздействия.&#x0a;ДБ клик открывает окно ввода."/>
               </Style>
             </DataGridTemplateColumn.HeaderStyle>
 
@@ -233,15 +233,15 @@
 
           <!-- Адаптивные действия -->
           <DataGridTemplateColumn Header="Адаптивные действия" Width="*" 
-                           CanUserSort="True" SortMemberPath="AdaptiveActions">
+                       CanUserSort="True" SortMemberPath="AdaptiveActions">
 
             <DataGridTemplateColumn.HeaderStyle>
               <Style TargetType="DataGridColumnHeader">
                 <Setter Property="ToolTip" 
-                    Value="Действия запускаемые рефлексом.&#x0a;ДБ клик открывает окно ввода."/>
+                Value="Действия запускаемые рефлексом.&#x0a;ДБ клик открывает окно ввода."/>
               </Style>
             </DataGridTemplateColumn.HeaderStyle>
-            
+
             <DataGridTemplateColumn.CellTemplate>
               <DataTemplate>
                 <TextBlock Text="{Binding AdaptiveActions, Converter={StaticResource IdListToNamesConverter}, ConverterParameter='AdaptiveActions'}"/>
@@ -253,8 +253,37 @@
               </Style>
             </DataGridTemplateColumn.CellStyle>
           </DataGridTemplateColumn>
-        </DataGrid.Columns>
 
+          <!-- Цепочки -->
+          <DataGridTemplateColumn Header="Цепочка" Width="100">
+            <DataGridTemplateColumn.CellTemplate>
+              <DataTemplate>
+                <TextBlock>
+                  <TextBlock.Style>
+                    <Style TargetType="TextBlock">
+                      <Setter Property="Text" Value="{Binding ReflexChainID}"/>
+                      <Style.Triggers>
+                        <DataTrigger Binding="{Binding ReflexChainID}" Value="0">
+                          <Setter Property="Text" Value="Нет"/>
+                          <Setter Property="Foreground" Value="Gray"/>
+                          <Setter Property="FontStyle" Value="Italic"/>
+                        </DataTrigger>
+                      </Style.Triggers>
+                    </Style>
+                  </TextBlock.Style>
+                </TextBlock>
+              </DataTemplate>
+            </DataGridTemplateColumn.CellTemplate>
+            <DataGridTemplateColumn.CellStyle>
+              <Style TargetType="DataGridCell">
+                <EventSetter Event="MouseDoubleClick" Handler="ChainCell_DoubleClick"/>
+                <Setter Property="Cursor" Value="Hand"/>
+                <Setter Property="ToolTip" Value="Двойной клик - открыть редактор цепочек"/>
+              </Style>
+            </DataGridTemplateColumn.CellStyle>
+          </DataGridTemplateColumn>
+
+        </DataGrid.Columns>
       </DataGrid>
     </Border>
 

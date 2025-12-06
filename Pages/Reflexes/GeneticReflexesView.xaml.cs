@@ -24,9 +24,16 @@ namespace AIStudio.Pages.Reflexes
 {
   public partial class GeneticReflexesView : UserControl
   {
+    private readonly ReflexChainsSystem _reflexChainsSystem;
+    private readonly AdaptiveActionsSystem _actionsSystem;
+
     public GeneticReflexesView()
     {
       InitializeComponent();
+
+      _reflexChainsSystem = ReflexChainsSystem.Instance;
+      _actionsSystem = AdaptiveActionsSystem.Instance;
+
       Loaded += OnLoaded;
       Unloaded += OnUnloaded;
     }
@@ -164,6 +171,46 @@ namespace AIStudio.Pages.Reflexes
         if (dialog.ShowDialog() == true)
         {
           reflex.AdaptiveActions = dialog.SelectedAdaptiveActions;
+          GeneticReflexesGrid.CommitEdit(DataGridEditingUnit.Row, true);
+          GeneticReflexesGrid.Items.Refresh();
+        }
+      }
+    }
+
+    private void ChainCell_DoubleClick(object sender, MouseButtonEventArgs e)
+    {
+      if (!IsFormEnabled)
+      {
+        e.Handled = true;
+        return;
+      }
+
+      if (sender is DataGridCell cell && cell.DataContext is GeneticReflexesSystem.GeneticReflex reflex)
+      {
+        // Открываем редактор цепочек для этого рефлекса
+        var dialog = new ReflexChainEditorDialog(
+            reflex.Id,
+            reflex.Level1,
+            reflex.Level2,
+            reflex.Level3, 
+            reflex.AdaptiveActions,
+            reflex.ReflexChainID,
+            _reflexChainsSystem,
+            _actionsSystem)
+        {
+          Owner = Window.GetWindow(this)
+        };
+
+        if (dialog.ShowDialog() == true)
+        {
+          reflex.ReflexChainID = dialog.ChainId;
+
+          // Обновляем привязку в дереве рефлексов
+          if (DataContext is GeneticReflexesViewModel viewModel)
+          {
+            viewModel.UpdateChainBindingForReflex(reflex);
+          }
+
           GeneticReflexesGrid.CommitEdit(DataGridEditingUnit.Row, true);
           GeneticReflexesGrid.Items.Refresh();
         }
