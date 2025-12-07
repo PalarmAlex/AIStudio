@@ -259,9 +259,6 @@ namespace AIStudio
           case "6": // Дерево рефлексов
             ShowStub("Дерево рефлексов");
             break;
-          case "7": // Цепочки рефлексов
-            ShowReflexChains();
-            break;
           case "8": // Таблица Автоматизмов
             ShowStub("Таблица Автоматизмов");
             break;
@@ -523,18 +520,6 @@ namespace AIStudio
           _perceptionImagesSystem);
       conditionedReflexesView.DataContext = viewModel;
       CurrentContent = conditionedReflexesView;
-    }
-
-    // Открыть страницу цепочек безусловных рефлексов
-    private void ShowReflexChains()
-    {
-      //var reflexChainsView = new ReflexChainsView();
-      //var viewModel = new ReflexChainsViewModel(
-      //    _reflexChains,
-      //    _geneticReflexesSystem,
-      //    _actionsSystem);
-      //reflexChainsView.DataContext = viewModel;
-      //CurrentContent = reflexChainsView;
     }
 
     // Метод-заглушка для отображения сообщения

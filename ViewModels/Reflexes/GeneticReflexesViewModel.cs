@@ -96,6 +96,15 @@ namespace AIStudio.ViewModels
     {
       try
       {
+        if (reflex.Id <= 0)
+        {
+          MessageBox.Show("Нельзя привязать цепочку к несохраненному рефлексу",
+              "Ошибка",
+              MessageBoxButton.OK,
+              MessageBoxImage.Error);
+          return;
+        }
+
         if (!IsEditingEnabled)
         {
           MessageBox.Show("Обновление привязки цепочки доступно только при выключенной пульсации",

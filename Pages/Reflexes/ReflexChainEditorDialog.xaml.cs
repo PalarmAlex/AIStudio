@@ -116,13 +116,10 @@ namespace AIStudio.Dialogs
 
       InitializeComponent();
 
-      //CheckChainsSystem();
       ChainLinksView = CollectionViewSource.GetDefaultView(ChainLinks);
 
       if (_initialChainId > 0)
-      {
         LoadExistingChain();
-      }
       else
       {
         ChainName = $"Цепочка для рефлекса {ReflexId}";
@@ -148,38 +145,6 @@ namespace AIStudio.Dialogs
 
       DataContext = this;
     }
-
-    //private void CheckChainsSystem()
-    //{
-    //  try
-    //  {
-    //    var allChains = _reflexChainsSystem.GetAllReflexChains();
-    //    Debug.WriteLine($"Загружено цепочек: {allChains.Count}");
-
-    //    if (_initialChainId > 0)
-    //    {
-    //      var chainExists = allChains.ContainsKey(_initialChainId);
-    //      Debug.WriteLine($"Цепочка ID {_initialChainId} существует: {chainExists}");
-
-    //      if (!chainExists)
-    //      {
-    //        MessageBox.Show($"Цепочка с ID {_initialChainId} не найдена в системе.\n" +
-    //                      "Возможно, файл цепочек не загружен или поврежден.",
-    //            "Внимание",
-    //            MessageBoxButton.OK,
-    //            MessageBoxImage.Warning);
-    //      }
-    //    }
-    //  }
-    //  catch (Exception ex)
-    //  {
-    //    Debug.WriteLine($"Ошибка проверки системы цепочек: {ex.Message}");
-    //    MessageBox.Show($"Ошибка доступа к системе цепочек: {ex.Message}",
-    //        "Ошибка",
-    //        MessageBoxButton.OK,
-    //        MessageBoxImage.Error);
-    //  }
-    //}
 
     private string ConvertIdsToText(List<int> ids, string converterParameter)
     {

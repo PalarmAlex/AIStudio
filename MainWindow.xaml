@@ -139,11 +139,6 @@
               Command="{Binding VerticalMenuItemClickedCommand}"
               CommandParameter="5"/>
 
-            <Button Content="Цепочки рефлексов" Margin="20,2,5,2" 
-              Style="{StaticResource MenuButtonStyle}"
-              Command="{Binding VerticalMenuItemClickedCommand}"
-              CommandParameter="7"/>
-
             <Button Content="Дерево триггеров рефлексов" Margin="20,2,5,2" 
               Style="{StaticResource MenuButtonStyle}"
               Command="{Binding VerticalMenuItemClickedCommand}"

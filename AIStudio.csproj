@@ -171,6 +171,9 @@
     <Compile Include="Pages\Reflexes\PerceptionImageSelectionDialog.xaml.cs">
       <DependentUpon>PerceptionImageSelectionDialog.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Pages\Reflexes\ReflexChainBindingDialog.xaml.cs">
+      <DependentUpon>ReflexChainBindingDialog.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Pages\Reflexes\ReflexChainEditorDialog.xaml.cs">
       <DependentUpon>ReflexChainEditorDialog.xaml</DependentUpon>
     </Compile>
@@ -238,6 +241,7 @@
     <Compile Include="ViewModels\ProjectSettingsViewModel.cs" />
     <Compile Include="ViewModels\Reflexes\ConditionedReflexesViewModel.cs" />
     <Compile Include="ViewModels\Reflexes\GeneticReflexesViewModel.cs" />
+    <Compile Include="ViewModels\Reflexes\ReflexChainBindingViewModel.cs" />
     <Compile Include="ViewModels\RelayCommand.cs" />
     <Compile Include="ViewModels\StyleLogsViewModel.cs" />
     <Compile Include="ViewModels\SystemParametersViewModel.cs" />
@@ -324,6 +328,10 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="Pages\Reflexes\PerceptionImageSelectionDialog.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Pages\Reflexes\ReflexChainBindingDialog.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

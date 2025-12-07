@@ -37,6 +37,39 @@
       </Style.Triggers>
     </Style>
 
+    <!-- Контекстное меню для ячеек с цепочками -->
+    <ContextMenu x:Key="ChainContextMenu" x:Shared="False">
+      <MenuItem Header="Добавить цепочку" 
+              Click="AddChainMenuItem_Click"
+              ToolTip="Создать новую цепочку">
+        <MenuItem.Icon>
+          <Image Source="/AIStudio;component/Resources/Add.ico" Width="16" Height="16"/>
+        </MenuItem.Icon>
+      </MenuItem>
+      <MenuItem Header="Управление цепочками" 
+              Click="AttachChainMenuItem_Click"
+              ToolTip="Привязать существующую цепочку">
+        <MenuItem.Icon>
+          <Image Source="/AIStudio;component/Resources/activate.png" Width="16" Height="16"/>
+        </MenuItem.Icon>
+      </MenuItem>
+      <MenuItem Header="Редактировать цепочку" 
+              Click="EditChainMenuItem_Click"
+              ToolTip="Открыть редактор привязанной цепочки">
+        <MenuItem.Icon>
+          <Image Source="/AIStudio;component/Resources/Modify.png" Width="16" Height="16"/>
+        </MenuItem.Icon>
+      </MenuItem>
+      <Separator/>
+      <MenuItem Header="Отвязать цепочку" 
+              Click="DetachChainMenuItem_Click"
+              ToolTip="Удалить привязку цепочки к рефлексу">
+        <MenuItem.Icon>
+          <Image Source="/AIStudio;component/Resources/deactivate.png" Width="16" Height="16"/>
+        </MenuItem.Icon>
+      </MenuItem>
+    </ContextMenu>
+
   </UserControl.Resources>
 
   <Grid Margin="12">
@@ -277,8 +310,10 @@
             <DataGridTemplateColumn.CellStyle>
               <Style TargetType="DataGridCell">
                 <EventSetter Event="MouseDoubleClick" Handler="ChainCell_DoubleClick"/>
+                <EventSetter Event="PreviewMouseRightButtonDown" Handler="ChainCell_MouseRightButtonDown"/>
+                <Setter Property="ContextMenu" Value="{StaticResource ChainContextMenu}"/>
                 <Setter Property="Cursor" Value="Hand"/>
-                <Setter Property="ToolTip" Value="Двойной клик - открыть редактор цепочек"/>
+                <Setter Property="ToolTip" Value="Двойной клик или правый клик для работы с цепочками"/>
               </Style>
             </DataGridTemplateColumn.CellStyle>
           </DataGridTemplateColumn>
