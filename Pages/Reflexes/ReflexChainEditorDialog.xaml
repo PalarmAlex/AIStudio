@@ -9,7 +9,9 @@
         Height="680" 
         Width="900"
         WindowStartupLocation="CenterOwner"
-        MinHeight="600" MinWidth="800">
+        MinHeight="600" MinWidth="800"
+        PreviewKeyDown="Window_PreviewKeyDown"
+        WindowState="Maximized">
 
   <Window.Resources>
     <converters:InverseBooleanConverter x:Key="InverseBooleanConverter"/>

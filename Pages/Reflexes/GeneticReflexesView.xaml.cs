@@ -177,29 +177,27 @@ namespace AIStudio.Pages.Reflexes
       }
     }
 
-    private void ChainCell_DoubleClick(object sender, MouseButtonEventArgs e)
+    private void ChainCell_DoubleClick(object sender, RoutedEventArgs e)
     {
-      if (!IsFormEnabled)
-      {
-        e.Handled = true;
-        return;
-      }
-
       if (sender is DataGridCell cell && cell.DataContext is GeneticReflexesSystem.GeneticReflex reflex)
       {
-        // Открываем редактор цепочек для этого рефлекса
+        if (!ReflexChainsSystem.IsInitialized)
+        {
+          MessageBox.Show("Система цепочек рефлексов не инициализирована", "Ошибка",
+              MessageBoxButton.OK, MessageBoxImage.Error);
+          return;
+        }
+
         var dialog = new ReflexChainEditorDialog(
             reflex.Id,
             reflex.Level1,
-            reflex.Level2,
-            reflex.Level3, 
-            reflex.AdaptiveActions,
+            reflex.Level2 ?? new List<int>(),
+            reflex.Level3 ?? new List<int>(),
+            reflex.AdaptiveActions ?? new List<int>(),
             reflex.ReflexChainID,
-            _reflexChainsSystem,
-            _actionsSystem)
-        {
-          Owner = Window.GetWindow(this)
-        };
+            ReflexChainsSystem.Instance,
+            AdaptiveActionsSystem.Instance
+        );
 
         if (dialog.ShowDialog() == true)
         {
@@ -207,9 +205,7 @@ namespace AIStudio.Pages.Reflexes
 
           // Обновляем привязку в дереве рефлексов
           if (DataContext is GeneticReflexesViewModel viewModel)
-          {
             viewModel.UpdateChainBindingForReflex(reflex);
-          }
 
           GeneticReflexesGrid.CommitEdit(DataGridEditingUnit.Row, true);
           GeneticReflexesGrid.Items.Refresh();

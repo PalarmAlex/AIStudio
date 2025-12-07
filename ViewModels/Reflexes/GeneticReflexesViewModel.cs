@@ -16,6 +16,7 @@ using System.Windows.Data;
 using System.Windows.Input;
 using System.Windows.Media;
 using static ISIDA.Gomeostas.GomeostasSystem;
+using static ISIDA.Reflexes.ReflexChainsSystem;
 
 namespace AIStudio.ViewModels
 {
@@ -152,10 +153,8 @@ namespace AIStudio.ViewModels
           }
         }
 
-        // Формируем массив условий для поиска узла
         int[] conditionArr = new int[] { reflex.Level1, styleImageId, actionImageId };
 
-        // Ищем узел дерева по условиям
         var (nodeId, node) = _reflexTreeSystem.FindReflexTreeNodeFromCondition(
             reflex.Level1, styleImageId, actionImageId);
 
@@ -163,7 +162,6 @@ namespace AIStudio.ViewModels
         {
           if (reflex.ReflexChainID > 0)
           {
-            // Привязываем цепочку к узлу
             bool attached = _reflexTreeSystem.AttachChainToNode(nodeId, reflex.ReflexChainID);
             if (attached)
             {
@@ -179,19 +177,25 @@ namespace AIStudio.ViewModels
           }
           else
           {
-            // Отвязываем цепочку от узла
             bool detached = _reflexTreeSystem.DetachChainFromNode(nodeId);
             if (detached)
-            {
               Debug.WriteLine($"Цепочка отвязана от узла {nodeId} для рефлекса {reflex.Id}");
-            }
           }
 
-          // Сохраняем дерево рефлексов
           var (saveSuccess, error) = _reflexTreeSystem.SaveReflexTree();
           if (!saveSuccess)
+            MessageBox.Show($"Ошибка сохранения дерева рефлексов: {error}",
+                "Ошибка сохранения",
+                MessageBoxButton.OK,
+                MessageBoxImage.Information);
+
+          var (reflexSuccess, reflexError) = _geneticReflexesSystem.SaveGeneticReflexes();
+          if (!reflexSuccess)
           {
-            Debug.WriteLine($"Ошибка сохранения дерева рефлексов: {error}");
+            MessageBox.Show($"Не удалось сохранить безусловные рефлексы:\n{reflexError}",
+                "Ошибка сохранения",
+                MessageBoxButton.OK,
+                MessageBoxImage.Error);
           }
         }
         else
@@ -450,13 +454,13 @@ namespace AIStudio.ViewModels
           Level1 = reflex.Level1,
           Level2 = new List<int>(reflex.Level2),
           Level3 = new List<int>(reflex.Level3),
-          AdaptiveActions = new List<int>(reflex.AdaptiveActions)
+          AdaptiveActions = new List<int>(reflex.AdaptiveActions),
+          ReflexChainID = reflex.ReflexChainID
         };
 
         _allGeneticReflexes.Add(reflexCopy);
       }
 
-      // Загружаем опции фильтров
       LoadFilterOptions();
 
       OnPropertyChanged(nameof(IsStageZero));
@@ -531,7 +535,6 @@ namespace AIStudio.ViewModels
       {
         var currentReflexes = _geneticReflexesSystem.GetAllGeneticReflexes().ToDictionary(a => a.Id);
 
-        // Валидация всех рефлексов с учетом временных ID
         foreach (var reflex in _allGeneticReflexes)
         {
           var validationResult = _geneticReflexesSystem.ValidateGeneticReflex(reflex);
@@ -545,7 +548,6 @@ namespace AIStudio.ViewModels
           }
         }
 
-        // Удаление рефлексов из системы, которые удалил юзер из таблицы
         var reflexesToRemove = currentReflexes.Keys.Except(_allGeneticReflexes.Select(a => a.Id)).ToList();
         foreach (var reflexId in reflexesToRemove)
         {
@@ -559,13 +561,18 @@ namespace AIStudio.ViewModels
           }
         }
 
-        // Обновление и добавление рефлексов, которые добавил/обновил юзер в таблицу
         foreach (var reflex in _allGeneticReflexes)
         {
           if (currentReflexes.ContainsKey(reflex.Id) && reflex.Id > 0)
           {
-            // Обновление существующего
-            var warnings = _geneticReflexesSystem.UpdateGeneticReflex(reflex);
+            var originalReflex = currentReflexes[reflex.Id];
+            originalReflex.Level1 = reflex.Level1;
+            originalReflex.Level2 = new List<int>(reflex.Level2);
+            originalReflex.Level3 = new List<int>(reflex.Level3);
+            originalReflex.AdaptiveActions = new List<int>(reflex.AdaptiveActions);
+            originalReflex.ReflexChainID = reflex.ReflexChainID;
+
+            var warnings = _geneticReflexesSystem.UpdateGeneticReflex(originalReflex);
             if (warnings != null && warnings.Length > 0)
             {
               MessageBox.Show($"Предупреждения при обновлении рефлекса '{reflex.Id}':\n{string.Join("\n", warnings)}",
@@ -576,7 +583,6 @@ namespace AIStudio.ViewModels
           }
           else
           {
-            // Добавление нового (ID <= 0 или нет в текущих)
             var (newId, warnings) = _geneticReflexesSystem.AddGeneticReflex(
                 reflex.Level1,
                 new List<int>(reflex.Level2),
@@ -593,6 +599,28 @@ namespace AIStudio.ViewModels
             }
 
             reflex.Id = newId;
+
+            if (reflex.ReflexChainID > 0)
+            {
+              try
+              {
+                bool attached = _geneticReflexesSystem.AttachChainToReflex(newId, reflex.ReflexChainID);
+                if (!attached)
+                {
+                  MessageBox.Show($"Не удалось привязать цепочку {reflex.ReflexChainID} к новому рефлексу {newId}",
+                      "Предупреждение",
+                      MessageBoxButton.OK,
+                      MessageBoxImage.Warning);
+                }
+              }
+              catch (Exception ex)
+              {
+                MessageBox.Show($"Ошибка привязки цепочки к рефлексу: {ex.Message}",
+                    "Ошибка",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Warning);
+              }
+            }
           }
         }
         return true;
