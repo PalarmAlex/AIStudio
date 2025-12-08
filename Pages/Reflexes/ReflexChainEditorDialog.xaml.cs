@@ -28,7 +28,6 @@ namespace AIStudio.Dialogs
     private int _chainId;
     private string _chainName;
     private string _chainDescription;
-    private int _chainPriority;
     private ReflexChain _editingChain;
     private readonly int _initialChainId;
     private readonly List<int> _reflexAdaptiveActions;
@@ -58,16 +57,6 @@ namespace AIStudio.Dialogs
       {
         _chainDescription = value;
         OnPropertyChanged(nameof(ChainDescription));
-      }
-    }
-
-    public int ChainPriority
-    {
-      get => _chainPriority;
-      set
-      {
-        _chainPriority = value;
-        OnPropertyChanged(nameof(ChainPriority));
       }
     }
 
@@ -124,7 +113,6 @@ namespace AIStudio.Dialogs
       {
         ChainName = $"Цепочка для рефлекса {ReflexId}";
         ChainDescription = $"Автоматически созданная цепочка для рефлекса {ReflexId}";
-        ChainPriority = 5;
 
         if (_reflexAdaptiveActions.Any())
         {
@@ -173,7 +161,6 @@ namespace AIStudio.Dialogs
           _chainId = chain.ID;
           ChainName = chain.Name;
           ChainDescription = chain.Description;
-          ChainPriority = chain.Priority;
 
           ChainLinks.Clear();
           foreach (var link in chain.Links.OrderBy(l => l.ID))
@@ -391,7 +378,6 @@ namespace AIStudio.Dialogs
         {
           _editingChain.Name = ChainName;
           _editingChain.Description = ChainDescription;
-          _editingChain.Priority = ChainPriority;
           _editingChain.Links = links;
 
           var (success, _) = _reflexChainsSystem.SaveReflexChains();
@@ -405,7 +391,6 @@ namespace AIStudio.Dialogs
           var (newChainId, warnings) = _reflexChainsSystem.AddReflexChain(
               ChainName,
               ChainDescription,
-              ChainPriority,
               links,
               3);
 

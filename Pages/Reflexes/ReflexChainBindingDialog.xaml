@@ -16,7 +16,7 @@
     <converters:InverseBooleanConverter x:Key="InverseBooleanConverter"/>
     <converters:Level1ToTextConverter x:Key="Level1ToTextConverter"/>
     <converters:IdListToNamesConverter x:Key="IdListToNamesConverter"/>
-    <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter"/>
+    <converters:BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter"/>
 
     <!-- Стили для таблиц -->
     <Style x:Key="DataGridBaseStyle" TargetType="DataGrid">
@@ -128,17 +128,6 @@
                      FontSize="12"
                      BorderBrush="#FF90CAF9"
                      Padding="4"/>
-          </StackPanel>
-
-          <!-- Фильтр по приоритету -->
-          <StackPanel Orientation="Vertical" Margin="0,0,15,0" Width="120">
-            <TextBlock Text="Приоритет" Style="{StaticResource FilterLabelStyle}"/>
-            <ComboBox ItemsSource="{Binding PriorityFilterOptions}"
-                      SelectedValue="{Binding SelectedPriorityFilter}"
-                      DisplayMemberPath="Value"
-                      SelectedValuePath="Key"
-                      Height="25"
-                      FontSize="12"/>
           </StackPanel>
 
           <!-- Фильтр по наличию привязки -->
@@ -271,23 +260,6 @@
               </DataGridTextColumn.ElementStyle>
             </DataGridTextColumn>
 
-            <DataGridTextColumn Header="Приоритет" Binding="{Binding Priority}" Width="80">
-              <DataGridTextColumn.HeaderStyle>
-                <Style TargetType="DataGridColumnHeader">
-                  <Setter Property="FontWeight" Value="SemiBold"/>
-                  <Setter Property="FontSize" Value="12"/>
-                </Style>
-              </DataGridTextColumn.HeaderStyle>
-              <DataGridTextColumn.ElementStyle>
-                <Style TargetType="TextBlock">
-                  <Setter Property="HorizontalAlignment" Value="Center"/>
-                  <Setter Property="Padding" Value="4,2"/>
-                  <Setter Property="FontSize" Value="12"/>
-                  <Setter Property="FontWeight" Value="SemiBold"/>
-                </Style>
-              </DataGridTextColumn.ElementStyle>
-            </DataGridTextColumn>
-
             <DataGridTextColumn Header="Звеньев" Binding="{Binding Links.Count}" Width="70">
               <DataGridTextColumn.HeaderStyle>
                 <Style TargetType="DataGridColumnHeader">
@@ -304,45 +276,6 @@
               </DataGridTextColumn.ElementStyle>
             </DataGridTextColumn>
 
-            <DataGridTemplateColumn Header="Привязан к" Width="150">
-              <DataGridTemplateColumn.HeaderStyle>
-                <Style TargetType="DataGridColumnHeader">
-                  <Setter Property="FontWeight" Value="SemiBold"/>
-                  <Setter Property="FontSize" Value="12"/>
-                </Style>
-              </DataGridTemplateColumn.HeaderStyle>
-              <DataGridTemplateColumn.CellTemplate>
-                <DataTemplate>
-                  <TextBlock>
-                    <TextBlock.Style>
-                      <Style TargetType="TextBlock">
-                        <Setter Property="Text" Value="{Binding DataContext.GetReflexesForChain(Id), 
-                                                         RelativeSource={RelativeSource AncestorType=Window}}"/>
-                        <Setter Property="HorizontalAlignment" Value="Center"/>
-                        <Setter Property="Padding" Value="4,2"/>
-                        <Setter Property="FontSize" Value="12"/>
-                        <Style.Triggers>
-                          <DataTrigger Binding="{Binding DataContext.GetReflexesForChain(Id), 
-                                                   RelativeSource={RelativeSource AncestorType=Window}}" 
-                                       Value="">
-                            <Setter Property="Text" Value="Нет"/>
-                            <Setter Property="FontStyle" Value="Italic"/>
-                            <Setter Property="Foreground" Value="Gray"/>
-                          </DataTrigger>
-                          <DataTrigger Binding="{Binding DataContext.GetReflexesForChain(Id), 
-                                                   RelativeSource={RelativeSource AncestorType=Window}}" 
-                                       Value="{x:Null}">
-                            <Setter Property="Text" Value="Нет"/>
-                            <Setter Property="FontStyle" Value="Italic"/>
-                            <Setter Property="Foreground" Value="Gray"/>
-                          </DataTrigger>
-                        </Style.Triggers>
-                      </Style>
-                    </TextBlock.Style>
-                  </TextBlock>
-                </DataTemplate>
-              </DataGridTemplateColumn.CellTemplate>
-            </DataGridTemplateColumn>
           </DataGrid.Columns>
         </DataGrid>
       </Border>

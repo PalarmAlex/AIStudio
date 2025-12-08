@@ -165,8 +165,6 @@
           <ColumnDefinition Width="250"/>
           <ColumnDefinition Width="Auto"/>
           <ColumnDefinition Width="*"/>
-          <ColumnDefinition Width="Auto"/>
-          <ColumnDefinition Width="80"/>
         </Grid.ColumnDefinitions>
 
         <!-- Название цепочки -->
@@ -195,21 +193,7 @@
                  Text="{Binding ChainDescription}"
                  Height="30"
                  FontSize="13"
-                 Margin="0,0,20,5"/>
-
-        <!-- Приоритет -->
-        <TextBlock Grid.Row="0" Grid.Column="4" 
-                   Text="Приоритет:"
-                   VerticalAlignment="Center"
-                   Margin="0,0,10,5"
-                   FontSize="14"
-                   FontWeight="SemiBold"/>
-
-        <TextBox Grid.Row="0" Grid.Column="5"
-                 Text="{Binding ChainPriority}"
-                 Height="30"
-                 FontSize="13"
-                 Margin="0,0,0,5"/>
+                 Margin="0,0,5,5"/>
       </Grid>
     </Border>
 

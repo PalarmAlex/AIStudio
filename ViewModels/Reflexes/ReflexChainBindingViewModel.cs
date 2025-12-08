@@ -154,21 +154,6 @@ namespace AIStudio.ViewModels
       }
     }
 
-    private int _selectedPriorityFilter;
-    public int SelectedPriorityFilter
-    {
-      get => _selectedPriorityFilter;
-      set
-      {
-        if (_selectedPriorityFilter != value)
-        {
-          _selectedPriorityFilter = value;
-          OnPropertyChanged(nameof(SelectedPriorityFilter));
-          FilterChains();
-        }
-      }
-    }
-
     private int _selectedBindingFilter;
     public int SelectedBindingFilter
     {
@@ -247,7 +232,6 @@ namespace AIStudio.ViewModels
     public bool IsChainSelected => SelectedChain != null;
 
     // Опции фильтров
-    public List<KeyValuePair<int, string>> PriorityFilterOptions { get; private set; }
     public List<KeyValuePair<int, string>> BindingFilterOptions { get; private set; }
 
     #endregion
@@ -286,38 +270,35 @@ namespace AIStudio.ViewModels
 
     private void InitializeFilterOptions()
     {
-      PriorityFilterOptions = new List<KeyValuePair<int, string>>
-            {
-                new KeyValuePair<int, string>(-1, "Все приоритеты"),
-                new KeyValuePair<int, string>(0, "0 - Низкий"),
-                new KeyValuePair<int, string>(1, "1 - Средний"),
-                new KeyValuePair<int, string>(2, "2 - Высокий"),
-                new KeyValuePair<int, string>(3, "3 - Критический")
-            };
-      SelectedPriorityFilter = -1;
-
       BindingFilterOptions = new List<KeyValuePair<int, string>>
-            {
-                new KeyValuePair<int, string>(0, "Все цепочки"),
-                new KeyValuePair<int, string>(1, "Свободные"),
-                new KeyValuePair<int, string>(2, "Привязанные"),
-                new KeyValuePair<int, string>(3, "К текущему рефлексу")
-            };
+      {
+          new KeyValuePair<int, string>(0, "Все цепочки"),
+          new KeyValuePair<int, string>(1, "Свободные"),
+          new KeyValuePair<int, string>(2, "Привязанные"),
+          new KeyValuePair<int, string>(3, "К текущему рефлексу")
+      };
       SelectedBindingFilter = 0;
     }
 
+    public Dictionary<int, string> ChainReflexesInfo { get; set; }
     public void LoadData()
     {
       try
       {
         var allChainsDict = _chainsSystem.GetAllReflexChains();
         AllChains = allChainsDict.Values
-            .OrderByDescending(c => c.Priority)
-            .ThenBy(c => c.ID)
+            .OrderBy(c => c.ID)
             .ToList();
 
         ChainsCount = AllChains.Count;
         ChainsInfo = $"Загружено цепочек: {ChainsCount}";
+
+        ChainReflexesInfo = new Dictionary<int, string>();
+        foreach (var chain in AllChains)
+        {
+          var reflexes = _reflexesSystem.GetReflexesForChain(chain.ID);
+          ChainReflexesInfo[chain.ID] = reflexes.Any() ? string.Join(", ", reflexes) : "Нет";
+        }
 
         FilterChains();
         UpdateCurrentBindingInfo();
@@ -343,12 +324,6 @@ namespace AIStudio.ViewModels
         filtered = filtered.Where(c =>
             (c.Name != null && c.Name.IndexOf(ChainNameFilter, StringComparison.OrdinalIgnoreCase) >= 0) ||
             (c.Description != null && c.Description.IndexOf(ChainNameFilter, StringComparison.OrdinalIgnoreCase) >= 0));
-      }
-
-      // Фильтр по приоритету
-      if (SelectedPriorityFilter >= 0)
-      {
-        filtered = filtered.Where(c => c.Priority == SelectedPriorityFilter);
       }
 
       // Фильтр по привязке
@@ -403,7 +378,8 @@ namespace AIStudio.ViewModels
           ? $"Привязана к рефлексам: {string.Join(", ", reflexes)}"
           : "Не привязана к рефлексам";
 
-      SelectionInfo = $"Выбрана цепочка: {SelectedChain.Name} (ID: {SelectedChain.ID}, Приоритет: {SelectedChain.Priority}) - {bindingInfo}";
+      // Убрали приоритет из вывода информации
+      SelectionInfo = $"Выбрана цепочка: {SelectedChain.Name} (ID: {SelectedChain.ID}) - {bindingInfo}";
     }
 
     private void UpdateCurrentBindingInfo()
@@ -439,9 +415,21 @@ namespace AIStudio.ViewModels
     private void ClearFilters(object parameter = null)
     {
       ChainNameFilter = string.Empty;
-      SelectedPriorityFilter = -1;
       SelectedBindingFilter = 0;
       FilterChains();
+    }
+
+    public string GetChainBindingText(int chainId)
+    {
+      try
+      {
+        var reflexes = _reflexesSystem.GetReflexesForChain(chainId);
+        return reflexes.Any() ? string.Join(", ", reflexes) : "Нет";
+      }
+      catch
+      {
+        return "Ошибка";
+      }
     }
   }
 }
