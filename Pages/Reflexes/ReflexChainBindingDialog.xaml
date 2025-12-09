@@ -399,22 +399,6 @@
               </DataGridTextColumn.ElementStyle>
             </DataGridTextColumn>
 
-            <DataGridTextColumn Header="Макс. повторений" Binding="{Binding MaxCyclicRepetitions}" Width="100">
-              <DataGridTextColumn.HeaderStyle>
-                <Style TargetType="DataGridColumnHeader">
-                  <Setter Property="FontWeight" Value="SemiBold"/>
-                  <Setter Property="FontSize" Value="12"/>
-                </Style>
-              </DataGridTextColumn.HeaderStyle>
-              <DataGridTextColumn.ElementStyle>
-                <Style TargetType="TextBlock">
-                  <Setter Property="HorizontalAlignment" Value="Center"/>
-                  <Setter Property="Padding" Value="4,2"/>
-                  <Setter Property="FontSize" Value="12"/>
-                </Style>
-              </DataGridTextColumn.ElementStyle>
-            </DataGridTextColumn>
-
             <DataGridTextColumn Header="Описание" Binding="{Binding Description}" Width="*">
               <DataGridTextColumn.HeaderStyle>
                 <Style TargetType="DataGridColumnHeader">

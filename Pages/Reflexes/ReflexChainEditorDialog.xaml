@@ -317,27 +317,6 @@
               </DataGridTemplateColumn.CellTemplate>
             </DataGridTemplateColumn>
 
-            <!-- Максимальное количество повторений -->
-            <DataGridTemplateColumn Header="Макс. повторений" Width="120">
-              <DataGridTemplateColumn.HeaderStyle>
-                <Style TargetType="DataGridColumnHeader">
-                  <Setter Property="ToolTip" Value="Максимальное количество повторений для циклических ссылок"/>
-                  <Setter Property="FontSize" Value="12"/>
-                  <Setter Property="FontWeight" Value="SemiBold"/>
-                </Style>
-              </DataGridTemplateColumn.HeaderStyle>
-              <DataGridTemplateColumn.CellTemplate>
-                <DataTemplate>
-                  <TextBox Text="{Binding MaxCyclicRepetitions, UpdateSourceTrigger=PropertyChanged}"
-                         Height="24"
-                         FontSize="12"
-                         BorderBrush="#FF90CAF9"
-                         Padding="2"
-                         HorizontalContentAlignment="Center"/>
-                </DataTemplate>
-              </DataGridTemplateColumn.CellTemplate>
-            </DataGridTemplateColumn>
-
             <!-- Описание -->
             <DataGridTextColumn Header="Описание" Binding="{Binding Description}" Width="*">
               <DataGridTextColumn.HeaderStyle>

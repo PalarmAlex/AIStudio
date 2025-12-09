@@ -2,6 +2,7 @@
 using ISIDA.Actions;
 using ISIDA.Common;
 using ISIDA.Gomeostas;
+using ISIDA.Reflexes;
 using ISIDA.Sensors;
 using System;
 using System.Collections.Generic;
@@ -15,6 +16,7 @@ using System.Windows;
 using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Media;
+using System.Windows.Threading;
 
 namespace AIStudio.ViewModels
 {
@@ -29,14 +31,22 @@ namespace AIStudio.ViewModels
     private readonly GomeostasSystem _gomeostas;
     private readonly SensorySystem _sensorySystem;
     private readonly InfluenceActionSystem _influenceActionSystem;
+    private readonly ReflexesActivator _reflexesActivator;
     private ObservableCollection<InfluenceActionItem> _influenceActions;
     private ObservableCollection<InfluenceActionItem> _column1Actions;
     private ObservableCollection<InfluenceActionItem> _column2Actions;
     private AntagonistManager _antagonistManager;
+    private DispatcherTimer _chainStatusTimer;
+
     private bool _isAgentDead;
     private bool _authoritativeMode;
     private string _messageText;
     private string _recognitionDisplayText;
+
+    // Свойства для управления цепочкой
+    private bool _chainStepSuccess = true;
+    private System.Windows.Visibility _chainControlVisibility = System.Windows.Visibility.Collapsed;
+    private bool _isChainActive = false;
 
     public bool IsEditingEnabled => !IsAgentDead;
     public bool IsAgentDead
@@ -75,7 +85,7 @@ namespace AIStudio.ViewModels
         {
           _messageText = value;
           OnPropertyChanged();
-          if(_messageText != "")
+          if (_messageText != "")
             UpdateRecognitionDisplay();
         }
       }
@@ -94,15 +104,114 @@ namespace AIStudio.ViewModels
       }
     }
 
+    #region Свойства для управления цепочкой
+
+    /// <summary>
+    /// Результат выполнения звена цепочки (успех)
+    /// </summary>
+    public bool ChainStepSuccess
+    {
+      get => _chainStepSuccess;
+      set
+      {
+        if (_chainStepSuccess != value)
+        {
+          _chainStepSuccess = value;
+          OnPropertyChanged();
+
+          // Если выбрано "Успех", сбрасываем неудачу
+          if (value)
+          {
+            ChainStepFailure = false;
+          }
+
+          // НЕМЕДЛЕННО передаем результат в активатор рефлексов
+          UpdateChainStepResult();
+        }
+      }
+    }
+
+    /// <summary>
+    /// Результат выполнения звена цепочки (неудача)
+    /// </summary>
+    public bool ChainStepFailure
+    {
+      get => !_chainStepSuccess;
+      set
+      {
+        if (ChainStepFailure != value)
+        {
+          // Если выбрано "Неудача", устанавливаем успех в false
+          ChainStepSuccess = !value;
+          OnPropertyChanged();
+        }
+      }
+    }
+
+    /// <summary>
+    /// Видимость элементов управления цепочкой
+    /// </summary>
+    public System.Windows.Visibility ChainControlVisibility
+    {
+      get => _chainControlVisibility;
+      set
+      {
+        if (_chainControlVisibility != value)
+        {
+          _chainControlVisibility = value;
+          OnPropertyChanged();
+        }
+      }
+    }
+
+    /// <summary>
+    /// Статус активности цепочки
+    /// </summary>
+    public string ChainActiveStatus
+    {
+      get => _isChainActive ? "Цепочка активна" : "Цепочка не активна";
+    }
+
+    /// <summary>
+    /// Цвет индикатора активности цепочки
+    /// </summary>
+    public Brush ChainActiveIndicatorColor
+    {
+      get => _isChainActive ? Brushes.Green : Brushes.Gray;
+    }
+
+    /// <summary>
+    /// Фон панели состояния цепочки
+    /// </summary>
+    public Brush ChainActiveBackground
+    {
+      get => _isChainActive ? Brushes.LightGreen : Brushes.LightGray;
+    }
+
+    /// <summary>
+    /// Цвет текста статуса цепочки
+    /// </summary>
+    public Brush ChainActiveTextColor
+    {
+      get => _isChainActive ? Brushes.DarkGreen : Brushes.DarkGray;
+    }
+
+    #endregion
+
+    #region Команды
+
     private ICommand _applyInfluenceCommand;
     public ICommand ApplyInfluenceCommand => _applyInfluenceCommand ??
         (_applyInfluenceCommand = new RelayCommand(ApplyInfluenceActions, _ => IsEditingEnabled));
+
+    #endregion
 
     public AgentPultViewModel()
     {
       _gomeostas = GomeostasSystem.Instance;
       _sensorySystem = SensorySystem.Instance;
       _influenceActionSystem = InfluenceActionSystem.Instance;
+      _reflexesActivator = ReflexesActivator.Instance;
       _influenceActions = new ObservableCollection<InfluenceActionItem>();
       _column1Actions = new ObservableCollection<InfluenceActionItem>();
       _column2Actions = new ObservableCollection<InfluenceActionItem>();
@@ -112,6 +221,88 @@ namespace AIStudio.ViewModels
       LoadInfluenceActions();
       UpdateAgentState();
       UpdateRecognitionDisplay();
+
+      // Начинаем проверку активности цепочки
+      InitializeChainStatusPolling();
+    }
+
+    /// <summary>
+    /// Инициализирует периодическую проверку активности цепочки
+    /// </summary>
+    private void InitializeChainStatusPolling()
+    {
+      _chainStatusTimer = new DispatcherTimer();
+      _chainStatusTimer.Interval = TimeSpan.FromMilliseconds(500);
+      _chainStatusTimer.Tick += CheckChainStatus;
+      _chainStatusTimer.Start();
+    }
+
+    /// <summary>
+    /// Проверяет статус цепочки и обновляет UI
+    /// </summary>
+    private void CheckChainStatus(object sender, EventArgs e)
+    {
+      try
+      {
+        bool wasActive = _isChainActive;
+        _isChainActive = _reflexesActivator._isChainActive;
+
+        // Если статус изменился, обновляем UI
+        if (wasActive != _isChainActive)
+        {
+          ChainControlVisibility = _isChainActive ?
+              System.Windows.Visibility.Visible :
+              System.Windows.Visibility.Collapsed;
+
+          // Обновляем связанные свойства
+          OnPropertyChanged(nameof(ChainActiveStatus));
+          OnPropertyChanged(nameof(ChainActiveIndicatorColor));
+          OnPropertyChanged(nameof(ChainActiveBackground));
+          OnPropertyChanged(nameof(ChainActiveTextColor));
+
+          // Если цепочка стала активной, сбрасываем результат на значение по умолчанию
+          if (_isChainActive)
+          {
+            ChainStepSuccess = true;
+          }
+          else
+          {
+            // Если цепочка завершилась, скрываем панель
+            ChainControlVisibility = System.Windows.Visibility.Collapsed;
+          }
+        }
+
+        // Если цепочка активна, регулярно обновляем результат в активаторе
+        if (_isChainActive)
+        {
+          UpdateChainStepResult();
+        }
+      }
+      catch (Exception ex)
+      {
+        Debug.WriteLine($"Ошибка при проверке статуса цепочки: {ex.Message}");
+      }
+    }
+
+    /// <summary>
+    /// Обновляет результат выполнения звена в активаторе рефлексов
+    /// </summary>
+    private void UpdateChainStepResult()
+    {
+      try
+      {
+        if (_isChainActive)
+        {
+          _reflexesActivator.SetChainStepResult(_chainStepSuccess);
+
+          // Для отладки можно логировать
+          // Debug.WriteLine($"Результат звена обновлен: {(_chainStepSuccess ? "УСПЕХ" : "НЕУДАЧА")}");
+        }
+      }
+      catch (Exception ex)
+      {
+        Debug.WriteLine($"Ошибка при обновлении результата звена: {ex.Message}");
+      }
     }
 
     private void UpdateAgentState()
@@ -126,7 +317,7 @@ namespace AIStudio.ViewModels
       }
       catch (Exception ex)
       {
-        System.Diagnostics.Debug.WriteLine($"Ошибка получения состояния агента: {ex.Message}");
+        Debug.WriteLine($"Ошибка получения состояния агента: {ex.Message}");
       }
     }
 
@@ -250,7 +441,7 @@ namespace AIStudio.ViewModels
       }
       catch (Exception ex)
       {
-        System.Diagnostics.Debug.WriteLine($"Ошибка загрузки воздействий: {ex.Message}");
+        Debug.WriteLine($"Ошибка загрузки воздействий: {ex.Message}");
       }
     }
 
@@ -300,8 +491,11 @@ namespace AIStudio.ViewModels
 
           UpdateRecognitionDisplay(); // до очистки поля ввода!
           MessageText = "";
-        }else
+        }
+        else
+        {
           UpdateRecognitionDisplay(); // чтобы очистило текст распознавания
+        }
 
         // Применяем воздействия, если есть выбранные действия или фраза
         if (selectedActions.Any() || phraseIds.Any())
@@ -346,6 +540,14 @@ namespace AIStudio.ViewModels
     public void Dispose()
     {
       _antagonistManager?.Dispose();
+
+      // Останавливаем таймер
+      if (_chainStatusTimer != null)
+      {
+        _chainStatusTimer.Stop();
+        _chainStatusTimer.Tick -= CheckChainStatus;
+        _chainStatusTimer = null;
+      }
     }
   }
 

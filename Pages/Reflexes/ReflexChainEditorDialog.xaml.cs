@@ -214,7 +214,6 @@ namespace AIStudio.Dialogs
         ActionId = ActionOptions.FirstOrDefault().Key,
         SuccessNextLink = 0,
         FailureNextLink = 0,
-        MaxCyclicRepetitions = 3, // Значение по умолчанию
         Description = $"Звено {newLinkId}"
       };
 
@@ -305,24 +304,6 @@ namespace AIStudio.Dialogs
         return;
       }
 
-      // Проверяем MaxCyclicRepetitions
-      foreach (var link in ChainLinks)
-      {
-        if (link.MaxCyclicRepetitions < 0)
-        {
-          MessageBox.Show($"Звено {link.ID}: Максимальное количество повторений не может быть отрицательным",
-              "Ошибка валидации", MessageBoxButton.OK, MessageBoxImage.Error);
-          return;
-        }
-
-        if (link.MaxCyclicRepetitions == 0 && (link.SuccessNextLink == link.ID || link.FailureNextLink == link.ID))
-        {
-          MessageBox.Show($"Звено {link.ID}: Для циклической ссылки нужно установить MaxCyclicRepetitions > 0",
-              "Ошибка валидации", MessageBoxButton.OK, MessageBoxImage.Error);
-          return;
-        }
-      }
-
       // Проверяем наличие конечных звеньев
       var terminalLinks = ChainLinks.Where(l => l.SuccessNextLink == 0 && l.FailureNextLink == 0).ToList();
       if (terminalLinks.Count == 0)
@@ -391,8 +372,7 @@ namespace AIStudio.Dialogs
           var (newChainId, warnings) = _reflexChainsSystem.AddReflexChain(
               ChainName,
               ChainDescription,
-              links,
-              3);
+              links);
 
           if (warnings != null && warnings.Any())
           {

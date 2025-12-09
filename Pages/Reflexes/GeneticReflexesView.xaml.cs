@@ -365,11 +365,11 @@ namespace AIStudio.Pages.Reflexes
           reflex.ReflexChainID = bindingDialog.SelectedChainId;
 
           if (DataContext is GeneticReflexesViewModel viewModel)
+          {
             viewModel.UpdateChainBindingForReflex(reflex);
-
-          GeneticReflexesGrid.CommitEdit(DataGridEditingUnit.Row, true);
-          GeneticReflexesGrid.Items.Refresh();
-
+            GeneticReflexesGrid.CommitEdit(DataGridEditingUnit.Row, true);
+            GeneticReflexesGrid.Items.Refresh();
+          }
           MessageBox.Show(
               $"Цепочка {bindingDialog.SelectedChainId} успешно привязана к рефлексу {reflex.Id}",
               "Цепочка привязана",
@@ -380,7 +380,10 @@ namespace AIStudio.Pages.Reflexes
       else if (bindingDialog.ChainDeleted)
       {
         if (DataContext is GeneticReflexesViewModel viewModel)
+        {
+          GeneticReflexesGrid.CommitEdit(DataGridEditingUnit.Row, true);
           GeneticReflexesGrid.Items.Refresh();
+        }
       }
     }
 
