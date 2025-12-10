@@ -121,11 +121,8 @@ namespace AIStudio.ViewModels
 
           // Если выбрано "Успех", сбрасываем неудачу
           if (value)
-          {
             ChainStepFailure = false;
-          }
 
-          // НЕМЕДЛЕННО передаем результат в активатор рефлексов
           UpdateChainStepResult();
         }
       }
@@ -254,29 +251,20 @@ namespace AIStudio.ViewModels
               System.Windows.Visibility.Visible :
               System.Windows.Visibility.Collapsed;
 
-          // Обновляем связанные свойства
           OnPropertyChanged(nameof(ChainActiveStatus));
           OnPropertyChanged(nameof(ChainActiveIndicatorColor));
           OnPropertyChanged(nameof(ChainActiveBackground));
           OnPropertyChanged(nameof(ChainActiveTextColor));
 
-          // Если цепочка стала активной, сбрасываем результат на значение по умолчанию
           if (_isChainActive)
-          {
             ChainStepSuccess = true;
-          }
           else
-          {
-            // Если цепочка завершилась, скрываем панель
             ChainControlVisibility = System.Windows.Visibility.Collapsed;
-          }
         }
 
         // Если цепочка активна, регулярно обновляем результат в активаторе
         if (_isChainActive)
-        {
           UpdateChainStepResult();
-        }
       }
       catch (Exception ex)
       {
@@ -292,12 +280,7 @@ namespace AIStudio.ViewModels
       try
       {
         if (_isChainActive)
-        {
           _reflexesActivator.SetChainStepResult(_chainStepSuccess);
-
-          // Для отладки можно логировать
-          // Debug.WriteLine($"Результат звена обновлен: {(_chainStepSuccess ? "УСПЕХ" : "НЕУДАЧА")}");
-        }
       }
       catch (Exception ex)
       {
