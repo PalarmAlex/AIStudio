@@ -231,8 +231,7 @@
                   SelectionMode="Single"
                   CanUserAddRows="False"
                   CanUserDeleteRows="False"
-                  RowStyle="{StaticResource HighlightedRowStyle}"
-                  SelectionChanged="LinksDataGrid_SelectionChanged">
+                  RowStyle="{StaticResource HighlightedRowStyle}">
 
           <DataGrid.Columns>
             <DataGridTextColumn Header="ID" Binding="{Binding ID}" Width="50" IsReadOnly="True">
@@ -256,63 +255,64 @@
               </DataGridTemplateColumn.HeaderStyle>
               <DataGridTemplateColumn.CellTemplate>
                 <DataTemplate>
-                  <ComboBox ItemsSource="{Binding DataContext.ActionOptions, 
-                                                RelativeSource={RelativeSource AncestorType=Window}}"
-                          SelectedValue="{Binding ActionId, UpdateSourceTrigger=PropertyChanged}"
-                          DisplayMemberPath="Value"
-                          SelectedValuePath="Key"
-                          Height="26"
-                          FontSize="12"
-                          BorderBrush="#FF90CAF9"
-                          Padding="2"/>
+                  <ComboBox ItemsSource="{Binding Path=ActionOptions, 
+                            RelativeSource={RelativeSource AncestorType=Window}}"
+                SelectedValue="{Binding ActionId, UpdateSourceTrigger=PropertyChanged}"
+                SelectedValuePath="Key"
+                DisplayMemberPath="Value"
+                Height="26"
+                FontSize="12"
+                Padding="2"
+                BorderBrush="#FFABADB3"
+                BorderThickness="1"/>
                 </DataTemplate>
               </DataGridTemplateColumn.CellTemplate>
             </DataGridTemplateColumn>
 
             <!-- Следующее звено при успехе -->
-            <DataGridTemplateColumn Header="Следующее (успех)" Width="220">
+            <DataGridTemplateColumn Header="Следующее (успех)" Width="180">
               <DataGridTemplateColumn.HeaderStyle>
                 <Style TargetType="DataGridColumnHeader">
-                  <Setter Property="ToolTip" Value="ID следующего звена при успешном выполнении"/>
+                  <Setter Property="ToolTip" Value="ID следующего звена при успешном выполнении (0 - конец цепочки)"/>
                   <Setter Property="FontSize" Value="12"/>
                   <Setter Property="FontWeight" Value="SemiBold"/>
                 </Style>
               </DataGridTemplateColumn.HeaderStyle>
               <DataGridTemplateColumn.CellTemplate>
                 <DataTemplate>
-                  <ComboBox ItemsSource="{Binding DataContext.LinkOptions, 
-                                                RelativeSource={RelativeSource AncestorType=Window}}"
-                          SelectedValue="{Binding SuccessNextLink, UpdateSourceTrigger=PropertyChanged}"
-                          DisplayMemberPath="Value"
-                          SelectedValuePath="Key"
-                          Height="26"
-                          FontSize="12"
-                          BorderBrush="#FF90CAF9"
-                          Padding="2"/>
+                  <TextBox Text="{Binding SuccessNextLink, UpdateSourceTrigger=PropertyChanged}"
+               Height="26"
+               FontSize="12"
+               Padding="2"
+               BorderBrush="#FFABADB3"
+               BorderThickness="1"
+               HorizontalContentAlignment="Center"
+               PreviewTextInput="NumberValidationTextBox"
+               ToolTip="0 - конец цепочки, ID&gt;0 - переход к указанному звену"/>
                 </DataTemplate>
               </DataGridTemplateColumn.CellTemplate>
             </DataGridTemplateColumn>
 
             <!-- Следующее звено при неудаче -->
-            <DataGridTemplateColumn Header="Следующее (неудача)" Width="220">
+            <DataGridTemplateColumn Header="Следующее (неудача)" Width="180">
               <DataGridTemplateColumn.HeaderStyle>
                 <Style TargetType="DataGridColumnHeader">
-                  <Setter Property="ToolTip" Value="ID следующего звена при неудачном выполнении"/>
+                  <Setter Property="ToolTip" Value="ID следующего звена при неудачном выполнении (0 - конец цепочки)"/>
                   <Setter Property="FontSize" Value="12"/>
                   <Setter Property="FontWeight" Value="SemiBold"/>
                 </Style>
               </DataGridTemplateColumn.HeaderStyle>
               <DataGridTemplateColumn.CellTemplate>
                 <DataTemplate>
-                  <ComboBox ItemsSource="{Binding DataContext.LinkOptions, 
-                                                RelativeSource={RelativeSource AncestorType=Window}}"
-                          SelectedValue="{Binding FailureNextLink, UpdateSourceTrigger=PropertyChanged}"
-                          DisplayMemberPath="Value"
-                          SelectedValuePath="Key"
-                          Height="26"
-                          FontSize="12"
-                          BorderBrush="#FF90CAF9"
-                          Padding="2"/>
+                  <TextBox Text="{Binding FailureNextLink, UpdateSourceTrigger=PropertyChanged}"
+               Height="26"
+               FontSize="12"
+               Padding="2"
+               BorderBrush="#FFABADB3"
+               BorderThickness="1"
+               HorizontalContentAlignment="Center"
+               PreviewTextInput="NumberValidationTextBox"
+               ToolTip="0 - конец цепочки, ID&gt;0 - переход к указанному звену"/>
                 </DataTemplate>
               </DataGridTemplateColumn.CellTemplate>
             </DataGridTemplateColumn>

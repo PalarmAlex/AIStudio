@@ -1,6 +1,5 @@
 ﻿using AIStudio.Common;
 using ISIDA.Actions;
-using ISIDA.Common;
 using ISIDA.Gomeostas;
 using ISIDA.Reflexes;
 using ISIDA.Sensors;
@@ -13,7 +12,6 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text.RegularExpressions;
 using System.Windows;
-using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Threading;

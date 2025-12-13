@@ -5,9 +5,11 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
-using System.Diagnostics;
 using System.Linq;
+using System.Text;
+using System.Text.RegularExpressions;
 using System.Windows;
+using System.Windows.Controls;
 using System.Windows.Data;
 using System.Windows.Input;
 using static ISIDA.Reflexes.ReflexChainsSystem;
@@ -31,6 +33,7 @@ namespace AIStudio.Dialogs
     private ReflexChain _editingChain;
     private readonly int _initialChainId;
     private readonly List<int> _reflexAdaptiveActions;
+    private bool _hasUnsavedChanges = false;
 
     public int ChainId => _chainId;
     public int ReflexId { get; }
@@ -44,9 +47,13 @@ namespace AIStudio.Dialogs
       get => _chainName;
       set
       {
-        _chainName = value;
-        OnPropertyChanged(nameof(ChainName));
-        OnPropertyChanged(nameof(CanSave));
+        if (_chainName != value)
+        {
+          _chainName = value;
+          _hasUnsavedChanges = true;
+          OnPropertyChanged(nameof(ChainName));
+          OnPropertyChanged(nameof(CanSave));
+        }
       }
     }
 
@@ -55,8 +62,13 @@ namespace AIStudio.Dialogs
       get => _chainDescription;
       set
       {
-        _chainDescription = value;
-        OnPropertyChanged(nameof(ChainDescription));
+        if (_chainDescription != value)
+        {
+          _chainDescription = value;
+          _hasUnsavedChanges = true;
+          OnPropertyChanged(nameof(ChainDescription));
+          OnPropertyChanged(nameof(CanSave));
+        }
       }
     }
 
@@ -79,7 +91,6 @@ namespace AIStudio.Dialogs
     public bool CanSave => !string.IsNullOrWhiteSpace(ChainName) && ChainLinks.Any();
 
     public List<KeyValuePair<int, string>> ActionOptions { get; private set; }
-    public List<KeyValuePair<int, string>> LinkOptions { get; private set; }
 
     public ReflexChainEditorDialog(int reflexId, int reflexLevel1,
     List<int> reflexLevel2, List<int> reflexLevel3,
@@ -106,6 +117,11 @@ namespace AIStudio.Dialogs
       InitializeComponent();
 
       ChainLinksView = CollectionViewSource.GetDefaultView(ChainLinks);
+      ChainLinks.CollectionChanged += (s, e) =>
+      {
+        _hasUnsavedChanges = true;
+        OnPropertyChanged(nameof(CanSave));
+      };
 
       if (_initialChainId > 0)
         LoadExistingChain();
@@ -129,9 +145,80 @@ namespace AIStudio.Dialogs
       }
 
       LoadActionOptions();
-      UpdateLinkOptions();
 
       DataContext = this;
+    }
+
+    protected override void OnClosing(System.ComponentModel.CancelEventArgs e)
+    {
+      string validationError = ValidateChain();
+
+      if (!string.IsNullOrEmpty(validationError))
+      {
+        var result = MessageBox.Show(
+            $"В цепочке есть ошибки:\n{validationError}\n\n" +
+            "Вы можете:\n" +
+            "• Исправить ошибки (Да)\n" +
+            "• Закрыть без изменений (Нет)\n" +
+            "• Закрыть с ошибками (Отмена)",
+            "Ошибки в цепочке",
+            MessageBoxButton.YesNoCancel,
+            MessageBoxImage.Warning,
+            MessageBoxResult.Yes);
+
+        if (result == MessageBoxResult.Yes)
+        {
+          e.Cancel = true;
+          return;
+        }
+        else if (result == MessageBoxResult.No)
+        {
+          _hasUnsavedChanges = false;
+          DialogResult = false;
+        }
+        else if (result == MessageBoxResult.Cancel)
+        {
+          e.Cancel = true;
+          return;
+        }
+      }
+      else if (_hasUnsavedChanges)
+      {
+        var result = MessageBox.Show(
+            "Есть несохраненные изменения. Сохранить перед закрытием?",
+            "Подтверждение",
+            MessageBoxButton.YesNoCancel,
+            MessageBoxImage.Question,
+            MessageBoxResult.Yes);
+
+        if (result == MessageBoxResult.Yes)
+        {
+          e.Cancel = true;
+          Dispatcher.BeginInvoke(new Action(() =>
+          {
+            SaveButton_Click(this, new RoutedEventArgs());
+          }));
+          return;
+        }
+        else if (result == MessageBoxResult.No)
+        {
+          _hasUnsavedChanges = false;
+          DialogResult = false;
+        }
+        else if (result == MessageBoxResult.Cancel)
+        {
+          e.Cancel = true;
+          return;
+        }
+      }
+
+      base.OnClosing(e);
+    }
+
+    private void NumberValidationTextBox(object sender, TextCompositionEventArgs e)
+    {
+      Regex regex = new Regex("[^0-9]+");
+      e.Handled = regex.IsMatch(e.Text);
     }
 
     private string ConvertIdsToText(List<int> ids, string converterParameter)
@@ -167,6 +254,8 @@ namespace AIStudio.Dialogs
           {
             ChainLinks.Add(link);
           }
+          _hasUnsavedChanges = false;
+          OnPropertyChanged(nameof(CanSave));
         }
       }
       catch (Exception ex)
@@ -180,7 +269,6 @@ namespace AIStudio.Dialogs
     {
       ActionOptions = new List<KeyValuePair<int, string>>();
 
-      // Загружаем действия из системы адаптивных действий
       var allActions = _actionsSystem.GetAllAdaptiveActions();
       foreach (var action in allActions.OrderBy(a => a.Id))
       {
@@ -190,18 +278,29 @@ namespace AIStudio.Dialogs
       OnPropertyChanged(nameof(ActionOptions));
     }
 
-    private void UpdateLinkOptions()
+    private string ValidateChain()
     {
-      LinkOptions = new List<KeyValuePair<int, string>>();
-      LinkOptions.Add(new KeyValuePair<int, string>(0, "Нет следующего"));
+      if (!ChainLinks.Any())
+        return "Цепочка не содержит звеньев";
 
-      foreach (var link in ChainLinks.OrderBy(l => l.ID))
+      StringBuilder errorMessage = new StringBuilder();
+
+      foreach (var link in ChainLinks)
       {
-        if (SelectedLink != null && link.ID == SelectedLink.ID) continue;
-        LinkOptions.Add(new KeyValuePair<int, string>(link.ID, $"Звено {link.ID}"));
+        string validationError = ValidateLink(link);
+        if (!string.IsNullOrEmpty(validationError))
+        {
+          errorMessage.AppendLine(validationError);
+        }
       }
 
-      OnPropertyChanged(nameof(LinkOptions));
+      var terminalLinks = ChainLinks.Where(l => l.SuccessNextLink == 0 && l.FailureNextLink == 0).ToList();
+      if (terminalLinks.Count == 0)
+      {
+        errorMessage.AppendLine("Цепочка не содержит конечных звеньев (оба следующих звена = 0) - возможен бесконечный цикл");
+      }
+
+      return errorMessage.ToString();
     }
 
     private void AddLinkButton_Click(object sender, RoutedEventArgs e)
@@ -218,7 +317,7 @@ namespace AIStudio.Dialogs
       };
 
       ChainLinks.Add(newLink);
-      UpdateLinkOptions();
+
       OnPropertyChanged(nameof(CanSave));
     }
 
@@ -231,10 +330,10 @@ namespace AIStudio.Dialogs
         return;
       }
 
-      // Проверяем, не ссылаются ли другие звенья на удаляемое
+      var linkIdToRemove = SelectedLink.ID;
       var referencingLinks = ChainLinks.Where(l =>
-          l.SuccessNextLink == SelectedLink.ID ||
-          l.FailureNextLink == SelectedLink.ID).ToList();
+          l.SuccessNextLink == linkIdToRemove ||
+          l.FailureNextLink == linkIdToRemove).ToList();
 
       if (referencingLinks.Any())
       {
@@ -249,9 +348,9 @@ namespace AIStudio.Dialogs
         {
           foreach (var refLink in referencingLinks)
           {
-            if (refLink.SuccessNextLink == SelectedLink.ID)
+            if (refLink.SuccessNextLink == linkIdToRemove)
               refLink.SuccessNextLink = 0;
-            if (refLink.FailureNextLink == SelectedLink.ID)
+            if (refLink.FailureNextLink == linkIdToRemove)
               refLink.FailureNextLink = 0;
           }
         }
@@ -263,7 +362,7 @@ namespace AIStudio.Dialogs
 
       ChainLinks.Remove(SelectedLink);
       SelectedLink = null;
-      UpdateLinkOptions();
+
       OnPropertyChanged(nameof(CanSave));
     }
 
@@ -276,66 +375,58 @@ namespace AIStudio.Dialogs
         return;
       }
 
-      // Проверяем валидность ссылок
-      if (SelectedLink.SuccessNextLink > 0 && !ChainLinks.Any(l => l.ID == SelectedLink.SuccessNextLink))
+      string validationError = ValidateLink(SelectedLink);
+
+      if (!string.IsNullOrEmpty(validationError))
       {
-        MessageBox.Show($"Следующее звено при успехе (ID:{SelectedLink.SuccessNextLink}) не найдено",
-            "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
+        MessageBox.Show(validationError, "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
         return;
       }
 
-      if (SelectedLink.FailureNextLink > 0 && !ChainLinks.Any(l => l.ID == SelectedLink.FailureNextLink))
-      {
-        MessageBox.Show($"Следующее звено при неудаче (ID:{SelectedLink.FailureNextLink}) не найдено",
-            "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
-        return;
-      }
-
+      _hasUnsavedChanges = true;
+      OnPropertyChanged(nameof(CanSave));
       MessageBox.Show("Звено обновлено", "Успех",
           MessageBoxButton.OK, MessageBoxImage.Information);
     }
 
+    private string ValidateLink(ChainLink link)
+    {
+      if (link.SuccessNextLink > 0)
+      {
+        if (link.SuccessNextLink == link.ID)
+          return $"Звено {link.ID} ссылается само на себя (SuccessNextLink)";
+
+        if (!ChainLinks.Any(l => l.ID == link.SuccessNextLink))
+          return $"Следующее звено при успехе (ID:{link.SuccessNextLink}) не найдено";
+
+        if (link.SuccessNextLink <= link.ID)
+          return $"Следующее звено при успехе должно иметь ID больше текущего ({link.ID})";
+      }
+
+      if (link.FailureNextLink > 0)
+      {
+        if (link.FailureNextLink == link.ID)
+          return $"Звено {link.ID} ссылается само на себя (FailureNextLink)";
+
+        if (!ChainLinks.Any(l => l.ID == link.FailureNextLink))
+          return $"Следующее звено при неудаче (ID:{link.FailureNextLink}) не найдено";
+
+        if (link.FailureNextLink <= link.ID)
+          return $"Следующее звено при неудаче должно иметь ID больше текущего ({link.ID})";
+      }
+
+      return null;
+    }
+
     private void ValidateChainButton_Click(object sender, RoutedEventArgs e)
     {
-      if (!ChainLinks.Any())
+      string validationError = ValidateChain();
+
+      if (!string.IsNullOrEmpty(validationError))
       {
-        MessageBox.Show("Цепочка не содержит звеньев", "Ошибка валидации",
+        MessageBox.Show($"Ошибки валидации:\n{validationError}", "Ошибка валидации",
             MessageBoxButton.OK, MessageBoxImage.Error);
         return;
-      }
-
-      // Проверяем наличие конечных звеньев
-      var terminalLinks = ChainLinks.Where(l => l.SuccessNextLink == 0 && l.FailureNextLink == 0).ToList();
-      if (terminalLinks.Count == 0)
-      {
-        var result = MessageBox.Show("Цепочка не содержит конечных звеньев (оба следующих звена = 0).\n" +
-            "Это может привести к бесконечному циклу.\n" +
-            "Продолжить?",
-            "Предупреждение",
-            MessageBoxButton.YesNo,
-            MessageBoxImage.Warning);
-
-        if (result == MessageBoxResult.No)
-          return;
-      }
-
-      // Проверяем циклические ссылки
-      var visited = new HashSet<int>();
-      foreach (var link in ChainLinks)
-      {
-        if (link.SuccessNextLink > 0 && link.SuccessNextLink == link.ID)
-        {
-          MessageBox.Show($"Звено {link.ID} ссылается само на себя (SuccessNextLink)",
-              "Ошибка валидации", MessageBoxButton.OK, MessageBoxImage.Error);
-          return;
-        }
-
-        if (link.FailureNextLink > 0 && link.FailureNextLink == link.ID)
-        {
-          MessageBox.Show($"Звено {link.ID} ссылается само на себя (FailureNextLink)",
-              "Ошибка валидации", MessageBoxButton.OK, MessageBoxImage.Error);
-          return;
-        }
       }
 
       MessageBox.Show("Цепочка валидна", "Проверка пройдена",
@@ -351,6 +442,14 @@ namespace AIStudio.Dialogs
         return;
       }
 
+      string validationError = ValidateChain();
+      if (!string.IsNullOrEmpty(validationError))
+      {
+        MessageBox.Show($"Нельзя сохранить цепочку с ошибками:\n{validationError}",
+            "Ошибка сохранения", MessageBoxButton.OK, MessageBoxImage.Error);
+        return;
+      }
+
       try
       {
         var links = new List<ChainLink>(ChainLinks);
@@ -362,7 +461,7 @@ namespace AIStudio.Dialogs
           _editingChain.Links = links;
 
           var (success, _) = _reflexChainsSystem.SaveReflexChains();
-          if (!success) 
+          if (!success)
             throw new Exception("Не удалось сохранить цепочку");
 
           _chainId = _editingChain.ID;
@@ -387,6 +486,7 @@ namespace AIStudio.Dialogs
             throw new Exception($"Не удалось сохранить цепочку: {error}");
         }
 
+        _hasUnsavedChanges = false;
         DialogResult = true;
         Close();
       }
@@ -399,24 +499,50 @@ namespace AIStudio.Dialogs
 
     private void CancelButton_Click(object sender, RoutedEventArgs e)
     {
-      DialogResult = false;
-      Close();
+      CloseWithConfirmation();
     }
 
-    private void LinksDataGrid_SelectionChanged(object sender, System.Windows.Controls.SelectionChangedEventArgs e)
+    private void CloseWithConfirmation()
     {
-      UpdateLinkOptions();
+      string validationError = ValidateChain();
+
+      if (!string.IsNullOrEmpty(validationError))
+      {
+        var result = MessageBox.Show(
+            $"В цепочке есть ошибки:\n{validationError}\n\n" +
+            "Вы уверены, что хотите закрыть форму с ошибками?",
+            "Ошибки в цепочке",
+            MessageBoxButton.YesNo,
+            MessageBoxImage.Warning,
+            MessageBoxResult.No);
+
+        if (result == MessageBoxResult.No)
+          return;
+      }
+      else if (_hasUnsavedChanges)
+      {
+        var result = MessageBox.Show(
+            "Есть несохраненные изменения. Закрыть без сохранения?",
+            "Подтверждение",
+            MessageBoxButton.YesNo,
+            MessageBoxImage.Question,
+            MessageBoxResult.No);
+
+        if (result == MessageBoxResult.No)
+          return;
+      }
+
+      DialogResult = false;
+      Close();
     }
 
     private void Window_PreviewKeyDown(object sender, KeyEventArgs e)
     {
       if (e.Key == Key.Escape)
       {
-        DialogResult = false;
-        Close();
+        CloseWithConfirmation();
         e.Handled = true;
       }
     }
-
   }
 }
