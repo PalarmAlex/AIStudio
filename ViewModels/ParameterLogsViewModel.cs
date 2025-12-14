@@ -1,5 +1,4 @@
-﻿// ParameterLogsViewModel.cs
-using AIStudio.Common;
+﻿using AIStudio.Common;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -275,12 +274,15 @@ namespace AIStudio.ViewModels
         Content = new TextBlock
         {
           Text = "Данные параметра:\n" +
-                     "• Знач - Текущее значение (0-100)\n" +
-                     "• Срочн - Функция потребности\n" +
-                     "• Сост - Состояние параметра\n" +
-                     "• Зона - Зона активации стилей\n\n" +
-                     "Формат зоны отклонения: Zone (ParamId|Deviation|Range|Percent)\n" +
-                     "Zone: 0-Выход из нормы, 1-Возврат, 2-Норма, 3-Слабое, 4-Умеренное, 5-Значительное, 6-Критическое",
+             "• Знач - Текущее значение (0-100)\n" +
+             "• Срочн - Функция потребности\n" +
+             "• Сост - Состояние параметра\n" +
+             "• Зона - Зона активации стилей\n\n" +
+             "Формат зоны отклонения: Zone (Deviation|Range|Percent)\n" +
+             "Zone: 0-Выход из нормы, 1-Возврат, 2-Норма, 3-Слабое, 4-Умеренное, 5-Значительное, 6-Критическое\n\n" +
+             "• Deviation - величина отклонения\n" +
+             "• Range - размер диапазона\n" +
+             "• Percent - отношение Deviation/Range",
           TextWrapping = TextWrapping.Wrap,
           MaxWidth = 350
         },

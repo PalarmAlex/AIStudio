@@ -10,8 +10,10 @@ using System.ComponentModel;
 using System.Diagnostics;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
+using System.Windows.Controls;
 using System.Windows.Data;
 using System.Windows.Input;
 using System.Windows.Media;
@@ -60,6 +62,7 @@ namespace AIStudio.ViewModels
     public ICommand ClearFiltersCommand { get; }
     public ICommand RemoveAllCommand { get; }
     public ICommand GenerateReflexesCommand { get; }
+    public ICommand UpdateAllCommand { get; }
 
     public GeneticReflexesViewModel(
       GomeostasSystem gomeostasSystem,
@@ -84,9 +87,73 @@ namespace AIStudio.ViewModels
       ClearFiltersCommand = new RelayCommand(ClearFilters);
       RemoveAllCommand = new RelayCommand(RemoveAllReflexes);
       GenerateReflexesCommand = new RelayCommand(GenerateReflexes);
+      UpdateAllCommand = new RelayCommand(UpdateAllReflexes);
 
       GlobalTimer.PulsationStateChanged += OnPulsationStateChanged;
       LoadAgentData();
+    }
+
+    /// <summary>
+    /// Обновляет все рефлексы и синхронизирует с деревом рефлексов
+    /// </summary>
+    private void UpdateAllReflexes(object parameter)
+    {
+      if (!IsEditingEnabled)
+      {
+        MessageBox.Show("Обновление рефлексов доступно только в стадии 0 при выключенной пульсации",
+            "Невозможно выполнить",
+            MessageBoxButton.OK,
+            MessageBoxImage.Warning);
+        return;
+      }
+
+      var result = MessageBox.Show(
+          "Вы действительно хотите обновить все рефлексы?\n\n" +
+          "Это действие:\n" +
+          "• Обновит дерево рефлексов\n" +
+          "• Обновит образы триггеров и стилей\n" +
+          "• Синхронизирует данные после ручного редактирования файла\n" +
+          "• Сохранит текущие привязки цепочек\n\n" +
+          "Используйте эту функцию после ручного редактирования файла рефлексов.",
+          "Подтверждение обновления рефлексов",
+          MessageBoxButton.YesNo,
+          MessageBoxImage.Question);
+
+      if (result == MessageBoxResult.Yes)
+      {
+        Mouse.OverrideCursor = Cursors.Wait;
+
+        try
+        {
+          var (success, updatedCount, errorMessage) = _geneticReflexesSystem.UpdateAllGeneticReflex();
+
+          Mouse.OverrideCursor = null;
+
+          if (success)
+          {
+            MessageBox.Show($"Успешно обновлено {updatedCount} рефлексов.",
+                "Обновление завершено",
+                MessageBoxButton.OK,
+                MessageBoxImage.Information);
+          }
+          else
+          {
+            MessageBox.Show($"Не удалось обновить рефлексы:\n{errorMessage}",
+                "Ошибка обновления",
+                MessageBoxButton.OK,
+                MessageBoxImage.Error);
+          }
+        }
+        catch (Exception ex)
+        {
+          Mouse.OverrideCursor = null;
+
+          MessageBox.Show($"Ошибка при обновлении рефлексов:\n{ex.Message}",
+              "Ошибка",
+              MessageBoxButton.OK,
+              MessageBoxImage.Error);
+        }
+      }
     }
 
     /// <summary>
