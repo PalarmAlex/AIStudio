@@ -289,20 +289,25 @@
               Command="{Binding VerticalMenuItemClickedCommand}"
               CommandParameter="26"/>
 
-            <Button Content="Руководство разработчика" Margin="20,2,5,2" 
+            <!--<Button Content="Руководство разработчика" Margin="20,2,5,2" 
               Style="{StaticResource MenuButtonStyle}"
               Command="{Binding VerticalMenuItemClickedCommand}"
-              CommandParameter="29"/>
+              CommandParameter="29"/>-->
 
             <Button Content="Теория МВАП" Margin="20,2,5,2" 
               Style="{StaticResource MenuButtonStyle}"
               Command="{Binding VerticalMenuItemClickedCommand}"
               CommandParameter="30"/>
 
-            <Button Content="Теория проектирования" Margin="20,2,5,2" 
+            <!--<Button Content="Теория проектирования" Margin="20,2,5,2" 
               Style="{StaticResource MenuButtonStyle}"
               Command="{Binding VerticalMenuItemClickedCommand}"
-              CommandParameter="31"/>
+              CommandParameter="31"/>-->
+
+            <Button Content="Исходный код" Margin="20,2,5,2" 
+              Style="{StaticResource MenuButtonStyle}"
+              Command="{Binding VerticalMenuItemClickedCommand}"
+              CommandParameter="32"/>
 
           </StackPanel>
         </Expander>

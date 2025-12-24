@@ -219,7 +219,7 @@
             <DataGridTextColumn.HeaderStyle>
               <Style TargetType="DataGridColumnHeader">
                 <Setter Property="ToolTip" 
-                    Value=" Максимальное допустимое значение для жизненно важных параметров.&#x0a;Выше приводит к смерти агента."/>
+                    Value="Максимальное допустимое значение для жизненно важных параметров.&#x0a;Выше приводит к смерти агента."/>
               </Style>
             </DataGridTextColumn.HeaderStyle>
            

@@ -253,8 +253,7 @@ namespace AIStudio
             ShowGeneticReflexes();
             break;
           case "5": // Условные рефлексы
-            //ShowConditionedReflexes();
-            ShowStub("Условные рефлексы");
+            ShowConditionedReflexes();
             break;
           case "6": // Дерево рефлексов
             ShowStub("Дерево рефлексов");
@@ -330,6 +329,9 @@ namespace AIStudio
             break;
           case "31": // Справка: теория проектирования
             OpenWebPage("https://scorcher.ru/theory_publisher/show_art.php?id=891");
+            break;
+          case "32": // Справка: исходник
+            OpenWebPage("https://github.com/PalarmAlex/AIStudio.git");
             break;
           case "33": // Агент
             OpenAgent();

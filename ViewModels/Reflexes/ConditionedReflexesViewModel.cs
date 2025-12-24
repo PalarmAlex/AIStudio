@@ -198,25 +198,20 @@ namespace AIStudio.ViewModels
 
     private void LoadFilterOptions()
     {
-      // Level2 Filter - Behavior Styles
       Level2FilterOptions = new List<KeyValuePair<int?, string>> { new KeyValuePair<int?, string>(null, "Все контексты") };
       var level2Items = _gomeostas?.GetAllBehaviorStyles()?.Values?.ToList() ?? new List<BehaviorStyle>();
       Level2FilterOptions.AddRange(level2Items.Select(x => new KeyValuePair<int?, string>(x.Id, x.Name)));
 
-      // Level3 Filter - Perception Images
       Level3FilterOptions = new List<KeyValuePair<int?, string>> { new KeyValuePair<int?, string>(null, "Все образы") };
       var level3Items = _perceptionImagesSystem?.GetAllPerceptionImagesList() ?? new List<PerceptionImagesSystem.PerceptionImage>();
 
-      // ИСПРАВЛЕНИЕ: используем ID и создаем описание на основе содержимого
       Level3FilterOptions.AddRange(level3Items.Select(x =>
           new KeyValuePair<int?, string>(x.Id, CreatePerceptionImageDescription(x))));
 
-      // Adaptive Actions Filter
       AdaptiveActionsFilterOptions = new List<KeyValuePair<int?, string>> { new KeyValuePair<int?, string>(null, "Все действия") };
       var adaptiveItems = _actionsSystem?.GetAllAdaptiveActions()?.ToList() ?? new List<AdaptiveActionsSystem.AdaptiveAction>();
       AdaptiveActionsFilterOptions.AddRange(adaptiveItems.Select(x => new KeyValuePair<int?, string>(x.Id, x.Name)));
 
-      // Rank Filter
       RankFilterOptions = new List<KeyValuePair<int?, string>> { new KeyValuePair<int?, string>(null, "Все ранги") };
       var maxRank = _conditionedReflexesSystem.Settings.MaxRank;
       for (int i = 0; i <= maxRank; i++)

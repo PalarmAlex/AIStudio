@@ -171,11 +171,15 @@
           AddingNewItem="DataGrid_AddingNewItem">
 
         <DataGrid.Columns>
-          <!-- Остальные колонки остаются без изменений -->
           <DataGridTextColumn Header="ID" Binding="{Binding Id}" Width="50" IsReadOnly="True"/>
 
           <!-- Интегральное состояние -->
-          <DataGridTemplateColumn Header="Интегральное состояние" Width="Auto">
+          <DataGridTemplateColumn Header="Состояние" Width="Auto">
+            <DataGridTemplateColumn.HeaderStyle>
+              <Style TargetType="DataGridColumnHeader">
+                <Setter Property="ToolTip" Value="Первый уровень дерева триггера рефлекса: Интегральное базовое состояние гомеостаза"/>
+              </Style>
+            </DataGridTemplateColumn.HeaderStyle>
             <DataGridTemplateColumn.CellTemplate>
               <DataTemplate>
                 <TextBlock Text="{Binding Level1, Converter={StaticResource Level1ToTextConverter}}"/>
@@ -192,7 +196,14 @@
           </DataGridTemplateColumn>
 
           <!-- Контексты реагирования -->
-          <DataGridTemplateColumn Header="Контексты реагирования" Width="200">
+          <DataGridTemplateColumn Header="Контексты реагирования" Width="180">
+            <DataGridTemplateColumn.HeaderStyle>
+              <Style TargetType="DataGridColumnHeader">
+                <Setter Property="ToolTip" 
+                Value="Второй уровень дерева триггера рефлекса: Контексты реагирования.&#x0a;ДБ клик открывает окно ввода."/>
+              </Style>
+            </DataGridTemplateColumn.HeaderStyle>
+
             <DataGridTemplateColumn.CellTemplate>
               <DataTemplate>
                 <TextBlock Text="{Binding Level2, Converter={StaticResource IdListToNamesConverter}, ConverterParameter='Level2'}"/>
@@ -206,7 +217,14 @@
           </DataGridTemplateColumn>
 
           <!--Образ восприятия-->
-          <DataGridTemplateColumn Header="Образ восприятия" Width="200">
+          <DataGridTemplateColumn Header="Образ восприятия" Width="180">
+            <DataGridTemplateColumn.HeaderStyle>
+              <Style TargetType="DataGridColumnHeader">
+                <Setter Property="ToolTip" 
+                Value="Третий уровень дерева триггера рефлекса: Образы восприятия.&#x0a;ДБ клик открывает окно ввода."/>
+              </Style>
+            </DataGridTemplateColumn.HeaderStyle>
+
             <DataGridTemplateColumn.CellTemplate>
               <DataTemplate>
                 <TextBlock Text="{Binding Level3, Converter={StaticResource PerceptionImageIdToTextConverter}}"
@@ -221,7 +239,14 @@
           </DataGridTemplateColumn>
 
           <!--Адаптивные действия--> 
-          <DataGridTemplateColumn Header="Адаптивные действия" Width="200">
+          <DataGridTemplateColumn Header="Адаптивные действия" Width="180">
+            <DataGridTemplateColumn.HeaderStyle>
+              <Style TargetType="DataGridColumnHeader">
+                <Setter Property="ToolTip" 
+                Value="Действия запускаемые рефлексом.&#x0a;ДБ клик открывает окно ввода."/>
+              </Style>
+            </DataGridTemplateColumn.HeaderStyle>
+
             <DataGridTemplateColumn.CellTemplate>
               <DataTemplate>
                 <TextBlock Text="{Binding AdaptiveActions, Converter={StaticResource IdListToNamesConverter}, ConverterParameter='AdaptiveActions'}"/>
@@ -236,6 +261,13 @@
 
           <!-- Ранг -->
           <DataGridTemplateColumn Header="Ранг" Width="100">
+            <DataGridTemplateColumn.HeaderStyle>
+              <Style TargetType="DataGridColumnHeader">
+                <Setter Property="ToolTip" 
+                Value="Ранг рефлекса (число цепочки родителей)"/>
+              </Style>
+            </DataGridTemplateColumn.HeaderStyle>
+
             <DataGridTemplateColumn.CellTemplate>
               <DataTemplate>
                 <TextBlock Text="{Binding Rank}" HorizontalAlignment="Center"/>
@@ -253,21 +285,42 @@
 
           <!-- Крепость связи -->
           <DataGridTextColumn Header="Крепость" 
-                            Binding="{Binding AssociationStrength, StringFormat=F2}" 
-                            Width="80"
-                            IsReadOnly="True"/>
+                  Binding="{Binding AssociationStrength, StringFormat=F2}" 
+                  Width="80"
+                  IsReadOnly="True">
+            <DataGridTextColumn.HeaderStyle>
+              <Style TargetType="DataGridColumnHeader">
+                <Setter Property="ToolTip" 
+                    Value="Крепость ассоциативной связи. [0, 1]"/>
+              </Style>
+            </DataGridTextColumn.HeaderStyle>
+          </DataGridTextColumn>
 
           <!-- Время последней активации -->
           <DataGridTextColumn Header="Последняя активация" 
-                            Binding="{Binding LastActivation}" 
-                            Width="120"
-                            IsReadOnly="True"/>
+                  Binding="{Binding LastActivation}" 
+                  Width="120"
+                  IsReadOnly="True">
+            <DataGridTextColumn.HeaderStyle>
+              <Style TargetType="DataGridColumnHeader">
+                <Setter Property="ToolTip" 
+                    Value="Время последней активации (в пульсах)"/>
+              </Style>
+            </DataGridTextColumn.HeaderStyle>
+          </DataGridTextColumn>
 
           <!-- ID исходного рефлекса -->
           <DataGridTextColumn Header="Исходный рефлекс" 
-                            Binding="{Binding SourceGeneticReflexId}" 
-                            Width="100"
-                            IsReadOnly="True"/>
+                  Binding="{Binding SourceGeneticReflexId}" 
+                  Width="100"
+                  IsReadOnly="True">
+            <DataGridTextColumn.HeaderStyle>
+              <Style TargetType="DataGridColumnHeader">
+                <Setter Property="ToolTip" 
+                    Value="ID исходного безусловного рефлекса"/>
+              </Style>
+            </DataGridTextColumn.HeaderStyle>
+          </DataGridTextColumn>
         </DataGrid.Columns>
       </DataGrid>
 
