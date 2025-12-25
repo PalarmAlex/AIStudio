@@ -36,7 +36,6 @@ namespace AIStudio.ViewModels
     private int? _selectedLevel2Filter;
     private int? _selectedLevel3Filter;
     private int? _selectedAdaptiveActionsFilter;
-    private int? _selectedRankFilter;
 
     public GomeostasSystem GomeostasSystem => _gomeostas;
     public PerceptionImagesSystem PerceptionImagesSystem => _perceptionImagesSystem;
@@ -84,8 +83,7 @@ namespace AIStudio.ViewModels
       return (!SelectedLevel1Filter.HasValue || reflex.Level1 == SelectedLevel1Filter.Value) &&
              (!SelectedLevel2Filter.HasValue || (reflex.Level2 != null && reflex.Level2.Contains(SelectedLevel2Filter.Value))) &&
              (!SelectedLevel3Filter.HasValue || reflex.Level3 == SelectedLevel3Filter.Value) &&
-             (!SelectedAdaptiveActionsFilter.HasValue || (reflex.AdaptiveActions != null && reflex.AdaptiveActions.Contains(SelectedAdaptiveActionsFilter.Value))) &&
-             (!SelectedRankFilter.HasValue || reflex.Rank == SelectedRankFilter.Value);
+             (!SelectedAdaptiveActionsFilter.HasValue || (reflex.AdaptiveActions != null && reflex.AdaptiveActions.Contains(SelectedAdaptiveActionsFilter.Value)));
     }
 
     private void OnPulsationStateChanged()
@@ -125,7 +123,6 @@ namespace AIStudio.ViewModels
     public List<KeyValuePair<int?, string>> Level2FilterOptions { get; private set; } = new List<KeyValuePair<int?, string>>();
     public List<KeyValuePair<int?, string>> Level3FilterOptions { get; private set; } = new List<KeyValuePair<int?, string>>();
     public List<KeyValuePair<int?, string>> AdaptiveActionsFilterOptions { get; private set; } = new List<KeyValuePair<int?, string>>();
-    public List<KeyValuePair<int?, string>> RankFilterOptions { get; private set; } = new List<KeyValuePair<int?, string>>();
 
     public int? SelectedLevel1Filter
     {
@@ -171,17 +168,6 @@ namespace AIStudio.ViewModels
       }
     }
 
-    public int? SelectedRankFilter
-    {
-      get => _selectedRankFilter;
-      set
-      {
-        _selectedRankFilter = value;
-        OnPropertyChanged(nameof(SelectedRankFilter));
-        ApplyFilters();
-      }
-    }
-
     private void ApplyFilters()
     {
       _conditionedReflexesView.Refresh();
@@ -193,7 +179,6 @@ namespace AIStudio.ViewModels
       SelectedLevel2Filter = null;
       SelectedLevel3Filter = null;
       SelectedAdaptiveActionsFilter = null;
-      SelectedRankFilter = null;
     }
 
     private void LoadFilterOptions()
@@ -212,17 +197,9 @@ namespace AIStudio.ViewModels
       var adaptiveItems = _actionsSystem?.GetAllAdaptiveActions()?.ToList() ?? new List<AdaptiveActionsSystem.AdaptiveAction>();
       AdaptiveActionsFilterOptions.AddRange(adaptiveItems.Select(x => new KeyValuePair<int?, string>(x.Id, x.Name)));
 
-      RankFilterOptions = new List<KeyValuePair<int?, string>> { new KeyValuePair<int?, string>(null, "Все ранги") };
-      var maxRank = _conditionedReflexesSystem.Settings.MaxRank;
-      for (int i = 0; i <= maxRank; i++)
-      {
-        RankFilterOptions.Add(new KeyValuePair<int?, string>(i, $"Ранг {i}"));
-      }
-
       OnPropertyChanged(nameof(Level2FilterOptions));
       OnPropertyChanged(nameof(Level3FilterOptions));
       OnPropertyChanged(nameof(AdaptiveActionsFilterOptions));
-      OnPropertyChanged(nameof(RankFilterOptions));
     }
 
     private string CreatePerceptionImageDescription(PerceptionImagesSystem.PerceptionImage image)
@@ -250,20 +227,6 @@ namespace AIStudio.ViewModels
             new KeyValuePair<int, string>(0, "Норма"),
             new KeyValuePair<int, string>(1, "Хорошо")
         };
-
-    public List<KeyValuePair<int, string>> RankOptions
-    {
-      get
-      {
-        var options = new List<KeyValuePair<int, string>>();
-        var maxRank = _conditionedReflexesSystem.Settings.MaxRank;
-        for (int i = 0; i <= maxRank; i++)
-        {
-          options.Add(new KeyValuePair<int, string>(i, i == 0 ? "Базовый" : $"Ранг {i}"));
-        }
-        return options;
-      }
-    }
 
     private void LoadAgentData()
     {
@@ -296,7 +259,6 @@ namespace AIStudio.ViewModels
           Level2 = new List<int>(reflex.Level2),
           Level3 = reflex.Level3,
           AdaptiveActions = new List<int>(reflex.AdaptiveActions),
-          Rank = reflex.Rank,
           AssociationStrength = reflex.AssociationStrength,
           LastActivation = reflex.LastActivation,
           BirthTime = reflex.BirthTime,
@@ -315,7 +277,6 @@ namespace AIStudio.ViewModels
       OnPropertyChanged(nameof(WarningMessageColor));
       OnPropertyChanged(nameof(CurrentAgentDescription));
       OnPropertyChanged(nameof(CurrentAgentTitle));
-      OnPropertyChanged(nameof(RankOptions));
     }
 
     private void SaveData(object parameter)
@@ -405,7 +366,6 @@ namespace AIStudio.ViewModels
             existingReflex.Level2 = new List<int>(reflex.Level2);
             existingReflex.Level3 = reflex.Level3;
             existingReflex.AdaptiveActions = new List<int>(reflex.AdaptiveActions);
-            existingReflex.Rank = reflex.Rank;
             // Не обновляем системные поля: AssociationStrength, LastActivation, BirthTime
           }
           else if (reflex.Id <= 0)
@@ -416,8 +376,7 @@ namespace AIStudio.ViewModels
                 new List<int>(reflex.Level2),
                 reflex.Level3,
                 new List<int>(reflex.AdaptiveActions),
-                reflex.SourceGeneticReflexId,
-                reflex.Rank
+                reflex.SourceGeneticReflexId
             );
 
             if (warnings != null && warnings.Length > 0)

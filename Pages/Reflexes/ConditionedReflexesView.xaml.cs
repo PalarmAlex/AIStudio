@@ -68,8 +68,7 @@ namespace AIStudio.Pages.Reflexes
       var newReflex = new ConditionedReflexesSystem.ConditionedReflex
       {
         Level1 = 0, // Норма по умолчанию
-        Rank = 0,   // Базовый ранг
-        AssociationStrength = 0.3f, // Начальная крепость
+        AssociationStrength = 0.2f, // Начальная крепость
         LastActivation = 0,
         BirthTime = 0,
         SourceGeneticReflexId = 0

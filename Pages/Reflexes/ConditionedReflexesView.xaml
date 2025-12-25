@@ -124,17 +124,6 @@
                               Height="25"/>
         </StackPanel>
 
-        <!-- Фильтр по рангу -->
-        <StackPanel Orientation="Vertical" Margin="0,0,15,0" Width="130">
-          <TextBlock Text="Ранг" FontSize="12" Margin="0,0,0,2"/>
-          <ComboBox Style="{StaticResource AgentComboBoxStyle}"
-                              ItemsSource="{Binding RankFilterOptions}"
-                              SelectedValue="{Binding SelectedRankFilter}"
-                              DisplayMemberPath="Value"
-                              SelectedValuePath="Key"
-                              Height="25"/>
-        </StackPanel>
-
         <!-- Кнопка сброса фильтров -->
         <Button Content="Сбросить фильтры" 
                         Command="{Binding ClearFiltersCommand}"
@@ -196,7 +185,7 @@
           </DataGridTemplateColumn>
 
           <!-- Контексты реагирования -->
-          <DataGridTemplateColumn Header="Контексты реагирования" Width="180">
+          <DataGridTemplateColumn Header="Контексты реагирования" Width="200">
             <DataGridTemplateColumn.HeaderStyle>
               <Style TargetType="DataGridColumnHeader">
                 <Setter Property="ToolTip" 
@@ -217,7 +206,7 @@
           </DataGridTemplateColumn>
 
           <!--Образ восприятия-->
-          <DataGridTemplateColumn Header="Образ восприятия" Width="180">
+          <DataGridTemplateColumn Header="Образ восприятия" Width="200">
             <DataGridTemplateColumn.HeaderStyle>
               <Style TargetType="DataGridColumnHeader">
                 <Setter Property="ToolTip" 
@@ -239,7 +228,7 @@
           </DataGridTemplateColumn>
 
           <!--Адаптивные действия--> 
-          <DataGridTemplateColumn Header="Адаптивные действия" Width="180">
+          <DataGridTemplateColumn Header="Адаптивные действия" Width="200">
             <DataGridTemplateColumn.HeaderStyle>
               <Style TargetType="DataGridColumnHeader">
                 <Setter Property="ToolTip" 
@@ -257,30 +246,6 @@
                 <EventSetter Event="MouseDoubleClick" Handler="AdaptiveActionsCell_DoubleClick"/>
               </Style>
             </DataGridTemplateColumn.CellStyle>
-          </DataGridTemplateColumn>
-
-          <!-- Ранг -->
-          <DataGridTemplateColumn Header="Ранг" Width="100">
-            <DataGridTemplateColumn.HeaderStyle>
-              <Style TargetType="DataGridColumnHeader">
-                <Setter Property="ToolTip" 
-                Value="Ранг рефлекса (число цепочки родителей)"/>
-              </Style>
-            </DataGridTemplateColumn.HeaderStyle>
-
-            <DataGridTemplateColumn.CellTemplate>
-              <DataTemplate>
-                <TextBlock Text="{Binding Rank}" HorizontalAlignment="Center"/>
-              </DataTemplate>
-            </DataGridTemplateColumn.CellTemplate>
-            <DataGridTemplateColumn.CellEditingTemplate>
-              <DataTemplate>
-                <ComboBox ItemsSource="{Binding DataContext.RankOptions, RelativeSource={RelativeSource AncestorType=UserControl}}"
-                              SelectedValue="{Binding Rank}"
-                              DisplayMemberPath="Value"
-                              SelectedValuePath="Key"/>
-              </DataTemplate>
-            </DataGridTemplateColumn.CellEditingTemplate>
           </DataGridTemplateColumn>
 
           <!-- Крепость связи -->
