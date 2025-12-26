@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -26,14 +27,12 @@ namespace AIStudio.ViewModels
     private readonly GomeostasSystem _gomeostas;
     private readonly InfluenceActionSystem _influenceActionSystem;
     private string _currentAgentName;
-    private string _currentAgentDescription;
     private int _currentAgentStage;
     public bool IsStageZero => _currentAgentStage == 0;
 
     public ObservableCollection<InfluenceActionSystem.GomeostasisInfluenceAction> InfluenceActions { get; } = new ObservableCollection<InfluenceActionSystem.GomeostasisInfluenceAction>();
 
     public string CurrentAgentTitle => $"Воздействия Оператора на Агента: {_currentAgentName ?? "Не определен"}";
-    public string CurrentAgentDescription => _currentAgentDescription ?? "Нет описания";
 
     public ICommand SaveCommand { get; }
     public ICommand RemoveActionCommand { get; }
@@ -87,7 +86,6 @@ namespace AIStudio.ViewModels
     {
       var agentInfo = _gomeostas.GetAgentState();
       _currentAgentStage = agentInfo?.EvolutionStage ?? 0;
-      _currentAgentDescription = agentInfo.Description;
       _currentAgentName = agentInfo.Name;
 
       InfluenceActions.Clear();
@@ -108,7 +106,6 @@ namespace AIStudio.ViewModels
       OnPropertyChanged(nameof(IsEditingEnabled));
       OnPropertyChanged(nameof(PulseWarningMessage));
       OnPropertyChanged(nameof(WarningMessageColor));
-      OnPropertyChanged(nameof(CurrentAgentDescription));
       OnPropertyChanged(nameof(CurrentAgentTitle));
       OnPropertyChanged(nameof(IsReadOnlyMode));
     }
@@ -354,6 +351,37 @@ namespace AIStudio.ViewModels
           );
           action.Id = newId;
         }
+      }
+    }
+
+    public class DescriptionWithLink
+    {
+      public string Text { get; set; }
+      public string LinkText { get; set; } = "Подробнее...";
+      public string Url { get; set; } = "https://scorcher.ru/isida/iadaptive_agents_guide.php#ref_10";
+      public ICommand OpenLinkCommand { get; }
+
+      public DescriptionWithLink()
+      {
+        OpenLinkCommand = new RelayCommand(_ =>
+        {
+          try
+          {
+            Process.Start(new ProcessStartInfo(Url) { UseShellExecute = true });
+          }
+          catch { }
+        });
+      }
+    }
+
+    public DescriptionWithLink CurrentAgentDescription
+    {
+      get
+      {
+        return new DescriptionWithLink
+        {
+          Text = "Редактор воздействий на систему гомеостаза агента, имитирующих его физическое взаимодействие с внешней средой."
+        };
       }
     }
   }

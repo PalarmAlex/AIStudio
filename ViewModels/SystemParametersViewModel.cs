@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
 using System.Windows;
@@ -22,7 +23,6 @@ namespace AIStudio.ViewModels
     private bool _disposed = false;
     private int _currentAgentStage;
     private string _currentAgentName;
-    private string _currentAgentDescription;
 
     public GomeostasSystem Gomeostas => _gomeostas;
     public bool IsStageZero => _currentAgentStage == 0;
@@ -46,11 +46,9 @@ namespace AIStudio.ViewModels
         _systemParameters = value;
         OnPropertyChanged(nameof(SystemParameters));
         OnPropertyChanged(nameof(CurrentAgentTitle));
-        OnPropertyChanged(nameof(CurrentAgentDescription));
       }
     }
     public string CurrentAgentTitle => $"Параметры гомеостаза Агента: {_currentAgentName ?? "Не определен"}";
-    public string CurrentAgentDescription => _currentAgentDescription ?? "Нет описания";
     public ICommand SaveCommand { get; }
     public ICommand RemoveAllCommand { get; }
     public ICommand SelectAgentCommand { get; }
@@ -145,14 +143,12 @@ namespace AIStudio.ViewModels
       {
         var agentInfo = _gomeostas.GetAgentState();
         _currentAgentStage = agentInfo?.EvolutionStage ?? 0;
-        _currentAgentDescription = agentInfo.Description;
         _currentAgentName = agentInfo.Name;
 
         OnPropertyChanged(nameof(IsStageZero));
         OnPropertyChanged(nameof(IsEditingEnabled));
         OnPropertyChanged(nameof(PulseWarningMessage));
         OnPropertyChanged(nameof(WarningMessageColor));
-        OnPropertyChanged(nameof(CurrentAgentDescription));
         OnPropertyChanged(nameof(IsReadOnlyMode));
 
         var parameters = _gomeostas.GetAllParameters()?
@@ -355,6 +351,37 @@ namespace AIStudio.ViewModels
               MessageBoxButton.OK,
               MessageBoxImage.Error);
         }
+      }
+    }
+
+    public class DescriptionWithLink
+    {
+      public string Text { get; set; }
+      public string LinkText { get; set; } = "Подробнее...";
+      public string Url { get; set; } = "https://scorcher.ru/isida/iadaptive_agents_guide.php#ref_8";
+      public ICommand OpenLinkCommand { get; }
+
+      public DescriptionWithLink()
+      {
+        OpenLinkCommand = new RelayCommand(_ =>
+        {
+          try
+          {
+            Process.Start(new ProcessStartInfo(Url) { UseShellExecute = true });
+          }
+          catch { }
+        });
+      }
+    }
+
+    public DescriptionWithLink CurrentAgentDescription
+    {
+      get
+      {
+        return new DescriptionWithLink
+        {
+          Text = "Редактор жизненных параметров гомеостаза агента."
+        };
       }
     }
   }

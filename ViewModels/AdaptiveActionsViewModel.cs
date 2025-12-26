@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.Linq;
 using System.Windows;
 using System.Windows.Input;
@@ -25,13 +26,11 @@ namespace AIStudio.ViewModels
     private readonly AdaptiveActionsSystem _actionsSystem;
     private readonly GomeostasSystem _gomeostas;
     private string _currentAgentName;
-    private string _currentAgentDescription;
     private int _currentAgentStage;
     public bool IsStageZero => _currentAgentStage == 0;
 
     public bool IsReadOnlyMode => !IsEditingEnabled;
     public string CurrentAgentTitle => $"Адаптивные действия Агента: {_currentAgentName ?? "Не определен"}";
-    public string CurrentAgentDescription => _currentAgentDescription ?? "Нет описания";
     public ObservableCollection<AdaptiveActionsSystem.AdaptiveAction> AdaptiveActions { get; } = new ObservableCollection<AdaptiveActionsSystem.AdaptiveAction>();
 
     public ICommand SaveCommand { get; }
@@ -70,7 +69,6 @@ namespace AIStudio.ViewModels
     {
       var agentInfo = _gomeostas.GetAgentState();
       _currentAgentStage = agentInfo?.EvolutionStage ?? 0;
-      _currentAgentDescription = agentInfo.Description;
       _currentAgentName = agentInfo.Name;
 
       AdaptiveActions.Clear();
@@ -91,7 +89,6 @@ namespace AIStudio.ViewModels
       OnPropertyChanged(nameof(IsEditingEnabled));
       OnPropertyChanged(nameof(PulseWarningMessage));
       OnPropertyChanged(nameof(WarningMessageColor));
-      OnPropertyChanged(nameof(CurrentAgentDescription));
       OnPropertyChanged(nameof(CurrentAgentTitle));
       OnPropertyChanged(nameof(IsReadOnlyMode));
     }
@@ -375,6 +372,37 @@ namespace AIStudio.ViewModels
               MessageBoxButton.OK,
               MessageBoxImage.Error);
         }
+      }
+    }
+
+    public class DescriptionWithLink
+    {
+      public string Text { get; set; }
+      public string LinkText { get; set; } = "Подробнее...";
+      public string Url { get; set; } = "https://scorcher.ru/isida/iadaptive_agents_guide.php#ref_6";
+      public ICommand OpenLinkCommand { get; }
+
+      public DescriptionWithLink()
+      {
+        OpenLinkCommand = new RelayCommand(_ =>
+        {
+          try
+          {
+            Process.Start(new ProcessStartInfo(Url) { UseShellExecute = true });
+          }
+          catch { }
+        });
+      }
+    }
+
+    public DescriptionWithLink CurrentAgentDescription
+    {
+      get
+      {
+        return new DescriptionWithLink
+        {
+          Text = "Служит для создания адаптивных действий, которые могут активироваться в безусловных и условных рефлексах, а также в качестве базовой реакции на изменения состояний параметров гомеостаза. Представляет собой аналог врожденных базовых адаптивных действий живых организмов, передаваемых по наследству."
+        };
       }
     }
   }

@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.Linq;
 using System.Windows;
 using System.Windows.Data;
@@ -28,7 +29,6 @@ namespace AIStudio.ViewModels
     private readonly GomeostasSystem _gomeostas;
     private readonly PerceptionImagesSystem _perceptionImagesSystem;
     private string _currentAgentName;
-    private string _currentAgentDescription;
     private int _currentAgentStage;
 
     // Фильтры
@@ -41,7 +41,6 @@ namespace AIStudio.ViewModels
     public PerceptionImagesSystem PerceptionImagesSystem => _perceptionImagesSystem;
     public bool IsStageOneOrHigher => _currentAgentStage >= 1;
     public string CurrentAgentTitle => $"Условные рефлексы Агента: {_currentAgentName ?? "Не определен"}";
-    public string CurrentAgentDescription => _currentAgentDescription ?? "Нет описания";
 
     private ObservableCollection<ConditionedReflexesSystem.ConditionedReflex> _allConditionedReflexes = new ObservableCollection<ConditionedReflexesSystem.ConditionedReflex>();
     private ICollectionView _conditionedReflexesView;
@@ -245,7 +244,6 @@ namespace AIStudio.ViewModels
     {
       var agentInfo = _gomeostas.GetAgentState();
       _currentAgentStage = agentInfo?.EvolutionStage ?? 0;
-      _currentAgentDescription = agentInfo.Description;
       _currentAgentName = agentInfo.Name;
 
       _allConditionedReflexes.Clear();
@@ -275,7 +273,6 @@ namespace AIStudio.ViewModels
       OnPropertyChanged(nameof(IsEditingEnabled));
       OnPropertyChanged(nameof(PulseWarningMessage));
       OnPropertyChanged(nameof(WarningMessageColor));
-      OnPropertyChanged(nameof(CurrentAgentDescription));
       OnPropertyChanged(nameof(CurrentAgentTitle));
     }
 
@@ -487,6 +484,37 @@ namespace AIStudio.ViewModels
               MessageBoxButton.OK,
               MessageBoxImage.Error);
         }
+      }
+    }
+
+    public class DescriptionWithLink
+    {
+      public string Text { get; set; }
+      public string LinkText { get; set; } = "Подробнее...";
+      public string Url { get; set; } = "https://scorcher.ru/isida/iadaptive_agents_guide.php#ref_16";
+      public ICommand OpenLinkCommand { get; }
+
+      public DescriptionWithLink()
+      {
+        OpenLinkCommand = new RelayCommand(_ =>
+        {
+          try
+          {
+            Process.Start(new ProcessStartInfo(Url) { UseShellExecute = true });
+          }
+          catch { }
+        });
+      }
+    }
+
+    public DescriptionWithLink CurrentAgentDescription
+    {
+      get
+      {
+        return new DescriptionWithLink
+        {
+          Text = "Редактор условных рефлексов."
+        };
       }
     }
   }

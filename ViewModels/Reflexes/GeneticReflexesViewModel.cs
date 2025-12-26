@@ -39,7 +39,6 @@ namespace AIStudio.ViewModels
     private readonly GomeostasSystem _gomeostas;
     public GomeostasSystem Gomeostas => _gomeostas;
     private string _currentAgentName;
-    private string _currentAgentDescription;
     private int _currentAgentStage;
 
     // Фильтры
@@ -51,8 +50,6 @@ namespace AIStudio.ViewModels
     public bool IsStageZero => _currentAgentStage == 0;
 
     public string CurrentAgentTitle => $"Безусловные рефлексы Агента: {_currentAgentName ?? "Не определен"}";
-    public string CurrentAgentDescription => _currentAgentDescription ?? "Нет описания";
-
     private ObservableCollection<GeneticReflexesSystem.GeneticReflex> _allGeneticReflexes = new ObservableCollection<GeneticReflexesSystem.GeneticReflex>();
     private ICollectionView _geneticReflexesView;
     public ICollectionView GeneticReflexesView => _geneticReflexesView;
@@ -517,7 +514,6 @@ namespace AIStudio.ViewModels
     {
       var agentInfo = _gomeostas.GetAgentState();
       _currentAgentStage = agentInfo?.EvolutionStage ?? 0;
-      _currentAgentDescription = agentInfo.Description;
       _currentAgentName = agentInfo.Name;
 
       _allGeneticReflexes.Clear();
@@ -543,7 +539,6 @@ namespace AIStudio.ViewModels
       OnPropertyChanged(nameof(IsEditingEnabled));
       OnPropertyChanged(nameof(PulseWarningMessage));
       OnPropertyChanged(nameof(WarningMessageColor));
-      OnPropertyChanged(nameof(CurrentAgentDescription));
       OnPropertyChanged(nameof(CurrentAgentTitle));
       OnPropertyChanged(nameof(IsReadOnlyMode));
     }
@@ -839,6 +834,37 @@ namespace AIStudio.ViewModels
               MessageBoxButton.OK,
               MessageBoxImage.Error);
         }
+      }
+    }
+
+    public class DescriptionWithLink
+    {
+      public string Text { get; set; }
+      public string LinkText { get; set; } = "Подробнее...";
+      public string Url { get; set; } = "https://scorcher.ru/isida/iadaptive_agents_guide.php#ref_14";
+      public ICommand OpenLinkCommand { get; }
+
+      public DescriptionWithLink()
+      {
+        OpenLinkCommand = new RelayCommand(_ =>
+        {
+          try
+          {
+            Process.Start(new ProcessStartInfo(Url) { UseShellExecute = true });
+          }
+          catch { }
+        });
+      }
+    }
+
+    public DescriptionWithLink CurrentAgentDescription
+    {
+      get
+      {
+        return new DescriptionWithLink
+        {
+          Text = "Редактор безусловных рефлексов 2 типов: по полному и не полному стимулу, а так же фиксированных цепочек рефлексов."
+        };
       }
     }
 
