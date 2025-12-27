@@ -196,6 +196,37 @@ namespace AIStudio
       UpdateAgentState();
     }
 
+    /// <summary>
+    /// Завершение работы всех систем
+    /// </summary>
+    public void Shutdown()
+    {
+      try
+      {
+        Debug.WriteLine("[MainViewModel] Начало завершения работы...");
+
+        // 1. Останавливаем пульсацию если активна
+        if (IsPulsating)
+        {
+          IsPulsating = false;
+          Debug.WriteLine("[MainViewModel] Пульсация остановлена");
+        }
+
+        // 2. Вызываем Dispose у всех систем через IsidaContext
+        if (_isidaContext != null)
+        {
+          _isidaContext.Dispose();
+          Debug.WriteLine("[MainViewModel] IsidaContext освобожден");
+        }
+
+        Debug.WriteLine("[MainViewModel] Завершение работы успешно завершено");
+      }
+      catch (Exception ex)
+      {
+        Debug.WriteLine($"[MainViewModel] Ошибка при завершении: {ex.Message}");
+      }
+    }
+
     private void UpdateAgentState()
     {
       try
