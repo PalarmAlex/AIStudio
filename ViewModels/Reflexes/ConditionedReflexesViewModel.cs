@@ -1,4 +1,5 @@
-﻿using ISIDA.Actions;
+﻿using AIStudio.Views;
+using ISIDA.Actions;
 using ISIDA.Common;
 using ISIDA.Gomeostas;
 using ISIDA.Reflexes;
@@ -50,6 +51,7 @@ namespace AIStudio.ViewModels
     public ICommand RemoveCommand { get; }
     public ICommand ClearFiltersCommand { get; }
     public ICommand RemoveAllCommand { get; }
+    public ICommand OpenSettingsCommand { get; }
 
     public ConditionedReflexesViewModel(
         GomeostasSystem gomeostasSystem,
@@ -69,6 +71,7 @@ namespace AIStudio.ViewModels
       RemoveCommand = new RelayCommand(RemoveSelectedReflexes);
       ClearFiltersCommand = new RelayCommand(ClearFilters);
       RemoveAllCommand = new RelayCommand(RemoveAllReflexes);
+      OpenSettingsCommand = new RelayCommand(OpenSettings);
 
       GlobalTimer.PulsationStateChanged += OnPulsationStateChanged;
       LoadAgentData();
@@ -484,6 +487,38 @@ namespace AIStudio.ViewModels
               MessageBoxButton.OK,
               MessageBoxImage.Error);
         }
+      }
+    }
+
+    public void OpenSettings(object parameter)
+    {
+      try
+      {
+        if (!IsEditingEnabled)
+        {
+          MessageBox.Show("Редактирование настроек доступно только при выключенной пульсации",
+              "Предупреждение", MessageBoxButton.OK, MessageBoxImage.Warning);
+          return;
+        }
+        var settingsViewModel = new ConditionedReflexSettingsViewModel(_conditionedReflexesSystem);
+        var settingsWindow = new ConditionedReflexSettingsView(settingsViewModel)
+        {
+          Owner = Application.Current.MainWindow
+        };
+
+        var result = settingsWindow.ShowDialog();
+
+        if (result == true)
+        {
+          // Обновляем данные на клиенте, если настройки были сохранены
+          MessageBox.Show("Настройки успешно применены и сохранены!",
+              "Успех", MessageBoxButton.OK, MessageBoxImage.Information);
+        }
+      }
+      catch (Exception ex)
+      {
+        MessageBox.Show($"Ошибка открытия настроек:\n{ex.Message}",
+            "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
       }
     }
 

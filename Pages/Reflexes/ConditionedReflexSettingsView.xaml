@@ -1,0 +1,309 @@
+﻿<Window x:Class="AIStudio.Views.ConditionedReflexSettingsView"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:AIStudio.Views"
+        xmlns:converters="clr-namespace:AIStudio.Converters"
+        mc:Ignorable="d"
+        Title="Настройки условных рефлексов" 
+        Height="520" Width="720"
+        WindowStartupLocation="CenterOwner"
+        ResizeMode="NoResize"
+        Background="#FFF0F0F0">
+
+  <Window.Resources>
+    <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter"/>
+
+    <Style x:Key="SettingsLabelStyle" TargetType="TextBlock">
+      <Setter Property="VerticalAlignment" Value="Center"/>
+      <Setter Property="Margin" Value="0,0,10,0"/>
+      <Setter Property="FontWeight" Value="SemiBold"/>
+      <Setter Property="TextWrapping" Value="Wrap"/>
+    </Style>
+
+    <Style x:Key="SettingsRangeTextStyle" TargetType="TextBlock">
+      <Setter Property="VerticalAlignment" Value="Center"/>
+      <Setter Property="Margin" Value="8,0,0,0"/>
+      <Setter Property="Foreground" Value="#FF666666"/>
+      <Setter Property="FontSize" Value="11"/>
+      <Setter Property="FontStyle" Value="Italic"/>
+      <Setter Property="Width" Value="120"/>
+      <Setter Property="TextAlignment" Value="Left"/>
+    </Style>
+
+    <Style x:Key="SettingsTextBoxStyle" TargetType="TextBox">
+      <Setter Property="VerticalAlignment" Value="Center"/>
+      <Setter Property="Margin" Value="0"/>
+      <Setter Property="Width" Value="80"/>
+      <Setter Property="HorizontalContentAlignment" Value="Right"/>
+      <Setter Property="IsTabStop" Value="True"/>
+      <Setter Property="TabIndex" Value="0"/>
+    </Style>
+
+    <Style x:Key="SettingsButtonStyle" TargetType="Button">
+      <Setter Property="Margin" Value="8,0,0,0"/>
+      <Setter Property="Padding" Value="12,6"/>
+      <Setter Property="MinWidth" Value="90"/>
+      <Setter Property="Cursor" Value="Hand"/>
+      <Setter Property="FontWeight" Value="SemiBold"/>
+    </Style>
+
+    <Style x:Key="GridRowStyle" TargetType="Grid">
+      <Setter Property="Margin" Value="0,8"/>
+      <Setter Property="VerticalAlignment" Value="Center"/>
+    </Style>
+  </Window.Resources>
+
+  <Window.InputBindings>
+    <KeyBinding Key="Escape" Command="{Binding CancelCommand}"/>
+  </Window.InputBindings>
+
+  <Border Margin="10" BorderBrush="#FFCCCCCC" BorderThickness="1" CornerRadius="4">
+    <Grid Margin="10">
+      <Grid.RowDefinitions>
+        <RowDefinition Height="Auto"/>
+        <RowDefinition Height="*"/>
+        <RowDefinition Height="Auto"/>
+      </Grid.RowDefinitions>
+
+      <!-- Заголовок -->
+      <Border Grid.Row="0" Background="#FFE8E8E8" CornerRadius="3" Padding="10,8">
+        <StackPanel>
+          <TextBlock Text="Настройки условных рефлексов" 
+                     FontSize="16" FontWeight="Bold" 
+                     Foreground="#FF333333"/>
+          <TextBlock Text="Параметры математической модели условных рефлексов" 
+                     FontSize="12" FontStyle="Italic" 
+                     Foreground="#FF666666" Margin="0,2,0,0"/>
+
+          <!-- Индикатор несохраненных изменений -->
+          <TextBlock Text="Есть несохраненные изменения" 
+                     FontSize="11" FontWeight="Bold"
+                     Foreground="#FFD32F2F" 
+                     Margin="0,4,0,0"
+                     Visibility="{Binding HasChanges, Converter={StaticResource BooleanToVisibilityConverter}}"/>
+        </StackPanel>
+      </Border>
+
+      <!-- Таблица настроек -->
+      <Border Grid.Row="1" Margin="0,10,0,0" 
+              BorderBrush="#FFDDDDDD" BorderThickness="1" 
+              CornerRadius="3" Background="White">
+        <ScrollViewer VerticalScrollBarVisibility="Auto" Padding="5">
+          <StackPanel Margin="10">
+            <!-- Коэффициент обучения -->
+            <Grid Style="{StaticResource GridRowStyle}">
+              <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="Auto"/>
+              </Grid.ColumnDefinitions>
+
+              <TextBlock Grid.Column="0" Style="{StaticResource SettingsLabelStyle}"
+                         Text="Коэффициент обучения (α):"/>
+              <TextBox Grid.Column="1" Style="{StaticResource SettingsTextBoxStyle}"
+                       GotFocus="TextBox_GotFocus"
+                       PreviewMouseLeftButtonDown="TextBox_PreviewMouseLeftButtonDown"
+                       LostFocus="TextBox_LostFocus"
+                       Text="{Binding Settings.LearningRate, UpdateSourceTrigger=LostFocus, StringFormat=N2, ValidatesOnExceptions=True, NotifyOnValidationError=True}"/>
+              <TextBlock Grid.Column="2" Style="{StaticResource SettingsRangeTextStyle}"
+                         Text="(0.1 - 0.3)"/>
+            </Grid>
+
+            <!-- Коэффициент затухания -->
+            <Grid Style="{StaticResource GridRowStyle}">
+              <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="Auto"/>
+              </Grid.ColumnDefinitions>
+
+              <TextBlock Grid.Column="0" Style="{StaticResource SettingsLabelStyle}"
+                         Text="Коэффициент затухания (η):"/>
+              <TextBox Grid.Column="1" Style="{StaticResource SettingsTextBoxStyle}"
+                       GotFocus="TextBox_GotFocus"
+                       PreviewMouseLeftButtonDown="TextBox_PreviewMouseLeftButtonDown"
+                       LostFocus="TextBox_LostFocus"
+                       Text="{Binding Settings.DecayRate, UpdateSourceTrigger=LostFocus, StringFormat=N2, ValidatesOnExceptions=True, NotifyOnValidationError=True}"/>
+              <TextBlock Grid.Column="2" Style="{StaticResource SettingsRangeTextStyle}"
+                         Text="(0.95 - 0.99)"/>
+            </Grid>
+
+            <!-- Порог активации -->
+            <Grid Style="{StaticResource GridRowStyle}">
+              <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="Auto"/>
+              </Grid.ColumnDefinitions>
+
+              <TextBlock Grid.Column="0" Style="{StaticResource SettingsLabelStyle}"
+                         Text="Порог активации (γ):"/>
+              <TextBox Grid.Column="1" Style="{StaticResource SettingsTextBoxStyle}"
+                       GotFocus="TextBox_GotFocus"
+                       PreviewMouseLeftButtonDown="TextBox_PreviewMouseLeftButtonDown"
+                       LostFocus="TextBox_LostFocus"
+                       Text="{Binding Settings.ActivationThreshold, UpdateSourceTrigger=LostFocus, StringFormat=N2, ValidatesOnExceptions=True, NotifyOnValidationError=True}"/>
+              <TextBlock Grid.Column="2" Style="{StaticResource SettingsRangeTextStyle}"
+                         Text="(0.5 - 0.7)"/>
+            </Grid>
+
+            <!-- Временное окно корреляции -->
+            <Grid Style="{StaticResource GridRowStyle}">
+              <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="Auto"/>
+              </Grid.ColumnDefinitions>
+
+              <TextBlock Grid.Column="0" Style="{StaticResource SettingsLabelStyle}"
+                         Text="Временное окно корреляции (τ):"/>
+              <TextBox Grid.Column="1" Style="{StaticResource SettingsTextBoxStyle}"
+                       GotFocus="TextBox_GotFocus"
+                       PreviewMouseLeftButtonDown="TextBox_PreviewMouseLeftButtonDown"
+                       Text="{Binding Settings.TimeWindowPulses, UpdateSourceTrigger=LostFocus}"/>
+              <TextBlock Grid.Column="2" Style="{StaticResource SettingsRangeTextStyle}"
+                         Text="(1 - 10 пульсов)"/>
+            </Grid>
+
+            <!-- Минимальная крепость связи -->
+            <Grid Style="{StaticResource GridRowStyle}">
+              <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="Auto"/>
+              </Grid.ColumnDefinitions>
+
+              <TextBlock Grid.Column="0" Style="{StaticResource SettingsLabelStyle}"
+                         Text="Минимальная крепость связи (C_min):"/>
+              <TextBox Grid.Column="1" Style="{StaticResource SettingsTextBoxStyle}"
+                       GotFocus="TextBox_GotFocus"
+                       PreviewMouseLeftButtonDown="TextBox_PreviewMouseLeftButtonDown"
+                       LostFocus="TextBox_LostFocus"
+                       Text="{Binding Settings.MinAssociationStrength, UpdateSourceTrigger=LostFocus, StringFormat=N2, ValidatesOnExceptions=True, NotifyOnValidationError=True}"/>
+              <TextBlock Grid.Column="2" Style="{StaticResource SettingsRangeTextStyle}"
+                         Text="(0.01 - 0.3)"/>
+            </Grid>
+
+            <!-- Максимальная крепость связи -->
+            <Grid Style="{StaticResource GridRowStyle}">
+              <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="Auto"/>
+              </Grid.ColumnDefinitions>
+
+              <TextBlock Grid.Column="0" Style="{StaticResource SettingsLabelStyle}"
+                         Text="Максимальная крепость связи (β):"/>
+              <TextBox Grid.Column="1" Style="{StaticResource SettingsTextBoxStyle}"
+                       GotFocus="TextBox_GotFocus"
+                       PreviewMouseLeftButtonDown="TextBox_PreviewMouseLeftButtonDown"
+                       Text="{Binding Settings.MaxAssociationStrength, UpdateSourceTrigger=LostFocus, StringFormat=N2}"
+                       IsReadOnly="True" Background="#FFF5F5F5"/>
+              <TextBlock Grid.Column="2" Style="{StaticResource SettingsRangeTextStyle}"
+                         Text="(фиксировано)"/>
+            </Grid>
+
+            <!-- Максимальное время жизни -->
+            <Grid Style="{StaticResource GridRowStyle}">
+              <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="Auto"/>
+              </Grid.ColumnDefinitions>
+
+              <TextBlock Grid.Column="0" Style="{StaticResource SettingsLabelStyle}"
+                         Text="Максимальное время жизни без активации (T_max):"/>
+              <TextBox Grid.Column="1" Style="{StaticResource SettingsTextBoxStyle}"
+                       GotFocus="TextBox_GotFocus"
+                       PreviewMouseLeftButtonDown="TextBox_PreviewMouseLeftButtonDown"
+                       Text="{Binding Settings.MaxInactivationTime, UpdateSourceTrigger=LostFocus}"/>
+              <TextBlock Grid.Column="2" Style="{StaticResource SettingsRangeTextStyle}"
+                         Text="(100 - 10000 пульсов)"/>
+            </Grid>
+
+            <!-- Разделитель -->
+            <Border BorderBrush="#FFE0E0E0" BorderThickness="0,1,0,0" Margin="0,5"/>
+
+            <!-- Пояснительная информация -->
+            <Border Margin="0,15,0,5" 
+                    BorderBrush="#FFE0E0E0" BorderThickness="1"
+                    CornerRadius="3" Background="#FFF9F9F9" Padding="12">
+              <StackPanel>
+                <TextBlock Text="Математическая модель условных рефлексов:" 
+                           FontWeight="Bold" Margin="0,0,0,8" Foreground="#FF333333"/>
+
+                <StackPanel Orientation="Vertical" Margin="5,0">
+                  <TextBlock TextWrapping="Wrap" FontSize="11" Margin="0,2">
+                    <Run FontWeight="Bold">Обучение:</Run>
+                    <Run> C_ij(k) = C_ij(k-1) + α·(β - C_ij(k-1))</Run>
+                  </TextBlock>
+
+                  <TextBlock TextWrapping="Wrap" FontSize="11" Margin="0,6,0,2">
+                    <Run FontWeight="Bold">Затухание:</Run>
+                    <Run> C_ij(t+1) = η^(1/C_ij(t)) · C_ij(t)</Run>
+                  </TextBlock>
+
+                  <TextBlock TextWrapping="Wrap" FontSize="11" Margin="0,6,0,2">
+                    <Run FontWeight="Bold">Удаление:</Run>
+                    <Run> Рефлекс удаляется при C_ij &lt; C_min или времени без активации &gt; T_max</Run>
+                  </TextBlock>
+                </StackPanel>
+
+                <TextBlock Text="α — коэффициент обучения, η — коэффициент затухания, γ — порог активации, τ — временное окно" 
+                           FontSize="10" FontStyle="Italic" Margin="0,8,0,0" Foreground="#FF666666"/>
+              </StackPanel>
+            </Border>
+          </StackPanel>
+        </ScrollViewer>
+      </Border>
+
+      <!-- Кнопки -->
+      <Border Grid.Row="2" Margin="0,10,0,0" Background="#FFE8E8E8" 
+              CornerRadius="3" Padding="10">
+        <Grid>
+          <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*"/>
+            <ColumnDefinition Width="Auto"/>
+            <ColumnDefinition Width="Auto"/>
+            <ColumnDefinition Width="Auto"/>
+          </Grid.ColumnDefinitions>
+
+          <!-- Применить -->
+          <Button Grid.Column="1" Content="Применить" 
+                  Command="{Binding ApplyCommand}"
+                  Style="{StaticResource SettingsButtonStyle}"
+                  Background="#FF4CAF50" Foreground="White">
+            <Button.ToolTip>
+              <TextBlock Text="Применить изменения без сохранения в файл" 
+                         FontSize="11" MaxWidth="200" TextWrapping="Wrap"/>
+            </Button.ToolTip>
+          </Button>
+
+          <!-- Сохранить -->
+          <Button Grid.Column="2" Content="Сохранить" 
+                  Command="{Binding SaveCommand}"
+                  Style="{StaticResource SettingsButtonStyle}"
+                  Background="#FF2196F3" Foreground="White">
+            <Button.ToolTip>
+              <TextBlock Text="Сохранить изменения в файл и закрыть окно" 
+                         FontSize="11" MaxWidth="200" TextWrapping="Wrap"/>
+            </Button.ToolTip>
+          </Button>
+
+          <!-- Отмена -->
+          <Button Grid.Column="3" Content="Отмена" 
+                  Command="{Binding CancelCommand}"
+                  Style="{StaticResource SettingsButtonStyle}"
+                  Background="#FFF44336" Foreground="White">
+            <Button.ToolTip>
+              <TextBlock Text="Закрыть окно без сохранения" 
+                         FontSize="11" MaxWidth="200" TextWrapping="Wrap"/>
+            </Button.ToolTip>
+          </Button>
+        </Grid>
+      </Border>
+    </Grid>
+  </Border>
+</Window>

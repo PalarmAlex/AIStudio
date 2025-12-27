@@ -301,8 +301,18 @@
         <ColumnDefinition Width="Auto"/>
       </Grid.ColumnDefinitions>
 
-      <!-- Текст предупреждения -->
-      <TextBlock Grid.Column="0"
+      <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
+
+        <Button Content="Настройки"
+                    Command="{Binding OpenSettingsCommand}"
+                    IsEnabled="{Binding IsEditingEnabled}"
+                    Style="{StaticResource ActionButtonStyle}"
+                    ToolTip="Настройки условных рефлексов"
+                    Margin="8,0,15,0"
+                    Cursor="Hand"/>
+
+        <!-- Текст предупреждения -->
+        <TextBlock Grid.Column="0"
                        Text="{Binding PulseWarningMessage}"
                        Foreground="{Binding WarningMessageColor}"
                        FontStyle="Italic"
@@ -310,6 +320,7 @@
                        Margin="8,0,0,0"
                        TextWrapping="Wrap"
                        Visibility="{Binding IsEditingEnabled, Converter={StaticResource InverseBooleanToVisibilityConverter}}"/>
+      </StackPanel>
 
       <!-- Кнопки -->
       <StackPanel Grid.Column="1" 
