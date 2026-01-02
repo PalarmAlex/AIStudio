@@ -550,7 +550,8 @@ namespace AIStudio
           _gomeostas,
           _conditionedReflexesSystem,
           _actionsSystem,
-          _perceptionImagesSystem);
+          _perceptionImagesSystem,
+          _geneticReflexesSystem);
       conditionedReflexesView.DataContext = viewModel;
       CurrentContent = conditionedReflexesView;
     }

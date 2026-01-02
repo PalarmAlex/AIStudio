@@ -29,21 +29,23 @@ namespace AIStudio.ViewModels
     private readonly AdaptiveActionsSystem _actionsSystem;
     private readonly GomeostasSystem _gomeostas;
     private readonly PerceptionImagesSystem _perceptionImagesSystem;
+    private readonly GeneticReflexesSystem _geneticReflexesSystem;
     private string _currentAgentName;
     private int _currentAgentStage;
 
-    // Фильтры
     private int? _selectedLevel1Filter;
     private int? _selectedLevel2Filter;
     private int? _selectedLevel3Filter;
     private int? _selectedAdaptiveActionsFilter;
+
+    private Dictionary<int, List<int>> _sourceGeneticReflexActionsCache = new Dictionary<int, List<int>>();
 
     public GomeostasSystem GomeostasSystem => _gomeostas;
     public PerceptionImagesSystem PerceptionImagesSystem => _perceptionImagesSystem;
     public bool IsStageOneOrHigher => _currentAgentStage >= 1;
     public string CurrentAgentTitle => $"Условные рефлексы Агента: {_currentAgentName ?? "Не определен"}";
 
-    private ObservableCollection<ConditionedReflexesSystem.ConditionedReflex> _allConditionedReflexes = new ObservableCollection<ConditionedReflexesSystem.ConditionedReflex>();
+    private ObservableCollection<ConditionedReflexWithSourceActions> _allConditionedReflexes = new ObservableCollection<ConditionedReflexWithSourceActions>();
     private ICollectionView _conditionedReflexesView;
     public ICollectionView ConditionedReflexesView => _conditionedReflexesView;
 
@@ -57,12 +59,14 @@ namespace AIStudio.ViewModels
         GomeostasSystem gomeostasSystem,
         ConditionedReflexesSystem conditionedReflexesSystem,
         AdaptiveActionsSystem actionsSystem,
-        PerceptionImagesSystem perceptionImagesSystem)
+        PerceptionImagesSystem perceptionImagesSystem,
+        GeneticReflexesSystem geneticReflexesSystem)
     {
       _gomeostas = gomeostasSystem ?? throw new ArgumentNullException(nameof(gomeostasSystem));
       _conditionedReflexesSystem = conditionedReflexesSystem ?? throw new ArgumentNullException(nameof(conditionedReflexesSystem));
       _actionsSystem = actionsSystem ?? throw new ArgumentNullException(nameof(actionsSystem));
       _perceptionImagesSystem = perceptionImagesSystem ?? throw new ArgumentNullException(nameof(perceptionImagesSystem));
+      _geneticReflexesSystem = geneticReflexesSystem ?? throw new ArgumentNullException(nameof(geneticReflexesSystem));
 
       _conditionedReflexesView = CollectionViewSource.GetDefaultView(_allConditionedReflexes);
       _conditionedReflexesView.Filter = FilterConditionedReflexes;
@@ -79,13 +83,52 @@ namespace AIStudio.ViewModels
 
     private bool FilterConditionedReflexes(object item)
     {
-      if (!(item is ConditionedReflexesSystem.ConditionedReflex reflex))
+      if (!(item is ConditionedReflexWithSourceActions reflex))
         return false;
 
-      return (!SelectedLevel1Filter.HasValue || reflex.Level1 == SelectedLevel1Filter.Value) &&
-             (!SelectedLevel2Filter.HasValue || (reflex.Level2 != null && reflex.Level2.Contains(SelectedLevel2Filter.Value))) &&
-             (!SelectedLevel3Filter.HasValue || reflex.Level3 == SelectedLevel3Filter.Value) &&
-             (!SelectedAdaptiveActionsFilter.HasValue || (reflex.AdaptiveActions != null && reflex.AdaptiveActions.Contains(SelectedAdaptiveActionsFilter.Value)));
+      bool level1Match = !SelectedLevel1Filter.HasValue || reflex.Level1 == SelectedLevel1Filter.Value;
+      bool level2Match = !SelectedLevel2Filter.HasValue || (reflex.Level2 != null && reflex.Level2.Contains(SelectedLevel2Filter.Value));
+      bool level3Match = !SelectedLevel3Filter.HasValue || reflex.Level3 == SelectedLevel3Filter.Value;
+
+      bool adaptiveActionsMatch = true;
+      if (SelectedAdaptiveActionsFilter.HasValue)
+      {
+        var sourceActions = GetSourceGeneticReflexActions(reflex.SourceGeneticReflexId);
+        adaptiveActionsMatch = sourceActions != null && sourceActions.Contains(SelectedAdaptiveActionsFilter.Value);
+      }
+
+      return level1Match && level2Match && level3Match && adaptiveActionsMatch;
+    }
+
+    private List<int> GetSourceGeneticReflexActions(int sourceGeneticReflexId)
+    {
+      if (sourceGeneticReflexId <= 0)
+        return new List<int>();
+
+      if (_sourceGeneticReflexActionsCache.TryGetValue(sourceGeneticReflexId, out var cachedActions))
+        return cachedActions;
+
+      var geneticReflex = _geneticReflexesSystem?.GetGeneticReflex(sourceGeneticReflexId);
+      if (geneticReflex != null)
+      {
+        var actions = geneticReflex.AdaptiveActions?.ToList() ?? new List<int>();
+        _sourceGeneticReflexActionsCache[sourceGeneticReflexId] = actions;
+        return actions;
+      }
+
+      var allGeneticReflexes = _geneticReflexesSystem?.GetAllGeneticReflexesList();
+      if (allGeneticReflexes != null)
+      {
+        var reflex = allGeneticReflexes.FirstOrDefault(r => r.Id == sourceGeneticReflexId);
+        if (reflex != null)
+        {
+          var actions = reflex.AdaptiveActions?.ToList() ?? new List<int>();
+          _sourceGeneticReflexActionsCache[sourceGeneticReflexId] = actions;
+          return actions;
+        }
+      }
+
+      return new List<int>();
     }
 
     private void OnPulsationStateChanged()
@@ -100,7 +143,9 @@ namespace AIStudio.ViewModels
 
     #region Блокировка страницы в зависимости от стажа
 
-    public bool IsEditingEnabled => IsStageOneOrHigher && !GlobalTimer.IsPulsationRunning;
+    public bool IsEditingEnabled => false;
+    public bool IsDeletionEnabled => IsStageOneOrHigher && !GlobalTimer.IsPulsationRunning;
+
     public string PulseWarningMessage =>
         !IsStageOneOrHigher
             ? "[КРИТИЧНО] Редактирование параметров доступно только начиная со стадии 1"
@@ -196,8 +241,22 @@ namespace AIStudio.ViewModels
           new KeyValuePair<int?, string>(x.Id, CreatePerceptionImageDescription(x))));
 
       AdaptiveActionsFilterOptions = new List<KeyValuePair<int?, string>> { new KeyValuePair<int?, string>(null, "Все действия") };
+
+      var allSourceActions = new HashSet<int>();
+      foreach (var reflex in _allConditionedReflexes)
+      {
+        var actions = GetSourceGeneticReflexActions(reflex.SourceGeneticReflexId);
+        foreach (var actionId in actions)
+        {
+          allSourceActions.Add(actionId);
+        }
+      }
+
       var adaptiveItems = _actionsSystem?.GetAllAdaptiveActions()?.ToList() ?? new List<AdaptiveActionsSystem.AdaptiveAction>();
-      AdaptiveActionsFilterOptions.AddRange(adaptiveItems.Select(x => new KeyValuePair<int?, string>(x.Id, x.Name)));
+      foreach (var action in adaptiveItems.Where(a => allSourceActions.Contains(a.Id)))
+      {
+        AdaptiveActionsFilterOptions.Add(new KeyValuePair<int?, string>(action.Id, action.Name));
+      }
 
       OnPropertyChanged(nameof(Level2FilterOptions));
       OnPropertyChanged(nameof(Level3FilterOptions));
@@ -209,14 +268,10 @@ namespace AIStudio.ViewModels
       var description = $"Образ {image.Id}";
 
       if (image.InfluenceActionsList != null && image.InfluenceActionsList.Any())
-      {
         description += $", возд.: {image.InfluenceActionsList.Count}";
-      }
 
       if (image.PhraseIdList != null && image.PhraseIdList.Any())
-      {
         description += $", фраз: {image.PhraseIdList.Count}";
-      }
 
       return description;
     }
@@ -250,16 +305,18 @@ namespace AIStudio.ViewModels
       _currentAgentName = agentInfo.Name;
 
       _allConditionedReflexes.Clear();
+      _sourceGeneticReflexActionsCache.Clear();
 
       foreach (var reflex in _conditionedReflexesSystem.GetAllConditionedReflexes().OrderBy(a => a.Id))
       {
-        var reflexCopy = new ConditionedReflexesSystem.ConditionedReflex
+        var sourceActions = GetSourceGeneticReflexActions(reflex.SourceGeneticReflexId);
+        var reflexCopy = new ConditionedReflexWithSourceActions
         {
           Id = reflex.Id,
           Level1 = reflex.Level1,
           Level2 = new List<int>(reflex.Level2),
           Level3 = reflex.Level3,
-          AdaptiveActions = new List<int>(reflex.AdaptiveActions),
+          AdaptiveActions = sourceActions,
           AssociationStrength = reflex.AssociationStrength,
           LastActivation = reflex.LastActivation,
           BirthTime = reflex.BirthTime,
@@ -268,12 +325,11 @@ namespace AIStudio.ViewModels
 
         _allConditionedReflexes.Add(reflexCopy);
       }
-
-      // Загружаем опции фильтров
       LoadFilterOptions();
 
       OnPropertyChanged(nameof(IsStageOneOrHigher));
       OnPropertyChanged(nameof(IsEditingEnabled));
+      OnPropertyChanged(nameof(IsDeletionEnabled));
       OnPropertyChanged(nameof(PulseWarningMessage));
       OnPropertyChanged(nameof(WarningMessageColor));
       OnPropertyChanged(nameof(CurrentAgentTitle));
@@ -298,7 +354,6 @@ namespace AIStudio.ViewModels
 
           if (success)
           {
-            // Только при успешном сохранении обновляем коллекции
             RefreshAllCollections();
             MessageBox.Show("Условные рефлексы успешно сохранены",
                 "Сохранение завершено",
@@ -312,7 +367,6 @@ namespace AIStudio.ViewModels
                 MessageBoxButton.OK,
                 MessageBoxImage.Error);
 
-            // Восстанавливаем исходные данные при ошибке
             RefreshAllCollections();
           }
         }
@@ -323,7 +377,6 @@ namespace AIStudio.ViewModels
               MessageBoxButton.OK,
               MessageBoxImage.Error);
 
-          // Восстанавливаем исходные данные при исключении
           RefreshAllCollections();
         }
       }
@@ -341,7 +394,6 @@ namespace AIStudio.ViewModels
       try
       {
         var currentReflexes = _conditionedReflexesSystem.GetAllConditionedReflexes().ToDictionary(a => a.Id);
-        // Удаление рефлексов
         var reflexesToRemove = currentReflexes.Keys.Except(_allConditionedReflexes.Select(a => a.Id)).ToList();
         foreach (var reflexId in reflexesToRemove)
         {
@@ -355,39 +407,14 @@ namespace AIStudio.ViewModels
           }
         }
 
-        // Обновление и добавление рефлексов
         foreach (var reflex in _allConditionedReflexes)
         {
           if (currentReflexes.ContainsKey(reflex.Id) && reflex.Id > 0)
           {
-            // Обновление существующего рефлекса
             var existingReflex = currentReflexes[reflex.Id];
             existingReflex.Level1 = reflex.Level1;
             existingReflex.Level2 = new List<int>(reflex.Level2);
             existingReflex.Level3 = reflex.Level3;
-            existingReflex.AdaptiveActions = new List<int>(reflex.AdaptiveActions);
-            // Не обновляем системные поля: AssociationStrength, LastActivation, BirthTime
-          }
-          else if (reflex.Id <= 0)
-          {
-            // Добавление нового рефлекса
-            var (newId, warnings) = _conditionedReflexesSystem.AddConditionedReflex(
-                reflex.Level1,
-                new List<int>(reflex.Level2),
-                reflex.Level3,
-                new List<int>(reflex.AdaptiveActions),
-                reflex.SourceGeneticReflexId
-            );
-
-            if (warnings != null && warnings.Length > 0)
-            {
-              MessageBox.Show($"Предупреждения при добавлении рефлекса '{reflex.Id}':\n{string.Join("\n", warnings)}",
-                  "Предупреждения",
-                  MessageBoxButton.OK,
-                  MessageBoxImage.Warning);
-            }
-
-            reflex.Id = newId;
           }
         }
         return true;
@@ -404,7 +431,7 @@ namespace AIStudio.ViewModels
 
     public void RemoveSelectedReflexes(object parameter)
     {
-      if (parameter is ConditionedReflexesSystem.ConditionedReflex reflex)
+      if (parameter is ConditionedReflexWithSourceActions reflex)
       {
         try
         {
@@ -494,7 +521,7 @@ namespace AIStudio.ViewModels
     {
       try
       {
-        if (!IsEditingEnabled)
+        if (!IsDeletionEnabled)
         {
           MessageBox.Show("Редактирование настроек доступно только при выключенной пульсации",
               "Предупреждение", MessageBoxButton.OK, MessageBoxImage.Warning);
@@ -510,7 +537,6 @@ namespace AIStudio.ViewModels
 
         if (result == true)
         {
-          // Обновляем данные на клиенте, если настройки были сохранены
           MessageBox.Show("Настройки успешно применены и сохранены!",
               "Успех", MessageBoxButton.OK, MessageBoxImage.Information);
         }
@@ -520,6 +546,19 @@ namespace AIStudio.ViewModels
         MessageBox.Show($"Ошибка открытия настроек:\n{ex.Message}",
             "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
       }
+    }
+
+    public class ConditionedReflexWithSourceActions
+    {
+      public int Id { get; set; }
+      public int Level1 { get; set; }
+      public List<int> Level2 { get; set; } = new List<int>();
+      public int Level3 { get; set; }
+      public List<int> AdaptiveActions { get; set; } = new List<int>();
+      public float AssociationStrength { get; set; }
+      public int LastActivation { get; set; }
+      public int BirthTime { get; set; }
+      public int SourceGeneticReflexId { get; set; }
     }
 
     public class DescriptionWithLink
@@ -548,7 +587,7 @@ namespace AIStudio.ViewModels
       {
         return new DescriptionWithLink
         {
-          Text = "Редактор условных рефлексов."
+          Text = "Редактор условных рефлексов доступен только для просмотра и удаления. Адаптивные действия берутся из исходного безусловного рефлекса."
         };
       }
     }
