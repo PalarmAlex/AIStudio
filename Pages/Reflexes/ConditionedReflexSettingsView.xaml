@@ -7,7 +7,7 @@
         xmlns:converters="clr-namespace:AIStudio.Converters"
         mc:Ignorable="d"
         Title="Настройки условных рефлексов" 
-        Height="520" Width="720"
+        Height="Auto" Width="720"
         WindowStartupLocation="CenterOwner"
         ResizeMode="NoResize"
         Background="#FFF0F0F0">
@@ -59,16 +59,16 @@
     <KeyBinding Key="Escape" Command="{Binding CancelCommand}"/>
   </Window.InputBindings>
 
-  <Border Margin="10" BorderBrush="#FFCCCCCC" BorderThickness="1" CornerRadius="4">
-    <Grid Margin="10">
+  <Border Margin="2" BorderBrush="#FFCCCCCC" BorderThickness="1" CornerRadius="4">
+    <Grid Margin="2">
       <Grid.RowDefinitions>
         <RowDefinition Height="Auto"/>
-        <RowDefinition Height="*"/>
+        <RowDefinition Height="Auto"/>
         <RowDefinition Height="Auto"/>
       </Grid.RowDefinitions>
 
       <!-- Заголовок -->
-      <Border Grid.Row="0" Background="#FFE8E8E8" CornerRadius="3" Padding="10,8">
+      <Border Grid.Row="0" Background="#FFE8E8E8" CornerRadius="3" Padding="5,8">
         <StackPanel>
           <TextBlock Text="Настройки условных рефлексов" 
                      FontSize="16" FontWeight="Bold" 
@@ -87,11 +87,11 @@
       </Border>
 
       <!-- Таблица настроек -->
-      <Border Grid.Row="1" Margin="0,10,0,0" 
+      <Border Grid.Row="1" Margin="0,2,0,0" 
               BorderBrush="#FFDDDDDD" BorderThickness="1" 
               CornerRadius="3" Background="White">
         <ScrollViewer VerticalScrollBarVisibility="Auto" Padding="5">
-          <StackPanel Margin="10">
+          <StackPanel Margin="2">
             <!-- Коэффициент обучения -->
             <Grid Style="{StaticResource GridRowStyle}">
               <Grid.ColumnDefinitions>
@@ -223,10 +223,10 @@
                          Text="(100 - 10000 пульсов)"/>
             </Grid>
 
-            <!-- Разделитель -->
-            <Border BorderBrush="#FFE0E0E0" BorderThickness="0,1,0,0" Margin="0,5"/>
+            <!-- Разделитель --><!--
+            <Border BorderBrush="#FFE0E0E0" BorderThickness="0,1,0,0" Margin="0,5"/>-->
 
-            <!-- Пояснительная информация -->
+            <!-- Пояснительная информация --><!--
             <Border Margin="0,15,0,5" 
                     BorderBrush="#FFE0E0E0" BorderThickness="1"
                     CornerRadius="3" Background="#FFF9F9F9" Padding="12">
@@ -254,7 +254,8 @@
                 <TextBlock Text="α — коэффициент обучения, η — коэффициент затухания, γ — порог активации, τ — временное окно" 
                            FontSize="10" FontStyle="Italic" Margin="0,8,0,0" Foreground="#FF666666"/>
               </StackPanel>
-            </Border>
+            </Border>-->
+            
           </StackPanel>
         </ScrollViewer>
       </Border>

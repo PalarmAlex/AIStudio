@@ -153,33 +153,13 @@ namespace AIStudio.Dialogs
         {
           var result = MessageBox.Show(
               $"Цепочка \"{viewModel.SelectedChain.Name}\" уже привязана к рефлексу(ам): {string.Join(", ", reflexesWithChain)}\n" +
-              "Привязка к новому рефлексу отвяжет ее от текущих рефлексов.\n" +
-              "Продолжить?",
+              "Все равно продолжить?",
               "Цепочка уже используется",
               MessageBoxButton.YesNo,
               MessageBoxImage.Question);
 
           if (result != MessageBoxResult.Yes)
-          {
             return;
-          }
-
-          // Отвязываем от всех рефлексов
-          foreach (var reflexId in reflexesWithChain)
-          {
-            try
-            {
-              _reflexesSystem.DetachChainFromReflex(reflexId);
-            }
-            catch (Exception ex)
-            {
-              MessageBox.Show(
-                  $"Ошибка при отвязке цепочки от рефлекса {reflexId}: {ex.Message}",
-                  "Предупреждение",
-                  MessageBoxButton.OK,
-                  MessageBoxImage.Warning);
-            }
-          }
         }
 
         try

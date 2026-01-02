@@ -90,7 +90,7 @@
                  ToolTip="xxxxx - нераспознанные слова"/>
     </Border>
 
-    <!-- Панель управления цепочкой (справа от распознанного текста) -->
+    <!-- Панель управления цепочкой -->
     <StackPanel Grid.Column="1" Grid.Row="2" 
                 Style="{StaticResource ChainPanelStyle}"
                 Orientation="Vertical">
@@ -104,9 +104,9 @@
               Visibility="{Binding ChainControlVisibility}">
         <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
           <Ellipse Width="10" Height="10" Fill="{Binding ChainActiveIndicatorColor}" Margin="0,0,5,0"/>
-          <TextBlock Text="{Binding ChainActiveStatus}" 
-                     FontWeight="Bold" 
-                     Foreground="{Binding ChainActiveTextColor}"/>
+          <TextBlock Text="{Binding ChainActiveStatusWithId}" 
+             FontWeight="Bold" 
+             Foreground="{Binding ChainActiveTextColor}"/>
         </StackPanel>
       </Border>
 

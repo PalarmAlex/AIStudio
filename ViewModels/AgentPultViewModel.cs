@@ -102,6 +102,32 @@ namespace AIStudio.ViewModels
       }
     }
 
+    private int _activeChainId = 0;
+
+    public int ActiveChainId
+    {
+      get => _activeChainId;
+      set
+      {
+        if (_activeChainId != value)
+        {
+          _activeChainId = value;
+          OnPropertyChanged();
+          OnPropertyChanged(nameof(ChainActiveStatusWithId));
+        }
+      }
+    }
+
+    public string ChainActiveStatusWithId
+    {
+      get
+      {
+        if (_isChainActive && _activeChainId > 0)
+          return $"Цепочка активна (ID: {_activeChainId})";
+        return "Цепочка не активна";
+      }
+    }
+
     #region Свойства для управления цепочкой
 
     /// <summary>
@@ -164,7 +190,7 @@ namespace AIStudio.ViewModels
     /// </summary>
     public string ChainActiveStatus
     {
-      get => _isChainActive ? "Цепочка активна" : "Цепочка не активна";
+      get => ChainActiveStatusWithId;
     }
 
     /// <summary>
@@ -240,15 +266,18 @@ namespace AIStudio.ViewModels
       try
       {
         bool wasActive = _isChainActive;
-        _isChainActive = _reflexesActivator._isChainActive;
+        bool isChainActive = _reflexesActivator.IsChainActive;
+        int newChainId = isChainActive ? _reflexesActivator.GetActiveChainId() : 0;
 
-        // Если статус изменился, обновляем UI
-        if (wasActive != _isChainActive)
+        if (wasActive != isChainActive || ActiveChainId != newChainId)
         {
+          _isChainActive = isChainActive;
+          ActiveChainId = newChainId;
           ChainControlVisibility = _isChainActive ?
               System.Windows.Visibility.Visible :
               System.Windows.Visibility.Collapsed;
 
+          OnPropertyChanged(nameof(ChainActiveStatusWithId));
           OnPropertyChanged(nameof(ChainActiveStatus));
           OnPropertyChanged(nameof(ChainActiveIndicatorColor));
           OnPropertyChanged(nameof(ChainActiveBackground));
@@ -260,7 +289,6 @@ namespace AIStudio.ViewModels
             ChainControlVisibility = System.Windows.Visibility.Collapsed;
         }
 
-        // Если цепочка активна, регулярно обновляем результат в активаторе
         if (_isChainActive)
           UpdateChainStepResult();
       }

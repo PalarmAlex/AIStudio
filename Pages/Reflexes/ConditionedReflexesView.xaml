@@ -280,7 +280,7 @@
           <!-- ID исходного рефлекса -->
           <DataGridTextColumn Header="Исходный рефлекс" 
                   Binding="{Binding SourceGeneticReflexId}" 
-                  Width="100"
+                  Width="*"
                   IsReadOnly="True">
             <DataGridTextColumn.HeaderStyle>
               <Style TargetType="DataGridColumnHeader">
