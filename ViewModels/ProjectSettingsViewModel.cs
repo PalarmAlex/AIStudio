@@ -27,6 +27,7 @@ namespace AIStudio.ViewModels
     private string _dataActionsFolderPath;
     private string _sensorsFolderPath;
     private string _reflexesFolderPath;
+    private string _psychicImageDataFolderPath;
     private string _logsFolderPath;
     private int _defaultStileId;
     private int _defaultAdaptiveActionId;
@@ -90,6 +91,15 @@ namespace AIStudio.ViewModels
       {
         _reflexesFolderPath = value;
         OnPropertyChanged(nameof(ReflexesFolderPath));
+      }
+    }
+    public string PsychicImageDataFolderPath
+    {
+      get => _psychicImageDataFolderPath;
+      set
+      {
+        _psychicImageDataFolderPath = value;
+        OnPropertyChanged(nameof(PsychicImageDataFolderPath));
       }
     }
     public string LogsFolderPath
@@ -313,6 +323,7 @@ namespace AIStudio.ViewModels
       DataActionsFolderPath = AppConfig.DataActionsFolderPath;
       SensorsFolderPath = AppConfig.SensorsFolderPath;
       ReflexesFolderPath = AppConfig.ReflexesFolderPath;
+      PsychicImageDataFolderPath = AppConfig.PsychicImageDataFolderPath;
       LogsFolderPath = AppConfig.LogsFolderPath;
       DefaultStileId = AppConfig.DefaultStileId;
       DefaultAdaptiveActionId = AppConfig.DefaultAdaptiveActionId;
@@ -437,6 +448,9 @@ namespace AIStudio.ViewModels
         case nameof(ReflexesFolderPath):
           initialPath = Directory.Exists(ReflexesFolderPath) ? ReflexesFolderPath : "";
           break;
+        case nameof(PsychicImageDataFolderPath):
+          initialPath = Directory.Exists(PsychicImageDataFolderPath) ? PsychicImageDataFolderPath : "";
+          break;
         case nameof(LogsFolderPath):
           initialPath = Directory.Exists(LogsFolderPath) ? LogsFolderPath : "";
           break;
@@ -465,6 +479,9 @@ namespace AIStudio.ViewModels
             break;
           case nameof(ReflexesFolderPath):
             ReflexesFolderPath = dialog.SelectedPath;
+            break;
+          case nameof(PsychicImageDataFolderPath):
+            PsychicImageDataFolderPath = dialog.SelectedPath;
             break;
           case nameof(LogsFolderPath):
             LogsFolderPath = dialog.SelectedPath;
@@ -506,6 +523,7 @@ namespace AIStudio.ViewModels
         AppConfig.SetSetting(nameof(DataActionsFolderPath), DataActionsFolderPath);
         AppConfig.SetSetting(nameof(SensorsFolderPath), SensorsFolderPath);
         AppConfig.SetSetting(nameof(ReflexesFolderPath), ReflexesFolderPath);
+        AppConfig.SetSetting(nameof(PsychicImageDataFolderPath), PsychicImageDataFolderPath);
         AppConfig.SetSetting(nameof(LogsFolderPath), LogsFolderPath);
         AppConfig.SetIntSetting(nameof(DefaultStileId), DefaultStileId);
         AppConfig.SetIntSetting(nameof(DefaultAdaptiveActionId), DefaultAdaptiveActionId);

@@ -2,6 +2,7 @@
 using AIStudio.Pages;
 using AIStudio.Pages.Reflexes;
 using AIStudio.ViewModels;
+using isida.Psychic.Automatism;
 using ISIDA.Actions;
 using ISIDA.Common;
 using ISIDA.Gomeostas;
@@ -38,6 +39,7 @@ namespace AIStudio
     private readonly GeneticReflexesSystem _geneticReflexesSystem;
     private readonly ConditionedReflexesSystem _conditionedReflexesSystem;
     private readonly PerceptionImagesSystem _perceptionImagesSystem;
+    private readonly ActionsImagesSystem _actionsImagesSystem;
     private readonly ReflexesActivator _reflexesActivator;
     private readonly ReflexTreeSystem _reflexTree;
     private readonly ReflexChainsSystem _reflexChains;
@@ -118,6 +120,7 @@ namespace AIStudio
         config.ActionsFolder = AppConfig.DataActionsFolderPath;
         config.SensorsFolder = AppConfig.SensorsFolderPath;
         config.ReflexesFolder = AppConfig.ReflexesFolderPath;
+        config.PsychicImageDataFolder = AppConfig.PsychicImageDataFolderPath;
         config.LogsFolder = AppConfig.LogsFolderPath;
         config.LogFormat = AppConfig.LogFormat;
         config.LogEnabled = AppConfig.LogEnabled;
@@ -143,6 +146,7 @@ namespace AIStudio
         _geneticReflexesSystem = _isidaContext.GeneticReflexes;
         _conditionedReflexesSystem = _isidaContext.ConditionedReflexes;
         _perceptionImagesSystem = _isidaContext.PerceptionImages;
+        _actionsImagesSystem = _isidaContext.ActionsImages;
         _reflexesActivator = _isidaContext.ReflexesActivator;
         _reflexTree = _isidaContext.ReflexTree;
         _reflexChains = _isidaContext.ReflexChains;
