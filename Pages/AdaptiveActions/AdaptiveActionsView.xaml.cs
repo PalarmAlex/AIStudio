@@ -42,12 +42,40 @@ namespace AIStudio.Pages
 
     private void DataGrid_AddingNewItem(object sender, AddingNewItemEventArgs e)
     {
+      int nextId = GetNextId();
+
       e.NewItem = new AdaptiveActionsSystem.AdaptiveAction
       {
-        Name = "Новое действие",
+        Id = nextId,
+        Name = $"Новое действие {nextId}",
         Description = string.Empty,
         AntagonistActions = new List<int>(),
       };
+    }
+
+    private int GetNextId()
+    {
+      var viewModel = DataContext as AdaptiveActionsViewModel;
+      if (viewModel == null) return 1;
+
+      int maxId = 0;
+      if (viewModel.AdaptiveActions != null && viewModel.AdaptiveActions.Any())
+      {
+        maxId = viewModel.AdaptiveActions.Max(a => a.Id);
+      }
+
+      var grid = ActionsGrid;
+      if (grid?.ItemsSource != null)
+      {
+        var items = grid.ItemsSource.Cast<AdaptiveActionsSystem.AdaptiveAction>();
+        if (items.Any())
+        {
+          int gridMaxId = items.Max(a => a.Id);
+          maxId = Math.Max(maxId, gridMaxId);
+        }
+      }
+
+      return maxId + 1;
     }
 
     private void ActionsGrid_PreviewKeyDown(object sender, KeyEventArgs e)

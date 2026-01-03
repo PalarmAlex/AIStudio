@@ -1,4 +1,10 @@
-﻿using System;
+﻿using AIStudio.Common;
+using AIStudio.Converters;
+using AIStudio.Dialogs;
+using AIStudio.ViewModels;
+using ISIDA.Actions;
+using ISIDA.Gomeostas;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Windows;
@@ -6,11 +12,6 @@ using System.Windows.Controls;
 using System.Windows.Data;
 using System.Windows.Input;
 using System.Windows.Threading;
-using AIStudio.Common;
-using AIStudio.Converters;
-using AIStudio.Dialogs;
-using AIStudio.ViewModels;
-using ISIDA.Gomeostas;
 
 namespace AIStudio.Pages
 {
@@ -41,13 +42,40 @@ namespace AIStudio.Pages
 
     private void DataGrid_AddingNewItem(object sender, AddingNewItemEventArgs e)
     {
+      int nextId = GetNextId();
+
       e.NewItem = new GomeostasSystem.BehaviorStyle
       {
-        Name = "Новый стиль",
-        Description = string.Empty,
+        Id = nextId,
+        Name = $"Новый стиль {nextId}",
         Weight = 50,
         AntagonistStyles = new List<int>()
       };
+    }
+
+    private int GetNextId()
+    {
+      var viewModel = DataContext as BehaviorStylesViewModel;
+      if (viewModel == null) return 1;
+
+      int maxId = 0;
+      if (viewModel.BehaviorStyles != null && viewModel.BehaviorStyles.Any())
+      {
+        maxId = viewModel.BehaviorStyles.Max(a => a.Id);
+      }
+
+      var grid = BehaviorStylesGrid;
+      if (grid?.ItemsSource != null)
+      {
+        var items = grid.ItemsSource.Cast<GomeostasSystem.BehaviorStyle>();
+        if (items.Any())
+        {
+          int gridMaxId = items.Max(a => a.Id);
+          maxId = Math.Max(maxId, gridMaxId);
+        }
+      }
+
+      return maxId + 1;
     }
 
     private void BehaviorStylesGrid_PreviewKeyDown(object sender, KeyEventArgs e)

@@ -51,12 +51,40 @@ namespace AIStudio.Pages
 
     private void DataGrid_AddingNewItem(object sender, AddingNewItemEventArgs e)
     {
+      int nextId = GetNextId();
+
       e.NewItem = new InfluenceActionSystem.GomeostasisInfluenceAction
       {
-        Name = "Новое действие",
+        Id = nextId,
+        Name = $"Новое действие {nextId}",
         Description = string.Empty,
         Influences = new Dictionary<int, int>()
       };
+    }
+
+    private int GetNextId()
+    {
+      var viewModel = DataContext as ExterInalInfluencesViewModel;
+      if (viewModel == null) return 1;
+
+      int maxId = 0;
+      if (viewModel.InfluenceActions != null && viewModel.InfluenceActions.Any())
+      {
+        maxId = viewModel.InfluenceActions.Max(a => a.Id);
+      }
+
+      var grid = ExternInfluencesGrid;
+      if (grid?.ItemsSource != null)
+      {
+        var items = grid.ItemsSource.Cast<InfluenceActionSystem.GomeostasisInfluenceAction>();
+        if (items.Any())
+        {
+          int gridMaxId = items.Max(a => a.Id);
+          maxId = Math.Max(maxId, gridMaxId);
+        }
+      }
+
+      return maxId + 1;
     }
 
     private void DataGrid_PreviewKeyDown(object sender, KeyEventArgs e)

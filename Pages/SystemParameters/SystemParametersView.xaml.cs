@@ -1,6 +1,7 @@
 ﻿using AIStudio.Common;
 using AIStudio.Dialogs;
 using AIStudio.ViewModels;
+using ISIDA.Actions;
 using ISIDA.Gomeostas;
 using System;
 using System.Collections.Generic;
@@ -83,9 +84,12 @@ namespace AIStudio.Pages
 
     private void DataGrid_AddingNewItem(object sender, AddingNewItemEventArgs e)
     {
+      int nextId = GetNextId();
+
       e.NewItem = new GomeostasSystem.ParameterData
       {
-        Name = "Новый параметр",
+        Id = nextId,
+        Name = $"Новый параметр {nextId}",
         Description = string.Empty,
         Value = 50,
         Weight = 50,
@@ -93,6 +97,31 @@ namespace AIStudio.Pages
         Speed = -1,
         StyleActivations = new Dictionary<int, List<int>>()
       };
+    }
+
+    private int GetNextId()
+    {
+      var viewModel = DataContext as SystemParametersViewModel;
+      if (viewModel == null) return 1;
+
+      int maxId = 0;
+      if (viewModel.SystemParameters != null && viewModel.SystemParameters.Any())
+      {
+        maxId = viewModel.SystemParameters.Max(a => a.Id);
+      }
+
+      var grid = parametersDataGrid;
+      if (grid?.ItemsSource != null)
+      {
+        var items = grid.ItemsSource.Cast<GomeostasSystem.ParameterData>();
+        if (items.Any())
+        {
+          int gridMaxId = items.Max(a => a.Id);
+          maxId = Math.Max(maxId, gridMaxId);
+        }
+      }
+
+      return maxId + 1;
     }
 
     private void DataGrid_CellEditEnding(object sender, DataGridCellEditEndingEventArgs e)
