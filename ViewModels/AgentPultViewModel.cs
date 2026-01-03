@@ -343,10 +343,6 @@ namespace AIStudio.ViewModels
 
       try
       {
-        // Получаем все слова из дерева для проверки распознавания
-        var allWords = _sensorySystem.VerbalChannel.GetAllWords();
-        var recognizedWords = allWords.Values.Select(w => w.ToLower()).ToHashSet();
-
         // Разбиваем текст на части (слова, пробелы, знаки препинания)
         var parts = Regex.Split(MessageText, @"(\s+|[^\w\s])")
             .Where(part => !string.IsNullOrEmpty(part))
@@ -359,23 +355,15 @@ namespace AIStudio.ViewModels
           // Проверяем, является ли часть словом (содержит буквы)
           if (Regex.IsMatch(part, @"\p{L}"))
           {
-            // Это слово - проверяем распознавание
-            if (recognizedWords.Contains(part.ToLower()))
-            {
-              // Распознанное слово - оставляем как есть
+            // Проверяем существование слова в дереве
+            if (_sensorySystem.VerbalChannel.WordExists(part))
               resultParts.Add(part);
-            }
             else
-            {
-              // Не распознанное слово - заменяем на xxxxx
               resultParts.Add("xxxxx");
-            }
           }
           else
-          {
             // Это пробелы или знаки препинания - оставляем как есть
             resultParts.Add(part);
-          }
         }
 
         RecognitionDisplayText = string.Join("", resultParts);
@@ -383,7 +371,6 @@ namespace AIStudio.ViewModels
       catch (Exception ex)
       {
         Debug.WriteLine($"Ошибка при обновлении отображения распознавания: {ex.Message}");
-        // В случае ошибки показываем исходный текст
         RecognitionDisplayText = MessageText;
       }
     }
