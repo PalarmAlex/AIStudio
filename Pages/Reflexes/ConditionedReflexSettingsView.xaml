@@ -7,7 +7,7 @@
         xmlns:converters="clr-namespace:AIStudio.Converters"
         mc:Ignorable="d"
         Title="Настройки условных рефлексов" 
-        Height="Auto" Width="720"
+        Height="Auto" Width="720" SizeToContent="Height"
         WindowStartupLocation="CenterOwner"
         ResizeMode="NoResize"
         Background="#FFF0F0F0">
@@ -223,39 +223,6 @@
                          Text="(100 - 10000 пульсов)"/>
             </Grid>
 
-            <!-- Разделитель --><!--
-            <Border BorderBrush="#FFE0E0E0" BorderThickness="0,1,0,0" Margin="0,5"/>-->
-
-            <!-- Пояснительная информация --><!--
-            <Border Margin="0,15,0,5" 
-                    BorderBrush="#FFE0E0E0" BorderThickness="1"
-                    CornerRadius="3" Background="#FFF9F9F9" Padding="12">
-              <StackPanel>
-                <TextBlock Text="Математическая модель условных рефлексов:" 
-                           FontWeight="Bold" Margin="0,0,0,8" Foreground="#FF333333"/>
-
-                <StackPanel Orientation="Vertical" Margin="5,0">
-                  <TextBlock TextWrapping="Wrap" FontSize="11" Margin="0,2">
-                    <Run FontWeight="Bold">Обучение:</Run>
-                    <Run> C_ij(k) = C_ij(k-1) + α·(β - C_ij(k-1))</Run>
-                  </TextBlock>
-
-                  <TextBlock TextWrapping="Wrap" FontSize="11" Margin="0,6,0,2">
-                    <Run FontWeight="Bold">Затухание:</Run>
-                    <Run> C_ij(t+1) = η^(1/C_ij(t)) · C_ij(t)</Run>
-                  </TextBlock>
-
-                  <TextBlock TextWrapping="Wrap" FontSize="11" Margin="0,6,0,2">
-                    <Run FontWeight="Bold">Удаление:</Run>
-                    <Run> Рефлекс удаляется при C_ij &lt; C_min или времени без активации &gt; T_max</Run>
-                  </TextBlock>
-                </StackPanel>
-
-                <TextBlock Text="α — коэффициент обучения, η — коэффициент затухания, γ — порог активации, τ — временное окно" 
-                           FontSize="10" FontStyle="Italic" Margin="0,8,0,0" Foreground="#FF666666"/>
-              </StackPanel>
-            </Border>-->
-            
           </StackPanel>
         </ScrollViewer>
       </Border>
@@ -278,7 +245,7 @@
                   Background="#FF4CAF50" Foreground="White">
             <Button.ToolTip>
               <TextBlock Text="Применить изменения без сохранения в файл" 
-                         FontSize="11" MaxWidth="200" TextWrapping="Wrap"/>
+                         FontSize="11" TextWrapping="Wrap"/>
             </Button.ToolTip>
           </Button>
 
@@ -289,7 +256,7 @@
                   Background="#FF2196F3" Foreground="White">
             <Button.ToolTip>
               <TextBlock Text="Сохранить изменения в файл и закрыть окно" 
-                         FontSize="11" MaxWidth="200" TextWrapping="Wrap"/>
+                         FontSize="11" TextWrapping="Wrap"/>
             </Button.ToolTip>
           </Button>
 
@@ -300,7 +267,7 @@
                   Background="#FFF44336" Foreground="White">
             <Button.ToolTip>
               <TextBlock Text="Закрыть окно без сохранения" 
-                         FontSize="11" MaxWidth="200" TextWrapping="Wrap"/>
+                         FontSize="11" TextWrapping="Wrap"/>
             </Button.ToolTip>
           </Button>
         </Grid>

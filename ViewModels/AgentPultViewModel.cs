@@ -502,16 +502,15 @@ namespace AIStudio.ViewModels
           MessageText = "";
         }
         else
-        {
           UpdateRecognitionDisplay(); // чтобы очистило текст распознавания
-        }
 
         // Применяем воздействия, если есть выбранные действия или фраза
         if (selectedActions.Any() || phraseIds.Any())
         {
           var (success, errorMessage) = _influenceActionSystem.ApplyMultipleInfluenceActions(
               selectedActions,
-              phraseIds
+              phraseIds,
+              AuthoritativeMode
           );
 
           if (!success)
