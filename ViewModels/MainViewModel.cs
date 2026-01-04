@@ -40,6 +40,8 @@ namespace AIStudio
     private readonly ConditionedReflexesSystem _conditionedReflexesSystem;
     private readonly PerceptionImagesSystem _perceptionImagesSystem;
     private readonly ActionsImagesSystem _actionsImagesSystem;
+    private readonly AutomatizmSystem _automatizmSystem;
+    private readonly AutomatizmTreeSystem _automatizmTreeSystem;
     private readonly ReflexesActivator _reflexesActivator;
     private readonly ReflexTreeSystem _reflexTree;
     private readonly ReflexChainsSystem _reflexChains;
@@ -147,6 +149,8 @@ namespace AIStudio
         _conditionedReflexesSystem = _isidaContext.ConditionedReflexes;
         _perceptionImagesSystem = _isidaContext.PerceptionImages;
         _actionsImagesSystem = _isidaContext.ActionsImages;
+        _automatizmSystem = _isidaContext.AutomatizmSystem;
+        _automatizmTreeSystem = _isidaContext.AutomatizmTree;
         _reflexesActivator = _isidaContext.ReflexesActivator;
         _reflexTree = _isidaContext.ReflexTree;
         _reflexChains = _isidaContext.ReflexChains;
