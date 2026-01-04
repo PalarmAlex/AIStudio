@@ -15,6 +15,7 @@ using System.Windows;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Threading;
+using isida.Psychic.Automatism;
 
 namespace AIStudio.ViewModels
 {
@@ -40,6 +41,11 @@ namespace AIStudio.ViewModels
     private bool _authoritativeMode;
     private string _messageText;
     private string _recognitionDisplayText;
+
+    private int _selectedToneId = 0;
+    private int _selectedMoodId = 0;
+    private Dictionary<int, string> _toneList;
+    private Dictionary<int, string> _moodList;
 
     // Свойства для управления цепочкой
     private bool _chainStepSuccess = true;
@@ -127,6 +133,84 @@ namespace AIStudio.ViewModels
         return "Цепочка не активна";
       }
     }
+
+    #region Свойства для тона и настроения
+
+    /// <summary>
+    /// Список доступных тонов
+    /// </summary>
+    public Dictionary<int, string> ToneList
+    {
+      get => _toneList;
+      set
+      {
+        _toneList = value;
+        OnPropertyChanged();
+      }
+    }
+
+    /// <summary>
+    /// Список доступных настроений
+    /// </summary>
+    public Dictionary<int, string> MoodList
+    {
+      get => _moodList;
+      set
+      {
+        _moodList = value;
+        OnPropertyChanged();
+      }
+    }
+
+    /// <summary>
+    /// Выбранный ID тона
+    /// </summary>
+    public int SelectedToneId
+    {
+      get => _selectedToneId;
+      set
+      {
+        if (_selectedToneId != value)
+        {
+          _selectedToneId = value;
+          OnPropertyChanged();
+        }
+      }
+    }
+
+    /// <summary>
+    /// Выбранный ID настроения
+    /// </summary>
+    public int SelectedMoodId
+    {
+      get => _selectedMoodId;
+      set
+      {
+        if (_selectedMoodId != value)
+        {
+          _selectedMoodId = value;
+          OnPropertyChanged();
+        }
+      }
+    }
+
+    /// <summary>
+    /// Текстовое описание выбранного тона
+    /// </summary>
+    public string SelectedToneText
+    {
+      get => ActionsImagesSystem.GetToneText(SelectedToneId);
+    }
+
+    /// <summary>
+    /// Текстовое описание выбранного настроения
+    /// </summary>
+    public string SelectedMoodText
+    {
+      get => ActionsImagesSystem.GetMoodText(SelectedMoodId);
+    }
+
+    #endregion
 
     #region Свойства для управления цепочкой
 
@@ -243,8 +327,29 @@ namespace AIStudio.ViewModels
       UpdateAgentState();
       UpdateRecognitionDisplay();
 
-      // Начинаем проверку активности цепочки
+      InitializeToneAndMoodLists();
       InitializeChainStatusPolling();
+    }
+
+    /// <summary>
+    /// Инициализирует списки тона и настроения
+    /// </summary>
+    private void InitializeToneAndMoodLists()
+    {
+      try
+      {
+        ToneList = ActionsImagesSystem.GetToneList();
+        MoodList = ActionsImagesSystem.GetMoodList();
+
+        SelectedToneId = 0;
+        SelectedMoodId = 0;
+      }
+      catch (Exception ex)
+      {
+        Debug.WriteLine($"Ошибка инициализации списков тона и настроения: {ex.Message}");
+        ToneList = new Dictionary<int, string> { { 0, "Нормальный" } };
+        MoodList = new Dictionary<int, string> { { 0, "Нормальное" } };
+      }
     }
 
     /// <summary>
@@ -497,7 +602,9 @@ namespace AIStudio.ViewModels
           var (success, errorMessage) = _influenceActionSystem.ApplyMultipleInfluenceActions(
               selectedActions,
               phraseIds,
-              AuthoritativeMode
+              AuthoritativeMode,
+              SelectedToneId,
+              SelectedMoodId
           );
 
           if (!success)

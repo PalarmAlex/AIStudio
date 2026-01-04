@@ -5,10 +5,9 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:local="clr-namespace:AIStudio.Pages"
              mc:Ignorable="d" 
-             d:DesignHeight="450" d:DesignWidth="800">
+             d:DesignHeight="500" d:DesignWidth="900">
 
   <UserControl.Resources>
-    <!-- Стиль для названий элементов пульта -->
     <Style x:Key="PropertyNameStyle" TargetType="TextBlock">
       <Setter Property="HorizontalAlignment" Value="Left"/>
       <Setter Property="Margin" Value="0,0,0,5"/>
@@ -17,20 +16,17 @@
       <Setter Property="FontWeight" Value="Bold"/>
     </Style>
 
-    <!-- Стиль для значений элементов пульта -->
     <Style x:Key="PropertyValueStyle" TargetType="FrameworkElement">
       <Setter Property="HorizontalAlignment" Value="Left"/>
       <Setter Property="MinWidth" Value="400"/>
     </Style>
 
-    <!-- Стиль для редактируемых полей -->
     <Style x:Key="EditableFieldStyle" TargetType="TextBox" BasedOn="{StaticResource PropertyValueStyle}">
       <Setter Property="BorderThickness" Value="1"/>
       <Setter Property="BorderBrush" Value="#FF7F9DB9"/>
       <Setter Property="Padding" Value="2"/>
     </Style>
 
-    <!-- Стиль для отображения распознанного текста -->
     <Style x:Key="RecognitionTextStyle" TargetType="TextBlock">
       <Setter Property="FontFamily" Value="Courier New"/>
       <Setter Property="FontSize" Value="12"/>
@@ -40,7 +36,6 @@
       <Setter Property="TextWrapping" Value="Wrap"/>
     </Style>
 
-    <!-- Стиль для панели состояния цепочки -->
     <Style x:Key="ChainPanelStyle" TargetType="StackPanel">
       <Setter Property="Margin" Value="0,5,0,0"/>
       <Setter Property="HorizontalAlignment" Value="Left"/>
@@ -51,11 +46,13 @@
 
   <Grid>
     <Grid.ColumnDefinitions>
-      <ColumnDefinition Width="300"/>
+      <ColumnDefinition Width="350"/>
       <ColumnDefinition Width="300"/>
       <ColumnDefinition Width="*"/>
     </Grid.ColumnDefinitions>
     <Grid.RowDefinitions>
+      <RowDefinition Height="Auto"/>
+      <RowDefinition Height="Auto"/>
       <RowDefinition Height="Auto"/>
       <RowDefinition Height="Auto"/>
       <RowDefinition Height="Auto"/>
@@ -66,15 +63,15 @@
     <TextBlock Grid.Column="1" Grid.Row="0" Text="Распознанный текст:" Style="{StaticResource PropertyNameStyle}" HorizontalAlignment="Left" Margin="10,0,0,5"/>
     <TextBlock Grid.Column="2" Grid.Row="0" Text="Воздействие на агента:" Style="{StaticResource PropertyNameStyle}" Margin="10,0,0,5"/>
 
-    <!-- окно сообщений агенту -->
+    <!-- Окно сообщений агенту -->
     <TextBox Grid.Column="0" Grid.Row="1" 
              Text="{Binding MessageText}"
              IsEnabled="True"
              Style="{StaticResource EditableFieldStyle}"
-             MinWidth="300"
+             MinWidth="350"
              Height="80"
              VerticalAlignment="Top"
-             Margin="0,0,0,10"/>
+             Margin="0,0,0,2"/>
 
     <!-- Отображение распознанного текста -->
     <Border Grid.Column="1" Grid.Row="1" 
@@ -82,7 +79,7 @@
             BorderThickness="1" 
             Background="#FFF8F8F8" 
             Padding="5" 
-            Margin="10,0,0,10"
+            Margin="10,0,0,2"
             Height="80"
             VerticalAlignment="Top">
       <TextBlock Text="{Binding RecognitionDisplayText}" 
@@ -90,30 +87,69 @@
                  ToolTip="xxxxx - нераспознанные слова"/>
     </Border>
 
+    <!-- Панель тона и настроения -->
+    <StackPanel Grid.Column="0" Grid.Row="2" 
+                Orientation="Horizontal" 
+                HorizontalAlignment="Left"
+                Margin="0,2,0,2"
+                VerticalAlignment="Top">
+
+      <!-- Выбор тона -->
+      <StackPanel Orientation="Horizontal" Margin="0,0,10,0">
+        <TextBlock Text="Тон:" 
+                   VerticalAlignment="Center" 
+                   Margin="0,0,2,0"
+                   FontWeight="Bold"
+                   Width="30"/>
+        <ComboBox ItemsSource="{Binding ToneList}"
+                  SelectedValuePath="Key"
+                  DisplayMemberPath="Value"
+                  SelectedValue="{Binding SelectedToneId}"
+                  Width="100"
+                  Height="25"/>
+      </StackPanel>
+
+      <!-- Выбор настроения -->
+      <StackPanel Orientation="Horizontal">
+        <TextBlock Text="Настроение:" 
+                   VerticalAlignment="Center" 
+                   Margin="5,0,5,0"
+                   FontWeight="Bold"
+                   Width="75"/>
+        <ComboBox ItemsSource="{Binding MoodList}"
+                  SelectedValuePath="Key"
+                  DisplayMemberPath="Value"
+                  SelectedValue="{Binding SelectedMoodId}"
+                  Width="120"
+                  Height="25"/>
+      </StackPanel>
+    </StackPanel>
+
     <!-- Панель управления цепочкой -->
     <StackPanel Grid.Column="1" Grid.Row="2" 
                 Style="{StaticResource ChainPanelStyle}"
-                Orientation="Vertical">
+                Orientation="Vertical"
+                Margin="5,2,0,5">
 
       <!-- Индикатор активности цепочки -->
       <Border BorderBrush="Gray" 
               BorderThickness="1" 
               Background="{Binding ChainActiveBackground}"
               Padding="5,2"
-              Margin="10,0,0,5"
+              Margin="5,0,0,2"
               Visibility="{Binding ChainControlVisibility}">
         <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
           <Ellipse Width="10" Height="10" Fill="{Binding ChainActiveIndicatorColor}" Margin="0,0,5,0"/>
           <TextBlock Text="{Binding ChainActiveStatusWithId}" 
-             FontWeight="Bold" 
-             Foreground="{Binding ChainActiveTextColor}"/>
+                     FontWeight="Bold" 
+                     Foreground="{Binding ChainActiveTextColor}"/>
         </StackPanel>
       </Border>
 
       <!-- Переключатель успеха/неуспеха -->
       <StackPanel Orientation="Horizontal" 
                   VerticalAlignment="Center"
-                  Margin="10,0,0,0"
+                  Margin="0,5,0,0"
                   Visibility="{Binding ChainControlVisibility}">
         <TextBlock Text="Результат звена:" 
                    Margin="0,0,10,0" 
@@ -129,30 +165,33 @@
                      GroupName="ChainResult"
                      ToolTip="Действие не выполнено или выполнено с ошибкой"/>
       </StackPanel>
-
     </StackPanel>
 
     <!-- Панель с чекбоксом и кнопкой -->
-    <StackPanel Grid.Column="0" Grid.Row="2" Orientation="Horizontal" Margin="0,5,0,5">
+    <StackPanel Grid.Column="0" Grid.Row="4"
+                Orientation="Horizontal" 
+                Margin="0,5,0,5"
+                Grid.ColumnSpan="3">
       <CheckBox Content="Авторитарная запись"
-            IsChecked="{Binding AuthoritativeMode}"
-            ToolTip="Новые фразы сразу записываются в дерево, минуя песочницу"
-            Margin="0,5"
-            FontWeight="Bold"
-            VerticalAlignment="Center"/>
+                IsChecked="{Binding AuthoritativeMode}"
+                ToolTip="Новые фразы сразу записываются в дерево, минуя песочницу"
+                Margin="0,5"
+                FontWeight="Bold"
+                VerticalAlignment="Center"/>
 
       <Button Content="Отправить" 
-          Command="{Binding ApplyInfluenceCommand}"
-          Style="{StaticResource ActionButtonStyle}"
-          IsEnabled="{Binding IsEditingEnabled}" 
-          Height="30" 
-          Margin="50,0,0,0"
-          HorizontalAlignment="Right" 
-          Cursor="Hand"/>
+              Command="{Binding ApplyInfluenceCommand}"
+              Style="{StaticResource ActionButtonStyle}"
+              IsEnabled="{Binding IsEditingEnabled}" 
+              Height="30" 
+              Width="100"
+              Margin="100,0,0,0"
+              HorizontalAlignment="Left" 
+              Cursor="Hand"/>
     </StackPanel>
 
-    <!-- окно воздействий в два столбца -->
-    <Grid Grid.Column="2" Grid.Row="1" Grid.RowSpan="2" Margin="10,0,0,0">
+    <!-- Окно воздействий в два столбца -->
+    <Grid Grid.Column="2" Grid.Row="1" Grid.RowSpan="4" Margin="10,0,0,0">
       <Grid.ColumnDefinitions>
         <ColumnDefinition Width="*"/>
         <ColumnDefinition Width="*"/>
@@ -163,10 +202,10 @@
         <ItemsControl.ItemTemplate>
           <DataTemplate>
             <CheckBox Content="{Binding Name}" 
-                 IsChecked="{Binding IsSelected}"
-                 IsEnabled="{Binding IsEnabled}"
-                 Margin="0,2"
-                 ToolTip="{Binding Description}"/>
+                      IsChecked="{Binding IsSelected}"
+                      IsEnabled="{Binding IsEnabled}"
+                      Margin="0,2"
+                      ToolTip="{Binding Description}"/>
           </DataTemplate>
         </ItemsControl.ItemTemplate>
       </ItemsControl>
@@ -176,10 +215,10 @@
         <ItemsControl.ItemTemplate>
           <DataTemplate>
             <CheckBox Content="{Binding Name}" 
-                 IsChecked="{Binding IsSelected}"
-                 IsEnabled="{Binding IsEnabled}"
-                 Margin="0,2"
-                 ToolTip="{Binding Description}"/>
+                      IsChecked="{Binding IsSelected}"
+                      IsEnabled="{Binding IsEnabled}"
+                      Margin="0,2"
+                      ToolTip="{Binding Description}"/>
           </DataTemplate>
         </ItemsControl.ItemTemplate>
       </ItemsControl>

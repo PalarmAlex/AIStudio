@@ -109,13 +109,13 @@
         Margin="5,0"/>
     </StackPanel>
 
-    <!-- Каталог автоматизмов -->
+    <!-- Каталог психики -->
     <StackPanel Orientation="Horizontal" Margin="0,5">
-      <TextBlock Text="Каталог автоматизмов:" 
+      <TextBlock Text="Каталог файлов психики:" 
         Width="265"
         VerticalAlignment="Center"/>
 
-      <TextBox Text="{Binding PsychicImageDataFolderPath, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+      <TextBox Text="{Binding PsychicDataFolderPath, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
         Width="400"
         Margin="5,0"
         Background="#FFE0EBEB"
@@ -123,7 +123,7 @@
 
       <Button Content="Обзор..."
         Command="{Binding BrowseFolderCommand}"
-        CommandParameter="PsychicImageDataFolderPath"
+        CommandParameter="PsychicDataFolderPath"
         MinWidth="80"
         Margin="5,0"/>
     </StackPanel>

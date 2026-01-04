@@ -26,7 +26,7 @@ public static class AppConfig
   public static string DataActionsFolderPath => GetSetting("DataActionsFolderPath");
   public static string SensorsFolderPath => GetSetting("SensorsFolderPath");
   public static string ReflexesFolderPath => GetSetting("ReflexesFolderPath");
-  public static string PsychicImageDataFolderPath => GetSetting("PsychicImageDataFolderPath");
+  public static string PsychicDataFolderPath => GetSetting("PsychicDataFolderPath");
   public static string SettingsPath => GetSetting("SettingsPath");
   public static string LogsFolderPath => GetSetting("LogsFolderPath");
   public static ResearchLogger.LogFormat LogFormat => GetLogFormatSetting("DefaultFormatLog", ResearchLogger.LogFormat.All);
@@ -82,7 +82,7 @@ public static class AppConfig
           new XElement("DataActionsFolderPath", Path.Combine(appDataPath, "Data", "Actions")),
           new XElement("SensorsFolderPath", Path.Combine(appDataPath, "Data", "Sensors")),
           new XElement("ReflexesFolderPath", Path.Combine(appDataPath, "Data", "Reflexes")),
-          new XElement("PsychicImageDataFolderPath", Path.Combine(appDataPath, "Data", "Psychic", "Automatism")),
+          new XElement("PsychicDataFolderPath", Path.Combine(appDataPath, "Data", "Psychic")),
           new XElement("SettingsPath", Path.Combine(appDataPath, "Settings")),
           new XElement("LogsFolderPath", Path.Combine(appDataPath, "Logs")),
           new XElement("DefaultStileId", 0),
@@ -117,7 +117,7 @@ public static class AppConfig
       SetSetting("DataActionsFolderPath", Path.Combine(appDataPath, "Data", "Actions"));
       SetSetting("SensorsFolderPath", Path.Combine(appDataPath, "Data", "Sensors"));
       SetSetting("ReflexesFolderPath", Path.Combine(appDataPath, "Data", "Reflexes"));
-      SetSetting("PsychicImageDataFolderPath", Path.Combine(appDataPath, "Data", "Psychic", "Automatism"));
+      SetSetting("PsychicDataFolderPath", Path.Combine(appDataPath, "Data", "Psychic"));
       SetSetting("SettingsPath", Path.Combine(appDataPath, "Settings"));
       SetSetting("LogsFolderPath", Path.Combine(appDataPath, "Logs"));
 

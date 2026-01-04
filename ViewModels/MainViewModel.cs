@@ -120,7 +120,7 @@ namespace AIStudio
         config.ActionsFolder = AppConfig.DataActionsFolderPath;
         config.SensorsFolder = AppConfig.SensorsFolderPath;
         config.ReflexesFolder = AppConfig.ReflexesFolderPath;
-        config.PsychicImageDataFolder = AppConfig.PsychicImageDataFolderPath;
+        config.PsychicDataFolder = AppConfig.PsychicDataFolderPath;
         config.LogsFolder = AppConfig.LogsFolderPath;
         config.LogFormat = AppConfig.LogFormat;
         config.LogEnabled = AppConfig.LogEnabled;
