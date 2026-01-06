@@ -384,6 +384,9 @@ namespace AIStudio
           case "36":  // логи параметров
             ShowParametersLogs();
             break;
+          case "37": // Справка: видеоканал
+            OpenWebPage("https://rutube.ru/channel/74522900/videos");
+            break;
           default:
             ShowStub($"Меню {menuItem}");
             break;

@@ -299,6 +299,11 @@
               Command="{Binding VerticalMenuItemClickedCommand}"
               CommandParameter="30"/>
 
+            <Button Content="Видеоканал" Margin="20,2,5,2" 
+              Style="{StaticResource MenuButtonStyle}"
+              Command="{Binding VerticalMenuItemClickedCommand}"
+              CommandParameter="37"/>
+
             <!--<Button Content="Теория проектирования" Margin="20,2,5,2" 
               Style="{StaticResource MenuButtonStyle}"
               Command="{Binding VerticalMenuItemClickedCommand}"
