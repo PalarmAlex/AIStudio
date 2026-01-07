@@ -43,15 +43,6 @@
       <Setter Property="Foreground" Value="Black"/>
     </Style>
 
-    <!-- Стиль для веса стиля поведения -->
-    <Style x:Key="WeightTextStyle" TargetType="TextBlock">
-      <Setter Property="VerticalAlignment" Value="Bottom"/>
-      <Setter Property="HorizontalAlignment" Value="Right"/>
-      <Setter Property="FontSize" Value="10"/>
-      <Setter Property="Margin" Value="0,0,3,0"/>
-      <Setter Property="Foreground" Value="Black"/>
-    </Style>
-
     <!-- Анимация для активных стилей -->
     <Storyboard x:Key="ActiveStyleAnimation" RepeatBehavior="Forever" AutoReverse="True">
       <DoubleAnimation Storyboard.TargetProperty="Opacity"
@@ -103,20 +94,18 @@
               </Style>
             </Border.Style>
 
-            <!-- Цветная рамка -->
+            <!-- Синяя рамка для активных стилей -->
             <Border.BorderBrush>
               <MultiBinding Converter="{StaticResource StyleColorConverter}">
-                <Binding Path="Weight"/>
                 <Binding Path="."/>
                 <Binding Path="DataContext.ActiveStyles" 
                          RelativeSource="{RelativeSource AncestorType={x:Type UserControl}}"/>
               </MultiBinding>
             </Border.BorderBrush>
 
-            <!-- Бледный цветной фон -->
+            <!-- Голубой фон для активных стилей -->
             <Border.Background>
               <MultiBinding Converter="{StaticResource StyleBackgroundConverter}">
-                <Binding Path="Weight"/>
                 <Binding Path="."/>
                 <Binding Path="DataContext.ActiveStyles" 
                          RelativeSource="{RelativeSource AncestorType={x:Type UserControl}}"/>
@@ -125,19 +114,9 @@
 
             <!-- Контент стиля поведения -->
             <Grid>
-              <Grid.RowDefinitions>
-                <RowDefinition Height="*"/>
-                <RowDefinition Height="Auto"/>
-              </Grid.RowDefinitions>
-
-              <TextBlock Grid.Row="0" 
-                         Text="{Binding Name}" 
+              <TextBlock Text="{Binding Name}" 
                          Style="{StaticResource StyleNameTextStyle}"
                          ToolTip="{Binding Description}"/>
-
-              <!--<TextBlock Grid.Row="1" 
-                         Text="{Binding Weight, StringFormat={}{0}}" 
-                         Style="{StaticResource WeightTextStyle}"/>-->
             </Grid>
           </Border>
         </DataTemplate>

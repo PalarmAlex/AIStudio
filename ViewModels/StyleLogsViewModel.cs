@@ -61,8 +61,7 @@ namespace AIStudio.ViewModels
                              .Select(e => new StyleInfo
                              {
                                StyleId = e.StyleId,
-                               StyleName = e.StyleName,
-                               Weight = e.Weight
+                               StyleName = e.StyleName
                              })
                              .ToList(),
             // Собираем активации параметров

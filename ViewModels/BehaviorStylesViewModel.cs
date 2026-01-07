@@ -92,7 +92,6 @@ namespace AIStudio.ViewModels
           Id = style.Id,
           Name = style.Name,
           Description = style.Description,
-          Weight = style.Weight,
           AntagonistStyles = style.AntagonistStyles
         });
       }
@@ -130,7 +129,6 @@ namespace AIStudio.ViewModels
           Id = bs.Id,
           Name = bs.Name,
           Description = bs.Description,
-          Weight = bs.Weight,
           AntagonistStyles = bs.AntagonistStyles
         }).ToList();
 
@@ -168,7 +166,6 @@ namespace AIStudio.ViewModels
             Id = style.Id,
             Name = style.Name,
             Description = style.Description,
-            Weight = style.Weight,
             AntagonistStyles = style.AntagonistStyles
           });
         }
@@ -331,7 +328,6 @@ namespace AIStudio.ViewModels
           var existingStyle = currentStyles[style.Id];
           existingStyle.Name = style.Name;
           existingStyle.Description = style.Description;
-          existingStyle.Weight = style.Weight;
           existingStyle.AntagonistStyles = new List<int>(style.AntagonistStyles);
         }
         else
@@ -340,7 +336,6 @@ namespace AIStudio.ViewModels
           var (newId, warnings) = _gomeostas.AddBehaviorStyle(
               style.Name,
               style.Description,
-              style.Weight,
               new List<int>(style.AntagonistStyles));
 
           style.Id = newId;
@@ -407,7 +402,6 @@ namespace AIStudio.ViewModels
             Id = bs.Id,
             Name = bs.Name,
             Description = bs.Description,
-            Weight = bs.Weight,
             AntagonistStyles = bs.AntagonistStyles
           }).ToList();
 

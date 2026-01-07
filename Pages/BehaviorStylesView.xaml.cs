@@ -48,7 +48,6 @@ namespace AIStudio.Pages
       {
         Id = nextId,
         Name = $"Новый стиль {nextId}",
-        Weight = 50,
         AntagonistStyles = new List<int>()
       };
     }
@@ -115,21 +114,6 @@ namespace AIStudio.Pages
       }
     }
 
-    private void DataGrid_PreviewTextInput(object sender, TextCompositionEventArgs e)
-    {
-      var grid = (DataGrid)sender;
-      var column = grid.CurrentColumn;
-
-      // Для колонки "Вес" разрешаем только цифры
-      if (column?.Header?.ToString() == "Вес")
-      {
-        if (!char.IsDigit(e.Text, 0))
-        {
-          e.Handled = true;
-        }
-      }
-    }
-
     private void DataGrid_RowEditEnding(object sender, DataGridRowEditEndingEventArgs e)
     {
       if (e.EditAction == DataGridEditAction.Commit && !e.Row.IsEditing)
@@ -186,49 +170,6 @@ namespace AIStudio.Pages
           BehaviorStylesGrid.CommitEdit(DataGridEditingUnit.Row, true);
           BehaviorStylesGrid.Items.Refresh();
         }
-      }
-    }
-
-    private void DataGrid_CellEditEnding(object sender, DataGridCellEditEndingEventArgs e)
-    {
-      if (e.EditAction != DataGridEditAction.Commit || !(e.EditingElement is TextBox textBox))
-        return;
-
-      if (e.Column.Header == null)
-        return;
-
-      string input = textBox.Text.Trim();
-      if (input == "") return;
-
-      string msgText = "";
-
-      if (e.Column.Header.ToString() == "Вес")
-      {
-        if (!int.TryParse(input, out int value) || value < 0 || value > 100)
-          msgText = "Введите число от 0 до 100";
-      }
-      if (msgText != "")
-      {
-        MessageBox.Show(msgText, "Ошибка ввода", MessageBoxButton.OK, MessageBoxImage.Warning);
-
-        e.Cancel = true;
-
-        var binding = textBox.GetBindingExpression(TextBox.TextProperty);
-        binding?.UpdateTarget();
-        return;
-      }
-    }
-
-    private void NumericColumn_PreviewTextInput(object sender, TextCompositionEventArgs e)
-    {
-      // Разрешаем: цифры, запятые, двоеточия, минусы и точки
-      if (!char.IsDigit(e.Text, 0) &&
-          e.Text != "," &&
-          e.Text != ":" &&
-          e.Text != "-" &&
-          e.Text != ".")
-      {
-        e.Handled = true;
       }
     }
 

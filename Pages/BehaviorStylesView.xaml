@@ -151,15 +151,13 @@
                     HorizontalScrollBarVisibility="Auto"
                     PreviewKeyDown="BehaviorStylesGrid_PreviewKeyDown"
                     RowEditEnding="DataGrid_RowEditEnding"
-                    PreviewTextInput="DataGrid_PreviewTextInput"
-                    AddingNewItem="DataGrid_AddingNewItem"
-                    CellEditEnding="DataGrid_CellEditEnding">
+                    AddingNewItem="DataGrid_AddingNewItem">
         <DataGrid.Columns>
           
           <DataGridTextColumn Header="ID" Binding="{Binding Id}" Width="50" IsReadOnly="True"/>
           <DataGridTextColumn Header="Наименование" Binding="{Binding Name}" Width="200"/>
 
-          <DataGridTextColumn Header="Описание" Binding="{Binding Description, Mode=TwoWay}" Width="300">
+          <DataGridTextColumn Header="Описание" Binding="{Binding Description, Mode=TwoWay}" Width="500">
             <DataGridTextColumn.CellStyle>
               <Style TargetType="DataGridCell" BasedOn="{StaticResource {x:Type DataGridCell}}">
                 <Setter Property="ToolTip" Value="{Binding Description}"/>
@@ -172,19 +170,6 @@
                 <Setter Property="ToolTip" Value="ДБ клик открывает окно ввода"/>
               </Style>
             </DataGridTextColumn.HeaderStyle>
-          </DataGridTextColumn>
-
-          <DataGridTextColumn Header="Вес" Binding="{Binding Weight, Mode=TwoWay}" Width="80">
-            <DataGridTextColumn.HeaderStyle>
-              <Style TargetType="DataGridColumnHeader">
-                <Setter Property="ToolTip" Value="Значимость стиля"/>
-              </Style>
-            </DataGridTextColumn.HeaderStyle>
-            <DataGridTextColumn.EditingElementStyle>
-              <Style TargetType="TextBox">
-                <EventSetter Event="PreviewTextInput" Handler="NumericColumn_PreviewTextInput"/>
-              </Style>
-            </DataGridTextColumn.EditingElementStyle>
           </DataGridTextColumn>
 
           <DataGridTextColumn Header="Антагонисты" 

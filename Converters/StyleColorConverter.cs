@@ -12,51 +12,15 @@ namespace AIStudio.Converters
   {
     public object Convert(object[] values, Type targetType, object parameter, CultureInfo culture)
     {
-      if (values.Length < 3 || !(values[1] is BehaviorStyle currentStyle))
+      if (values.Length < 2 || !(values[0] is BehaviorStyle currentStyle))
         return new SolidColorBrush(Colors.Gray); // Неактивные - серые
 
-      var activeStyles = values[2] as IList<BehaviorStyle>;
+      var activeStyles = values[1] as IList<BehaviorStyle>;
       if (activeStyles == null || !activeStyles.Any(s => s?.Id == currentStyle.Id))
         return new SolidColorBrush(Colors.Gray);
 
-      int currentWeight = (values[0] as int?) ?? 0;
-      int maxWeight = activeStyles.Max(s => s?.Weight ?? 0);
-
-      if (maxWeight == 0) return new SolidColorBrush(Colors.Violet);
-
-      double ratio = (double)currentWeight / maxWeight;
-
-      // Яркая цветовая шкала для рамки
-      Color color = CalculateSpectrumColor(ratio);
-      return new SolidColorBrush(color);
-    }
-
-    private Color CalculateSpectrumColor(double ratio)
-    {
-      // Более яркие цвета для рамки
-      if (ratio < 0.25)
-      {
-        // Ярко-красный -> Оранжевый
-        return Color.FromRgb(255, (byte)(ratio * 4 * 200), 0);
-      }
-      else if (ratio < 0.5)
-      {
-        // Ярко-оранжевый -> Желтый
-        return Color.FromRgb(255, 200, 0);
-      }
-      else if (ratio < 0.75)
-      {
-        // Ярко-желтый -> Зеленый
-        byte red = (byte)(255 * (1 - (ratio - 0.5) * 4));
-        return Color.FromRgb(red, 255, 0);
-      }
-      else
-      {
-        // Ярко-зеленый -> Синий -> Фиолетовый
-        byte green = (byte)(200 * (1 - (ratio - 0.75) * 4));
-        byte blue = (byte)(255 * (ratio - 0.75) * 4);
-        return Color.FromRgb(0, green, blue);
-      }
+      // Синий цвет для рамки активных стилей
+      return new SolidColorBrush(Colors.Blue);
     }
 
     public object[] ConvertBack(object value, Type[] targetTypes, object parameter, CultureInfo culture)

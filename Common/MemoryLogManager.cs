@@ -96,7 +96,7 @@ namespace AIStudio.Common
     /// <param name="styleId">Идентификатор стиля поведения</param>
     /// <param name="styleName">Наименование стиля поведения</param>
     /// <param name="weight">Вес стиля в текущей стадии</param>
-    public void WriteStyleLog(int pulse, string stage, int styleId, string styleName, int weight)
+    public void WriteStyleLog(int pulse, string stage, int styleId, string styleName)
     {
       if (_disposed) return;
 
@@ -106,7 +106,6 @@ namespace AIStudio.Common
         Stage = stage,
         StyleId = styleId,
         StyleName = styleName,
-        Weight = weight,
         Timestamp = DateTime.Now
       };
 
@@ -200,7 +199,7 @@ namespace AIStudio.Common
     /// <param name="activationDetails">Детали процесса активации</param>
     public void WriteStyleParameterActivation(int pulse, string stage, int parameterId, string parameterName,
                                              int zoneId, string zoneDescription, int styleId, string styleName,
-                                             int weight, string activationDetails)
+                                             string activationDetails)
     {
       if (_disposed) return;
 
@@ -214,7 +213,6 @@ namespace AIStudio.Common
         ZoneDescription = zoneDescription,
         StyleId = styleId,
         StyleName = styleName,
-        Weight = weight,
         ActivationDetails = activationDetails,
         Timestamp = DateTime.Now
       };
@@ -627,11 +625,6 @@ namespace AIStudio.Common
     public string StyleName { get; set; } = string.Empty;
 
     /// <summary>
-    /// Вес стиля в текущей стадии
-    /// </summary>
-    public int Weight { get; set; }
-
-    /// <summary>
     /// Отформатированное время для отображения в UI
     /// </summary>
     public string DisplayTime => Timestamp.ToString("HH:mm:ss");
@@ -655,11 +648,6 @@ namespace AIStudio.Common
     /// Наименование стиля для отображения в UI
     /// </summary>
     public string DisplayStyleName => StyleName;
-
-    /// <summary>
-    /// Отформатированный вес стиля для отображения в UI
-    /// </summary>
-    public string DisplayWeight => Weight.ToString();
   }
 
   /// <summary>
