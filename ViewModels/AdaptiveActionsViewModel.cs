@@ -311,6 +311,8 @@ namespace AIStudio.ViewModels
                     MessageBoxButton.OK,
                     MessageBoxImage.Error);
               }
+              else
+                RefreshAllCollections(); // чтобы обновились записи в таблице, после их чистки при удалении
             }
             else
               MessageBox.Show("Не удалось удалить действие", "Ошибка",
