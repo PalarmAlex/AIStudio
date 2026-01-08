@@ -19,6 +19,7 @@ using System.Linq;
 using System.Reflection;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Xml.Serialization;
@@ -387,10 +388,332 @@ namespace AIStudio
           case "37": // Справка: видеоканал
             OpenWebPage("https://rutube.ru/channel/74522900/videos");
             break;
+          case "38":  // о программе
+            ShowAbout();
+            break;
           default:
             ShowStub($"Меню {menuItem}");
             break;
         }
+      }
+    }
+
+    private void ShowAbout()
+    {
+      // Передаем метод OpenWebPage в конструктор AboutWindow
+      var aboutWindow = new AboutWindow(OpenWebPage);
+      aboutWindow.ShowDialog();
+    }
+
+    // Класс окна "О программе"
+    private class AboutWindow : Window
+    {
+      private readonly Action<string> _openWebPageAction;
+
+      public AboutWindow(Action<string> openWebPageAction)
+      {
+        _openWebPageAction = openWebPageAction ?? throw new ArgumentNullException(nameof(openWebPageAction));
+
+        Title = "О программе";
+        Width = 500;
+        Height = 300;
+        WindowStartupLocation = WindowStartupLocation.CenterScreen;
+        ResizeMode = ResizeMode.NoResize;
+        Icon = GetDefaultIcon();
+
+        // Закрытие по Esc
+        PreviewKeyDown += (sender, e) =>
+        {
+          if (e.Key == Key.Escape)
+          {
+            Close();
+            e.Handled = true;
+          }
+        };
+
+        InitializeUI();
+      }
+
+      private void InitializeUI()
+      {
+        // Основной контейнер
+        var mainGrid = new Grid();
+        mainGrid.Margin = new Thickness(5);
+
+        // Определяем строки
+        mainGrid.RowDefinitions.Add(new RowDefinition { Height = new GridLength(1, GridUnitType.Auto) }); // Заголовок
+        mainGrid.RowDefinitions.Add(new RowDefinition { Height = new GridLength(1, GridUnitType.Auto) }); // Версия
+        mainGrid.RowDefinitions.Add(new RowDefinition { Height = new GridLength(1, GridUnitType.Auto) }); // Разделитель
+        mainGrid.RowDefinitions.Add(new RowDefinition { Height = new GridLength(1, GridUnitType.Star) }); // Описание
+        mainGrid.RowDefinitions.Add(new RowDefinition { Height = new GridLength(1, GridUnitType.Auto) }); // Разделитель
+        mainGrid.RowDefinitions.Add(new RowDefinition { Height = new GridLength(1, GridUnitType.Auto) }); // Кнопки
+
+        // Заголовок с переносом текста
+        var titleTextBlock = new TextBlock
+        {
+          Text = IsidaEngine.ProjectName,
+          FontSize = 18,
+          FontWeight = FontWeights.Bold,
+          TextWrapping = TextWrapping.Wrap,
+          TextAlignment = TextAlignment.Center,
+          HorizontalAlignment = HorizontalAlignment.Stretch,
+          Margin = new Thickness(0, 0, 0, 5)
+        };
+        Grid.SetRow(titleTextBlock, 0);
+        mainGrid.Children.Add(titleTextBlock);
+
+        // Версия и дата сборки
+        var versionTextBlock = new TextBlock
+        {
+          Text = $"Версия: {IsidaEngine.ProjectVersion} | Сборка: {IsidaEngine.BuildDate}",
+          FontSize = 12,
+          HorizontalAlignment = HorizontalAlignment.Center,
+          Margin = new Thickness(0, 0, 0, 5)
+        };
+        Grid.SetRow(versionTextBlock, 1);
+        mainGrid.Children.Add(versionTextBlock);
+
+        // Первый разделитель
+        var separator1 = new Separator
+        {
+          Margin = new Thickness(0, 5, 0, 5)
+        };
+        Grid.SetRow(separator1, 2);
+        mainGrid.Children.Add(separator1);
+
+        // Описание (ScrollViewer для длинного текста)
+        var descriptionScrollViewer = new ScrollViewer
+        {
+          VerticalScrollBarVisibility = ScrollBarVisibility.Auto,
+          MaxHeight = 150
+        };
+
+        var descriptionText = IsidaEngine.ProjectDescription;
+        var descriptionTextBlock = new TextBlock
+        {
+          Text = descriptionText,
+          TextWrapping = TextWrapping.Wrap,
+          Margin = new Thickness(5),
+          TextAlignment = TextAlignment.Justify
+        };
+
+        descriptionScrollViewer.Content = descriptionTextBlock;
+        Grid.SetRow(descriptionScrollViewer, 3);
+        mainGrid.Children.Add(descriptionScrollViewer);
+
+        // Второй разделитель
+        var separator2 = new Separator
+        {
+          Margin = new Thickness(0, 5, 0, 5)
+        };
+        Grid.SetRow(separator2, 4);
+        mainGrid.Children.Add(separator2);
+
+        // Контейнер для кнопок
+        var buttonStackPanel = new StackPanel
+        {
+          Orientation = Orientation.Horizontal,
+          HorizontalAlignment = HorizontalAlignment.Center,
+          Margin = new Thickness(0, 0, 0, 0)
+        };
+
+        // Кнопка "Подробнее"
+        var detailsButton = new Button
+        {
+          Content = "Подробнее",
+          Width = 100,
+          Height = 30,
+          Margin = new Thickness(5)
+        };
+        detailsButton.Click += (sender, e) => ShowDetailedInfo();
+        buttonStackPanel.Children.Add(detailsButton);
+
+        // Кнопка "Документация"
+        var docsButton = new Button
+        {
+          Content = "Документация",
+          Width = 110,
+          Height = 30,
+          Margin = new Thickness(5)
+        };
+        docsButton.Click += (sender, e) => _openWebPageAction?.Invoke(IsidaEngine.DocumentationUrl);
+        buttonStackPanel.Children.Add(docsButton);
+
+        // Кнопка "Закрыть"
+        var closeButton = new Button
+        {
+          Content = "Закрыть",
+          Width = 100,
+          Height = 30,
+          Margin = new Thickness(5),
+          IsDefault = true
+        };
+        closeButton.Click += (sender, e) => Close();
+        buttonStackPanel.Children.Add(closeButton);
+
+        Grid.SetRow(buttonStackPanel, 5);
+        mainGrid.Children.Add(buttonStackPanel);
+
+        Content = mainGrid;
+      }
+
+      private void ShowDetailedInfo()
+      {
+        var detailedWindow = new Window
+        {
+          Title = "Подробная информация о проекте",
+          Width = 650,
+          Height = 430,
+          WindowStartupLocation = WindowStartupLocation.CenterScreen,
+          WindowStyle = WindowStyle.ToolWindow
+        };
+
+        detailedWindow.PreviewKeyDown += (sender, e) =>
+        {
+          if (e.Key == Key.Escape)
+          {
+            detailedWindow.Close();
+            e.Handled = true;
+          }
+        };
+
+        var scrollViewer = new ScrollViewer
+        {
+          VerticalScrollBarVisibility = ScrollBarVisibility.Auto,
+          HorizontalScrollBarVisibility = ScrollBarVisibility.Auto
+        };
+
+        var mainStack = new StackPanel
+        {
+          Margin = new Thickness(15)
+        };
+
+        // Название и версия
+        mainStack.Children.Add(new TextBlock
+        {
+          Text = IsidaEngine.ProjectName,
+          FontSize = 16,
+          FontWeight = FontWeights.Bold,
+          TextWrapping = TextWrapping.Wrap,
+          Margin = new Thickness(0, 0, 0, 5)
+        });
+
+        mainStack.Children.Add(new TextBlock
+        {
+          Text = $"Версия: {IsidaEngine.ProjectVersion} | Сборка: {IsidaEngine.BuildDate}",
+          FontSize = 12,
+          Margin = new Thickness(0, 0, 0, 5)
+        });
+
+        mainStack.Children.Add(new Separator { Margin = new Thickness(0, 0, 0, 5) });
+
+        // Полное описание
+        var descriptionTextBlock = new TextBlock
+        {
+          Text = IsidaEngine.TheoreticalBasis,
+          TextWrapping = TextWrapping.Wrap,
+          TextAlignment = TextAlignment.Justify,
+          Margin = new Thickness(0, 0, 0, 5)
+        };
+        mainStack.Children.Add(descriptionTextBlock);
+
+        // Авторы
+        if (IsidaEngine.ProjectAuthors != null && IsidaEngine.ProjectAuthors.Length > 0)
+        {
+          mainStack.Children.Add(new Separator { Margin = new Thickness(0, 5, 0, 5) });
+
+          mainStack.Children.Add(new TextBlock
+          {
+            Text = "Авторы проекта:",
+            FontSize = 12,
+            FontWeight = FontWeights.SemiBold,
+            Margin = new Thickness(0, 0, 0, 5)
+          });
+
+          foreach (var author in IsidaEngine.ProjectAuthors)
+          {
+            mainStack.Children.Add(new TextBlock
+            {
+              Text = $"• {author}",
+              TextWrapping = TextWrapping.Wrap,
+              Margin = new Thickness(5, 0, 0, 5),
+              FontSize = 11
+            });
+          }
+        }
+
+        // Документация
+        mainStack.Children.Add(new Separator { Margin = new Thickness(0, 5, 0, 5) });
+
+        mainStack.Children.Add(new TextBlock
+        {
+          Text = "Документация и ресурсы:",
+          FontSize = 12,
+          FontWeight = FontWeights.SemiBold,
+          Margin = new Thickness(0, 0, 0, 5)
+        });
+
+        var hyperlink = new Hyperlink
+        {
+          NavigateUri = new Uri(IsidaEngine.DocumentationUrl)
+        };
+        hyperlink.Inlines.Add(IsidaEngine.DocumentationUrl);
+        hyperlink.RequestNavigate += (sender, e) =>
+        {
+          try
+          {
+            _openWebPageAction?.Invoke(e.Uri.ToString());
+            e.Handled = true;
+          }
+          catch (Exception ex)
+          {
+            MessageBox.Show(detailedWindow, $"Не удалось открыть ссылку:\n{ex.Message}",
+                "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
+          }
+        };
+
+        var docsTextBlock = new TextBlock
+        {
+          TextWrapping = TextWrapping.Wrap,
+          Margin = new Thickness(0, 0, 0, 5)
+        };
+        docsTextBlock.Inlines.Add(hyperlink);
+        mainStack.Children.Add(docsTextBlock);
+
+        // Кнопка закрытия
+        var closeButton = new Button
+        {
+          Content = "Закрыть",
+          Width = 80,
+          HorizontalAlignment = HorizontalAlignment.Right,
+          Margin = new Thickness(0, 5, 0, 0)
+        };
+        closeButton.Click += (sender, e) => detailedWindow.Close();
+        mainStack.Children.Add(closeButton);
+
+        scrollViewer.Content = mainStack;
+        detailedWindow.Content = scrollViewer;
+        detailedWindow.ShowDialog();
+      }
+
+      private ImageSource GetDefaultIcon()
+      {
+        try
+        {
+          var icon = System.Drawing.Icon.ExtractAssociatedIcon(System.Reflection.Assembly.GetExecutingAssembly().Location);
+          if (icon != null)
+          {
+            return System.Windows.Interop.Imaging.CreateBitmapSourceFromHIcon(
+                icon.Handle,
+                System.Windows.Int32Rect.Empty,
+                System.Windows.Media.Imaging.BitmapSizeOptions.FromEmptyOptions());
+          }
+        }
+        catch
+        {
+          // Игнорируем ошибки получения иконки
+        }
+        return null;
       }
     }
 
@@ -581,7 +904,7 @@ namespace AIStudio
         Text = menuTitle,
         FontSize = 18,
         FontWeight = FontWeights.Bold,
-        Margin = new Thickness(0, 0, 0, 10)
+        Margin = new Thickness(0, 0, 0, 5)
       });
 
       stackPanel.Children.Add(new TextBlock

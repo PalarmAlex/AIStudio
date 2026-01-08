@@ -314,6 +314,11 @@
               Command="{Binding VerticalMenuItemClickedCommand}"
               CommandParameter="32"/>
 
+            <Button Content="О программе" Margin="20,2,5,2" 
+              Style="{StaticResource MenuButtonStyle}"
+              Command="{Binding VerticalMenuItemClickedCommand}"
+              CommandParameter="38"/>
+
           </StackPanel>
         </Expander>
 
