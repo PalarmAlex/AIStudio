@@ -43,6 +43,12 @@ namespace AIStudio.Pages
     {
       if (e.Key == Key.Delete)
       {
+        if (!IsFormEnabled)
+        {
+          e.Handled = true;
+          return;
+        }
+
         var grid = (DataGrid)sender;
 
         if (grid.IsEditing())

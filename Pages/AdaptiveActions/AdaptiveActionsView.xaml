@@ -111,7 +111,7 @@
 
             <DataGridTextColumn.HeaderStyle>
               <Style TargetType="DataGridColumnHeader" BasedOn="{StaticResource {x:Type DataGridColumnHeader}}">
-                <Setter Property="ToolTip" Value="Интенсивность действия. Не определяет тип действия, только его 'масштаб'."/>
+                <Setter Property="ToolTip" Value="Интенсивность действия. Используется при конкурентной борьбе с антагонистами."/>
               </Style>
             </DataGridTextColumn.HeaderStyle>
 

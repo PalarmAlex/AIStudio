@@ -21,13 +21,11 @@ namespace AIStudio.Dialogs
       InitializeComponent();
       Title = title;
 
-      // Инициализация с защитой от null
       SelectedInfluences = new Dictionary<int, int>(currentInfluences ?? new Dictionary<int, int>());
 
-      // Безопасное создание коллекции элементов
       var items = parameters?
           .Where(p => p != null)
-          .GroupBy(p => p.Id)  // Защита от дубликатов ID
+          .GroupBy(p => p.Id) 
           .Select(g => g.First())
           .Select(p => new ParameterInfluence
           {
