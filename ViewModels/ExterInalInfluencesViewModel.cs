@@ -165,7 +165,10 @@ namespace AIStudio.ViewModels
           if (InfluenceActions.Contains(action))
             InfluenceActions.Remove(action);
 
-          if (action.Id > 0)
+          var existingInfluenceAction = _influenceActionSystem.GetAllInfluenceActions().ToList();
+          bool influenceActionExistsInSystem = InfluenceActions.Any(a => a.Id == action.Id);
+
+          if (influenceActionExistsInSystem)
           {
             if (_influenceActionSystem.RemoveAction(action.Id))
             {

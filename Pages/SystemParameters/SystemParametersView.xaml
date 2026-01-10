@@ -192,7 +192,7 @@
             <DataGridTextColumn.HeaderStyle>
               <Style TargetType="DataGridColumnHeader">
                 <Setter Property="ToolTip" 
-                    Value="Скорость изменения параметра (% в час).&#x0a;Знак определяет тип параметра:&#x0a;- дефицит ориентированный &#x0a;+ избыток ориентированный &#x0a;ДБ клик запускает редактор."/>
+                    Value="Скорость изменения параметра при пульсации (% в час).&#x0a;Знак определяет тип параметра:&#x0a;- дефицит ориентированный &#x0a;+ избыток ориентированный"/>
               </Style>
             </DataGridTextColumn.HeaderStyle>
 

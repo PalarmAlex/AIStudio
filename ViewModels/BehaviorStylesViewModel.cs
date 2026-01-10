@@ -358,12 +358,14 @@ namespace AIStudio.ViewModels
             return;
           }
 
-          // Удаляем из локальной коллекции в любом случае (дефолтный валидация не даст удалить)
+          // Удаляем из локальной коллекции в любом случае
           if (BehaviorStyles.Contains(style)) 
             BehaviorStyles.Remove(style);
 
-          // Удаляем из системы гомеостаза только если стиль уже сохранен (Id > 0)
-          if (style.Id > 0)
+          var existingBehaviorStyle = _gomeostas.GetAllBehaviorStyles().ToList();
+          bool stileExistsInSystem = BehaviorStyles.Any(s => s.Id == style.Id);
+
+          if (stileExistsInSystem)
           {
             if (!_gomeostas.RemoveBehaviorStyle(style.Id))
             {

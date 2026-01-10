@@ -297,7 +297,10 @@ namespace AIStudio.ViewModels
           // Всегда удаляем из коллекции
           AdaptiveActions.Remove(action);
 
-          if (action.Id > 0)
+          var existingActions = _actionsSystem.GetAllAdaptiveActions().ToList();
+          bool actionExistsInSystem = existingActions.Any(a => a.Id == action.Id);
+
+          if (actionExistsInSystem)
           {
             if (_actionsSystem.RemoveAction(action.Id))
             {

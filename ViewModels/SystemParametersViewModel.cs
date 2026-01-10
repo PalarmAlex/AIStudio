@@ -13,6 +13,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
+using static ISIDA.Gomeostas.GomeostasSystem;
 
 namespace AIStudio.ViewModels
 {
@@ -252,12 +253,12 @@ namespace AIStudio.ViewModels
         {
           // Удаляем из локальной коллекции
           if (SystemParameters.Contains(param))
-          {
             SystemParameters.Remove(param);
-          }
 
-          // Удаляем из системы гомеостаза (если параметр уже сохранен)
-          if (param.Id > 0)
+          var existingParameter = _gomeostas.GetAllParameters().ToList();
+          bool parametrExistsInSystem = SystemParameters.Any(p => p.Id == param.Id);
+
+          if (parametrExistsInSystem)
           {
             try
             {
