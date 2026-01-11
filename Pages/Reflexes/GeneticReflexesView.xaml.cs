@@ -59,6 +59,12 @@ namespace AIStudio.Pages.Reflexes
       {
         var grid = (DataGrid)sender;
 
+        if (!IsFormEnabled)
+        {
+          e.Handled = true;
+          return;
+        }
+
         if (grid.IsEditing())
           return;
 

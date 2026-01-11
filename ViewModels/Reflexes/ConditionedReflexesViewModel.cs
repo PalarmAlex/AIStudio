@@ -523,7 +523,7 @@ namespace AIStudio.ViewModels
       {
         if (!IsDeletionEnabled)
         {
-          MessageBox.Show("Редактирование настроек доступно только при выключенной пульсации",
+          MessageBox.Show("Редактирование настроек доступно только при выключенной пульсации и в стадиях, начиная с 1",
               "Предупреждение", MessageBoxButton.OK, MessageBoxImage.Warning);
           return;
         }

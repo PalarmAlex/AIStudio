@@ -74,8 +74,7 @@ namespace AIStudio.ViewModels
                         ZoneId = e.ZoneId,
                         ZoneDescription = e.ZoneDescription,
                         StyleId = e.StyleId,
-                        StyleName = e.StyleName,
-                        Weight = e.Weight
+                        StyleName = e.StyleName
                       })
                       .ToList()
           })
@@ -159,7 +158,7 @@ namespace AIStudio.ViewModels
       public string DisplayPulse => Pulse.ToString();
 
       // Для отображения в таблице
-      public string DisplayActiveStyles => string.Join("\n", FinalStyles.Select(s => s.ToString()));
+      public string DisplayActiveStyles => string.Join(" | ", FinalStyles.Select(s => s.ToString()));
 
       // Разделяем параметры и зоны на два столбца
       public string DisplayParameters => GetParametersDisplay();
@@ -195,10 +194,9 @@ namespace AIStudio.ViewModels
     {
       public int StyleId { get; set; }
       public string StyleName { get; set; } = string.Empty;
-      public int Weight { get; set; }
       public override string ToString()
       {
-        return $"{StyleName} (ID:{StyleId}) | Вес:{Weight}";
+        return $"{StyleName} (ID:{StyleId})";
       }
     }
 
@@ -213,7 +211,6 @@ namespace AIStudio.ViewModels
       public string ZoneDescription { get; set; } = string.Empty;
       public int StyleId { get; set; }
       public string StyleName { get; set; } = string.Empty;
-      public int Weight { get; set; }
     }
 
   }

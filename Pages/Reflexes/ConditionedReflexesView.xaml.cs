@@ -21,6 +21,12 @@ namespace AIStudio.Pages.Reflexes
     {
       if (e.Key == Key.Delete)
       {
+        if (!IsFormDeletion)
+        {
+          e.Handled = true;
+          return;
+        }
+
         var grid = (DataGrid)sender;
 
         if (grid.IsEditing())
@@ -50,6 +56,23 @@ namespace AIStudio.Pages.Reflexes
 
           e.Handled = true;
         }
+      }
+    }
+
+    private bool IsFormDeletion
+    {
+      get
+      {
+        if (DataContext is ConditionedReflexesViewModel viewModel && !viewModel.IsDeletionEnabled)
+        {
+          MessageBox.Show(
+              viewModel.PulseWarningMessage,
+              "Удаление недоступно",
+              MessageBoxButton.OK,
+              MessageBoxImage.Warning);
+          return false;
+        }
+        return true;
       }
     }
 
