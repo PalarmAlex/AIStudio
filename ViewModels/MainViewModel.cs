@@ -2,6 +2,7 @@
 using AIStudio.Pages;
 using AIStudio.Pages.Reflexes;
 using AIStudio.ViewModels;
+using isida.Psychic;
 using isida.Psychic.Automatism;
 using ISIDA.Actions;
 using ISIDA.Common;
@@ -43,6 +44,7 @@ namespace AIStudio
     private readonly ActionsImagesSystem _actionsImagesSystem;
     private readonly AutomatizmSystem _automatizmSystem;
     private readonly AutomatizmTreeSystem _automatizmTreeSystem;
+    private readonly PsychicSystem _psychicSystem;
     private readonly ReflexesActivator _reflexesActivator;
     private readonly ReflexTreeSystem _reflexTree;
     private readonly ReflexChainsSystem _reflexChains;
@@ -108,6 +110,9 @@ namespace AIStudio
 
     public MainViewModel()
     {
+      // Не подкдюченные:
+      // InfluenceActionImagesSystem
+
       int _stepInzialized = 0;
       try
       {
@@ -152,6 +157,7 @@ namespace AIStudio
         _actionsImagesSystem = _isidaContext.ActionsImages;
         _automatizmSystem = _isidaContext.AutomatizmSystem;
         _automatizmTreeSystem = _isidaContext.AutomatizmTree;
+        _psychicSystem = _isidaContext.PsychicSystem;
         _reflexesActivator = _isidaContext.ReflexesActivator;
         _reflexTree = _isidaContext.ReflexTree;
         _reflexChains = _isidaContext.ReflexChains;
