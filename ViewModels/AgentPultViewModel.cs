@@ -15,7 +15,7 @@ using System.Windows;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Threading;
-using isida.Psychic.Automatism;
+using ISIDA.Psychic.Automatism;
 
 namespace AIStudio.ViewModels
 {

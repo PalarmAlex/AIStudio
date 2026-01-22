@@ -138,7 +138,25 @@
                     Value="Список ID действий-антагонистов, которые несовместимы с данным действием.&#x0a;При активации данного действия, все указанные здесь действия будут деактивированы.&#x0a;ДБ клик открывает окно ввода."/>
               </Style>
             </DataGridTextColumn.HeaderStyle>
-      
+          </DataGridTextColumn>
+
+
+          <DataGridTextColumn Header="Target параметры" 
+            Binding="{Binding TargetGomeoParamIdArr, Converter={StaticResource ListToStringConverter}}" 
+            IsReadOnly="True" 
+            Width="*">
+            <DataGridTextColumn.ElementStyle>
+              <Style TargetType="TextBlock">
+                <EventSetter Event="MouseDown" Handler="TargetParametersCell_MouseDown"/>
+              </Style>
+            </DataGridTextColumn.ElementStyle>
+
+            <DataGridTextColumn.HeaderStyle>
+              <Style TargetType="DataGridColumnHeader">
+                <Setter Property="ToolTip" 
+                    Value="Список ID параметров гомеостаза, которые которые потенциально улучшваются данным действием.&#x0a;Пример: плач, крик о помощи - не влияют непосредственно на гомеостаз, но служат сигналом для других, кто может повлиять.&#x0a;Это определяет простейшую гомеостатическую цель действия.&#x0a;ДБ клик открывает окно ввода."/>
+              </Style>
+            </DataGridTextColumn.HeaderStyle>
           </DataGridTextColumn>
 
         </DataGrid.Columns>

@@ -2,30 +2,22 @@
 using AIStudio.Pages;
 using AIStudio.Pages.Reflexes;
 using AIStudio.ViewModels;
-using isida.Psychic;
-using isida.Psychic.Automatism;
+using ISIDA.Psychic;
+using ISIDA.Psychic.Automatism;
 using ISIDA.Actions;
 using ISIDA.Common;
 using ISIDA.Gomeostas;
 using ISIDA.Reflexes;
 using ISIDA.Sensors;
-using Ookii.Dialogs.Wpf;
 using System;
-using System.Collections.ObjectModel;
 using System.ComponentModel;
-using System.Configuration;
 using System.Diagnostics;
 using System.IO;
-using System.Linq;
-using System.Reflection;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Media;
-using System.Xml.Serialization;
-using static ISIDA.Reflexes.ReflexChainsSystem;
-using static System.Windows.Forms.VisualStyles.VisualStyleElement.ExplorerBar;
 
 namespace AIStudio
 {

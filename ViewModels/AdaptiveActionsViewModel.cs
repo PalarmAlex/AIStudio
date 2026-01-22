@@ -39,7 +39,7 @@ namespace AIStudio.ViewModels
 
     public AdaptiveActionsViewModel(GomeostasSystem gomeostas, AdaptiveActionsSystem actionsSystem)
     {
-      _gomeostas = gomeostas;
+      _gomeostas = gomeostas ?? throw new ArgumentNullException(nameof(gomeostas));
       _actionsSystem = actionsSystem ?? throw new ArgumentNullException(nameof(actionsSystem));
 
       SaveCommand = new RelayCommand(SaveData);
@@ -81,7 +81,8 @@ namespace AIStudio.ViewModels
           Name = action.Name,
           Description = action.Description,
           Vigor = action.Vigor,
-          AntagonistActions = new List<int>(action.AntagonistActions)
+          AntagonistActions = new List<int>(action.AntagonistActions),
+          TargetGomeoParamIdArr = new List<int>(action.TargetGomeoParamIdArr)
         });
       }
 
@@ -91,6 +92,13 @@ namespace AIStudio.ViewModels
       OnPropertyChanged(nameof(WarningMessageColor));
       OnPropertyChanged(nameof(CurrentAgentTitle));
       OnPropertyChanged(nameof(IsReadOnlyMode));
+    }
+
+    public string GetParameterName(int parameterId)
+    {
+      var allParameters = _gomeostas.GetAllParameters();
+      var parameter = allParameters.FirstOrDefault(p => p.Id == parameterId);
+      return parameter?.Name ?? $"Параметр {parameterId}";
     }
 
     #region Блокировка страницы в зависимости от стажа
@@ -273,6 +281,7 @@ namespace AIStudio.ViewModels
           existingAction.Description = action.Description;
           existingAction.Vigor = action.Vigor;
           existingAction.AntagonistActions = new List<int>(action.AntagonistActions);
+          existingAction.TargetGomeoParamIdArr = new List<int>(action.TargetGomeoParamIdArr);
         }
         else
         {
@@ -280,6 +289,7 @@ namespace AIStudio.ViewModels
               action.Name,
               action.Description,
               new List<int>(action.AntagonistActions),
+              new List<int>(action.TargetGomeoParamIdArr),
               false,
               action.Vigor
           );

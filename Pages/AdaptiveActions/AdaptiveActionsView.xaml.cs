@@ -50,6 +50,7 @@ namespace AIStudio.Pages
         Name = $"Новое действие {nextId}",
         Description = string.Empty,
         AntagonistActions = new List<int>(),
+        TargetGomeoParamIdArr = new List<int>()
       };
     }
 
@@ -229,6 +230,38 @@ namespace AIStudio.Pages
           e.Text != "-" &&
           e.Text != ".")
       {
+        e.Handled = true;
+      }
+    }
+
+    private void TargetParametersCell_MouseDown(object sender, MouseButtonEventArgs e)
+    {
+      if (e.ClickCount == 2 && DataContext is AdaptiveActionsViewModel vm)
+      {
+        if (!IsFormEnabled)
+        {
+          e.Handled = true;
+          return;
+        }
+
+        if (sender is FrameworkElement element &&
+            element.DataContext is AdaptiveActionsSystem.AdaptiveAction action)
+        {
+          // Получаем все доступные параметры гомеостаза
+          var allParameters = vm.GetAllParameters();
+
+          var editor = new TargetParametersEditor(
+              $"Target параметры действия: {action.Name} (ID: {action.Id})",
+              allParameters,
+              action.TargetGomeoParamIdArr ?? new List<int>());
+
+          if (editor.ShowDialog() == true)
+          {
+            action.TargetGomeoParamIdArr = editor.SelectedParameterIds.ToList();
+            ActionsGrid.CommitEdit(DataGridEditingUnit.Row, true);
+            ActionsGrid.Items.Refresh();
+          }
+        }
         e.Handled = true;
       }
     }
