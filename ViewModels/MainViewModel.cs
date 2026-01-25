@@ -1,12 +1,13 @@
 ﻿using AIStudio.Common;
 using AIStudio.Pages;
+using AIStudio.Pages.Automatizm;
 using AIStudio.Pages.Reflexes;
 using AIStudio.ViewModels;
-using ISIDA.Psychic;
-using ISIDA.Psychic.Automatism;
 using ISIDA.Actions;
 using ISIDA.Common;
 using ISIDA.Gomeostas;
+using ISIDA.Psychic;
+using ISIDA.Psychic.Automatism;
 using ISIDA.Reflexes;
 using ISIDA.Sensors;
 using System;
@@ -42,6 +43,8 @@ namespace AIStudio
     private readonly ReflexChainsSystem _reflexChains;
     private readonly ReflexExecutionService _reflexExecution;
     private readonly ResearchLogger _researchLogger;
+    private readonly InfluenceActionsImagesSystem _influenceActionsImagesSystem;
+
     public event PropertyChangedEventHandler PropertyChanged;
     private AgentViewModel _agentViewModel;
 
@@ -102,9 +105,6 @@ namespace AIStudio
 
     public MainViewModel()
     {
-      // Не подкдюченные:
-      // InfluenceActionImagesSystem
-
       int _stepInzialized = 0;
       try
       {
@@ -155,6 +155,7 @@ namespace AIStudio
         _reflexChains = _isidaContext.ReflexChains;
         _reflexExecution = _isidaContext.ReflexExecution;
         _researchLogger = _isidaContext.ResearchLogger;
+        _influenceActionsImagesSystem = _isidaContext.InfluenceActionsImages;
 
         _stepInzialized = 4;
       }
@@ -297,7 +298,7 @@ namespace AIStudio
             ShowStub("Дерево рефлексов");
             break;
           case "8": // Таблица Автоматизмов
-            ShowStub("Таблица Автоматизмов");
+            ShowAutomatizms();
             break;
           case "9": // Дерево Автоматизмов
             ShowStub("Дерево Автоматизмов");
@@ -394,6 +395,19 @@ namespace AIStudio
             break;
         }
       }
+    }
+
+    private void ShowAutomatizms()
+    {
+      var automatizmsView = new AutomatizmsView();
+      var viewModel = new AutomatizmsViewModel(
+          _gomeostas,
+          _automatizmSystem,
+          _automatizmTreeSystem,
+          _actionsImagesSystem,
+          _influenceActionsImagesSystem);
+      automatizmsView.DataContext = viewModel;
+      CurrentContent = automatizmsView;
     }
 
     private void ShowAbout()

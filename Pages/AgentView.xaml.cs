@@ -10,8 +10,6 @@ namespace AIStudio.Pages
 {
   public partial class AgentView : UserControl
   {
-    private bool _isSelectionChanging = false;
-
     public AgentView()
     {
       InitializeComponent();
@@ -82,6 +80,11 @@ namespace AIStudio.Pages
               MessageBoxButton.OK,
               MessageBoxImage.Warning);
         }
+        if(stageResult.Success && saveSuccess)
+          MessageBox.Show($"{stageResult.Message}",
+            "Изменение стадии развития агента",
+            MessageBoxButton.OK,
+            MessageBoxImage.Information);
       }
       else
       {

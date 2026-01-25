@@ -80,6 +80,11 @@
     <Compile Include="Converters\ActionDisplayTextConverter.cs" />
     <Compile Include="Converters\ActionSizeConverter.cs" />
     <Compile Include="Converters\ActiveBrushConverter.cs" />
+    <Compile Include="Converters\AutomatizmActionsToTextConverter.cs" />
+    <Compile Include="Converters\AutomatizmActionsToTooltipConverter.cs" />
+    <Compile Include="Converters\BaseConditionToTextConverter.cs" />
+    <Compile Include="Converters\BeliefToTextWithTooltipConverter.cs" />
+    <Compile Include="Converters\BeliefToTooltipConverter.cs" />
     <Compile Include="Converters\BooleanToVisibilityConverter.cs" />
     <Compile Include="Converters\CollectionCountToVisibilityConverter.cs" />
     <Compile Include="Converters\DictionaryToStringActionConverter.cs" />
@@ -110,6 +115,7 @@
     <Compile Include="Converters\StyleBackgroundConverter.cs" />
     <Compile Include="Converters\StyleTooltipMultiConverter.cs" />
     <Compile Include="Converters\TriggerTooltipMultiConverter.cs" />
+    <Compile Include="Converters\UsefulnessToColorConverter.cs" />
     <Compile Include="Converters\WordIdToTextConverter.cs" />
     <Compile Include="Converters\PositiveInfluenceSumConverter.cs" />
     <Compile Include="Converters\RowCountToHeightConverter.cs" />
@@ -152,6 +158,9 @@
     </Compile>
     <Compile Include="Pages\AntagonistStylesEditor.xaml.cs">
       <DependentUpon>AntagonistStylesEditor.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Pages\Automatizm\AutomatizmsView.xaml.cs">
+      <DependentUpon>AutomatizmsView.xaml</DependentUpon>
     </Compile>
     <Compile Include="Pages\BehaviorStylesView.xaml.cs">
       <DependentUpon>BehaviorStylesView.xaml</DependentUpon>
@@ -237,6 +246,7 @@
     <Compile Include="ViewModels\AgentPultViewModel.cs" />
     <Compile Include="ViewModels\AgentViewModel.cs" />
     <Compile Include="ViewModels\AntagonistMatrixViewModel.cs" />
+    <Compile Include="ViewModels\Automatizm\AutomatizmsViewModel.cs" />
     <Compile Include="ViewModels\BehaviorStylesViewModel.cs" />
     <Compile Include="ViewModels\AgentInfo.cs" />
     <Compile Include="ViewModels\ExterInalInfluencesViewModel.cs" />
@@ -311,6 +321,10 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="Pages\AntagonistStylesEditor.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Pages\Automatizm\AutomatizmsView.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

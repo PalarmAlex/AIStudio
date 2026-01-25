@@ -1,0 +1,304 @@
+﻿<UserControl x:Class="AIStudio.Pages.Automatizm.AutomatizmsView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:AIStudio.Pages"
+             xmlns:converters="clr-namespace:AIStudio.Converters"
+             mc:Ignorable="d" 
+             d:DesignHeight="450" d:DesignWidth="900">
+
+  <UserControl.Resources>
+    <converters:ListToStringConverter x:Key="ListToStringConverter"/>
+    <converters:InverseBooleanConverter x:Key="InverseBooleanConverter"/>
+    <converters:BaseConditionToTextConverter x:Key="BaseConditionToTextConverter"/>
+    <converters:AutomatizmActionsToTextConverter x:Key="AutomatizmActionsToTextConverter"/>
+    <converters:AutomatizmActionsToTooltipConverter x:Key="AutomatizmActionsToTooltipConverter"/>
+    <converters:BeliefToTextWithTooltipConverter x:Key="BeliefToTextWithTooltipConverter"/>
+    <converters:BeliefToTooltipConverter x:Key="BeliefToTooltipConverter"/>
+    <converters:UsefulnessToColorConverter x:Key="UsefulnessToColorConverter"/>
+
+    <Style x:Key="BaseTextBlockStyle" TargetType="TextBlock">
+      <Setter Property="Background" Value="White"/>
+      <Style.Triggers>
+        <Trigger Property="Validation.HasError" Value="true">
+          <Setter Property="Background" Value="#FFFDE6E6"/>
+        </Trigger>
+      </Style.Triggers>
+    </Style>
+
+  </UserControl.Resources>
+
+  <Grid Margin="12">
+    <Grid.RowDefinitions>
+      <RowDefinition Height="Auto"/>
+      <RowDefinition Height="Auto"/>
+      <RowDefinition Height="Auto"/>
+      <RowDefinition Height="*"/>
+      <RowDefinition Height="Auto"/>
+    </Grid.RowDefinitions>
+
+    <!-- Заголовок -->
+    <TextBlock Grid.Row="0" 
+               Text="{Binding CurrentAgentTitle}" 
+               FontSize="18"
+               FontWeight="SemiBold"
+               HorizontalAlignment="Center"
+               Margin="0,0,0,5"
+               Foreground="#FF333333"/>
+
+    <TextBlock Grid.Row="1" 
+               HorizontalAlignment="Left"
+               Margin="0,0,0,10"
+               Foreground="#FF333333"
+               TextWrapping="Wrap"
+               Height="Auto">
+      <Run Text="{Binding CurrentAgentDescription.Text}"/>
+      <Hyperlink Command="{Binding CurrentAgentDescription.OpenLinkCommand}">
+        <Run Text="{Binding CurrentAgentDescription.LinkText}"/>
+      </Hyperlink>
+    </TextBlock>
+
+    <!-- Панель фильтров -->
+    <Border Grid.Row="2" 
+            BorderBrush="#FFE0E0E0" 
+            BorderThickness="1"
+            CornerRadius="4"
+            Margin="0,0,0,10"
+            Padding="5"
+            Background="#FFF5F5F5">
+      <StackPanel Orientation="Horizontal">
+        <TextBlock Text="Фильтры:" 
+                   VerticalAlignment="Center" 
+                   Margin="0,0,10,0"
+                   FontWeight="Bold"/>
+
+        <!-- Фильтр по состоянию -->
+        <StackPanel Orientation="Vertical" Margin="0,0,15,0" Width="140">
+          <TextBlock Text="Состояние" FontSize="12" Margin="0,0,0,2"/>
+          <ComboBox Style="{StaticResource AgentComboBoxStyle}"
+                    ItemsSource="{Binding BaseConditionFilterOptions}"
+                    SelectedValue="{Binding SelectedBaseConditionFilter}"
+                    DisplayMemberPath="Value"
+                    SelectedValuePath="Key"
+                    Height="25" Cursor="Hand"/>
+        </StackPanel>
+
+        <!-- Фильтр по полезности -->
+        <StackPanel Orientation="Vertical" Margin="0,0,15,0" Width="200">
+          <TextBlock Text="Полезность" FontSize="12" Margin="0,0,0,2"/>
+          <ComboBox Style="{StaticResource AgentComboBoxStyle}"
+                    ItemsSource="{Binding UsefulnessFilterOptions}"
+                    SelectedValue="{Binding SelectedUsefulnessFilter}"
+                    DisplayMemberPath="Value"
+                    SelectedValuePath="Key"
+                    Height="25"/>
+        </StackPanel>
+
+        <!-- Фильтр по уверенности -->
+        <StackPanel Orientation="Vertical" Margin="0,0,15,0" Width="200">
+          <TextBlock Text="Уверенность" FontSize="12" Margin="0,0,0,2"/>
+          <ComboBox Style="{StaticResource AgentComboBoxStyle}"
+                    ItemsSource="{Binding BeliefFilterOptions}"
+                    SelectedValue="{Binding SelectedBeliefFilter}"
+                    DisplayMemberPath="Value"
+                    SelectedValuePath="Key"
+                    Height="25"/>
+        </StackPanel>
+
+        <!-- Кнопка сброса фильтров -->
+        <Button Content="Сбросить фильтры" 
+                Command="{Binding ClearFiltersCommand}"
+                Style="{StaticResource AgentButtonStyle}"
+                Margin="10,15,0,0"
+                Height="30"
+                Width="150" Cursor="Hand"
+                HorizontalAlignment="Right"/>
+      </StackPanel>
+    </Border>
+
+    <Border Grid.Row="3" 
+            BorderBrush="#FFE0E0E0" 
+            BorderThickness="1"
+            CornerRadius="4"
+            Margin="0,0,0,5">
+
+      <DataGrid ItemsSource="{Binding AutomatizmsView}"
+                x:Name="AutomatizmsGrid"
+                IsEnabled="True"
+                IsReadOnly="True"
+                AutoGenerateColumns="False"
+                CanUserAddRows="False"
+                SelectionMode="Extended"
+                BorderThickness="0"
+                Background="White"
+                RowBackground="#FFF9F9F9"
+                AlternatingRowBackground="White"
+                GridLinesVisibility="None"
+                VerticalScrollBarVisibility="Auto"
+                HorizontalScrollBarVisibility="Auto"
+                PreviewKeyDown="DataGrid_PreviewKeyDown">
+
+        <DataGrid.Columns>
+          <DataGridTextColumn Header="ID" Binding="{Binding ID}" Width="50" IsReadOnly="True"/>
+
+          <!-- Состояние -->
+          <DataGridTemplateColumn Header="Состояние" Width="Auto">
+            <DataGridTemplateColumn.HeaderStyle>
+              <Style TargetType="DataGridColumnHeader">
+                <Setter Property="ToolTip" 
+                        Value="Базовое состояние: -1 - Плохо, 0 - Норма, 1 - Хорошо"/>
+              </Style>
+            </DataGridTemplateColumn.HeaderStyle>
+            <DataGridTemplateColumn.CellTemplate>
+              <DataTemplate>
+                <TextBlock Text="{Binding BaseCondition, Converter={StaticResource BaseConditionToTextConverter}}"/>
+              </DataTemplate>
+            </DataGridTemplateColumn.CellTemplate>
+          </DataGridTemplateColumn>
+
+          <!-- ID контекста (EmotionID) -->
+          <DataGridTextColumn Header="Контекст ID" 
+                              Binding="{Binding EmotionID}" 
+                              Width="90"
+                              IsReadOnly="True">
+            <DataGridTextColumn.HeaderStyle>
+              <Style TargetType="DataGridColumnHeader">
+                <Setter Property="ToolTip" Value="ID эмоции/контекста"/>
+              </Style>
+            </DataGridTextColumn.HeaderStyle>
+          </DataGridTextColumn>
+
+          <!-- ID активности (ActivityID) -->
+          <DataGridTextColumn Header="Активность ID" 
+                              Binding="{Binding ActivityID}" 
+                              Width="100"
+                              IsReadOnly="True">
+            <DataGridTextColumn.HeaderStyle>
+              <Style TargetType="DataGridColumnHeader">
+                <Setter Property="ToolTip" Value="ID образа сочетания действий с Пульта"/>
+              </Style>
+            </DataGridTextColumn.HeaderStyle>
+          </DataGridTextColumn>
+
+          <!-- Образ действия -->
+          <DataGridTemplateColumn Header="Образ действия" Width="250">
+            <DataGridTemplateColumn.HeaderStyle>
+              <Style TargetType="DataGridColumnHeader">
+                <Setter Property="ToolTip" 
+                        Value="Образ действий автоматизма: действия, фразы, тон, настроение"/>
+              </Style>
+            </DataGridTemplateColumn.HeaderStyle>
+            <DataGridTemplateColumn.CellTemplate>
+              <DataTemplate>
+                <TextBlock Text="{Binding ActionsImageDisplay, Converter={StaticResource AutomatizmActionsToTextConverter}}"
+                         ToolTip="{Binding ActionsImageDisplay, Converter={StaticResource AutomatizmActionsToTooltipConverter}}"
+                         TextTrimming="CharacterEllipsis"/>
+              </DataTemplate>
+            </DataGridTemplateColumn.CellTemplate>
+          </DataGridTemplateColumn>
+
+          <!-- Полезность с цветом -->
+          <DataGridTemplateColumn Header="Полезность" Width="80">
+            <DataGridTemplateColumn.HeaderStyle>
+              <Style TargetType="DataGridColumnHeader">
+                <Setter Property="ToolTip" Value="(БЕС)ПОЛЕЗНОСТЬ: -10 вред 0 +10 +n польза"/>
+              </Style>
+            </DataGridTemplateColumn.HeaderStyle>
+            <DataGridTemplateColumn.CellTemplate>
+              <DataTemplate>
+                <TextBlock Text="{Binding Usefulness}" 
+                         HorizontalAlignment="Center"
+                         Foreground="{Binding Usefulness, Converter={StaticResource UsefulnessToColorConverter}}"
+                         FontWeight="Bold"/>
+              </DataTemplate>
+            </DataGridTemplateColumn.CellTemplate>
+          </DataGridTemplateColumn>
+
+          <!-- Уверенность с подсказкой -->
+          <DataGridTemplateColumn Header="Уверенность" Width="100">
+            <DataGridTemplateColumn.HeaderStyle>
+              <Style TargetType="DataGridColumnHeader">
+                <Setter Property="ToolTip" 
+                        Value="0 - предположение, 1 - чужие сведения, 2 - проверенное собственное знание"/>
+              </Style>
+            </DataGridTemplateColumn.HeaderStyle>
+            <DataGridTemplateColumn.CellTemplate>
+              <DataTemplate>
+                <TextBlock Text="{Binding Belief, Converter={StaticResource BeliefToTextWithTooltipConverter}}"
+                         HorizontalAlignment="Center"
+                         ToolTip="{Binding Belief, Converter={StaticResource BeliefToTooltipConverter}}"/>
+              </DataTemplate>
+            </DataGridTemplateColumn.CellTemplate>
+          </DataGridTemplateColumn>
+
+          <!-- Энергичность -->
+          <DataGridTextColumn Header="Энергия" 
+                              Binding="{Binding Energy}" 
+                              Width="70"
+                              IsReadOnly="True">
+            <DataGridTextColumn.HeaderStyle>
+              <Style TargetType="DataGridColumnHeader">
+                <Setter Property="ToolTip" Value="Энергичность действия или фразы (от 1 до 10, по умолчанию = 5)"/>
+              </Style>
+            </DataGridTextColumn.HeaderStyle>
+            <DataGridTextColumn.CellStyle>
+              <Style TargetType="DataGridCell">
+                <Setter Property="HorizontalAlignment" Value="Center"/>
+              </Style>
+            </DataGridTextColumn.CellStyle>
+          </DataGridTextColumn>
+
+          <!-- Счетчик использования -->
+          <DataGridTextColumn Header="Использований" 
+                              Binding="{Binding Count}" 
+                              Width="90"
+                              IsReadOnly="True">
+            <DataGridTextColumn.HeaderStyle>
+              <Style TargetType="DataGridColumnHeader">
+                <Setter Property="ToolTip" Value="Число использований с подтверждением (бес)полезности"/>
+              </Style>
+            </DataGridTextColumn.HeaderStyle>
+            <DataGridTextColumn.CellStyle>
+              <Style TargetType="DataGridCell">
+                <Setter Property="HorizontalAlignment" Value="Center"/>
+              </Style>
+            </DataGridTextColumn.CellStyle>
+          </DataGridTextColumn>
+        </DataGrid.Columns>
+      </DataGrid>
+    </Border>
+
+    <!-- Кнопки управления -->
+    <Grid Grid.Row="4" Margin="0,0,0,0">
+      <Grid.ColumnDefinitions>
+        <ColumnDefinition Width="*"/>
+        <ColumnDefinition Width="Auto"/>
+      </Grid.ColumnDefinitions>
+
+      <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
+        <!-- Текст предупреждения -->
+        <TextBlock Grid.Column="0"
+                   Text="Таблица автоматизмов доступна только для просмотра и удаления (доступна со стадии 2)"
+                   Foreground="#FF333333"
+                   FontStyle="Italic"
+                   VerticalAlignment="Center"
+                   Margin="8,0,0,0"
+                   TextWrapping="Wrap"/>
+      </StackPanel>
+
+      <!-- Кнопки -->
+      <StackPanel Grid.Column="1" 
+                  Orientation="Horizontal" 
+                  HorizontalAlignment="Right">
+        <Button Content="Очистить таблицу"
+                Command="{Binding RemoveAllCommand}"
+                IsEnabled="{Binding IsDeletionEnabled}"
+                Style="{StaticResource RedButtonStyle}"
+                ToolTip="Удалить все автоматизмы агента"
+                Margin="0,0,5,0"/>
+      </StackPanel>
+    </Grid>
+
+  </Grid>
+</UserControl>

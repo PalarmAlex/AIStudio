@@ -211,7 +211,7 @@
           </DataGridTemplateColumn>
 
           <!--Адаптивные действия -->
-          <DataGridTemplateColumn Header="Адаптивные действия исходного рефлекса" Width="200">
+          <DataGridTemplateColumn Header="Действия исходного рефлекса" Width="200">
             <DataGridTemplateColumn.HeaderStyle>
               <Style TargetType="DataGridColumnHeader">
                 <Setter Property="ToolTip" 
