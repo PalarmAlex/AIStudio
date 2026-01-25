@@ -27,6 +27,7 @@ namespace AIStudio.ViewModels
 
     public ObservableCollection<AdaptiveAction> GeneticReflexActions { get; } = new ObservableCollection<AdaptiveAction>();
     public ObservableCollection<AdaptiveAction> ConditionedReflexActions { get; } = new ObservableCollection<AdaptiveAction>();
+    public ObservableCollection<AdaptiveAction> AutomatizmActions { get; } = new ObservableCollection<AdaptiveAction>();
 
     private readonly AdaptiveActionsSystem _adaptiveActionsSystem;
     private readonly SensorySystem _sensorySystem;
@@ -75,6 +76,7 @@ namespace AIStudio.ViewModels
     {
       GeneticReflexActions.Clear();
       ConditionedReflexActions.Clear();
+      AutomatizmActions.Clear();
 
       foreach (var action in CurrentActiveActions)
       {
@@ -86,10 +88,14 @@ namespace AIStudio.ViewModels
           case ActionActivationSource.ConditionedReflex:
             ConditionedReflexActions.Add(action);
             break;
+          case ActionActivationSource.Automatizm:
+            AutomatizmActions.Add(action);
+            break;
         }
       }
       OnPropertyChanged(nameof(GeneticReflexActions));
       OnPropertyChanged(nameof(ConditionedReflexActions));
+      OnPropertyChanged(nameof(AutomatizmActions));
     }
 
     private void UpdateReflexPhrasesText()

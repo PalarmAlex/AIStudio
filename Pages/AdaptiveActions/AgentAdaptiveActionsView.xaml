@@ -187,9 +187,10 @@
                 Height="50">
           <StackPanel>
             <TextBlock Text="Нет автоматизмов"
-                  Style="{StaticResource NoAdaptationTextStyle}"/>
+                  Style="{StaticResource NoAdaptationTextStyle}"
+                  Visibility="{Binding AutomatizmActions.Count, Converter={StaticResource IntToVisibilityConverter}, ConverterParameter=true}"/>
 
-            <ItemsControl ItemTemplate="{StaticResource ActionItemTemplate}">
+            <ItemsControl ItemsSource="{Binding AutomatizmActions}" ItemTemplate="{StaticResource ActionItemTemplate}">
               <ItemsControl.ItemsPanel>
                 <ItemsPanelTemplate>
                   <WrapPanel Orientation="Horizontal" HorizontalAlignment="Center"/>

@@ -19,36 +19,79 @@ namespace AIStudio.Pages
 
     private void StageComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
     {
-      if (_isSelectionChanging) return;
-
-      if (sender is ComboBox comboBox &&
-          comboBox.DataContext is AgentViewModel viewModel &&
-          e.AddedItems.Count > 0 &&
-          e.AddedItems[0] is int newStage)
+      if (!(sender is ComboBox comboBox) ||
+          !(comboBox.DataContext is AgentViewModel viewModel) ||
+          e.AddedItems.Count == 0 ||
+          !(e.AddedItems[0] is int newStage))
       {
-        // Сохраняем текущее значение ДО любых изменений
-        int oldStage = viewModel.SelectedStage;
+        return;
+      }
 
-        // Если новая стадия равна текущей - ничего не делаем
-        if (newStage == oldStage) return;
+      int currentStage = viewModel.Gomeostas.GetAgentState().EvolutionStage;
+      if (newStage == currentStage)
+      {
+        if (viewModel.SelectedStage != currentStage)
+          viewModel.SelectedStage = currentStage;
+        return;
+      }
 
-        _isSelectionChanging = true;
+      if (newStage > currentStage + 1)
+      {
+        MessageBox.Show($"Недопустимый переход! Можно переходить только на следующую стадию.",
+            "Ошибка",
+            MessageBoxButton.OK,
+            MessageBoxImage.Warning);
 
-        try
+        comboBox.Dispatcher.InvokeAsync(() =>
         {
-          viewModel.ChangeStageCommand.Execute(newStage);
-        }
-        catch (Exception ex) when (ex is InvalidOperationException)
-        {
-          // Откатываем значение ComboBox при ошибке
-          comboBox.SelectedValue = oldStage;
-        }
-        finally
-        {
-          _isSelectionChanging = false;
-        }
+          comboBox.SelectedValue = currentStage;
+        });
+        return;
+      }
 
-        viewModel.UpdateEditableProperties();
+      bool isBackward = newStage < currentStage;
+      string title = isBackward ? "ВНИМАНИЕ: Возврат на предыдущую стадию" : "Подтверждение перехода";
+      string message = isBackward
+          ? $"Возврат на стадию {newStage} очистит все данные последующих стадий. Продолжить?"
+          : $"Перейти со стадии {currentStage} на стадию {newStage}?";
+
+      var result = MessageBox.Show(message, title,
+          MessageBoxButton.YesNo,
+          isBackward ? MessageBoxImage.Warning : MessageBoxImage.Question);
+
+      if (result != MessageBoxResult.Yes)
+      {
+        comboBox.Dispatcher.InvokeAsync(() =>
+        {
+          comboBox.SelectedValue = currentStage;
+        });
+        return;
+      }
+
+      var stageResult = viewModel.Gomeostas.SetEvolutionStage(newStage, isBackward, false);
+
+      if (stageResult.Success)
+      {
+        viewModel.LoadAgentData();
+
+        var (saveSuccess, error) = viewModel.Gomeostas.SaveAgentProperties();
+        if (!saveSuccess)
+        {
+          MessageBox.Show($"Ошибка сохранения: {error}",
+              "Предупреждение",
+              MessageBoxButton.OK,
+              MessageBoxImage.Warning);
+        }
+      }
+      else
+      {
+        MessageBox.Show(stageResult.Message, "Ошибка",
+            MessageBoxButton.OK, MessageBoxImage.Error);
+
+        comboBox.Dispatcher.InvokeAsync(() =>
+        {
+          comboBox.SelectedValue = currentStage;
+        });
       }
     }
 

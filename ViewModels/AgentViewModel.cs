@@ -16,10 +16,9 @@ namespace AIStudio.ViewModels
   public class AgentViewModel : INotifyPropertyChanged
   {
     private readonly GomeostasSystem _gomeostas;
-    private ICommand _changeStageCommand;
+    public GomeostasSystem Gomeostas => _gomeostas;
     private ICommand _updateCommand;
     public ICommand UpdateCommand => _updateCommand ?? (_updateCommand = new RelayCommand(_ => UpdateAgentProperties(), _ => !IsAgentDead));
-    public ICommand ChangeStageCommand => _changeStageCommand ?? (_changeStageCommand = new RelayCommand(ChangeStage, _ => !IsAgentDead));
     private bool _disposed = false;
     private int _previousStage;
     private bool _isAgentDead;
@@ -81,9 +80,7 @@ namespace AIStudio.ViewModels
           OnPropertyChanged(nameof(IsAnyControlEnabled));
           OnPropertyChanged(nameof(HomeostasisStatusColor));
 
-          // Обновляем команды
           (_updateCommand as RelayCommand)?.RaiseCanExecuteChanged();
-          (_changeStageCommand as RelayCommand)?.RaiseCanExecuteChanged();
         }
       }
     }
@@ -130,9 +127,8 @@ namespace AIStudio.ViewModels
           OnPropertyChanged(nameof(WarningMessageColor));
 
           if (AgentProperties.Count > 0 && !IsAgentDead)
-          {
             AgentName = $"{AgentProperties[0].Value}. Стадия развития: {value}";
-          }
+
           UpdateEditableProperties();
         }
       }
@@ -247,11 +243,22 @@ namespace AIStudio.ViewModels
       {
         _gomeostas.SetAgentName(AgentProperties[0].Value);
         _gomeostas.SetAgentDescription(AgentProperties[1].Value);
-        _gomeostas.SetEvolutionStage(SelectedStage);
 
-        var (success, error) = _gomeostas.SaveAgentProperties();
+        var stageResult = _gomeostas.SetEvolutionStage(SelectedStage, false, false);
+        if (!stageResult.Success)
+        {
+          MessageBox.Show($"Не удалось изменить стадию: {stageResult.Message}",
+              "Ошибка",
+              MessageBoxButton.OK,
+              MessageBoxImage.Error);
 
-        if (success)
+          LoadAgentData();
+          return;
+        }
+
+        var (saveSuccess, error) = _gomeostas.SaveAgentProperties();
+
+        if (saveSuccess)
         {
           AgentName = $"{AgentProperties[0].Value}. Стадия развития: {SelectedStage}";
 
@@ -263,8 +270,8 @@ namespace AIStudio.ViewModels
 
           if (result == MessageBoxResult.Yes)
           {
-            (success, error) = _gomeostas.SaveAgentParameters(false);
-            if (success)
+            (saveSuccess, error) = _gomeostas.SaveAgentParameters(false);
+            if (saveSuccess)
             {
               MessageBox.Show("Значения параметров успешно сохранены",
                   "Сохранение",
@@ -334,7 +341,7 @@ namespace AIStudio.ViewModels
       });
     }
 
-    private void LoadAgentData()
+    public void LoadAgentData()
     {
       try
       {
@@ -433,106 +440,6 @@ namespace AIStudio.ViewModels
       OnPropertyChanged(nameof(IsAnyControlEnabled));
     }
 
-    private void ChangeStage(object stageObj)
-    {
-      if (IsAgentDead)
-      {
-        MessageBox.Show("Невозможно изменить стадию мертвого агента",
-            "Агент мертв",
-            MessageBoxButton.OK,
-            MessageBoxImage.Error);
-        return;
-      }
-
-      if (!IsStageSelectionEnabled || GlobalTimer.IsPulsationRunning)
-        return;
-
-      if (stageObj is int newStage)
-      {
-        int currentStage = SelectedStage;
-        if (newStage == currentStage) return;
-
-        try
-        {
-          var result = _gomeostas.SetEvolutionStageWithValidation(newStage);
-
-          if (result.Success)
-          {
-            var dialogResult = MessageBox.Show("Вы собираетесь перейти на следующую стадию?", "Подтверждение смены стадии",
-              MessageBoxButton.YesNo, MessageBoxImage.Warning);
-
-            if(dialogResult == MessageBoxResult.Yes)
-            {
-              SelectedStage = newStage;
-              LoadAgentData();
-              _previousStage = currentStage;
-
-              var (success, error) = _gomeostas.SaveAgentProperties();
-              if (!success)
-                MessageBox.Show(error, "Ошибка сохранения стадии",
-                    MessageBoxButton.OK, MessageBoxImage.Warning);
-            }
-            else
-            {
-              throw new InvalidOperationException("Переход на следующую стадию отменен");
-            }
-          }
-          else
-          {
-            if (result.Message.Contains("Продолжить?"))
-            {
-              var dialogResult = MessageBox.Show(result.Message, "Подтверждение возврата",
-                  MessageBoxButton.YesNo, MessageBoxImage.Warning);
-
-              if (dialogResult == MessageBoxResult.Yes)
-              {
-                var forceResult = _gomeostas.SetEvolutionStageWithValidation(newStage, true);
-
-                if (forceResult.Success)
-                {
-                  SelectedStage = newStage;
-                  LoadAgentData();
-                  _previousStage = currentStage;
-
-                  MessageBox.Show($"Успешно возвращены на стадию {newStage}. Данные последующих стадий очищены.",
-                      "Возврат выполнен", MessageBoxButton.OK, MessageBoxImage.Information);
-
-                  var (success, error) = _gomeostas.SaveAgentProperties();
-                  if (!success)
-                    MessageBox.Show(error, "Ошибка сохранения стадии",
-                        MessageBoxButton.OK, MessageBoxImage.Warning);
-                }
-                else
-                {
-                  throw new InvalidOperationException(forceResult.Message);
-                }
-              }
-              else
-              {
-                throw new InvalidOperationException("Возврат на предыдущую стадию отменен");
-              }
-            }
-            else
-            {
-              MessageBox.Show(result.Message, "Ошибка перехода",
-                  MessageBoxButton.OK, MessageBoxImage.Warning);
-              throw new InvalidOperationException(result.Message);
-            }
-          }
-        }
-        catch (Exception ex) when (ex is InvalidOperationException)
-        {
-          throw;
-        }
-        catch (Exception ex)
-        {
-          MessageBox.Show($"Ошибка при изменении стадии: {ex.Message}",
-              "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
-          throw new InvalidOperationException("Stage change failed", ex);
-        }
-      }
-    }
-
     public void Dispose()
     {
       Dispose(true);
@@ -553,6 +460,7 @@ namespace AIStudio.ViewModels
     }
 
     public event PropertyChangedEventHandler PropertyChanged;
+
     protected virtual void OnPropertyChanged(string propertyName) =>
         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
   }
