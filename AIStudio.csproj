@@ -82,7 +82,7 @@
     <Compile Include="Converters\ActiveBrushConverter.cs" />
     <Compile Include="Converters\AutomatizmActionsToTextConverter.cs" />
     <Compile Include="Converters\AutomatizmActionsToTooltipConverter.cs" />
-    <Compile Include="Converters\BaseConditionToTextConverter.cs" />
+    <Compile Include="Converters\TreeNodeConditionsToTooltipConverter.cs" />
     <Compile Include="Converters\BeliefToTextWithTooltipConverter.cs" />
     <Compile Include="Converters\BeliefToTooltipConverter.cs" />
     <Compile Include="Converters\BooleanToVisibilityConverter.cs" />
@@ -90,6 +90,7 @@
     <Compile Include="Converters\DictionaryToStringActionConverter.cs" />
     <Compile Include="Converters\DictionaryToStringConverter.cs" />
     <Compile Include="Converters\IdListToNamesConverter.cs" />
+    <Compile Include="Converters\InfluenceActionsToTooltipConverter.cs" />
     <Compile Include="Converters\InfluenceValidationRule.cs" />
     <Compile Include="Converters\IntDictionaryToStringConverter.cs" />
     <Compile Include="Converters\IntToVisibilityConverter.cs" />

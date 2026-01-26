@@ -19,6 +19,7 @@ using System.Windows.Controls;
 using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Media;
+using static ISIDA.Psychic.VerbalBrocaImagesSystem;
 
 namespace AIStudio
 {
@@ -44,6 +45,8 @@ namespace AIStudio
     private readonly ReflexExecutionService _reflexExecution;
     private readonly ResearchLogger _researchLogger;
     private readonly InfluenceActionsImagesSystem _influenceActionsImagesSystem;
+    private readonly EmotionsImageSystem _emotionsImageSystem;
+    private readonly VerbalBrocaImagesSystem _verbalBrocaImages;
 
     public event PropertyChangedEventHandler PropertyChanged;
     private AgentViewModel _agentViewModel;
@@ -156,6 +159,8 @@ namespace AIStudio
         _reflexExecution = _isidaContext.ReflexExecution;
         _researchLogger = _isidaContext.ResearchLogger;
         _influenceActionsImagesSystem = _isidaContext.InfluenceActionsImages;
+        _emotionsImageSystem = _isidaContext.EmotionsImageSystem;
+        _verbalBrocaImages = _isidaContext.VerbalBrocaImagesSystem;
 
         _stepInzialized = 4;
       }
@@ -405,7 +410,12 @@ namespace AIStudio
           _automatizmSystem,
           _automatizmTreeSystem,
           _actionsImagesSystem,
-          _influenceActionsImagesSystem);
+          _influenceActionsImagesSystem,
+          _emotionsImageSystem,
+          _sensorySystem,
+          _influenceActionSystem,
+          _actionsSystem,
+          _verbalBrocaImages);
       automatizmsView.DataContext = viewModel;
       CurrentContent = automatizmsView;
     }

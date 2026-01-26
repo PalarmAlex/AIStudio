@@ -62,7 +62,6 @@ namespace AIStudio.Converters
         catch (Exception ex)
         {
           Console.WriteLine($"Ошибка в IdListToNamesConverter ({systemType}): {ex.Message}");
-          // Для отладки - возвращаем ID при ошибке
           return string.Join(", ", idList.Select(id => $"[{id}]"));
         }
       }

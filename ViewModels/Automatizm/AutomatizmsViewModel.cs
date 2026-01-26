@@ -1,17 +1,22 @@
 ﻿using AIStudio.Views;
+using ISIDA.Actions;
 using ISIDA.Common;
 using ISIDA.Gomeostas;
+using ISIDA.Psychic;
 using ISIDA.Psychic.Automatism;
+using ISIDA.Sensors;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Linq;
+using System.Text;
 using System.Windows;
 using System.Windows.Data;
 using System.Windows.Input;
 using System.Windows.Media;
+using static ISIDA.Psychic.VerbalBrocaImagesSystem;
 
 namespace AIStudio.ViewModels
 {
@@ -28,6 +33,12 @@ namespace AIStudio.ViewModels
     private readonly AutomatizmTreeSystem _automatizmTreeSystem;
     private readonly ActionsImagesSystem _actionsImagesSystem;
     private readonly InfluenceActionsImagesSystem _influenceActionsImagesSystem;
+    private readonly EmotionsImageSystem _emotionsImageSystem;
+    private readonly SensorySystem _sensorySystem;
+    private readonly InfluenceActionSystem _influenceActionSystem;
+    private readonly AdaptiveActionsSystem _adaptiveActionsSystem;
+    private readonly VerbalBrocaImagesSystem _verbalBrocaImages;
+
     private string _currentAgentName;
     private int _currentAgentStage;
 
@@ -37,6 +48,8 @@ namespace AIStudio.ViewModels
 
     private Dictionary<int, ActionsImagesSystem.ActionsImage> _actionsImageCache = new Dictionary<int, ActionsImagesSystem.ActionsImage>();
     private Dictionary<int, AutomatizmNode> _nodeCache = new Dictionary<int, AutomatizmNode>();
+    private Dictionary<int, List<int>> _influenceActionsImagesCache = new Dictionary<int, List<int>>();
+    private Dictionary<int, EmotionsImageSystem.EmotionsImage> _emotionImageCache = new Dictionary<int, EmotionsImageSystem.EmotionsImage>();
 
     public GomeostasSystem GomeostasSystem => _gomeostas;
     public bool IsStageTwoOrHigher => _currentAgentStage >= 2;
@@ -55,13 +68,23 @@ namespace AIStudio.ViewModels
         AutomatizmSystem automatizmSystem,
         AutomatizmTreeSystem automatizmTreeSystem,
         ActionsImagesSystem actionsImagesSystem,
-        InfluenceActionsImagesSystem influenceActionsImagesSystem)
+        InfluenceActionsImagesSystem influenceActionsImagesSystem,
+        EmotionsImageSystem emotionsImageSystem,
+        SensorySystem sensorySystem,
+        InfluenceActionSystem influenceActionSystem,
+        AdaptiveActionsSystem adaptiveActionsSystem,
+        VerbalBrocaImagesSystem verbalBrocaImages)
     {
       _gomeostas = gomeostasSystem ?? throw new ArgumentNullException(nameof(gomeostasSystem));
       _automatizmSystem = automatizmSystem ?? throw new ArgumentNullException(nameof(automatizmSystem));
       _automatizmTreeSystem = automatizmTreeSystem ?? throw new ArgumentNullException(nameof(automatizmTreeSystem));
       _actionsImagesSystem = actionsImagesSystem ?? throw new ArgumentNullException(nameof(actionsImagesSystem));
       _influenceActionsImagesSystem = influenceActionsImagesSystem ?? throw new ArgumentNullException(nameof(influenceActionsImagesSystem));
+      _emotionsImageSystem = emotionsImageSystem ?? throw new ArgumentNullException(nameof(emotionsImageSystem));
+      _sensorySystem = sensorySystem ?? throw new ArgumentNullException(nameof(sensorySystem));
+      _influenceActionSystem = influenceActionSystem ?? throw new ArgumentNullException(nameof(influenceActionSystem));
+      _adaptiveActionsSystem = adaptiveActionsSystem ?? throw new ArgumentNullException(nameof(adaptiveActionsSystem));
+      _verbalBrocaImages = verbalBrocaImages ?? throw new ArgumentNullException(nameof(verbalBrocaImages));
 
       _automatizmsView = CollectionViewSource.GetDefaultView(_allAutomatizms);
       _automatizmsView.Filter = FilterAutomatizms;
@@ -71,6 +94,7 @@ namespace AIStudio.ViewModels
 
       GlobalTimer.PulsationStateChanged += OnPulsationStateChanged;
       LoadAgentData();
+      _verbalBrocaImages = verbalBrocaImages;
     }
 
     private bool FilterAutomatizms(object item)
@@ -134,12 +158,12 @@ namespace AIStudio.ViewModels
         };
 
     public List<KeyValuePair<string, string>> UsefulnessFilterOptions { get; } = new List<KeyValuePair<string, string>>
-        {
-            new KeyValuePair<string, string>(null, "Все"),
-            new KeyValuePair<string, string>("<0", "Вредные (<0)"),
-            new KeyValuePair<string, string>("=0", "Нейтральные (=0)"),
-            new KeyValuePair<string, string>(">0", "Полезные (>0)")
-        };
+    {
+      new KeyValuePair<string, string>(null, "Все"),
+      new KeyValuePair<string, string>("<0", "Вредные (<0)"),
+      new KeyValuePair<string, string>("=0", "Нейтральные (=0)"),
+      new KeyValuePair<string, string>(">0", "Полезные (>0)")
+    };
 
     public List<KeyValuePair<int?, string>> BeliefFilterOptions { get; } = new List<KeyValuePair<int?, string>>
         {
@@ -211,56 +235,218 @@ namespace AIStudio.ViewModels
 
     private void RefreshAllCollections()
     {
-      var agentInfo = _gomeostas.GetAgentState();
-      _currentAgentStage = agentInfo?.EvolutionStage ?? 0;
-      _currentAgentName = agentInfo.Name;
-
-      _allAutomatizms.Clear();
-      _actionsImageCache.Clear();
-      _nodeCache.Clear();
-
-      foreach (var automatizm in _automatizmSystem.GetAllAutomatizms().OrderBy(a => a.ID))
+      try
       {
-        var treeNode = GetTreeNode(automatizm.BranchID);
-        var actionsImage = GetActionsImage(automatizm.ActionsImageID);
+        var agentInfo = _gomeostas.GetAgentState();
+        _currentAgentStage = agentInfo?.EvolutionStage ?? 0;
+        _currentAgentName = agentInfo.Name;
 
-        var displayItem = new AutomatizmDisplayItem
+        _allAutomatizms.Clear();
+        _actionsImageCache.Clear();
+        _nodeCache.Clear();
+        _influenceActionsImagesCache.Clear();
+        _emotionImageCache.Clear();
+
+        foreach (var automatizm in _automatizmSystem.GetAllAutomatizms().OrderBy(a => a.ID))
         {
-          ID = automatizm.ID,
-          BranchID = automatizm.BranchID,
-          Usefulness = automatizm.Usefulness,
-          ActionsImageID = automatizm.ActionsImageID,
-          Belief = automatizm.Belief,
-          Energy = automatizm.Energy,
-          Count = automatizm.Count,
-          NextID = automatizm.NextID,
+          var treeNode = GetTreeNode(automatizm.BranchID);
+          var actionsImage = GetActionsImage(automatizm.ActionsImageID);
 
-          // Поля из узла дерева
-          BaseCondition = treeNode?.BaseID ?? 0,
-          EmotionID = treeNode?.EmotionID ?? 0,
-          ActivityID = treeNode?.ActivityID ?? 0,
-          ToneMoodID = treeNode?.ToneMoodID ?? 0,
-          SimbolID = treeNode?.SimbolID ?? 0,
-          VerbID = treeNode?.VerbID ?? 0,
-
-          // Образ действия для отображения
-          ActionsImageDisplay = new ActionsImageDisplay
+          // Получаем образ эмоций
+          List<int> emotionIdList = new List<int>();
+          if (treeNode?.EmotionID > 0)
           {
-            ActIdList = actionsImage?.ActIdList ?? new List<int>(),
-            PhraseIdList = actionsImage?.PhraseIdList ?? new List<int>(),
-            ToneId = actionsImage?.ToneId ?? 0,
-            MoodId = actionsImage?.MoodId ?? 0
+            emotionIdList = GetEmotionIdsFromEmotionImage(treeNode.EmotionID);
           }
-        };
 
-        _allAutomatizms.Add(displayItem);
+          // Получаем образ воздействия с пульта
+          List<int> influenceActionIds = new List<int>();
+          if (treeNode?.ActivityID > 0)
+          {
+            influenceActionIds = GetInfluenceActionIds(treeNode.ActivityID);
+          }
+
+          // Получаем информацию о тоне и настроении
+          string toneMoodText = string.Empty;
+          if (treeNode?.ToneMoodID > 0)
+          {
+            try
+            {
+              toneMoodText = PsychicSystem.GetToneMoodString(treeNode.ToneMoodID);
+            }
+            catch { }
+          }
+
+          // Получаем информацию о вербальном образе
+          string verbalText = string.Empty;
+          if (treeNode?.VerbID > 0)
+          {
+            try
+            {
+              var verbalImage = _verbalBrocaImages.GetVerbalBrocaImage(treeNode.VerbID);
+              if (verbalImage != null && verbalImage.PhraseIdList != null && verbalImage.PhraseIdList.Any())
+              {
+                var phrases = _sensorySystem.VerbalChannel.GetAllPhrases();
+                var phraseTexts = verbalImage.PhraseIdList
+                    .Where(id => phrases.ContainsKey(id))
+                    .Select(id => $"\"{phrases[id]}\"")
+                    .ToList();
+                if (phraseTexts.Any())
+                  verbalText = string.Join(" ", phraseTexts);
+              }
+            }
+            catch { }
+          }
+
+          var displayItem = new AutomatizmDisplayItem
+          {
+            ID = automatizm.ID,
+            BranchID = automatizm.BranchID,
+            Usefulness = automatizm.Usefulness,
+            ActionsImageID = automatizm.ActionsImageID,
+            Belief = automatizm.Belief,
+            Energy = automatizm.Energy,
+            Count = automatizm.Count,
+            NextID = automatizm.NextID,
+
+            // Поля из узла дерева (условия запуска)
+            BaseCondition = treeNode?.BaseID ?? 0,
+            EmotionIdList = emotionIdList,
+            ActivityID = treeNode?.ActivityID ?? 0,
+            InfluenceActionIds = influenceActionIds,
+            ToneMoodID = treeNode?.ToneMoodID ?? 0,
+            SimbolID = treeNode?.SimbolID ?? 0,
+            VerbID = treeNode?.VerbID ?? 0,
+
+            // Текстовые описания для tooltip
+            BaseConditionText = GetBaseConditionText(treeNode?.BaseID ?? 0),
+            EmotionText = GetEmotionText(emotionIdList),
+            InfluenceActionsText = GetInfluenceActionsText(influenceActionIds),
+            ToneMoodText = toneMoodText,
+            VerbalText = verbalText,
+
+            // Образ действия для отображения
+            ActionsImageDisplay = actionsImage != null ? new ActionsImageDisplay
+            {
+              ActIdList = actionsImage.ActIdList ?? new List<int>(),
+              PhraseIdList = actionsImage.PhraseIdList ?? new List<int>(),
+              ToneId = actionsImage.ToneId,
+              MoodId = actionsImage.MoodId
+            } : null
+          };
+
+          _allAutomatizms.Add(displayItem);
+        }
+
+        OnPropertyChanged(nameof(IsStageTwoOrHigher));
+        OnPropertyChanged(nameof(IsDeletionEnabled));
+        OnPropertyChanged(nameof(PulseWarningMessage));
+        OnPropertyChanged(nameof(WarningMessageColor));
+        OnPropertyChanged(nameof(CurrentAgentTitle));
       }
+      catch (Exception ex)
+      {
+        Logger.Error(ex.Message);
+      }
+    }
 
-      OnPropertyChanged(nameof(IsStageTwoOrHigher));
-      OnPropertyChanged(nameof(IsDeletionEnabled));
-      OnPropertyChanged(nameof(PulseWarningMessage));
-      OnPropertyChanged(nameof(WarningMessageColor));
-      OnPropertyChanged(nameof(CurrentAgentTitle));
+    private string GetBaseConditionText(int baseId)
+    {
+      switch (baseId)
+      {
+        case -1: return "Плохо";
+        case 0: return "Норма";
+        case 1: return "Хорошо";
+        default: return $"Неизвестное ({baseId})";
+      }
+    }
+
+    private string GetEmotionText(List<int> emotionIds)
+    {
+      if (emotionIds == null || !emotionIds.Any())
+        return "Нет эмоций";
+
+      try
+      {
+        var behaviorStyles = _gomeostas.GetAllBehaviorStyles();
+        var names = emotionIds
+            .Where(id => behaviorStyles.ContainsKey(id))
+            .Select(id => behaviorStyles[id].Name)
+            .ToList();
+
+        return names.Any() ? string.Join(", ", names) : $"Стили: {string.Join(", ", emotionIds)}";
+      }
+      catch
+      {
+        return $"Стили: {string.Join(", ", emotionIds)}";
+      }
+    }
+
+    private string GetInfluenceActionsText(List<int> actionIds)
+    {
+      if (actionIds == null || !actionIds.Any())
+        return "Нет воздействий";
+
+      try
+      {
+        var allActions = _influenceActionSystem.GetAllInfluenceActions();
+        var names = actionIds
+            .Where(id => allActions.Any(a => a.Id == id))
+            .Select(id => allActions.First(a => a.Id == id).Name)
+            .ToList();
+
+        return names.Any() ? string.Join(", ", names) : $"Действия: {string.Join(", ", actionIds)}";
+      }
+      catch
+      {
+        return $"Действия: {string.Join(", ", actionIds)}";
+      }
+    }
+
+    private List<int> GetEmotionIdsFromEmotionImage(int emotionImageId)
+    {
+      if (emotionImageId <= 0)
+        return new List<int>();
+
+      if (_emotionImageCache.TryGetValue(emotionImageId, out var cachedEmotionImage))
+        return cachedEmotionImage.BaseStylesList?.ToList() ?? new List<int>();
+
+      try
+      {
+        var emotionImage = _emotionsImageSystem.GetEmotionsImage(emotionImageId);
+        if (emotionImage != null)
+        {
+          _emotionImageCache[emotionImageId] = emotionImage;
+          return emotionImage.BaseStylesList?.ToList() ?? new List<int>();
+        }
+      }
+      catch (Exception ex)
+      {
+        Logger.Error($"Ошибка получения эмоций из образа ID={emotionImageId}: {ex.Message}");
+      }
+      return new List<int>();
+    }
+
+    private List<int> GetInfluenceActionIds(int activityId)
+    {
+      if (activityId <= 0)
+        return new List<int>();
+
+      if (_influenceActionsImagesCache.TryGetValue(activityId, out var cachedIds))
+        return cachedIds;
+
+      try
+      {
+        var influenceActions = _influenceActionsImagesSystem.GetInfluenceActionIds(activityId);
+        var ids = influenceActions?.ToList() ?? new List<int>();
+        _influenceActionsImagesCache[activityId] = ids;
+        return ids;
+      }
+      catch (Exception ex)
+      {
+        Logger.Error($"Ошибка получения воздействий для ActivityID={activityId}: {ex.Message}");
+        return new List<int>();
+      }
     }
 
     private AutomatizmNode GetTreeNode(int branchId)
@@ -294,9 +480,7 @@ namespace AIStudio.ViewModels
 
       var image = _actionsImagesSystem.GetActionsImage(actionsImageId);
       if (image != null)
-      {
         _actionsImageCache[actionsImageId] = image;
-      }
 
       return image;
     }
@@ -395,11 +579,19 @@ namespace AIStudio.ViewModels
 
       // Поля из узла дерева (условия запуска)
       public int BaseCondition { get; set; }
-      public int EmotionID { get; set; }
+      public List<int> EmotionIdList { get; set; }
       public int ActivityID { get; set; }
+      public List<int> InfluenceActionIds { get; set; }
       public int ToneMoodID { get; set; }
       public int SimbolID { get; set; }
       public int VerbID { get; set; }
+
+      // Текстовые описания для tooltip
+      public string BaseConditionText { get; set; }
+      public string EmotionText { get; set; }
+      public string InfluenceActionsText { get; set; }
+      public string ToneMoodText { get; set; }
+      public string VerbalText { get; set; }
 
       // Образ действия
       public ActionsImageDisplay ActionsImageDisplay { get; set; }

@@ -11,12 +11,14 @@
   <UserControl.Resources>
     <converters:ListToStringConverter x:Key="ListToStringConverter"/>
     <converters:InverseBooleanConverter x:Key="InverseBooleanConverter"/>
-    <converters:BaseConditionToTextConverter x:Key="BaseConditionToTextConverter"/>
-    <converters:AutomatizmActionsToTextConverter x:Key="AutomatizmActionsToTextConverter"/>
-    <converters:AutomatizmActionsToTooltipConverter x:Key="AutomatizmActionsToTooltipConverter"/>
+    <converters:Level1ToTextConverter x:Key="Level1ToTextConverter"/>
+    <converters:TreeNodeConditionsToTooltipConverter x:Key="TreeNodeConditionsToTooltipConverter"/>
     <converters:BeliefToTextWithTooltipConverter x:Key="BeliefToTextWithTooltipConverter"/>
     <converters:BeliefToTooltipConverter x:Key="BeliefToTooltipConverter"/>
     <converters:UsefulnessToColorConverter x:Key="UsefulnessToColorConverter"/>
+    <converters:IdListToNamesConverter x:Key="IdListToNamesConverter"/>
+    <converters:InfluenceActionsToTooltipConverter x:Key="InfluenceActionsToTooltipConverter"/>
+    <converters:AutomatizmActionsToTooltipConverter x:Key="AutomatizmActionsToTooltipConverter"/>
 
     <Style x:Key="BaseTextBlockStyle" TargetType="TextBlock">
       <Setter Property="Background" Value="White"/>
@@ -142,64 +144,75 @@
         <DataGrid.Columns>
           <DataGridTextColumn Header="ID" Binding="{Binding ID}" Width="50" IsReadOnly="True"/>
 
+          <!-- ID дерева автоматизмов -->
+          <DataGridTemplateColumn Header="ID дерева условий" Width="Auto">
+            <DataGridTemplateColumn.HeaderStyle>
+              <Style TargetType="DataGridColumnHeader">
+                <Setter Property="ToolTip"
+                  Value="ID условий запуска дерева автоматизмов: состояние, эмоции, действия, фразы, тон, настроение"/>
+              </Style>
+            </DataGridTemplateColumn.HeaderStyle>
+            <DataGridTemplateColumn.CellTemplate>
+              <DataTemplate>
+                <TextBlock Text="{Binding BranchID}"
+                  ToolTip="{Binding Converter={StaticResource TreeNodeConditionsToTooltipConverter}}"
+                  HorizontalAlignment="Center"
+                  TextTrimming="CharacterEllipsis"/>
+              </DataTemplate>
+            </DataGridTemplateColumn.CellTemplate>
+          </DataGridTemplateColumn>
+
           <!-- Состояние -->
           <DataGridTemplateColumn Header="Состояние" Width="Auto">
             <DataGridTemplateColumn.HeaderStyle>
               <Style TargetType="DataGridColumnHeader">
                 <Setter Property="ToolTip" 
-                        Value="Базовое состояние: -1 - Плохо, 0 - Норма, 1 - Хорошо"/>
+                        Value="Интегральное базовое состояние гомеостаз. Часть условий запуска дерева автоматизмов."/>
               </Style>
             </DataGridTemplateColumn.HeaderStyle>
             <DataGridTemplateColumn.CellTemplate>
               <DataTemplate>
-                <TextBlock Text="{Binding BaseCondition, Converter={StaticResource BaseConditionToTextConverter}}"/>
+                <TextBlock Text="{Binding BaseCondition, Converter={StaticResource Level1ToTextConverter}}"/>
               </DataTemplate>
             </DataGridTemplateColumn.CellTemplate>
           </DataGridTemplateColumn>
 
-          <!-- ID контекста (EmotionID) -->
-          <DataGridTextColumn Header="Контекст ID" 
-                              Binding="{Binding EmotionID}" 
-                              Width="90"
-                              IsReadOnly="True">
-            <DataGridTextColumn.HeaderStyle>
-              <Style TargetType="DataGridColumnHeader">
-                <Setter Property="ToolTip" Value="ID эмоции/контекста"/>
-              </Style>
-            </DataGridTextColumn.HeaderStyle>
-          </DataGridTextColumn>
-
-          <!-- ID активности (ActivityID) -->
-          <DataGridTextColumn Header="Активность ID" 
-                              Binding="{Binding ActivityID}" 
-                              Width="100"
-                              IsReadOnly="True">
-            <DataGridTextColumn.HeaderStyle>
-              <Style TargetType="DataGridColumnHeader">
-                <Setter Property="ToolTip" Value="ID образа сочетания действий с Пульта"/>
-              </Style>
-            </DataGridTextColumn.HeaderStyle>
-          </DataGridTextColumn>
-
-          <!-- Образ действия -->
-          <DataGridTemplateColumn Header="Образ действия" Width="250">
+          <!-- Базовые эмоции -->
+          <DataGridTemplateColumn Header="Базовые эмоции" Width="300">
             <DataGridTemplateColumn.HeaderStyle>
               <Style TargetType="DataGridColumnHeader">
                 <Setter Property="ToolTip" 
-                        Value="Образ действий автоматизма: действия, фразы, тон, настроение"/>
+                Value="Базовые эмоции (контексты реагирования). Часть условий запуска дерева автоматизмов."/>
+              </Style>
+            </DataGridTemplateColumn.HeaderStyle>
+
+            <DataGridTemplateColumn.CellTemplate>
+              <DataTemplate>
+                <TextBlock Text="{Binding EmotionIdList, Converter={StaticResource IdListToNamesConverter}, ConverterParameter='Level2'}"/>
+              </DataTemplate>
+            </DataGridTemplateColumn.CellTemplate>
+          </DataGridTemplateColumn>
+          
+          <!-- Образ действия -->
+          <DataGridTemplateColumn Header="Образ действия" Width="Auto">
+            <DataGridTemplateColumn.HeaderStyle>
+              <Style TargetType="DataGridColumnHeader">
+                <Setter Property="ToolTip" 
+                        Value="Образ ответных действий автоматизма: действия, фразы, тон, настроение"/>
               </Style>
             </DataGridTemplateColumn.HeaderStyle>
             <DataGridTemplateColumn.CellTemplate>
               <DataTemplate>
-                <TextBlock Text="{Binding ActionsImageDisplay, Converter={StaticResource AutomatizmActionsToTextConverter}}"
+                <TextBlock Text="{Binding ActionsImageID}"
                          ToolTip="{Binding ActionsImageDisplay, Converter={StaticResource AutomatizmActionsToTooltipConverter}}"
+                         HorizontalAlignment="Center"
                          TextTrimming="CharacterEllipsis"/>
               </DataTemplate>
             </DataGridTemplateColumn.CellTemplate>
           </DataGridTemplateColumn>
 
           <!-- Полезность с цветом -->
-          <DataGridTemplateColumn Header="Полезность" Width="80">
+          <DataGridTemplateColumn Header="Полезность" Width="Auto">
             <DataGridTemplateColumn.HeaderStyle>
               <Style TargetType="DataGridColumnHeader">
                 <Setter Property="ToolTip" Value="(БЕС)ПОЛЕЗНОСТЬ: -10 вред 0 +10 +n польза"/>
@@ -216,7 +229,7 @@
           </DataGridTemplateColumn>
 
           <!-- Уверенность с подсказкой -->
-          <DataGridTemplateColumn Header="Уверенность" Width="100">
+          <DataGridTemplateColumn Header="Уверенность" Width="Auto">
             <DataGridTemplateColumn.HeaderStyle>
               <Style TargetType="DataGridColumnHeader">
                 <Setter Property="ToolTip" 
@@ -235,7 +248,7 @@
           <!-- Энергичность -->
           <DataGridTextColumn Header="Энергия" 
                               Binding="{Binding Energy}" 
-                              Width="70"
+                              Width="Auto"
                               IsReadOnly="True">
             <DataGridTextColumn.HeaderStyle>
               <Style TargetType="DataGridColumnHeader">
@@ -252,7 +265,7 @@
           <!-- Счетчик использования -->
           <DataGridTextColumn Header="Использований" 
                               Binding="{Binding Count}" 
-                              Width="90"
+                              Width="Auto"
                               IsReadOnly="True">
             <DataGridTextColumn.HeaderStyle>
               <Style TargetType="DataGridColumnHeader">

@@ -1,9 +1,11 @@
-﻿using System;
+﻿using AIStudio.ViewModels;
+using ISIDA.Actions;
+using ISIDA.Sensors;
+using System;
 using System.Globalization;
 using System.Linq;
 using System.Text;
 using System.Windows.Data;
-using AIStudio.ViewModels;
 
 namespace AIStudio.Converters
 {
@@ -17,39 +19,60 @@ namespace AIStudio.Converters
 
         if (actionsImage.ActIdList != null && actionsImage.ActIdList.Any())
         {
-          sb.AppendLine($"Действия ({actionsImage.ActIdList.Count}): {string.Join(", ", actionsImage.ActIdList)}");
+          if (AdaptiveActionsSystem.IsInitialized)
+          {
+            var adaptiveSystem = AdaptiveActionsSystem.Instance;
+            var allActions = adaptiveSystem.GetAllAdaptiveActions();
+            var names = actionsImage.ActIdList
+                .Where(id => allActions.Any(a => a.Id == id))
+                .Select(id => allActions.First(a => a.Id == id).Name)
+                .ToList();
+
+            sb.AppendLine($"Действия ({actionsImage.ActIdList.Count}): {string.Join(", ", names)}");
+          }
+          else
+          {
+            sb.AppendLine($"Действия: {string.Join(", ", actionsImage.ActIdList)}");
+          }
         }
         else
-        {
           sb.AppendLine("Действия: нет");
-        }
 
         if (actionsImage.PhraseIdList != null && actionsImage.PhraseIdList.Any())
         {
-          sb.AppendLine($"Фразы ({actionsImage.PhraseIdList.Count}): {string.Join(", ", actionsImage.PhraseIdList)}");
+          if (SensorySystem.IsInitialized)
+          {
+            var sensorySystem = SensorySystem.Instance;
+            var allSensors = sensorySystem.VerbalChannel.GetAllPhrases();
+            var phraseTexts = actionsImage.PhraseIdList
+                .Where(id => allSensors.Any(a => a.Key == id))
+                .Select(id =>
+                {
+                  var phrase = allSensors.First(a => a.Key == id);
+                  return $"\"{phrase.Value}\" (ID: {phrase.Key})";
+                })
+                .ToList();
+
+            if (phraseTexts.Any())
+              sb.AppendLine($"Фразы ({actionsImage.PhraseIdList.Count}): {string.Join(", ", phraseTexts)}");
+          }
+          else
+          {
+            sb.AppendLine($"Фразы: {string.Join(", ", actionsImage.PhraseIdList)}");
+          }
         }
         else
-        {
           sb.AppendLine("Фразы: нет");
-        }
 
         if (actionsImage.ToneId != 0)
-        {
           sb.AppendLine($"Тон: {actionsImage.ToneId}");
-        }
         else
-        {
           sb.AppendLine("Тон: 0 (нормальный)");
-        }
 
         if (actionsImage.MoodId != 0)
-        {
           sb.AppendLine($"Настроение: {actionsImage.MoodId}");
-        }
         else
-        {
           sb.AppendLine("Настроение: 0 (нормальное)");
-        }
 
         return sb.ToString();
       }
