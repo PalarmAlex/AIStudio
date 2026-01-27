@@ -135,7 +135,8 @@ namespace AIStudio.ViewModels
     {
       Application.Current.Dispatcher.Invoke(() =>
       {
-        OnPropertyChanged(nameof(IsEditingEnabled));
+        OnPropertyChanged(nameof(IsStageOneOrHigher));
+        OnPropertyChanged(nameof(IsDeletionEnabled));
         OnPropertyChanged(nameof(PulseWarningMessage));
         OnPropertyChanged(nameof(WarningMessageColor));
       });

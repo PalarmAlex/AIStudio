@@ -77,13 +77,24 @@
 
         <!-- Фильтр по состоянию -->
         <StackPanel Orientation="Vertical" Margin="0,0,15,0" Width="140">
-          <TextBlock Text="Состояние" FontSize="12" Margin="0,0,0,2"/>
+          <TextBlock Text="Интегральное состояние" FontSize="12" Margin="0,0,0,2"/>
           <ComboBox Style="{StaticResource AgentComboBoxStyle}"
                     ItemsSource="{Binding BaseConditionFilterOptions}"
                     SelectedValue="{Binding SelectedBaseConditionFilter}"
                     DisplayMemberPath="Value"
                     SelectedValuePath="Key"
                     Height="25" Cursor="Hand"/>
+        </StackPanel>
+
+        <!-- Фильтр по контекстам реагирования -->
+        <StackPanel Orientation="Vertical" Margin="0,0,15,0" Width="150">
+          <TextBlock Text="Контексты реагирования" FontSize="12" Margin="0,0,0,2"/>
+          <ComboBox Style="{StaticResource AgentComboBoxStyle}"
+                              ItemsSource="{Binding Level2FilterOptions}"
+                              SelectedValue="{Binding SelectedLevel2Filter}"
+                              DisplayMemberPath="Value"
+                              SelectedValuePath="Key"
+                              Height="25"/>
         </StackPanel>
 
         <!-- Фильтр по полезности -->

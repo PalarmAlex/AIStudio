@@ -16,6 +16,7 @@ using System.Windows;
 using System.Windows.Data;
 using System.Windows.Input;
 using System.Windows.Media;
+using static ISIDA.Gomeostas.GomeostasSystem;
 using static ISIDA.Psychic.VerbalBrocaImagesSystem;
 
 namespace AIStudio.ViewModels
@@ -94,7 +95,6 @@ namespace AIStudio.ViewModels
 
       GlobalTimer.PulsationStateChanged += OnPulsationStateChanged;
       LoadAgentData();
-      _verbalBrocaImages = verbalBrocaImages;
     }
 
     private bool FilterAutomatizms(object item)
@@ -104,6 +104,9 @@ namespace AIStudio.ViewModels
 
       bool baseConditionMatch = !SelectedBaseConditionFilter.HasValue ||
                                automatizm.BaseCondition == SelectedBaseConditionFilter.Value;
+
+      bool level2Match = !SelectedLevel2Filter.HasValue ||
+                        (automatizm.EmotionIdList != null && automatizm.EmotionIdList.Contains(SelectedLevel2Filter.Value));
 
       bool usefulnessMatch = string.IsNullOrEmpty(SelectedUsefulnessFilter);
       if (!usefulnessMatch)
@@ -118,13 +121,14 @@ namespace AIStudio.ViewModels
 
       bool beliefMatch = !SelectedBeliefFilter.HasValue || automatizm.Belief == SelectedBeliefFilter.Value;
 
-      return baseConditionMatch && usefulnessMatch && beliefMatch;
+      return baseConditionMatch && level2Match && usefulnessMatch && beliefMatch;
     }
 
     private void OnPulsationStateChanged()
     {
       Application.Current.Dispatcher.Invoke(() =>
       {
+        OnPropertyChanged(nameof(IsStageTwoOrHigher));
         OnPropertyChanged(nameof(IsDeletionEnabled));
         OnPropertyChanged(nameof(PulseWarningMessage));
         OnPropertyChanged(nameof(WarningMessageColor));
@@ -156,7 +160,6 @@ namespace AIStudio.ViewModels
             new KeyValuePair<int?, string>(0, "Норма"),
             new KeyValuePair<int?, string>(1, "Хорошо")
         };
-
     public List<KeyValuePair<string, string>> UsefulnessFilterOptions { get; } = new List<KeyValuePair<string, string>>
     {
       new KeyValuePair<string, string>(null, "Все"),
@@ -164,14 +167,14 @@ namespace AIStudio.ViewModels
       new KeyValuePair<string, string>("=0", "Нейтральные (=0)"),
       new KeyValuePair<string, string>(">0", "Полезные (>0)")
     };
-
     public List<KeyValuePair<int?, string>> BeliefFilterOptions { get; } = new List<KeyValuePair<int?, string>>
-        {
-            new KeyValuePair<int?, string>(null, "Все"),
-            new KeyValuePair<int?, string>(0, "Предположение"),
-            new KeyValuePair<int?, string>(1, "Чужие сведения"),
-            new KeyValuePair<int?, string>(2, "Проверенное знание")
-        };
+    {
+      new KeyValuePair<int?, string>(null, "Все"),
+      new KeyValuePair<int?, string>(0, "Предположение"),
+      new KeyValuePair<int?, string>(1, "Чужие сведения"),
+      new KeyValuePair<int?, string>(2, "Проверенное знание")
+    };
+    public List<KeyValuePair<int?, string>> Level2FilterOptions { get; private set; } = new List<KeyValuePair<int?, string>>();
 
     public int? SelectedBaseConditionFilter
     {
@@ -206,6 +209,18 @@ namespace AIStudio.ViewModels
       }
     }
 
+    private int? _selectedLevel2Filter;
+    public int? SelectedLevel2Filter
+    {
+      get => _selectedLevel2Filter;
+      set
+      {
+        _selectedLevel2Filter = value;
+        OnPropertyChanged(nameof(SelectedLevel2Filter));
+        ApplyFilters();
+      }
+    }
+
     private void ApplyFilters()
     {
       _automatizmsView.Refresh();
@@ -214,7 +229,8 @@ namespace AIStudio.ViewModels
     private void ClearFilters(object parameter = null)
     {
       SelectedBaseConditionFilter = null;
-      SelectedUsefulnessFilter = "";
+      SelectedLevel2Filter = null;
+      SelectedUsefulnessFilter = null;
       SelectedBeliefFilter = null;
     }
 
@@ -252,21 +268,14 @@ namespace AIStudio.ViewModels
           var treeNode = GetTreeNode(automatizm.BranchID);
           var actionsImage = GetActionsImage(automatizm.ActionsImageID);
 
-          // Получаем образ эмоций
           List<int> emotionIdList = new List<int>();
           if (treeNode?.EmotionID > 0)
-          {
             emotionIdList = GetEmotionIdsFromEmotionImage(treeNode.EmotionID);
-          }
 
-          // Получаем образ воздействия с пульта
           List<int> influenceActionIds = new List<int>();
           if (treeNode?.ActivityID > 0)
-          {
             influenceActionIds = GetInfluenceActionIds(treeNode.ActivityID);
-          }
 
-          // Получаем информацию о тоне и настроении
           string toneMoodText = string.Empty;
           if (treeNode?.ToneMoodID > 0)
           {
@@ -277,7 +286,6 @@ namespace AIStudio.ViewModels
             catch { }
           }
 
-          // Получаем информацию о вербальном образе
           string verbalText = string.Empty;
           if (treeNode?.VerbID > 0)
           {
@@ -309,7 +317,6 @@ namespace AIStudio.ViewModels
             Count = automatizm.Count,
             NextID = automatizm.NextID,
 
-            // Поля из узла дерева (условия запуска)
             BaseCondition = treeNode?.BaseID ?? 0,
             EmotionIdList = emotionIdList,
             ActivityID = treeNode?.ActivityID ?? 0,
@@ -325,7 +332,6 @@ namespace AIStudio.ViewModels
             ToneMoodText = toneMoodText,
             VerbalText = verbalText,
 
-            // Образ действия для отображения
             ActionsImageDisplay = actionsImage != null ? new ActionsImageDisplay
             {
               ActIdList = actionsImage.ActIdList ?? new List<int>(),
@@ -338,6 +344,8 @@ namespace AIStudio.ViewModels
           _allAutomatizms.Add(displayItem);
         }
 
+        LoadLevel2FilterOptions();
+
         OnPropertyChanged(nameof(IsStageTwoOrHigher));
         OnPropertyChanged(nameof(IsDeletionEnabled));
         OnPropertyChanged(nameof(PulseWarningMessage));
@@ -348,6 +356,13 @@ namespace AIStudio.ViewModels
       {
         Logger.Error(ex.Message);
       }
+    }
+
+    private void LoadLevel2FilterOptions()
+    {
+      Level2FilterOptions = new List<KeyValuePair<int?, string>> { new KeyValuePair<int?, string>(null, "Все контексты") };
+      var level2Items = _gomeostas?.GetAllBehaviorStyles()?.Values?.ToList() ?? new List<BehaviorStyle>();
+      Level2FilterOptions.AddRange(level2Items.Select(x => new KeyValuePair<int?, string>(x.Id, x.Name)));
     }
 
     private string GetBaseConditionText(int baseId)
@@ -631,7 +646,7 @@ namespace AIStudio.ViewModels
       {
         return new DescriptionWithLink
         {
-          Text = "Автоматизмы - это заученные реакции агента, которые могут совершать внешние действия или внутренние произвольные действия."
+          Text = "Редактор автоматизмов, доступен только для просмотра и удаления. Автоматизмы создаются на основе действий безусловных, условных рефлексов, и отзеркаленных действий Оператора."
         };
       }
     }
