@@ -134,6 +134,7 @@ namespace AIStudio
         config.ReflexActionDisplayDuration = AppConfig.ReflexActionDisplayDuration;
         config.DefaultAdaptiveActionId = AppConfig.DefaultAdaptiveActionId;
         config.RecognitionThreshold = AppConfig.RecognitionThreshold;
+        config.WaitingPeriodForActionsVal = AppConfig.WaitingPeriodForActionsVal;
         config.MemoryLogWriter = MemoryLogManager.Instance;
 
         _stepInzialized = 2;

@@ -39,6 +39,7 @@ public static class AppConfig
   public static float DifSensorPar => GetFloatSetting("DifSensorPar", (float)GetDefaultValueSettings("DifSensorPar"));
   public static int DynamicTime => GetIntSetting("DynamicTime", (int)GetDefaultValueSettings("DynamicTime"));
   public static int ReflexActionDisplayDuration => GetIntSetting("ReflexActionDisplayDuration", (int)GetDefaultValueSettings("ReflexActionDisplayDuration"));
+  public static int WaitingPeriodForActionsVal => GetIntSetting("WaitingPeriodForActionsVal", (int)GetDefaultValueSettings("WaitingPeriodForActionsVal"));
 
   /// <summary>
   /// Инициализирует конфигурацию и проверяет первый запуск
@@ -91,7 +92,8 @@ public static class AppConfig
           new XElement("CompareLevel", 30),
           new XElement("DifSensorPar", 0.02),
           new XElement("DynamicTime", 50),
-          new XElement("ReflexActionDisplayDuration", 10),
+          new XElement("ReflexActionDisplayDuration", 3),
+          new XElement("WaitingPeriodForActionsVal", 30),
           new XElement("FirstRun", 1),
           new XElement("LogEnabled", false),
           new XElement("LogFormat", "All")
@@ -322,7 +324,9 @@ public static class AppConfig
       case "DynamicTime":
         return 50;
       case "ReflexActionDisplayDuration":
-        return 1;
+        return 3;
+      case "WaitingPeriodForActionsVal":
+        return 30;
       case "CompareLevel":
         return 30;
       case "DifSensorPar":

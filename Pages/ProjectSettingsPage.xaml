@@ -289,6 +289,37 @@
 
     </Grid>
 
+    <!-- Настройки автоматизмов -->
+    <TextBlock Text="Настройки автоматизмов" 
+        FontSize="16"
+        FontWeight="Bold"
+        Margin="0,0,0,15"
+        HorizontalAlignment="Center"/>
+
+    <Grid>
+      <Grid.ColumnDefinitions>
+        <ColumnDefinition Width="Auto"/>
+        <ColumnDefinition Width="Auto"/>
+      </Grid.ColumnDefinitions>
+      <Grid.RowDefinitions>
+        <RowDefinition Height="Auto"/>
+      </Grid.RowDefinitions>
+
+      <!-- Период ожидания реакции оператора -->
+      <StackPanel Grid.Column="0" Grid.Row="0" Orientation="Horizontal" Margin="100,0,0,5">
+        <TextBlock Text="Период ожидания реакции оператора:"
+          Width="250"
+          VerticalAlignment="Center"/>
+
+        <TextBox Text="{Binding CompareLevel, Mode=TwoWay, UpdateSourceTrigger=LostFocus}"
+          Width="100"
+          Margin="25,0"
+          Background="#FFFFFFFF"
+          IsReadOnly="False"/>
+      </StackPanel>
+
+    </Grid>
+
     <!-- Кнопка сохранения -->
     <Button Content="Сохранить настройки"
       Command="{Binding SaveSettingsCommand}"

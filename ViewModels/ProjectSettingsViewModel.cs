@@ -32,6 +32,7 @@ namespace AIStudio.ViewModels
     private int _defaultStileId;
     private int _defaultAdaptiveActionId;
     private int _defaultFormatLog;
+    private int _waitingPeriodForActionsVal;
 
     private int _recognitionThreshold;
     private int _previousRecognitionThreshold;
@@ -121,6 +122,17 @@ namespace AIStudio.ViewModels
         OnPropertyChanged(nameof(DefaultStileId));
       }
     }
+
+    public int WaitingPeriodForActionsVal
+    {
+      get => _waitingPeriodForActionsVal;
+      set
+      {
+        _waitingPeriodForActionsVal = value;
+        OnPropertyChanged(nameof(WaitingPeriodForActionsVal));
+      }
+    }
+
     public bool LogEnabled
     {
       get => _logEnabled;
@@ -326,6 +338,7 @@ namespace AIStudio.ViewModels
       PsychicDataFolderPath = AppConfig.PsychicDataFolderPath;
       LogsFolderPath = AppConfig.LogsFolderPath;
       DefaultStileId = AppConfig.DefaultStileId;
+      WaitingPeriodForActionsVal = AppConfig.WaitingPeriodForActionsVal;
       DefaultAdaptiveActionId = AppConfig.DefaultAdaptiveActionId;
       LogEnabled = AppConfig.LogEnabled;
       _defaultFormatLog = (int)AppConfig.LogFormat;
@@ -526,6 +539,7 @@ namespace AIStudio.ViewModels
         AppConfig.SetSetting(nameof(PsychicDataFolderPath), PsychicDataFolderPath);
         AppConfig.SetSetting(nameof(LogsFolderPath), LogsFolderPath);
         AppConfig.SetIntSetting(nameof(DefaultStileId), DefaultStileId);
+        AppConfig.SetIntSetting(nameof(WaitingPeriodForActionsVal), WaitingPeriodForActionsVal);
         AppConfig.SetIntSetting(nameof(DefaultAdaptiveActionId), DefaultAdaptiveActionId);
         AppConfig.SetIntSetting(nameof(RecognitionThreshold), RecognitionThreshold);
         AppConfig.SetIntSetting(nameof(CompareLevel), CompareLevel);
