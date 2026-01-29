@@ -179,6 +179,36 @@
       </Setter>
     </Style>
 
+    <!-- Стиль для ячейки Автоматизм -->
+    <Style x:Key="AutomatizmCellStyle" TargetType="DataGridCell" BasedOn="{StaticResource MatrixCellStyle}">
+      <Style.Triggers>
+        <!-- Триггер для подсветки ячейки, когда есть автоматизм -->
+        <DataTrigger Binding="{Binding AutomatizmID}" Value="{x:Null}">
+          <Setter Property="Background" Value="Transparent"/>
+        </DataTrigger>
+        <DataTrigger Binding="{Binding AutomatizmID}" Value="0">
+          <Setter Property="Background" Value="Transparent"/>
+        </DataTrigger>
+        <DataTrigger Binding="{Binding AutomatizmID}">
+          <!-- Когда есть ID автоматизма (не null и не 0) -->
+          <DataTrigger.EnterActions>
+            <BeginStoryboard>
+              <Storyboard>
+                <!-- Анимация мигания при появлении автоматизма -->
+                <ColorAnimationUsingKeyFrames Storyboard.TargetProperty="Background.Color">
+                  <DiscreteColorKeyFrame KeyTime="0:0:0" Value="#200080FF"/>
+                  <DiscreteColorKeyFrame KeyTime="0:0:0.5" Value="#4000FF00"/>
+                  <DiscreteColorKeyFrame KeyTime="0:0:1" Value="#200080FF"/>
+                  <DiscreteColorKeyFrame KeyTime="0:0:1.5" Value="#4000FF00"/>
+                  <DiscreteColorKeyFrame KeyTime="0:0:2" Value="#200080FF"/>
+                </ColorAnimationUsingKeyFrames>
+              </Storyboard>
+            </BeginStoryboard>
+          </DataTrigger.EnterActions>
+        </DataTrigger>
+      </Style.Triggers>
+    </Style>
+
   </UserControl.Resources>
 
   <Grid Background="Black">
@@ -268,11 +298,11 @@
             </DataGridTextColumn.Header>
           </DataGridTextColumn>
 
-          <DataGridTextColumn Binding="{Binding DisplayHasCriticalChanges}" Width="50">
+          <DataGridTextColumn Binding="{Binding DisplayOrientationReflexType}" Width="50">
             <DataGridTextColumn.Header>
               <DataGridColumnHeader Style="{StaticResource MatrixHeaderStyle}" 
-                            Content="ОР1"
-                            ToolTip="Ориентировочный рефлекс по критическим изменениям параметров гомеостаза"/>
+                            Content="ОР"
+                            ToolTip="Ориентировочный рефлекс"/>
             </DataGridTextColumn.Header>
           </DataGridTextColumn>
 
@@ -289,6 +319,14 @@
               <DataGridColumnHeader Style="{StaticResource MatrixHeaderStyle}" 
                                   Content="Усл. рефлекс"
                                   ToolTip="ID условного рефлекса"/>
+            </DataGridTextColumn.Header>
+          </DataGridTextColumn>
+
+          <DataGridTextColumn Binding="{Binding DisplayAutomatizmID}" Width="80" CellStyle="{StaticResource AutomatizmCellStyle}">
+            <DataGridTextColumn.Header>
+              <DataGridColumnHeader Style="{StaticResource MatrixHeaderStyle}" 
+                            Content="Автоматизм"
+                            ToolTip="ID запущенного автоматизма"/>
             </DataGridTextColumn.Header>
           </DataGridTextColumn>
 

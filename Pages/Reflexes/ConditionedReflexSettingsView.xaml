@@ -205,24 +205,6 @@
                          Text="(фиксировано)"/>
             </Grid>
 
-            <!-- Максимальное время жизни -->
-            <Grid Style="{StaticResource GridRowStyle}">
-              <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="*"/>
-                <ColumnDefinition Width="Auto"/>
-                <ColumnDefinition Width="Auto"/>
-              </Grid.ColumnDefinitions>
-
-              <TextBlock Grid.Column="0" Style="{StaticResource SettingsLabelStyle}"
-                         Text="Максимальное время жизни без активации (T_max):"/>
-              <TextBox Grid.Column="1" Style="{StaticResource SettingsTextBoxStyle}"
-                       GotFocus="TextBox_GotFocus"
-                       PreviewMouseLeftButtonDown="TextBox_PreviewMouseLeftButtonDown"
-                       Text="{Binding Settings.MaxInactivationTime, UpdateSourceTrigger=LostFocus}"/>
-              <TextBlock Grid.Column="2" Style="{StaticResource SettingsRangeTextStyle}"
-                         Text="(100 - 10000 пульсов)"/>
-            </Grid>
-
           </StackPanel>
         </ScrollViewer>
       </Border>

@@ -162,8 +162,8 @@ namespace AIStudio.Common
     /// <param name="geneticReflexId">Идентификатор безусловного рефлекса</param>
     /// <param name="conditionedReflexId">Идентификатор условного рефлекса</param>
     public void WriteLog(string className, string method, int? pulse, int? baseId,
-                       int? baseStyleId, int? triggerStimulusId, int? hasCriticalChanges,
-                       int? geneticReflexId, int? conditionedReflexId)
+                       int? baseStyleId, int? triggerStimulusId, int? orientationReflexType,
+                       int? geneticReflexId, int? conditionedReflexId, int? automatizmId)
     {
       if (_disposed) return;
 
@@ -175,9 +175,10 @@ namespace AIStudio.Common
         BaseID = baseId,
         BaseStyleID = baseStyleId == 0 ? null : baseStyleId,
         TriggerStimulusID = triggerStimulusId == 0 ? null : triggerStimulusId,
-        HasCriticalChanges = hasCriticalChanges == 0 ? null : hasCriticalChanges,
+        OrientationReflexType = orientationReflexType == 0 ? null : orientationReflexType,
         GeneticReflexID = geneticReflexId == 0 ? null : geneticReflexId,
         ConditionReflexID = conditionedReflexId == 0 ? null : conditionedReflexId,
+        AutomatizmID = automatizmId == 0 ? null : automatizmId,
         Timestamp = DateTime.Now
       };
 
@@ -544,6 +545,11 @@ namespace AIStudio.Common
     public int? HasCriticalChanges { get; set; }
 
     /// <summary>
+    /// Идентификатор ориентировочного рефлекса
+    /// </summary>
+    public int? OrientationReflexType { get; set; }
+
+    /// <summary>
     /// Идентификатор активного безусловного рефлекса
     /// </summary>
     public int? GeneticReflexID { get; set; }
@@ -552,6 +558,11 @@ namespace AIStudio.Common
     /// Идентификатор активного условного рефлекса
     /// </summary>
     public int? ConditionReflexID { get; set; }
+
+    /// <summary>
+    /// Идентификатор активного автоматизма
+    /// </summary>
+    public int? AutomatizmID { get; set; }
 
     /// <summary>
     /// Отформатированное время для отображения в UI
@@ -583,6 +594,30 @@ namespace AIStudio.Common
     /// </summary>
     public string DisplayHasCriticalChanges => HasCriticalChanges?.ToString() ?? "-";
 
+    public string DisplayOrientationReflexType
+    {
+      get
+      {
+        if (!OrientationReflexType.HasValue)
+          return "-";
+
+        string result;
+        switch (OrientationReflexType.Value)
+        {
+          case 1:
+            result = "ОР1";
+            break;
+          case 2:
+            result = "ОР2";
+            break;
+          default:
+            result = OrientationReflexType.Value.ToString();
+            break;
+        }
+        return result;
+      }
+    }
+
     /// <summary>
     /// Отформатированный идентификатор безусловного рефлекса для отображения в UI
     /// </summary>
@@ -592,6 +627,11 @@ namespace AIStudio.Common
     /// Отформатированный идентификатор условного рефлекса для отображения в UI
     /// </summary>
     public string DisplayConditionReflexID => ConditionReflexID?.ToString() ?? "-";
+
+    /// <summary>
+    /// Отформатированный идентификатор автоматизма для отображения в UI
+    /// </summary>
+    public string DisplayAutomatizmID => AutomatizmID?.ToString() ?? "-";
   }
 
   /// <summary>
