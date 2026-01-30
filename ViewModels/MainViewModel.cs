@@ -799,7 +799,11 @@ namespace AIStudio
           _perceptionImagesSystem,
           _influenceActionSystem,
           _sensorySystem.VerbalChannel,
-          _actionsSystem);
+          _actionsSystem,
+          _geneticReflexesSystem,
+          _conditionedReflexesSystem,
+          _automatizmSystem,
+          _actionsImagesSystem);
       liveLogsView.DataContext = viewModel;
       CurrentContent = liveLogsView;
     }

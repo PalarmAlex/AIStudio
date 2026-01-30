@@ -78,10 +78,14 @@
     <Compile Include="Common\MemoryLogManager.cs" />
     <Compile Include="Common\NumericListValidationRule.cs" />
     <Compile Include="Converters\ActionDisplayTextConverter.cs" />
+    <Compile Include="Converters\ActionsForConditionReflexConverter.cs" />
+    <Compile Include="Converters\ActionsForGeneticReflexConverter.cs" />
     <Compile Include="Converters\ActionSizeConverter.cs" />
     <Compile Include="Converters\ActiveBrushConverter.cs" />
     <Compile Include="Converters\AutomatizmActionsToTextConverter.cs" />
     <Compile Include="Converters\AutomatizmActionsToTooltipConverter.cs" />
+    <Compile Include="Converters\AutomatizmTooltipMultiConverter.cs" />
+    <Compile Include="Converters\OrientationReflexTooltipMultiConverter.cs" />
     <Compile Include="Converters\TreeNodeConditionsToTooltipConverter.cs" />
     <Compile Include="Converters\BeliefToTextWithTooltipConverter.cs" />
     <Compile Include="Converters\BeliefToTooltipConverter.cs" />

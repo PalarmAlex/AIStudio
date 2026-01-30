@@ -1,17 +1,21 @@
-﻿using System;
+﻿using AIStudio.Common;
+using ISIDA.Actions;
+using ISIDA.Common;
+using ISIDA.Gomeostas;
+using ISIDA.Psychic.Automatism;
+using ISIDA.Reflexes;
+using ISIDA.Sensors;
+using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.Linq;
 using System.Windows;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Threading;
-using AIStudio.Common;
-using ISIDA.Actions;
-using ISIDA.Gomeostas;
-using ISIDA.Reflexes;
-using ISIDA.Sensors;
-using System.Linq;
-using System.Collections.Generic;
+using static ISIDA.Reflexes.ConditionedReflexesSystem;
+using static ISIDA.Reflexes.PerceptionImagesSystem;
 
 namespace AIStudio.ViewModels
 {
@@ -35,6 +39,10 @@ namespace AIStudio.ViewModels
     private readonly InfluenceActionSystem _influenceActionSystem;
     private readonly VerbalSensorChannel _verbalSensor;
     private readonly AdaptiveActionsSystem _adaptiveActionsSystem;
+    private readonly GeneticReflexesSystem _geneticReflexesSystem;
+    private readonly ConditionedReflexesSystem _conditionedReflexesSystem;
+    private readonly AutomatizmSystem _automatizmSystem;
+    private readonly ActionsImagesSystem _actionsImagesSystem;
 
     /// <summary>
     /// Коллекция записей логов только для чтения
@@ -69,13 +77,21 @@ namespace AIStudio.ViewModels
         PerceptionImagesSystem perceptionImagesSystem,
         InfluenceActionSystem influenceActionSystem,
         VerbalSensorChannel verbalSensor,
-        AdaptiveActionsSystem adaptiveActionsSystem)
+        AdaptiveActionsSystem adaptiveActionsSystem,
+        GeneticReflexesSystem geneticReflexesSystem,
+        ConditionedReflexesSystem conditionedReflexesSystem,
+        AutomatizmSystem automatizmSystem,
+        ActionsImagesSystem actionsImagesSystem)
     {
       _gomeostas = gomeostas ?? throw new ArgumentNullException(nameof(gomeostas));
       _perceptionImagesSystem = perceptionImagesSystem ?? throw new ArgumentNullException(nameof(perceptionImagesSystem));
       _influenceActionSystem = influenceActionSystem ?? throw new ArgumentNullException(nameof(influenceActionSystem));
       _verbalSensor = verbalSensor ?? throw new ArgumentNullException(nameof(verbalSensor));
-      _adaptiveActionsSystem = adaptiveActionsSystem ?? throw new ArgumentNullException(nameof(adaptiveActionsSystem)); ;
+      _adaptiveActionsSystem = adaptiveActionsSystem ?? throw new ArgumentNullException(nameof(adaptiveActionsSystem));
+      _geneticReflexesSystem = geneticReflexesSystem ?? throw new ArgumentNullException(nameof(geneticReflexesSystem));
+      _conditionedReflexesSystem = conditionedReflexesSystem ?? throw new ArgumentNullException(nameof(conditionedReflexesSystem));
+      _automatizmSystem = automatizmSystem ?? throw new ArgumentNullException(nameof(automatizmSystem));
+      _actionsImagesSystem = actionsImagesSystem ?? throw new ArgumentNullException(nameof(actionsImagesSystem));
 
       ClearLogsCommand = new RelayCommand(_ => ClearLogs());
       ToggleAutoRefreshCommand = new RelayCommand(_ => ToggleAutoRefresh());
@@ -230,6 +246,177 @@ namespace AIStudio.ViewModels
       }
 
       return "Нет данных о триггере";
+    }
+
+    /// <summary>
+    /// Получает текст подсказки для безусловного рефлекса
+    /// </summary>
+    public string GetActionsForGeneticReflex(string displayReflexID)
+    {
+      if (string.IsNullOrEmpty(displayReflexID) || !int.TryParse(displayReflexID, out int reflexId) || reflexId <= 0)
+        return "Нет данных о действиях рефлекса";
+
+      try
+      {
+        var reflex = _geneticReflexesSystem.GetAllGeneticReflexesList()
+            .FirstOrDefault(r => r.Id == reflexId);
+
+        if (reflex != null)
+        {
+          var tooltipParts = new List<string>();
+          var allActions = _adaptiveActionsSystem.GetAllAdaptiveActions();
+
+          var actionNames = reflex.AdaptiveActions
+              .Select(actionId => allActions.FirstOrDefault(a => a.Id == actionId)?.Name ?? $"Действие {actionId}")
+              .Where(name => !string.IsNullOrEmpty(name));
+
+          if (actionNames.Any())
+            tooltipParts.Add($"Действия: {string.Join(", ", actionNames)}");
+
+          return tooltipParts.Any() ? string.Join("\n", tooltipParts) : "Пустой образ действий рефлекса";
+        }
+      }
+      catch (Exception ex)
+      {
+        return $"Ошибка загрузки действий рефлекса: {ex.Message}";
+      }
+
+      return "Нет данных о действиях рефлекса";
+    }
+
+    /// <summary>
+    /// Получает текст подсказки для условного рефлекса
+    /// </summary>
+    public string GetActionsForConditionReflex(string displayReflexID)
+    {
+      if (string.IsNullOrEmpty(displayReflexID) || !int.TryParse(displayReflexID, out int reflexId) || reflexId <= 0)
+        return "Нет данных о действиях рефлекса";
+
+      try
+      {
+        var conditionedReflex = _conditionedReflexesSystem.GetAllConditionedReflexes()
+          .FirstOrDefault(r => r.Id == reflexId);
+
+        var conditionReflexesActions = GetActionsForGeneticReflexes(conditionedReflex.SourceGeneticReflexId);
+
+        if (conditionedReflex != null)
+        {
+          var tooltipParts = new List<string>();
+          var allActions = _adaptiveActionsSystem.GetAllAdaptiveActions();
+          var actionNames = conditionReflexesActions
+              .Select(actionId => allActions.FirstOrDefault(a => a.Id == actionId)?.Name ?? $"Действие {actionId}")
+              .Where(name => !string.IsNullOrEmpty(name));
+
+          if (actionNames.Any())
+            tooltipParts.Add($"Действия: {string.Join(", ", actionNames)}");
+
+          return tooltipParts.Any() ? string.Join("\n", tooltipParts) : "Пустой образ действий рефлекса";
+        }
+      }
+      catch (Exception ex)
+      {
+        return $"Ошибка загрузки действий рефлекса: {ex.Message}";
+      }
+
+      return "Нет данных о действиях рефлекса";
+    }
+
+    /// <summary>
+    /// Получает список действий для безусловного рефлекса
+    /// </summary>
+    public List<int> GetActionsForGeneticReflexes(int reflexId)
+    {
+      try
+      {
+        var reflex = _geneticReflexesSystem.GetAllGeneticReflexesList()
+            .FirstOrDefault(r => r.Id == reflexId);
+
+        if (reflex == null)
+          return new List<int>();
+
+        return reflex.AdaptiveActions?.ToList() ?? new List<int>();
+      }
+      catch
+      {
+        return new List<int>();
+      }
+    }
+
+    /// <summary>
+    /// Получает образ действия автоматизма
+    /// </summary>
+    public AutomatizmsViewModel.ActionsImageDisplay GetActionsForAutomatizm(string displayAutomatizmID)
+    {
+      if (string.IsNullOrEmpty(displayAutomatizmID) || !int.TryParse(displayAutomatizmID, out int atmzId) || atmzId <= 0)
+        return null;
+
+      try
+      {
+        var atmz = _automatizmSystem.GetAutomatizmById(atmzId);
+        if (atmz != null)
+        {
+          int atmzImg = atmz.ActionsImageID;
+          var actionsImage = _actionsImagesSystem.GetActionsImage(atmzImg);
+
+          if (actionsImage != null)
+          {
+            return new AutomatizmsViewModel.ActionsImageDisplay
+            {
+              ActIdList = actionsImage.ActIdList?.ToList() ?? new List<int>(),
+              PhraseIdList = actionsImage.PhraseIdList?.ToList() ?? new List<int>(),
+              ToneId = actionsImage.ToneId,
+              MoodId = actionsImage.MoodId
+            };
+          }
+        }
+      }
+      catch (Exception ex)
+      {
+        Logger.Error(ex.Message);
+
+        return new AutomatizmsViewModel.ActionsImageDisplay
+        {
+          ActIdList = new List<int>(),
+          PhraseIdList = new List<int>(),
+          ToneId = 0,
+          MoodId = 0
+        };
+      }
+
+      return null;
+    }
+
+    /// <summary>
+    /// Получает текст подсказки для ориентировочного рефлекса
+    /// </summary>
+    public string GetOrientationReflexTooltip(string displayOrientationReflexType)
+    {
+      string or1 = "Нет автоматизма, нужно быстро создать его по гомеостатическим целям";
+      string or2 = "Автоматизм есть, надо его проверить в текущих условиях";
+
+      if (string.IsNullOrEmpty(displayOrientationReflexType))
+        return "Нет ориентировочного рефлекса";
+
+      // Убираем возможные пробелы и преобразуем в строку
+      var orValue = displayOrientationReflexType.Trim();
+
+      if (orValue == "ОР1")
+        return or1;
+
+      if (orValue == "ОР2")
+        return or2;
+
+      // Если передано число вместо строки
+      if (int.TryParse(orValue, out int orType))
+      {
+        return orType == 1 ?
+            or1 :
+            orType == 2 ?
+            or2 :
+            $"Ориентировочный рефлекс типа {orType}";
+      }
+
+      return $"Ориентировочный рефлекс: {orValue}";
     }
 
     #endregion

@@ -11,6 +11,10 @@
 
     <converters:StyleTooltipMultiConverter x:Key="StyleTooltipConverter"/>
     <converters:TriggerTooltipMultiConverter x:Key="TriggerTooltipConverter"/>
+    <converters:ActionsForGeneticReflexConverter x:Key="ActionsForGeneticReflexConverter"/>
+    <converters:ActionsForConditionReflexConverter x:Key="ActionsForConditionReflexConverter"/>
+    <converters:AutomatizmTooltipMultiConverter x:Key="AutomatizmTooltipConverter"/>
+    <converters:OrientationReflexTooltipMultiConverter x:Key="OrientationReflexTooltipConverter"/>
 
     <!-- Стиль для текста матрицы -->
     <Style x:Key="MatrixTextStyle" TargetType="TextBlock">
@@ -179,36 +183,71 @@
       </Setter>
     </Style>
 
+    <!-- стиль для ячейки безусловного рефлекса: -->
+    <Style x:Key="GeneticReflexCellStyle" TargetType="DataGridCell" BasedOn="{StaticResource MatrixCellStyle}">
+      <Setter Property="ToolTip">
+        <Setter.Value>
+          <MultiBinding Converter="{StaticResource ActionsForGeneticReflexConverter}">
+            <Binding Path="DataContext" RelativeSource="{RelativeSource AncestorType=UserControl}"/>
+            <Binding Path="DisplayGeneticReflexID"/>
+          </MultiBinding>
+        </Setter.Value>
+      </Setter>
+    </Style>
+
+    <!-- стиль для ячейки условного рефлекса: -->
+    <Style x:Key="ConditionReflexCellStyle" TargetType="DataGridCell" BasedOn="{StaticResource MatrixCellStyle}">
+      <Setter Property="ToolTip">
+        <Setter.Value>
+          <MultiBinding Converter="{StaticResource ActionsForConditionReflexConverter}">
+            <Binding Path="DataContext" RelativeSource="{RelativeSource AncestorType=UserControl}"/>
+            <Binding Path="DisplayConditionReflexID"/>
+          </MultiBinding>
+        </Setter.Value>
+      </Setter>
+    </Style>
+
     <!-- Стиль для ячейки Автоматизм -->
     <Style x:Key="AutomatizmCellStyle" TargetType="DataGridCell" BasedOn="{StaticResource MatrixCellStyle}">
+      <Setter Property="ToolTip">
+        <Setter.Value>
+          <MultiBinding Converter="{StaticResource AutomatizmTooltipConverter}">
+            <Binding Path="DataContext" RelativeSource="{RelativeSource AncestorType=UserControl}"/>
+            <Binding Path="DisplayAutomatizmID"/>
+          </MultiBinding>
+        </Setter.Value>
+      </Setter>
+    </Style>
+
+    <!-- Добавляем стиль для ячейки ОР: -->
+    <Style x:Key="OrientationReflexCellStyle" TargetType="DataGridCell" BasedOn="{StaticResource MatrixCellStyle}">
+      <Setter Property="ToolTip">
+        <Setter.Value>
+          <MultiBinding Converter="{StaticResource OrientationReflexTooltipConverter}">
+            <Binding Path="DataContext" RelativeSource="{RelativeSource AncestorType=UserControl}"/>
+            <Binding Path="DisplayOrientationReflexType"/>
+          </MultiBinding>
+        </Setter.Value>
+      </Setter>
       <Style.Triggers>
-        <!-- Триггер для подсветки ячейки, когда есть автоматизм -->
-        <DataTrigger Binding="{Binding AutomatizmID}" Value="{x:Null}">
-          <Setter Property="Background" Value="Transparent"/>
+        <DataTrigger Binding="{Binding DisplayOrientationReflexType}" Value="ОР">
+          <Setter Property="Background" Value="#40FF0000"/>
+          <Setter Property="Foreground" Value="#FFFFFF"/>
+          <Setter Property="FontWeight" Value="Bold"/>
         </DataTrigger>
-        <DataTrigger Binding="{Binding AutomatizmID}" Value="0">
-          <Setter Property="Background" Value="Transparent"/>
+        <DataTrigger Binding="{Binding DisplayOrientationReflexType}" Value="ОР1">
+          <Setter Property="Background" Value="#40FF0000"/>
+          <Setter Property="Foreground" Value="#FFFFFF"/>
+          <Setter Property="FontWeight" Value="Bold"/>
         </DataTrigger>
-        <DataTrigger Binding="{Binding AutomatizmID}">
-          <!-- Когда есть ID автоматизма (не null и не 0) -->
-          <DataTrigger.EnterActions>
-            <BeginStoryboard>
-              <Storyboard>
-                <!-- Анимация мигания при появлении автоматизма -->
-                <ColorAnimationUsingKeyFrames Storyboard.TargetProperty="Background.Color">
-                  <DiscreteColorKeyFrame KeyTime="0:0:0" Value="#200080FF"/>
-                  <DiscreteColorKeyFrame KeyTime="0:0:0.5" Value="#4000FF00"/>
-                  <DiscreteColorKeyFrame KeyTime="0:0:1" Value="#200080FF"/>
-                  <DiscreteColorKeyFrame KeyTime="0:0:1.5" Value="#4000FF00"/>
-                  <DiscreteColorKeyFrame KeyTime="0:0:2" Value="#200080FF"/>
-                </ColorAnimationUsingKeyFrames>
-              </Storyboard>
-            </BeginStoryboard>
-          </DataTrigger.EnterActions>
+        <DataTrigger Binding="{Binding DisplayOrientationReflexType}" Value="ОР2">
+          <Setter Property="Background" Value="#40FFFF00"/>
+          <Setter Property="Foreground" Value="#000000"/>
+          <Setter Property="FontWeight" Value="Bold"/>
         </DataTrigger>
       </Style.Triggers>
     </Style>
-
+    
   </UserControl.Resources>
 
   <Grid Background="Black">
@@ -298,23 +337,29 @@
             </DataGridTextColumn.Header>
           </DataGridTextColumn>
 
-          <DataGridTextColumn Binding="{Binding DisplayOrientationReflexType}" Width="50">
+          <DataGridTextColumn Binding="{Binding DisplayOrientationReflexType}" 
+                    Width="50"
+                    CellStyle="{StaticResource OrientationReflexCellStyle}">
             <DataGridTextColumn.Header>
               <DataGridColumnHeader Style="{StaticResource MatrixHeaderStyle}" 
-                            Content="ОР"
-                            ToolTip="Ориентировочный рефлекс"/>
+                    Content="ОР"
+                    ToolTip="Ориентировочный рефлекс"/>
             </DataGridTextColumn.Header>
           </DataGridTextColumn>
 
-          <DataGridTextColumn Binding="{Binding DisplayGeneticReflexID}" Width="90">
+          <DataGridTextColumn Binding="{Binding DisplayGeneticReflexID}" 
+                    Width="90"
+                    CellStyle="{StaticResource GeneticReflexCellStyle}">
             <DataGridTextColumn.Header>
               <DataGridColumnHeader Style="{StaticResource MatrixHeaderStyle}" 
-                                  Content="Б/у рефлекс"
-                                  ToolTip="ID безусловного рефлекса"/>
+                            Content="Б/у рефлекс"
+                            ToolTip="ID безусловного рефлекса"/>
             </DataGridTextColumn.Header>
           </DataGridTextColumn>
 
-          <DataGridTextColumn Binding="{Binding DisplayConditionReflexID}" Width="90">
+          <DataGridTextColumn Binding="{Binding DisplayConditionReflexID}"
+                              Width="90"
+                              CellStyle="{StaticResource ConditionReflexCellStyle}">
             <DataGridTextColumn.Header>
               <DataGridColumnHeader Style="{StaticResource MatrixHeaderStyle}" 
                                   Content="Усл. рефлекс"
@@ -322,7 +367,9 @@
             </DataGridTextColumn.Header>
           </DataGridTextColumn>
 
-          <DataGridTextColumn Binding="{Binding DisplayAutomatizmID}" Width="80" CellStyle="{StaticResource AutomatizmCellStyle}">
+          <DataGridTextColumn Binding="{Binding DisplayAutomatizmID}" 
+                    Width="80" 
+                    CellStyle="{StaticResource AutomatizmCellStyle}">
             <DataGridTextColumn.Header>
               <DataGridColumnHeader Style="{StaticResource MatrixHeaderStyle}" 
                             Content="Автоматизм"
