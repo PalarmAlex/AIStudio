@@ -1118,9 +1118,12 @@ namespace AIStudio
             OnPropertyChanged(nameof(PulseStatus));
             OnPropertyChanged(nameof(LifeTimeStatus));
 
-            //// Логируем состояние (если агент жив)
+            // Обновляем период ожидания оценки оператора
+            UpdateWaitingPeriodDisplay();
+
+            // Логируем состояние (если агент жив)
             if (!IsAgentDead)
-            _researchLogger?.LogSystemState(pulseCount);
+              _researchLogger?.LogSystemState(pulseCount);
           }
           catch (Exception ex)
           {
@@ -1138,6 +1141,96 @@ namespace AIStudio
           SafeStopPulsation(errorMessage);
         });
       };
+    }
+
+    /// <summary>
+    /// Обновить отображение периода ожидания оценки оператора
+    /// </summary>
+    private void UpdateWaitingPeriodDisplay()
+    {
+      try
+      {
+        bool isWaiting = AppGlobalState.WaitingForOperatorEvaluation;
+
+        if (isWaiting)
+        {
+          // Обновляем обратный отсчет
+          AppGlobalState.UpdateWaitingPeriodCountdown();
+
+          var countdown = AppGlobalState.WaitingPeriodCountdown;
+          var automatizmId = AppGlobalState.LastEvaluatedAutomatizmId;
+
+          if (countdown > 0)
+          {
+            // Обновляем MainViewModel
+            ShowWaitingPeriod = true;
+            WaitingPeriodText = $"Ожидание оценки: {countdown} пульсов (автоматизм ID={automatizmId})";
+            IsWaitingPeriodPulsating = true;
+
+            // Также обновляем AgentViewModel если он существует
+            if (_agentViewModel != null)
+            {
+              _agentViewModel.ShowWaitingPeriod = true;
+              _agentViewModel.WaitingPeriodText = $"Период ожидания: {countdown}";
+              _agentViewModel.IsWaitingPeriodPulsating = true;
+            }
+          }
+          else
+          {
+            // Время истекло
+            ResetWaitingPeriodDisplay();
+          }
+        }
+        else if (ShowWaitingPeriod)
+        {
+          // Сбрасываем отображение если ожидание завершено
+          ResetWaitingPeriodDisplay();
+        }
+      }
+      catch (Exception ex)
+      {
+        Debug.WriteLine($"UpdateWaitingPeriodDisplay ERROR: {ex.Message}");
+        ResetWaitingPeriodDisplay();
+      }
+    }
+
+    /// <summary>
+    /// Сбросить отображение периода ожидания
+    /// </summary>
+    private void ResetWaitingPeriodDisplay()
+    {
+      ShowWaitingPeriod = false;
+      IsWaitingPeriodPulsating = false;
+
+      if (_agentViewModel != null)
+      {
+        _agentViewModel.ShowWaitingPeriod = false;
+        _agentViewModel.IsWaitingPeriodPulsating = false;
+      }
+    }
+
+    /// <summary>
+    /// Принудительно отменить период ожидания оценки оператора
+    /// </summary>
+    private void CancelWaitingPeriod()
+    {
+      try
+      {
+        if (AppGlobalState.WaitingForOperatorEvaluation)
+        {
+          AppGlobalState.ForceStopWaitingForOperatorEvaluation();
+          ShowWaitingPeriod = false;
+          IsWaitingPeriodPulsating = false;
+
+          Logger.Info("Период ожидания оценки оператора отменен пользователем");
+        }
+      }
+      catch (Exception ex)
+      {
+        Debug.WriteLine($"CancelWaitingPeriod ERROR: {ex.Message}");
+        MessageBox.Show($"Ошибка при отмене периода ожидания: {ex.Message}",
+            "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
+      }
     }
 
     /// <summary>
@@ -1190,6 +1283,56 @@ namespace AIStudio
         }
       }
     }
+
+    #endregion
+
+    #region Свойства периода ожидания оценки оператора
+
+    private bool _showWaitingPeriod = false;
+    public bool ShowWaitingPeriod
+    {
+      get => _showWaitingPeriod;
+      set
+      {
+        if (_showWaitingPeriod != value)
+        {
+          _showWaitingPeriod = value;
+          OnPropertyChanged(nameof(ShowWaitingPeriod));
+        }
+      }
+    }
+
+    private string _waitingPeriodText = "";
+    public string WaitingPeriodText
+    {
+      get => _waitingPeriodText;
+      set
+      {
+        if (_waitingPeriodText != value)
+        {
+          _waitingPeriodText = value;
+          OnPropertyChanged(nameof(WaitingPeriodText));
+        }
+      }
+    }
+
+    private bool _isWaitingPeriodPulsating = false;
+    public bool IsWaitingPeriodPulsating
+    {
+      get => _isWaitingPeriodPulsating;
+      set
+      {
+        if (_isWaitingPeriodPulsating != value)
+        {
+          _isWaitingPeriodPulsating = value;
+          OnPropertyChanged(nameof(IsWaitingPeriodPulsating));
+        }
+      }
+    }
+
+    private ICommand _cancelWaitingPeriodCommand;
+    public ICommand CancelWaitingPeriodCommand =>
+        _cancelWaitingPeriodCommand ?? (_cancelWaitingPeriodCommand = new RelayCommand(_ => CancelWaitingPeriod()));
 
     #endregion
 

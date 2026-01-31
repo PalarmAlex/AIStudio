@@ -103,12 +103,8 @@ namespace AIStudio.ViewModels
       try
       {
         var reflexPhrases = new List<string>();
-
-        // Собираем фразы
         foreach (var action in CurrentActiveActions)
         {
-
-          // Получаем фразу, связанную с действием
           int phraseId = _adaptiveActionsSystem.GetPhraseIdForAction(action.Id);
           string phraseText = GetPhraseText(phraseId);
 
@@ -116,7 +112,6 @@ namespace AIStudio.ViewModels
             reflexPhrases.Add(phraseText);
         }
 
-        // Формируем текст для отображения
         if (reflexPhrases.Any())
           ReflexPhrasesText = $"{string.Join(", ", reflexPhrases)}";
         else
@@ -136,9 +131,7 @@ namespace AIStudio.ViewModels
       {
         var allphrases = _sensorySystem.VerbalChannel.GetAllPhrases();
         if (allphrases.TryGetValue(phraseId, out string phraseText))
-        {
           return phraseText;
-        }
       }
       catch (Exception ex)
       {

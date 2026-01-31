@@ -219,8 +219,11 @@
       </Setter>
     </Style>
 
-    <!-- Добавляем стиль для ячейки ОР: -->
+    <!-- Стиль для ячейки ОР: -->
     <Style x:Key="OrientationReflexCellStyle" TargetType="DataGridCell" BasedOn="{StaticResource MatrixCellStyle}">
+      <!-- Устанавливаем зеленый цвет шрифта по умолчанию -->
+      <Setter Property="Foreground" Value="#00FF00"/>
+
       <Setter Property="ToolTip">
         <Setter.Value>
           <MultiBinding Converter="{StaticResource OrientationReflexTooltipConverter}">
@@ -229,25 +232,31 @@
           </MultiBinding>
         </Setter.Value>
       </Setter>
+
       <Style.Triggers>
+        <!-- Для ОР и ОР1 - красный фон -->
         <DataTrigger Binding="{Binding DisplayOrientationReflexType}" Value="ОР">
           <Setter Property="Background" Value="#40FF0000"/>
-          <Setter Property="Foreground" Value="#FFFFFF"/>
           <Setter Property="FontWeight" Value="Bold"/>
         </DataTrigger>
         <DataTrigger Binding="{Binding DisplayOrientationReflexType}" Value="ОР1">
           <Setter Property="Background" Value="#40FF0000"/>
-          <Setter Property="Foreground" Value="#FFFFFF"/>
           <Setter Property="FontWeight" Value="Bold"/>
         </DataTrigger>
+
+        <!-- Для ОР2 - желтый фон -->
         <DataTrigger Binding="{Binding DisplayOrientationReflexType}" Value="ОР2">
           <Setter Property="Background" Value="#40FFFF00"/>
-          <Setter Property="Foreground" Value="#000000"/>
           <Setter Property="FontWeight" Value="Bold"/>
         </DataTrigger>
+
+        <!-- При нажатии/выделении меняем цвет шрифта на белый -->
+        <Trigger Property="IsSelected" Value="True">
+          <Setter Property="Foreground" Value="#FFFFFF"/>
+        </Trigger>
       </Style.Triggers>
     </Style>
-    
+
   </UserControl.Resources>
 
   <Grid Background="Black">
