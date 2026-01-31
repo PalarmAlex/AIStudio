@@ -39,9 +39,11 @@ namespace AIStudio.ViewModels
     private readonly InfluenceActionSystem _influenceActionSystem;
     private readonly AdaptiveActionsSystem _adaptiveActionsSystem;
     private readonly VerbalBrocaImagesSystem _verbalBrocaImages;
+    private readonly ConditionedReflexToAutomatizmConverter _reflexConverter;
 
     private string _currentAgentName;
     private int _currentAgentStage;
+    private bool _isCloningInProgress;
 
     private int? _selectedBaseConditionFilter;
     private string _selectedUsefulnessFilter;
@@ -63,6 +65,7 @@ namespace AIStudio.ViewModels
 
     public ICommand ClearFiltersCommand { get; }
     public ICommand RemoveAllCommand { get; }
+    public ICommand CloneReflexesCommand { get; }
 
     public AutomatizmsViewModel(
         GomeostasSystem gomeostasSystem,
@@ -74,7 +77,8 @@ namespace AIStudio.ViewModels
         SensorySystem sensorySystem,
         InfluenceActionSystem influenceActionSystem,
         AdaptiveActionsSystem adaptiveActionsSystem,
-        VerbalBrocaImagesSystem verbalBrocaImages)
+        VerbalBrocaImagesSystem verbalBrocaImages,
+        ConditionedReflexToAutomatizmConverter reflexConverter)
     {
       _gomeostas = gomeostasSystem ?? throw new ArgumentNullException(nameof(gomeostasSystem));
       _automatizmSystem = automatizmSystem ?? throw new ArgumentNullException(nameof(automatizmSystem));
@@ -86,12 +90,14 @@ namespace AIStudio.ViewModels
       _influenceActionSystem = influenceActionSystem ?? throw new ArgumentNullException(nameof(influenceActionSystem));
       _adaptiveActionsSystem = adaptiveActionsSystem ?? throw new ArgumentNullException(nameof(adaptiveActionsSystem));
       _verbalBrocaImages = verbalBrocaImages ?? throw new ArgumentNullException(nameof(verbalBrocaImages));
+      _reflexConverter = reflexConverter ?? throw new ArgumentNullException(nameof(reflexConverter));
 
       _automatizmsView = CollectionViewSource.GetDefaultView(_allAutomatizms);
       _automatizmsView.Filter = FilterAutomatizms;
 
       ClearFiltersCommand = new RelayCommand(ClearFilters);
       RemoveAllCommand = new RelayCommand(RemoveAllAutomatizms);
+      CloneReflexesCommand = new RelayCommand(CloneReflexesToAutomatizms, CanCloneReflexes);
 
       GlobalTimer.PulsationStateChanged += OnPulsationStateChanged;
       LoadAgentData();
@@ -218,6 +224,17 @@ namespace AIStudio.ViewModels
         _selectedLevel2Filter = value;
         OnPropertyChanged(nameof(SelectedLevel2Filter));
         ApplyFilters();
+      }
+    }
+
+    public bool IsCloningInProgress
+    {
+      get => _isCloningInProgress;
+      set
+      {
+        _isCloningInProgress = value;
+        OnPropertyChanged(nameof(IsCloningInProgress));
+        ((RelayCommand)CloneReflexesCommand).RaiseCanExecuteChanged();
       }
     }
 
@@ -578,6 +595,97 @@ namespace AIStudio.ViewModels
               MessageBoxButton.OK,
               MessageBoxImage.Error);
         }
+      }
+    }
+
+    private bool CanCloneReflexes(object parameter)
+    {
+      return !IsCloningInProgress &&
+             IsStageTwoOrHigher &&
+             !GlobalTimer.IsPulsationRunning &&
+             _reflexConverter != null;
+    }
+
+    private void CloneReflexesToAutomatizms(object parameter)
+    {
+      if (!ConditionedReflexToAutomatizmConverter.IsInitialized)
+      {
+        MessageBox.Show(
+            "Конвертер условных рефлексов не инициализирован.",
+            "Ошибка",
+            MessageBoxButton.OK,
+            MessageBoxImage.Warning);
+        return;
+      }
+
+      var result = MessageBox.Show(
+          "Вы действительно хотите создать автоматизмы на основе всех условных рефлексов?\n" +
+          "Существующие автоматизмы останутся без изменений.",
+          "Подтверждение клонирования",
+          MessageBoxButton.YesNo,
+          MessageBoxImage.Question);
+
+      if (result != MessageBoxResult.Yes)
+        return;
+
+      IsCloningInProgress = true;
+
+      try
+      {
+        // Запускаем в отдельном потоке, чтобы не блокировать UI
+        System.Threading.Tasks.Task.Run(() =>
+        {
+          var (successCount, totalCount, errors) =
+              ConditionedReflexToAutomatizmConverter.Instance.CloneAllConditionedReflexesToAutomatisms();
+
+          // Возвращаемся в UI поток для показа результатов
+          Application.Current.Dispatcher.Invoke(() =>
+          {
+            IsCloningInProgress = false;
+
+            string message;
+            if (totalCount == 0)
+            {
+              message = "Нет условных рефлексов для клонирования.";
+            }
+            else if (successCount == totalCount)
+            {
+              message = $"Успешно создано {successCount} автоматизмов из {totalCount} условных рефлексов.";
+            }
+            else
+            {
+              var errorCount = totalCount - successCount;
+              message = $"Создано {successCount} автоматизмов из {totalCount}.\n" +
+                        $"Не удалось создать: {errorCount} рефлексов.";
+
+              if (errors != null && errors.Any())
+              {
+                var errorDetails = string.Join("\n", errors.Take(5));
+                if (errors.Count > 5)
+                  errorDetails += $"\n... и еще {errors.Count - 5} ошибок";
+
+                message += $"\n\nОшибки:\n{errorDetails}";
+              }
+            }
+
+            MessageBox.Show(
+                message,
+                "Результат клонирования",
+                MessageBoxButton.OK,
+                successCount > 0 ? MessageBoxImage.Information : MessageBoxImage.Warning);
+
+            RefreshAllCollections();
+          });
+        });
+      }
+      catch (Exception ex)
+      {
+        IsCloningInProgress = false;
+        MessageBox.Show(
+            $"Ошибка при клонировании рефлексов: {ex.Message}",
+            "Ошибка",
+            MessageBoxButton.OK,
+            MessageBoxImage.Error);
       }
     }
 

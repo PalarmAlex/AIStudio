@@ -47,6 +47,7 @@ namespace AIStudio
     private readonly InfluenceActionsImagesSystem _influenceActionsImagesSystem;
     private readonly EmotionsImageSystem _emotionsImageSystem;
     private readonly VerbalBrocaImagesSystem _verbalBrocaImages;
+    private readonly ConditionedReflexToAutomatizmConverter _conditionedReflexToAutomatizm;
 
     public event PropertyChangedEventHandler PropertyChanged;
     private AgentViewModel _agentViewModel;
@@ -162,6 +163,7 @@ namespace AIStudio
         _influenceActionsImagesSystem = _isidaContext.InfluenceActionsImages;
         _emotionsImageSystem = _isidaContext.EmotionsImageSystem;
         _verbalBrocaImages = _isidaContext.VerbalBrocaImagesSystem;
+        _conditionedReflexToAutomatizm = _isidaContext.ConditionedReflexToAutomatizm;
 
         _stepInzialized = 4;
       }
@@ -416,7 +418,8 @@ namespace AIStudio
           _sensorySystem,
           _influenceActionSystem,
           _actionsSystem,
-          _verbalBrocaImages);
+          _verbalBrocaImages,
+          _conditionedReflexToAutomatizm);
       automatizmsView.DataContext = viewModel;
       CurrentContent = automatizmsView;
     }
@@ -1158,13 +1161,12 @@ namespace AIStudio
           AppGlobalState.UpdateWaitingPeriodCountdown();
 
           var countdown = AppGlobalState.WaitingPeriodCountdown;
-          var automatizmId = AppGlobalState.LastEvaluatedAutomatizmId;
 
           if (countdown > 0)
           {
             // Обновляем MainViewModel
             ShowWaitingPeriod = true;
-            WaitingPeriodText = $"Ожидание оценки: {countdown} пульсов (автоматизм ID={automatizmId})";
+            WaitingPeriodText = $"Ожидание оценки: {countdown} пульсов";
             IsWaitingPeriodPulsating = true;
 
             // Также обновляем AgentViewModel если он существует
