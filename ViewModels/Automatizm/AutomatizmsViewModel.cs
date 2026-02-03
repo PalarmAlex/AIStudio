@@ -280,6 +280,20 @@ namespace AIStudio.ViewModels
         _influenceActionsImagesCache.Clear();
         _emotionImageCache.Clear();
 
+        // Загружаем информацию о цепочках
+        Dictionary<int, int> treeNodeToChainMap = new Dictionary<int, int>();
+        if (AutomatizmChainsSystem.IsInitialized)
+        {
+          var allChains = AutomatizmChainsSystem.Instance.GetAllAutomatizmChains();
+          foreach (var chain in allChains.Values)
+          {
+            if (chain.TreeNodeId > 0)
+            {
+              treeNodeToChainMap[chain.TreeNodeId] = chain.ID;
+            }
+          }
+        }
+
         foreach (var automatizm in _automatizmSystem.GetAllAutomatizms().OrderBy(a => a.ID))
         {
           var treeNode = GetTreeNode(automatizm.BranchID);
@@ -323,6 +337,13 @@ namespace AIStudio.ViewModels
             catch { }
           }
 
+          // Определяем ID цепочки для этого узла дерева
+          int chainId = 0;
+          if (treeNode != null && treeNodeToChainMap.ContainsKey(treeNode.ID))
+          {
+            chainId = treeNodeToChainMap[treeNode.ID];
+          }
+
           var displayItem = new AutomatizmDisplayItem
           {
             ID = automatizm.ID,
@@ -333,6 +354,7 @@ namespace AIStudio.ViewModels
             Energy = automatizm.Energy,
             Count = automatizm.Count,
             NextID = automatizm.NextID,
+            ChainID = chainId, // Добавляем ID цепочки
 
             BaseCondition = treeNode?.BaseID ?? 0,
             EmotionIdList = emotionIdList,
@@ -687,6 +709,95 @@ namespace AIStudio.ViewModels
       }
     }
 
+    public void UpdateChainBindingForAutomatizm(AutomatizmDisplayItem automatizm)
+    {
+      try
+      {
+        if (automatizm.BranchID <= 0)
+        {
+          MessageBox.Show("Нельзя привязать цепочку к узлу дерева с неверным ID",
+              "Ошибка",
+              MessageBoxButton.OK,
+              MessageBoxImage.Error);
+          return;
+        }
+
+        if (!IsDeletionEnabled)
+        {
+          MessageBox.Show("Обновление привязки цепочки доступно только при выключенной пульсации",
+              "Невозможно выполнить",
+              MessageBoxButton.OK,
+              MessageBoxImage.Warning);
+          return;
+        }
+
+        if (!AutomatizmChainsSystem.IsInitialized)
+        {
+          MessageBox.Show("Система цепочек автоматизмов не инициализирована",
+              "Ошибка",
+              MessageBoxButton.OK,
+              MessageBoxImage.Error);
+          return;
+        }
+
+        if (automatizm.ChainID > 0)
+        {
+          // Привязываем цепочку к узлу дерева
+          var chain = AutomatizmChainsSystem.Instance.GetChain(automatizm.ChainID);
+          if (chain != null)
+          {
+            chain.TreeNodeId = automatizm.BranchID;
+            var (success, error) = AutomatizmChainsSystem.Instance.SaveAutomatizmChains();
+
+            if (success)
+            {
+              Debug.WriteLine($"Цепочка {automatizm.ChainID} привязана к узлу {automatizm.BranchID}");
+            }
+            else
+            {
+              MessageBox.Show($"Не удалось привязать цепочку: {error}",
+                  "Ошибка",
+                  MessageBoxButton.OK,
+                  MessageBoxImage.Warning);
+            }
+          }
+          else
+          {
+            MessageBox.Show($"Цепочка с ID {automatizm.ChainID} не найдена",
+                "Ошибка",
+                MessageBoxButton.OK,
+                MessageBoxImage.Error);
+          }
+        }
+        else
+        {
+          // Отвязываем цепочку от узла дерева
+          var chain = AutomatizmChainsSystem.Instance.GetChainByTreeNode(automatizm.BranchID);
+          if (chain > 0)
+          {
+            var chainObj = AutomatizmChainsSystem.Instance.GetChain(chain);
+            if (chainObj != null)
+            {
+              chainObj.TreeNodeId = 0;
+              var (success, error) = AutomatizmChainsSystem.Instance.SaveAutomatizmChains();
+
+              if (success)
+              {
+                Debug.WriteLine($"Цепочка {chain} отвязана от узла {automatizm.BranchID}");
+              }
+            }
+          }
+        }
+      }
+      catch (Exception ex)
+      {
+        MessageBox.Show($"Ошибка обновления привязки цепочки: {ex.Message}",
+            "Ошибка",
+            MessageBoxButton.OK,
+            MessageBoxImage.Error);
+      }
+    }
+
     public class AutomatizmDisplayItem
     {
       public int ID { get; set; }
@@ -697,6 +808,7 @@ namespace AIStudio.ViewModels
       public int Energy { get; set; }
       public int Count { get; set; }
       public int NextID { get; set; }
+      public int ChainID { get; set; }
 
       // Поля из узла дерева (условия запуска)
       public int BaseCondition { get; set; }
