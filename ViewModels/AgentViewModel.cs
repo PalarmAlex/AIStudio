@@ -66,6 +66,104 @@ namespace AIStudio.ViewModels
       }
     }
 
+    private Brush _waitingPeriodBackground = Brushes.Transparent;
+    public Brush WaitingPeriodBackground
+    {
+      get => _waitingPeriodBackground;
+      set
+      {
+        if (_waitingPeriodBackground != value)
+        {
+          _waitingPeriodBackground = value;
+          OnPropertyChanged(nameof(WaitingPeriodBackground));
+        }
+      }
+    }
+
+    private Brush _waitingPeriodBorderBrush = Brushes.Transparent;
+    public Brush WaitingPeriodBorderBrush
+    {
+      get => _waitingPeriodBorderBrush;
+      set
+      {
+        if (_waitingPeriodBorderBrush != value)
+        {
+          _waitingPeriodBorderBrush = value;
+          OnPropertyChanged(nameof(WaitingPeriodBorderBrush));
+        }
+      }
+    }
+
+    private Brush _waitingPeriodForeground = Brushes.Gray;
+    public Brush WaitingPeriodForeground
+    {
+      get => _waitingPeriodForeground;
+      set
+      {
+        if (_waitingPeriodForeground != value)
+        {
+          _waitingPeriodForeground = value;
+          OnPropertyChanged(nameof(WaitingPeriodForeground));
+        }
+      }
+    }
+
+    private FontWeight _waitingPeriodFontWeight = FontWeights.Normal;
+    public FontWeight WaitingPeriodFontWeight
+    {
+      get => _waitingPeriodFontWeight;
+      set
+      {
+        if (_waitingPeriodFontWeight != value)
+        {
+          _waitingPeriodFontWeight = value;
+          OnPropertyChanged(nameof(WaitingPeriodFontWeight));
+        }
+      }
+    }
+
+    private string _waitingPeriodToolTip = "";
+    public string WaitingPeriodToolTip
+    {
+      get => _waitingPeriodToolTip;
+      set
+      {
+        if (_waitingPeriodToolTip != value)
+        {
+          _waitingPeriodToolTip = value;
+          OnPropertyChanged(nameof(WaitingPeriodToolTip));
+        }
+      }
+    }
+
+    private Cursor _waitingPeriodCursor = Cursors.Arrow;
+    public Cursor WaitingPeriodCursor
+    {
+      get => _waitingPeriodCursor;
+      set
+      {
+        if (_waitingPeriodCursor != value)
+        {
+          _waitingPeriodCursor = value;
+          OnPropertyChanged(nameof(WaitingPeriodCursor));
+        }
+      }
+    }
+
+    private bool _showCancelButton = false;
+    public bool ShowCancelButton
+    {
+      get => _showCancelButton;
+      set
+      {
+        if (_showCancelButton != value)
+        {
+          _showCancelButton = value;
+          OnPropertyChanged(nameof(ShowCancelButton));
+        }
+      }
+    }
+
     public bool IsAgentDead
     {
       get => _isAgentDead;
@@ -103,6 +201,7 @@ namespace AIStudio.ViewModels
     }
 
     private string _waitingPeriodText = "";
+
     public string WaitingPeriodText
     {
       get => _waitingPeriodText;
@@ -271,6 +370,7 @@ namespace AIStudio.ViewModels
       LoadAgentData();
       UpdateEditableProperties();
       UpdateWarningMessage();
+      UpdateWaitingPeriodDisplay();
     }
 
     private void UpdateAgentProperties()
@@ -461,6 +561,7 @@ namespace AIStudio.ViewModels
         OnPropertyChanged(nameof(HomeostasisStatusColor));
 
         UpdateEditableProperties();
+        UpdateWaitingPeriodDisplay();
 
         BehaviorStylesViewModel.LoadBehaviorStyles();
       }
@@ -492,8 +593,7 @@ namespace AIStudio.ViewModels
         if (AppGlobalState.WaitingForOperatorEvaluation)
         {
           AppGlobalState.ForceStopWaitingForOperatorEvaluation();
-          ShowWaitingPeriod = false;
-          IsWaitingPeriodPulsating = false;
+          UpdateWaitingPeriodDisplay();
 
           Logger.Info("Период ожидания оценки оператора отменен пользователем");
         }
@@ -503,6 +603,35 @@ namespace AIStudio.ViewModels
         Logger.Error(ex.Message);
         MessageBox.Show($"Ошибка при отмене периода ожидания: {ex.Message}",
             "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
+      }
+    }
+
+    private void UpdateWaitingPeriodDisplay()
+    {
+      if (AppGlobalState.WaitingForOperatorEvaluation)
+      {
+        // Активный период - красный стиль
+        WaitingPeriodBackground = new SolidColorBrush(Color.FromArgb(0x20, 0xFF, 0x45, 0x00));
+        WaitingPeriodBorderBrush = Brushes.OrangeRed;
+        WaitingPeriodForeground = Brushes.DarkRed;
+        WaitingPeriodFontWeight = FontWeights.Bold;
+        WaitingPeriodToolTip = "Кликните для отмены ожидания оценки";
+        WaitingPeriodCursor = Cursors.Hand;
+        ShowCancelButton = true;
+        IsWaitingPeriodPulsating = true;
+      }
+      else
+      {
+        // Неактивный период - серый стиль
+        WaitingPeriodBackground = Brushes.Transparent;
+        WaitingPeriodBorderBrush = Brushes.LightGray;
+        WaitingPeriodForeground = Brushes.Gray;
+        WaitingPeriodFontWeight = FontWeights.Normal;
+        WaitingPeriodToolTip = "Нет активного периода ожидания";
+        WaitingPeriodCursor = Cursors.Arrow;
+        ShowCancelButton = false;
+        IsWaitingPeriodPulsating = false;
+        WaitingPeriodText = "Нет активного периода ожидания";
       }
     }
 

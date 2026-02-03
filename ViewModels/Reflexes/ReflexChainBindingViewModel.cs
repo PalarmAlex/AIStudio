@@ -169,6 +169,21 @@ namespace AIStudio.ViewModels
       }
     }
 
+    private string _chainIdFilter;
+    public string ChainIdFilter
+    {
+      get => _chainIdFilter;
+      set
+      {
+        if (_chainIdFilter != value)
+        {
+          _chainIdFilter = value;
+          OnPropertyChanged(nameof(ChainIdFilter));
+          FilterChains();
+        }
+      }
+    }
+
     // Данные
     private List<ReflexChainsSystem.ReflexChain> _allChains;
     public List<ReflexChainsSystem.ReflexChain> AllChains
@@ -266,6 +281,9 @@ namespace AIStudio.ViewModels
       AllChains = new List<ReflexChainsSystem.ReflexChain>();
       FilteredChains = new ObservableCollection<ReflexChainsSystem.ReflexChain>();
       SelectedChainLinks = new ObservableCollection<ReflexChainsSystem.ChainLink>();
+
+      ChainIdFilter = string.Empty;
+      ChainNameFilter = string.Empty;
     }
 
     private void InitializeFilterOptions()
@@ -317,6 +335,14 @@ namespace AIStudio.ViewModels
       if (AllChains == null) return;
 
       var filtered = AllChains.AsEnumerable();
+
+      // Фильтр по ID (контекстный поиск)
+      if (!string.IsNullOrWhiteSpace(ChainIdFilter))
+      {
+        // Ищем ID, содержащие введенную строку
+        filtered = filtered.Where(c =>
+            c.ID.ToString().IndexOf(ChainIdFilter, StringComparison.OrdinalIgnoreCase) >= 0);
+      }
 
       // Фильтр по названию
       if (!string.IsNullOrWhiteSpace(ChainNameFilter))
@@ -414,6 +440,7 @@ namespace AIStudio.ViewModels
 
     private void ClearFilters(object parameter = null)
     {
+      ChainIdFilter = string.Empty;
       ChainNameFilter = string.Empty;
       SelectedBindingFilter = 0;
       FilterChains();

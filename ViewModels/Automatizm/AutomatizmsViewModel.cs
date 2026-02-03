@@ -632,10 +632,9 @@ namespace AIStudio.ViewModels
 
       try
       {
-        // Запускаем в отдельном потоке, чтобы не блокировать UI
         System.Threading.Tasks.Task.Run(() =>
         {
-          var (successCount, totalCount, errors) =
+          var (newCount, existingCount, totalCount, duplicateCount, errors) =
               ConditionedReflexToAutomatizmConverter.Instance.CloneAllConditionedReflexesToAutomatisms();
 
           // Возвращаемся в UI поток для показа результатов
@@ -648,23 +647,22 @@ namespace AIStudio.ViewModels
             {
               message = "Нет условных рефлексов для клонирования.";
             }
-            else if (successCount == totalCount)
-            {
-              message = $"Успешно создано {successCount} автоматизмов из {totalCount} условных рефлексов.";
-            }
             else
             {
-              var errorCount = totalCount - successCount;
-              message = $"Создано {successCount} автоматизмов из {totalCount}.\n" +
-                        $"Не удалось создать: {errorCount} рефлексов.";
+              // ИЗМЕНЕНИЕ: Новый формат сообщения
+              message = $"Обработано {totalCount} условных рефлексов:\n" +
+                        $"• Создано новых: {newCount}\n" +
+                        $"• Уже существовало: {existingCount}\n" +
+                        $"• Пропущено (дубликаты): {duplicateCount}";
 
               if (errors != null && errors.Any())
               {
+                var errorCount = errors.Count;
                 var errorDetails = string.Join("\n", errors.Take(5));
                 if (errors.Count > 5)
                   errorDetails += $"\n... и еще {errors.Count - 5} ошибок";
 
-                message += $"\n\nОшибки:\n{errorDetails}";
+                message += $"\n\nОшибки ({errorCount}):\n{errorDetails}";
               }
             }
 
@@ -672,7 +670,7 @@ namespace AIStudio.ViewModels
                 message,
                 "Результат клонирования",
                 MessageBoxButton.OK,
-                successCount > 0 ? MessageBoxImage.Information : MessageBoxImage.Warning);
+                newCount > 0 ? MessageBoxImage.Information : MessageBoxImage.Warning);
 
             RefreshAllCollections();
           });

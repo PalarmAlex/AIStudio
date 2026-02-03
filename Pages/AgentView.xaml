@@ -149,15 +149,15 @@
 
       <!-- Блок периода ожидания оценки оператора -->
       <Border x:Name="WaitingPeriodPanel"
-        Visibility="{Binding ShowWaitingPeriod, Converter={StaticResource BoolToVisibilityConverter}}"
-        Background="#20FF4500" 
+        Background="{Binding WaitingPeriodBackground}" 
         CornerRadius="4"
         Padding="8,4"
         Margin="10,2,10,2"
-        BorderBrush="#FFFF4500"
+        BorderBrush="{Binding WaitingPeriodBorderBrush}"
         BorderThickness="1"
-        Cursor="Hand"
-        ToolTip="Кликните для отмены ожидания оценки">
+        Cursor="{Binding WaitingPeriodCursor, FallbackValue=Arrow}"
+        ToolTip="{Binding WaitingPeriodToolTip, FallbackValue=''}"
+        VerticalAlignment="Center">
 
         <Border.InputBindings>
           <MouseBinding MouseAction="LeftClick" Command="{Binding CancelWaitingPeriodCommand}"/>
@@ -167,8 +167,8 @@
           <TextBlock Text="⏳" FontSize="14" Margin="0,0,5,0"/>
 
           <TextBlock Text="{Binding WaitingPeriodText}" 
-                   FontWeight="Bold"
-                   Foreground="#FF4500">
+                   FontWeight="{Binding WaitingPeriodFontWeight, FallbackValue=Normal}"
+                   Foreground="{Binding WaitingPeriodForeground, FallbackValue=Gray}">
             <TextBlock.Style>
               <Style TargetType="TextBlock">
                 <Style.Triggers>
@@ -206,10 +206,11 @@
                 FontWeight="Bold"
                 Background="Transparent"
                 BorderBrush="Transparent"
-                Foreground="#FF4500"
+                Foreground="{Binding WaitingPeriodForeground, FallbackValue=Gray}"
                 Cursor="Hand"
                 Command="{Binding CancelWaitingPeriodCommand}"
-                ToolTip="Отменить ожидание"/>
+                ToolTip="Отменить ожидание"
+                Visibility="{Binding ShowCancelButton, Converter={StaticResource BoolToVisibilityConverter}}"/>
         </StackPanel>
       </Border>
 
