@@ -85,63 +85,50 @@
         Margin="0,0,0,10"
         Padding="10"
         Background="#FFF3E5F5">
-      <StackPanel>
-        <TextBlock Text="Информация об узле дерева:" 
-               Style="{StaticResource InfoTitleStyle}"
-               Foreground="#FF7B1FA2"
-               Margin="0,0,0,8"/>
 
-        <Grid>
-          <Grid.RowDefinitions>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
-          </Grid.RowDefinitions>
+      <StackPanel Orientation="Vertical" Margin="5">
+        <TextBlock Text="Информация об узле дерева:" 
+               FontWeight="Bold" 
+               Margin="0,0,0,5"/>
+
+        <Border BorderBrush="LightGray" 
+            BorderThickness="1" 
+            CornerRadius="3"
+            Padding="5"
+            Background="#FFF9F9F9">
+          <ScrollViewer MaxHeight="150" 
+                      VerticalScrollBarVisibility="Auto">
+            <TextBlock Text="{Binding TreeNodeConditionsInfo}" 
+                       TextWrapping="Wrap"
+                       FontFamily="Consolas"
+                       FontSize="11"/>
+          </ScrollViewer>
+        </Border>
+
+        <Grid Margin="0,5,0,0">
           <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="Auto"/>
+            <ColumnDefinition Width="*"/>
             <ColumnDefinition Width="Auto"/>
             <ColumnDefinition Width="*"/>
           </Grid.ColumnDefinitions>
 
-          <!-- ID узла дерева -->
-          <TextBlock Grid.Row="0" Grid.Column="0" 
-                 Text="ID узла дерева:"
-                 Style="{StaticResource InfoTitleStyle}"/>
-          <TextBlock Grid.Row="0" Grid.Column="1" 
-                 Text="{Binding TreeNodeId}"
-                 Style="{StaticResource InfoValueStyle}"/>
+          <TextBlock Grid.Column="0" 
+                   Text="Базовое состояние:" 
+                   Margin="0,0,5,0"/>
+          <TextBlock Grid.Column="1" 
+                   Text="{Binding TreeNodeBaseState}" 
+                   FontWeight="SemiBold"/>
 
-          <!-- Базовое состояние -->
-          <TextBlock Grid.Row="1" Grid.Column="0" 
-                 Text="Базовое состояние:"
-                 Style="{StaticResource InfoTitleStyle}"
-                 Margin="0,5,0,0"/>
-          <TextBlock Grid.Row="1" Grid.Column="1" 
-                 Text="{Binding TreeNodeBaseState}"
-                 Style="{StaticResource InfoValueStyle}"
-                 Margin="5,5,0,0"/>
-
-          <!-- Эмоция -->
-          <TextBlock Grid.Row="2" Grid.Column="0" 
-                 Text="Эмоция ID:"
-                 Style="{StaticResource InfoTitleStyle}"
-                 Margin="0,5,0,0"/>
-          <TextBlock Grid.Row="2" Grid.Column="1" 
-                 Text="{Binding TreeNodeEmotionId}"
-                 Style="{StaticResource InfoValueStyle}"
-                 Margin="5,5,0,0"/>
-
-          <!-- Активность -->
-          <TextBlock Grid.Row="3" Grid.Column="0" 
-                 Text="Активность ID:"
-                 Style="{StaticResource InfoTitleStyle}"
-                 Margin="0,5,0,0"/>
-          <TextBlock Grid.Row="3" Grid.Column="1" 
-                 Text="{Binding TreeNodeActivityId}"
-                 Style="{StaticResource InfoValueStyle}"
-                 Margin="5,5,0,0"/>
+          <TextBlock Grid.Column="2" 
+                   Text="Эмоция ID:" 
+                   Margin="10,0,5,0"/>
+          <TextBlock Grid.Column="3" 
+                   Text="{Binding TreeNodeEmotionId}" 
+                   FontWeight="SemiBold"/>
         </Grid>
       </StackPanel>
+
     </Border>
 
     <!-- Реквизиты цепочки -->
@@ -261,51 +248,78 @@
             </DataGridTextColumn>
 
             <!-- Образ действий -->
-            <DataGridTemplateColumn Header="Образ действий" Width="200">
+            <!-- Образ действий -->
+            <DataGridTemplateColumn Header="Образ действий" Width="120">
               <DataGridTemplateColumn.HeaderStyle>
                 <Style TargetType="DataGridColumnHeader">
-                  <Setter Property="ToolTip" Value="Образ действий для выполнения в этом звене"/>
+                  <Setter Property="ToolTip" Value="Образ действий для выполнения в этом звене. Двойной клик или правый клик для выбора"/>
                   <Setter Property="FontSize" Value="12"/>
                   <Setter Property="FontWeight" Value="SemiBold"/>
                 </Style>
               </DataGridTemplateColumn.HeaderStyle>
               <DataGridTemplateColumn.CellTemplate>
                 <DataTemplate>
-                  <Grid>
-                    <Grid.ColumnDefinitions>
-                      <ColumnDefinition Width="*"/>
-                      <ColumnDefinition Width="Auto"/>
-                    </Grid.ColumnDefinitions>
-
-                    <ComboBox Grid.Column="0"
-                              ItemsSource="{Binding Path=ActionsImageOptions, 
-                              RelativeSource={RelativeSource AncestorType=Window}}"
-                              SelectedValue="{Binding ActionsImageId, UpdateSourceTrigger=PropertyChanged}"
-                              SelectedValuePath="Key"
-                              DisplayMemberPath="Value"
-                              Height="26"
-                              FontSize="12"
-                              Padding="2"
-                              BorderBrush="#FFABADB3"
-                              BorderThickness="1"
-                              ToolTip="Выберите образ действий"/>
-
-                    <Button Grid.Column="1"
-                            Content="📖"
-                            Click="OpenActionsImageReference_Click"
-                            Width="30"
-                            Height="26"
-                            Margin="5,0,0,0"
-                            Background="#FFF5F5F5"
-                            BorderBrush="#FFABADB3"
-                            ToolTip="Открыть справочник образов действий"/>
-                  </Grid>
+                  <TextBlock Text="{Binding ActionsImageId}"
+                       HorizontalAlignment="Center"
+                       VerticalAlignment="Center"
+                       Cursor="Hand"
+                       ToolTipService.ShowOnDisabled="True">
+                    <TextBlock.Style>
+                      <Style TargetType="TextBlock">
+                        <Setter Property="Text" Value="{Binding ActionsImageId}"/>
+                        <Setter Property="HorizontalAlignment" Value="Center"/>
+                        <Setter Property="VerticalAlignment" Value="Center"/>
+                        <Style.Triggers>
+                          <DataTrigger Binding="{Binding ActionsImageId}" Value="0">
+                            <Setter Property="Text" Value="❌"/>
+                            <Setter Property="ToolTip" Value="Не выбран. Нажмите для выбора образа действий"/>
+                            <Setter Property="Foreground" Value="Red"/>
+                            <Setter Property="FontSize" Value="14"/>
+                          </DataTrigger>
+                          <DataTrigger Binding="{Binding ActionsImageId}" Value="0">
+                            <Setter Property="Text" Value="❌"/>
+                            <Setter Property="ToolTip" Value="Не выбран. Нажмите для выбора образа действий"/>
+                            <Setter Property="Foreground" Value="Red"/>
+                            <Setter Property="FontSize" Value="14"/>
+                          </DataTrigger>
+                        </Style.Triggers>
+                      </Style>
+                    </TextBlock.Style>
+                    <TextBlock.ToolTip>
+                      <ToolTip>
+                        <StackPanel>
+                          <TextBlock Text="{Binding ActionsImageId, StringFormat='ID: {0}'}" 
+                                       FontWeight="Bold"
+                                       Margin="0,0,0,3"/>
+                          <TextBlock Text="Нажмите для выбора образа действий" 
+                                       FontStyle="Italic"
+                                       Foreground="Gray"/>
+                        </StackPanel>
+                      </ToolTip>
+                    </TextBlock.ToolTip>
+            </TextBlock>
                 </DataTemplate>
               </DataGridTemplateColumn.CellTemplate>
+              <DataGridTemplateColumn.CellStyle>
+                <Style TargetType="DataGridCell">
+                  <Setter Property="Cursor" Value="Hand"/>
+                  <Setter Property="ToolTip" Value="Двойной клик или правый клик для выбора образа действий"/>
+                  <Setter Property="HorizontalContentAlignment" Value="Center"/>
+                  <Setter Property="VerticalContentAlignment" Value="Center"/>
+                  <EventSetter Event="MouseDoubleClick" Handler="ActionsImageCell_MouseDoubleClick"/>
+                  <EventSetter Event="PreviewMouseRightButtonDown" Handler="ActionsImageCell_MouseRightButtonDown"/>
+                  <Setter Property="Background" Value="Transparent"/>
+                  <Style.Triggers>
+                    <Trigger Property="IsSelected" Value="True">
+                      <Setter Property="Background" Value="#FFE3F2FD"/>
+                    </Trigger>
+                  </Style.Triggers>
+                </Style>
+              </DataGridTemplateColumn.CellStyle>
             </DataGridTemplateColumn>
 
             <!-- Следующее звено при успехе -->
-            <DataGridTemplateColumn Header="Следующее (успех)" Width="100">
+            <DataGridTemplateColumn Header="Следующее (успех)" Width="130">
               <DataGridTemplateColumn.HeaderStyle>
                 <Style TargetType="DataGridColumnHeader">
                   <Setter Property="ToolTip" Value="ID следующего звена при успешном выполнении (0 - конец цепочки)"/>
@@ -329,7 +343,7 @@
             </DataGridTemplateColumn>
 
             <!-- Следующее звено при неудаче -->
-            <DataGridTemplateColumn Header="Следующее (неудача)" Width="100">
+            <DataGridTemplateColumn Header="Следующее (неудача)" Width="130">
               <DataGridTemplateColumn.HeaderStyle>
                 <Style TargetType="DataGridColumnHeader">
                   <Setter Property="ToolTip" Value="ID следующего звена при неудачном выполнении (0 - конец цепочки)"/>
@@ -442,9 +456,9 @@
                 FontWeight="SemiBold"
                 IsEnabled="{Binding IsLinkSelected}"/>
 
-        <Button Content="📖 Справочник" 
+        <Button Content="📖 Выбрать образ" 
                 Click="OpenActionsImageReferenceButton_Click"
-                ToolTip="Открыть справочник образов действий"
+                ToolTip="Открыть справочник для выбора образа действий"
                 Width="120"
                 Height="32"
                 Margin="0,0,10,0"

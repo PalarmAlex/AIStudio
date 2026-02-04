@@ -260,15 +260,17 @@
             <DataGridTemplateColumn.HeaderStyle>
               <Style TargetType="DataGridColumnHeader">
                 <Setter Property="ToolTip" 
-                        Value="Цепочка автоматизмов для данного узла дерева"/>
+                    Value="Цепочка автоматизмов для данного узла дерева"/>
               </Style>
             </DataGridTemplateColumn.HeaderStyle>
             <DataGridTemplateColumn.CellTemplate>
               <DataTemplate>
-                <TextBlock>
+                <TextBlock HorizontalAlignment="Center" TextAlignment="Center">
                   <TextBlock.Style>
                     <Style TargetType="TextBlock">
                       <Setter Property="Text" Value="{Binding ChainID}"/>
+                      <Setter Property="HorizontalAlignment" Value="Center"/>
+                      <Setter Property="TextAlignment" Value="Center"/>
                       <Style.Triggers>
                         <DataTrigger Binding="{Binding ChainID}" Value="0">
                           <Setter Property="Text" Value="Нет"/>
@@ -288,6 +290,7 @@
                 <Setter Property="ContextMenu" Value="{StaticResource AutomatizmChainContextMenu}"/>
                 <Setter Property="Cursor" Value="Hand"/>
                 <Setter Property="ToolTip" Value="Двойной клик или правый клик для работы с цепочками автоматизмов"/>
+                <Setter Property="HorizontalContentAlignment" Value="Center"/>
               </Style>
             </DataGridTemplateColumn.CellStyle>
           </DataGridTemplateColumn>
@@ -328,37 +331,50 @@
 
           <!-- Энергичность -->
           <DataGridTextColumn Header="Энергия" 
-                              Binding="{Binding Energy}" 
-                              Width="Auto"
-                              IsReadOnly="True">
+                    Binding="{Binding Energy}" 
+                    Width="Auto"
+                    IsReadOnly="True">
             <DataGridTextColumn.HeaderStyle>
               <Style TargetType="DataGridColumnHeader">
                 <Setter Property="ToolTip" Value="Энергичность действия или фразы (от 1 до 10, по умолчанию = 5)"/>
               </Style>
             </DataGridTextColumn.HeaderStyle>
             <DataGridTextColumn.CellStyle>
-              <Style TargetType="DataGridCell">
+              <Style TargetType="DataGridCell" BasedOn="{StaticResource {x:Type DataGridCell}}">
                 <Setter Property="HorizontalAlignment" Value="Center"/>
+                <Setter Property="HorizontalContentAlignment" Value="Center"/>
+                <Style.Resources>
+                  <Style TargetType="TextBlock">
+                    <Setter Property="Background" Value="Transparent"/>
+                  </Style>
+                </Style.Resources>
               </Style>
             </DataGridTextColumn.CellStyle>
           </DataGridTextColumn>
 
           <!-- Счетчик использования -->
           <DataGridTextColumn Header="Использований" 
-                              Binding="{Binding Count}" 
-                              Width="Auto"
-                              IsReadOnly="True">
+                    Binding="{Binding Count}" 
+                    Width="Auto"
+                    IsReadOnly="True">
             <DataGridTextColumn.HeaderStyle>
               <Style TargetType="DataGridColumnHeader">
                 <Setter Property="ToolTip" Value="Число использований с подтверждением (бес)полезности"/>
               </Style>
             </DataGridTextColumn.HeaderStyle>
             <DataGridTextColumn.CellStyle>
-              <Style TargetType="DataGridCell">
+              <Style TargetType="DataGridCell" BasedOn="{StaticResource {x:Type DataGridCell}}">
                 <Setter Property="HorizontalAlignment" Value="Center"/>
+                <Setter Property="HorizontalContentAlignment" Value="Center"/>
+                <Style.Resources>
+                  <Style TargetType="TextBlock">
+                    <Setter Property="Background" Value="Transparent"/>
+                  </Style>
+                </Style.Resources>
               </Style>
             </DataGridTextColumn.CellStyle>
           </DataGridTextColumn>
+
         </DataGrid.Columns>
       </DataGrid>
     </Border>
@@ -373,6 +389,7 @@
       <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
         <Button Content="Клонировать рефлексы в автоматизмы"
           Command="{Binding CloneReflexesCommand}"
+          IsEnabled="{Binding IsDeletionEnabled}"
           Style="{StaticResource AgentButtonStyle}"
           Margin="5,0,5,0"
           Cursor="Hand"
@@ -380,26 +397,32 @@
 
         <!-- Текст предупреждения -->
         <TextBlock Grid.Column="0"
-                   Text="Таблица автоматизмов доступна только для просмотра и удаления (доступна со стадии 2)"
-                   Foreground="#FF333333"
-                   FontStyle="Italic"
-                   VerticalAlignment="Center"
-                   Margin="8,0,0,0"
-                   TextWrapping="Wrap"/>
+               Text="{Binding PulseWarningMessage}"
+               Foreground="{Binding WarningMessageColor}"
+               FontStyle="Italic"
+               VerticalAlignment="Center"
+               Margin="8,0,0,0"
+               TextWrapping="Wrap"/>
       </StackPanel>
 
-      <!-- Кнопки -->
       <StackPanel Grid.Column="1" 
-                  Orientation="Horizontal" 
-                  HorizontalAlignment="Right">
-        <Button Content="Очистить таблицу"
-                Command="{Binding RemoveAllCommand}"
-                IsEnabled="{Binding IsDeletionEnabled}"
-                Style="{StaticResource RedButtonStyle}"
-                ToolTip="Удалить все автоматизмы агента"
-                Margin="0,0,5,0"/>
-      </StackPanel>
+              Orientation="Horizontal" 
+              HorizontalAlignment="Right">
+        <!--<Button Content="Сохранить"
+            Command="{Binding SaveCommand}"
+            IsEnabled="{Binding IsDeletionEnabled}"
+            Style="{StaticResource ActionButtonStyle}"
+            ToolTip="Сохранить автоматизмы"
+            Margin="0,0,8,0"
+            Cursor="Hand"/>-->
 
+        <Button Content="Очистить таблицу"
+            Command="{Binding RemoveAllCommand}"
+            IsEnabled="{Binding IsDeletionEnabled}"
+            Style="{StaticResource RedButtonStyle}"
+            ToolTip="Удалить все автоматизмы агента"
+            Margin="0,0,5,0"/>
+      </StackPanel>
     </Grid>
 
   </Grid>

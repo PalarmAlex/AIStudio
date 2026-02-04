@@ -1,15 +1,22 @@
-﻿using ISIDA.Psychic.Automatism;
+﻿using AIStudio.Converters;
+using AIStudio.ViewModels;
+using ISIDA.Psychic.Automatism;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Controls.Primitives;
 using System.Windows.Data;
 using System.Windows.Input;
+using System.Windows.Media;
+using System.Windows.Media.Imaging;
+using static AIStudio.ViewModels.AutomatizmsViewModel;
 using static ISIDA.Psychic.Automatism.ActionsImagesSystem;
 using static ISIDA.Psychic.Automatism.AutomatizmChainsSystem;
 
@@ -25,6 +32,8 @@ namespace AIStudio.Dialogs
 
     private readonly AutomatizmChainsSystem _automatizmChainsSystem;
     private readonly ActionsImagesSystem _actionsImagesSystem;
+    private readonly AutomatizmsViewModel _automatizmsViewModel;
+    private string _treeNodeConditionsInfo;
 
     private int _chainId;
     private string _chainName;
@@ -72,6 +81,16 @@ namespace AIStudio.Dialogs
     public ObservableCollection<ChainLink> ChainLinks { get; } = new ObservableCollection<ChainLink>();
     public ICollectionView ChainLinksView { get; }
 
+    public string TreeNodeConditionsInfo
+    {
+      get => _treeNodeConditionsInfo;
+      set
+      {
+        _treeNodeConditionsInfo = value;
+        OnPropertyChanged(nameof(TreeNodeConditionsInfo));
+      }
+    }
+
     private ChainLink _selectedLink;
     public ChainLink SelectedLink
     {
@@ -91,7 +110,8 @@ namespace AIStudio.Dialogs
 
     public AutomatizmChainEditorDialog(int treeNodeId, int chainId,
         AutomatizmChainsSystem automatizmChainsSystem,
-        ActionsImagesSystem actionsImagesSystem)
+        ActionsImagesSystem actionsImagesSystem,
+         AutomatizmsViewModel automatizmsViewModel = null)
     {
       if (automatizmChainsSystem == null)
         throw new ArgumentNullException(nameof(automatizmChainsSystem));
@@ -105,6 +125,12 @@ namespace AIStudio.Dialogs
       _actionsImagesSystem = actionsImagesSystem;
 
       InitializeComponent();
+      InitializeContextMenu();
+
+      _automatizmsViewModel = automatizmsViewModel;
+
+      LoadTreeNodeInfo();
+      LoadTreeNodeConditionsInfo();
 
       ChainLinksView = CollectionViewSource.GetDefaultView(ChainLinks);
       ChainLinks.CollectionChanged += (s, e) =>
@@ -136,9 +162,115 @@ namespace AIStudio.Dialogs
         ChainLinks.Add(startLink);
       }
 
-      LoadActionsImageOptions();
+      //LoadActionsImageOptions();
 
       DataContext = this;
+    }
+
+    private void InitializeContextMenu()
+    {
+      var contextMenu = new ContextMenu();
+
+      var selectActionMenuItem = new MenuItem
+      {
+        Header = "Выбрать образ действий...",
+        Icon = new Image { Source = new BitmapImage(new Uri("pack://application:,,,/AIStudio;component/Resources/Select.ico")) }
+      };
+      selectActionMenuItem.Click += (s, e) =>
+      {
+        if (SelectedLink != null)
+          OpenActionsImageEditor(SelectedLink);
+      };
+
+      var viewDetailsMenuItem = new MenuItem
+      {
+        Header = "Просмотреть детали...",
+        Icon = new Image { Source = new BitmapImage(new Uri("pack://application:,,,/AIStudio;component/Resources/Info.ico")) }
+      };
+      viewDetailsMenuItem.Click += (s, e) =>
+      {
+        if (SelectedLink != null && SelectedLink.ActionsImageId > 0)
+          OpenActionsImageReference(SelectedLink.ActionsImageId);
+      };
+
+      var clearActionMenuItem = new MenuItem
+      {
+        Header = "Очистить выбор",
+        Icon = new Image { Source = new BitmapImage(new Uri("pack://application:,,,/AIStudio;component/Resources/Delete.ico")) }
+      };
+      clearActionMenuItem.Click += (s, e) =>
+      {
+        if (SelectedLink != null)
+        {
+          SelectedLink.ActionsImageId = 0;
+          _hasUnsavedChanges = true;
+          OnPropertyChanged(nameof(CanSave));
+        }
+      };
+
+      contextMenu.Items.Add(selectActionMenuItem);
+      contextMenu.Items.Add(viewDetailsMenuItem);
+      contextMenu.Items.Add(new Separator());
+      contextMenu.Items.Add(clearActionMenuItem);
+
+      // Привязываем контекстное меню к DataGrid
+      LinksDataGrid.ContextMenu = contextMenu;
+
+      // Также привязываем контекстное меню к ячейкам
+      LinksDataGrid.ContextMenuOpening += LinksDataGrid_ContextMenuOpening;
+    }
+
+    private void LinksDataGrid_ContextMenuOpening(object sender, ContextMenuEventArgs e)
+    {
+      var cell = e.OriginalSource as DataGridCell;
+      if (cell != null && cell.Column?.Header?.ToString() == "Образ действий")
+      {
+        if (cell.DataContext is ChainLink link)
+        {
+          SelectedLink = link;
+        }
+      }
+    }
+
+    private void LoadTreeNodeConditionsInfo()
+    {
+      if (_automatizmsViewModel != null)
+        TreeNodeConditionsInfo = _automatizmsViewModel.GetTreeNodeConditionsInfo(TreeNodeId);
+      else
+      {
+        try
+        {
+          var treeSystem = AutomatizmTreeSystem.Instance;
+          var node = treeSystem.GetNodeById(TreeNodeId);
+          if (node != null)
+          {
+            // Простая расшифровка без конвертера
+            StringBuilder sb = new StringBuilder();
+            sb.AppendLine($"ID узла: {node.ID}");
+            sb.AppendLine($"Базовое состояние: {GetBaseStateText(node.BaseID)}");
+            if (node.EmotionID > 0)
+              sb.AppendLine($"Эмоция ID: {node.EmotionID}");
+            if (node.ActivityID > 0)
+              sb.AppendLine($"Активность ID: {node.ActivityID}");
+            if (node.ToneMoodID > 0)
+              sb.AppendLine($"Тон/Настроение ID: {node.ToneMoodID}");
+            if (node.VerbID > 0)
+              sb.AppendLine($"Вербальное ID: {node.VerbID}");
+            if (node.SimbolID > 0)
+              sb.AppendLine($"Символьное ID: {node.SimbolID}");
+
+            TreeNodeConditionsInfo = sb.ToString();
+          }
+          else
+          {
+            TreeNodeConditionsInfo = "Узел дерева не найден";
+          }
+        }
+        catch (Exception ex)
+        {
+          TreeNodeConditionsInfo = $"Ошибка загрузки: {ex.Message}";
+        }
+      }
     }
 
     private void LoadTreeNodeInfo()
@@ -170,6 +302,24 @@ namespace AIStudio.Dialogs
       OnPropertyChanged(nameof(TreeNodeBaseState));
       OnPropertyChanged(nameof(TreeNodeEmotionId));
       OnPropertyChanged(nameof(TreeNodeActivityId));
+    }
+
+    private void ActionsImageCell_MouseDoubleClick(object sender, MouseButtonEventArgs e)
+    {
+      if (sender is DataGridCell cell && cell.DataContext is ChainLink link)
+      {
+        OpenActionsImageEditor(link);
+        e.Handled = true;
+      }
+    }
+
+    private void ActionsImageCell_MouseRightButtonDown(object sender, MouseButtonEventArgs e)
+    {
+      if (sender is DataGridCell cell && cell.DataContext is ChainLink link)
+      {
+        SelectedLink = link;
+        e.Handled = true;
+      }
     }
 
     private string GetBaseStateText(int baseId)
@@ -271,6 +421,12 @@ namespace AIStudio.Dialogs
           foreach (var link in chain.Links.OrderBy(l => l.ID))
           {
             ChainLinks.Add(link);
+
+            // Устанавливаем подсказки для загруженных образов
+            if (link.ActionsImageId > 0)
+            {
+              UpdateActionsImageTooltip(link);
+            }
           }
           _hasUnsavedChanges = false;
           OnPropertyChanged(nameof(CanSave));
@@ -283,33 +439,34 @@ namespace AIStudio.Dialogs
       }
     }
 
-    private void LoadActionsImageOptions()
-    {
-      ActionsImageOptions = new List<KeyValuePair<int, string>>();
 
-      // Добавляем пустой вариант
-      ActionsImageOptions.Add(new KeyValuePair<int, string>(0, "-- Выберите образ действий --"));
+    //private void LoadActionsImageOptions()
+    //{
+    //  ActionsImageOptions = new List<KeyValuePair<int, string>>();
 
-      if (_actionsImagesSystem != null)
-      {
-        try
-        {
-          var allImages = _actionsImagesSystem.GetAllActionsImagesList();
-          foreach (var image in allImages.OrderBy(i => i.Id))
-          {
-            string description = GetActionsImageDescription(image);
-            ActionsImageOptions.Add(new KeyValuePair<int, string>(image.Id, description));
-          }
-        }
-        catch (Exception ex)
-        {
-          MessageBox.Show($"Ошибка загрузки образов действий: {ex.Message}",
-              "Ошибка", MessageBoxButton.OK, MessageBoxImage.Warning);
-        }
-      }
+    //  // Добавляем пустой вариант
+    //  ActionsImageOptions.Add(new KeyValuePair<int, string>(0, "-- Выберите образ действий --"));
 
-      OnPropertyChanged(nameof(ActionsImageOptions));
-    }
+    //  if (_actionsImagesSystem != null)
+    //  {
+    //    try
+    //    {
+    //      var allImages = _actionsImagesSystem.GetAllActionsImagesList();
+    //      foreach (var image in allImages.OrderBy(i => i.Id))
+    //      {
+    //        string description = GetActionsImageDescription(image);
+    //        ActionsImageOptions.Add(new KeyValuePair<int, string>(image.Id, description));
+    //      }
+    //    }
+    //    catch (Exception ex)
+    //    {
+    //      MessageBox.Show($"Ошибка загрузки образов действий: {ex.Message}",
+    //          "Ошибка", MessageBoxButton.OK, MessageBoxImage.Warning);
+    //    }
+    //  }
+
+    //  OnPropertyChanged(nameof(ActionsImageOptions));
+    //}
 
     private string GetActionsImageDescription(ActionsImage image)
     {
@@ -508,13 +665,13 @@ namespace AIStudio.Dialogs
           MessageBoxButton.OK, MessageBoxImage.Information);
     }
 
-    private void OpenActionsImageReference_Click(object sender, RoutedEventArgs e)
-    {
-      if (sender is Button button && button.DataContext is ChainLink link)
-      {
-        OpenActionsImageReference(link.ActionsImageId);
-      }
-    }
+    //private void OpenActionsImageReference_Click(object sender, RoutedEventArgs e)
+    //{
+    //  if (sender is Button button && button.DataContext is ChainLink link)
+    //  {
+    //    OpenActionsImageReference(link.ActionsImageId);
+    //  }
+    //}
 
     private void LinksDataGrid_MouseDoubleClick(object sender, MouseButtonEventArgs e)
     {
@@ -526,12 +683,33 @@ namespace AIStudio.Dialogs
 
     private void OpenActionsImageReferenceButton_Click(object sender, RoutedEventArgs e)
     {
-      // TODO: Реализовать открытие полноценного справочника образов действий
-      MessageBox.Show("Справочник образов действий будет реализован позже.\n" +
-                     "Сейчас доступен выбор из списка в выпадающем меню.",
-                     "Справочник образов действий",
-                     MessageBoxButton.OK,
-                     MessageBoxImage.Information);
+      try
+      {
+        if (SelectedLink != null)
+        {
+          OpenActionsImageEditor(SelectedLink);
+        }
+        else
+        {
+          // Создаем временное звено для выбора
+          var tempLink = new ChainLink { ActionsImageId = 0 };
+          var dialog = new ActionsImageSelectorDialog(_actionsImagesSystem, 0);
+
+          if (dialog.ShowDialog() == true)
+          {
+            MessageBox.Show($"Выбран образ действий ID: {dialog.SelectedActionsImageId}\n\n" +
+                           "Чтобы использовать этот образ, выберите звено в таблице и нажмите на ячейку с ID образа действий.",
+                           "Образ выбран",
+                           MessageBoxButton.OK,
+                           MessageBoxImage.Information);
+          }
+        }
+      }
+      catch (Exception ex)
+      {
+        MessageBox.Show($"Ошибка открытия справочника: {ex.Message}",
+            "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
+      }
     }
 
     private void OpenActionsImageReference(int actionsImageId)
@@ -585,6 +763,114 @@ namespace AIStudio.Dialogs
 
       return sb.ToString();
     }
+
+    private void OpenActionsImageEditor_Click(object sender, MouseButtonEventArgs e)
+    {
+      if (sender is DataGridCell cell && cell.DataContext is ChainLink link)
+      {
+        OpenActionsImageEditor(link);
+      }
+    }
+
+    private void OpenActionsImageEditor(ChainLink link)
+    {
+      try
+      {
+        var dialog = new ActionsImageSelectorDialog(_actionsImagesSystem, link.ActionsImageId);
+        if (dialog.ShowDialog() == true)
+        {
+          link.ActionsImageId = dialog.SelectedActionsImageId;
+          _hasUnsavedChanges = true;
+          OnPropertyChanged(nameof(CanSave));
+
+          UpdateActionsImageTooltip(link);
+        }
+      }
+      catch (Exception ex)
+      {
+        MessageBox.Show($"Ошибка при выборе образа действий: {ex.Message}",
+            "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
+      }
+    }
+
+    private void UpdateActionsImageTooltip(ChainLink link)
+    {
+      try
+      {
+        if (link.ActionsImageId > 0)
+        {
+          var image = _actionsImagesSystem.GetActionsImage(link.ActionsImageId);
+          if (image != null)
+          {
+            // Создаем подсказку с помощью конвертера
+            var converter = new AutomatizmActionsToTooltipConverter();
+            var display = new ActionsImageDisplay
+            {
+              ActIdList = image.ActIdList ?? new List<int>(),
+              PhraseIdList = image.PhraseIdList ?? new List<int>(),
+              ToneId = image.ToneId,
+              MoodId = image.MoodId
+            };
+
+            var tooltipText = converter.Convert(display, typeof(string), null, System.Globalization.CultureInfo.CurrentCulture) as string;
+
+            // Находим ячейку и обновляем ToolTip
+            var row = LinksDataGrid.ItemContainerGenerator.ContainerFromItem(link) as DataGridRow;
+            if (row != null)
+            {
+              var cell = GetCell(LinksDataGrid, row, 1); // 1 - индекс колонки "Образ действий"
+              if (cell != null)
+              {
+                var textBlock = FindVisualChild<TextBlock>(cell);
+                if (textBlock != null)
+                {
+                  textBlock.ToolTip = tooltipText;
+                }
+              }
+            }
+          }
+        }
+      }
+      catch (Exception ex)
+      {
+        Debug.WriteLine($"Ошибка обновления подсказки: {ex.Message}");
+      }
+    }
+
+    private DataGridCell GetCell(DataGrid dataGrid, DataGridRow row, int columnIndex)
+    {
+      if (row != null)
+      {
+        DataGridCellsPresenter presenter = FindVisualChild<DataGridCellsPresenter>(row);
+        if (presenter != null)
+        {
+          DataGridCell cell = presenter.ItemContainerGenerator.ContainerFromIndex(columnIndex) as DataGridCell;
+          if (cell == null)
+          {
+            dataGrid.ScrollIntoView(row, dataGrid.Columns[columnIndex]);
+            cell = presenter.ItemContainerGenerator.ContainerFromIndex(columnIndex) as DataGridCell;
+          }
+          return cell;
+        }
+      }
+      return null;
+    }
+
+    private T FindVisualChild<T>(DependencyObject parent) where T : DependencyObject
+    {
+      for (int i = 0; i < VisualTreeHelper.GetChildrenCount(parent); i++)
+      {
+        DependencyObject child = VisualTreeHelper.GetChild(parent, i);
+        if (child is T typedChild)
+          return typedChild;
+
+        T childOfChild = FindVisualChild<T>(child);
+        if (childOfChild != null)
+          return childOfChild;
+      }
+      return null;
+    }
+
 
     private void SaveButton_Click(object sender, RoutedEventArgs e)
     {

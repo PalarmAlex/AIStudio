@@ -2,10 +2,12 @@
 using AIStudio.Dialogs;
 using AIStudio.ViewModels;
 using ISIDA.Psychic.Automatism;
+using System;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
+using static AIStudio.ViewModels.AutomatizmsViewModel;
 
 namespace AIStudio.Pages.Automatizm
 {
@@ -133,17 +135,34 @@ namespace AIStudio.Pages.Automatizm
 
     private void EditAutomatizmChainMenuItem_Click(object sender, RoutedEventArgs e)
     {
-      if (!IsFormEnabled)
-        return;
+      if (AutomatizmsGrid.SelectedItem is AutomatizmDisplayItem selectedAutomatizm)
+      {
+        try
+        {
+          var viewModel = DataContext as AutomatizmsViewModel;
+          var dialog = new AutomatizmChainEditorDialog(
+              selectedAutomatizm.BranchID,
+              selectedAutomatizm.ChainID,
+              AutomatizmChainsSystem.Instance,
+              ActionsImagesSystem.Instance,
+              viewModel);
 
-      var menuItem = sender as MenuItem;
-      var contextMenu = menuItem?.Parent as ContextMenu;
-      var cell = contextMenu?.PlacementTarget as DataGridCell;
+          if (dialog.ShowDialog() == true)
+          {
+            selectedAutomatizm.ChainID = dialog.ChainId;
 
-      if (cell != null && cell.DataContext is AutomatizmsViewModel.AutomatizmDisplayItem automatizm)
-        OpenChainEditorForAutomatizm(cell, automatizm);
-      else if (_contextMenuAutomatizm != null)
-        OpenChainEditorForAutomatizm(null, _contextMenuAutomatizm);
+            AutomatizmsGrid.CommitEdit(DataGridEditingUnit.Row, true);
+            AutomatizmsGrid.Items.Refresh();
+
+            viewModel?.UpdateChainBindingForAutomatizm(selectedAutomatizm);
+          }
+        }
+        catch (Exception ex)
+        {
+          MessageBox.Show($"Ошибка открытия редактора цепочек: {ex.Message}",
+              "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
+        }
+      }
     }
 
     private void DetachAutomatizmChainMenuItem_Click(object sender, RoutedEventArgs e)

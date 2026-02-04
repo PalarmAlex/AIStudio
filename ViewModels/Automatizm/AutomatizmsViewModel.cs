@@ -1,4 +1,5 @@
-﻿using AIStudio.Views;
+﻿using AIStudio.Converters;
+using AIStudio.Views;
 using ISIDA.Actions;
 using ISIDA.Common;
 using ISIDA.Gomeostas;
@@ -66,6 +67,7 @@ namespace AIStudio.ViewModels
     public ICommand ClearFiltersCommand { get; }
     public ICommand RemoveAllCommand { get; }
     public ICommand CloneReflexesCommand { get; }
+    public ICommand SaveCommand { get; }
 
     public AutomatizmsViewModel(
         GomeostasSystem gomeostasSystem,
@@ -98,6 +100,7 @@ namespace AIStudio.ViewModels
       ClearFiltersCommand = new RelayCommand(ClearFilters);
       RemoveAllCommand = new RelayCommand(RemoveAllAutomatizms);
       CloneReflexesCommand = new RelayCommand(CloneReflexesToAutomatizms, CanCloneReflexes);
+      SaveCommand = new RelayCommand(SaveData, CanSaveData);
 
       GlobalTimer.PulsationStateChanged += OnPulsationStateChanged;
       LoadAgentData();
@@ -138,22 +141,30 @@ namespace AIStudio.ViewModels
         OnPropertyChanged(nameof(IsDeletionEnabled));
         OnPropertyChanged(nameof(PulseWarningMessage));
         OnPropertyChanged(nameof(WarningMessageColor));
+        ((RelayCommand)SaveCommand)?.RaiseCanExecuteChanged();
       });
     }
 
     #region Блокировка страницы в зависимости от стажа
 
-    public bool IsDeletionEnabled => IsStageTwoOrHigher && !GlobalTimer.IsPulsationRunning;
+    public bool IsDeletionEnabled =>
+        IsStageTwoOrHigher &&
+        _currentAgentStage == 2 &&
+        !GlobalTimer.IsPulsationRunning;
 
     public string PulseWarningMessage =>
         !IsStageTwoOrHigher
-            ? "[КРИТИЧНО] Управление автоматизмами доступно только начиная со стадии 2"
-            : GlobalTimer.IsPulsationRunning
-                ? "Управление автоматизмами доступно только при выключенной пульсации"
-                : string.Empty;
+            ? "[КРИТИЧНО] Управление автоматизмами доступно только в стадии 2"
+            : _currentAgentStage != 2
+                ? "[КРИТИЧНО] Автоматизмы можно редактировать только на стадии 2"
+                : GlobalTimer.IsPulsationRunning
+                    ? "Управление автоматизмами доступно только при выключенной пульсации"
+                    : string.Empty;
 
     public Brush WarningMessageColor =>
-        !IsStageTwoOrHigher ? Brushes.Red : Brushes.Gray;
+        !IsStageTwoOrHigher || _currentAgentStage > 2
+            ? Brushes.Red
+            : Brushes.Gray;
 
     #endregion
 
@@ -252,7 +263,6 @@ namespace AIStudio.ViewModels
     }
 
     #endregion
-
     private void LoadAgentData()
     {
       try
@@ -390,6 +400,7 @@ namespace AIStudio.ViewModels
         OnPropertyChanged(nameof(PulseWarningMessage));
         OnPropertyChanged(nameof(WarningMessageColor));
         OnPropertyChanged(nameof(CurrentAgentTitle));
+        ((RelayCommand)SaveCommand)?.RaiseCanExecuteChanged();
       }
       catch (Exception ex)
       {
@@ -503,6 +514,91 @@ namespace AIStudio.ViewModels
       }
     }
 
+    private bool CanSaveData(object parameter)
+    {
+      return _currentAgentStage == 2 && !GlobalTimer.IsPulsationRunning;
+    }
+
+    private void SaveData(object parameter)
+    {
+      if (_currentAgentStage != 2)
+      {
+        MessageBox.Show(
+            "Сохранение автоматизмов доступно только начиная со стадии 2",
+            "Сохранение недоступно",
+            MessageBoxButton.OK,
+            MessageBoxImage.Warning);
+        return;
+      }
+
+      if (GlobalTimer.IsPulsationRunning)
+      {
+        MessageBox.Show(
+            "Сохранение автоматизмов доступно только при выключенной пульсации",
+            "Сохранение недоступно",
+            MessageBoxButton.OK,
+            MessageBoxImage.Warning);
+        return;
+      }
+
+      try
+      {
+        var result = MessageBox.Show(
+            "Вы действительно хотите сохранить все изменения в автоматизмах?",
+            "Подтверждение сохранения",
+            MessageBoxButton.YesNo,
+            MessageBoxImage.Question);
+
+        if (result == MessageBoxResult.Yes)
+        {
+          var (success, error) = _automatizmSystem.SaveAutomatizm();
+
+          if (success)
+          {
+            MessageBox.Show(
+                "Автоматизмы успешно сохранены",
+                "Сохранение завершено",
+                MessageBoxButton.OK,
+                MessageBoxImage.Information);
+          }
+          else
+          {
+            MessageBox.Show(
+                $"Не удалось сохранить автоматизмы:\n{error}",
+                "Ошибка сохранения",
+                MessageBoxButton.OK,
+                MessageBoxImage.Error);
+          }
+        }
+      }
+      catch (Exception ex)
+      {
+        MessageBox.Show(
+            $"Ошибка при сохранении автоматизмов:\n{ex.Message}",
+            "Ошибка",
+            MessageBoxButton.OK,
+            MessageBoxImage.Error);
+      }
+    }
+
+    public string GetTreeNodeConditionsInfo(int branchId)
+    {
+      try
+      {
+        var treeNode = GetTreeNode(branchId);
+        if (treeNode == null)
+          return $"Узел дерева ID:{branchId} не найден";
+
+        // Используем существующий конвертер для формирования подсказки
+        var converter = new TreeNodeConditionsToTooltipConverter();
+        return converter.Convert(treeNode, typeof(string), null, System.Globalization.CultureInfo.CurrentCulture) as string;
+      }
+      catch (Exception ex)
+      {
+        return $"Ошибка загрузки информации об узле: {ex.Message}";
+      }
+    }
+
     private AutomatizmNode GetTreeNode(int branchId)
     {
       // Для BranchID < 1000000 это ID узла дерева
@@ -543,6 +639,15 @@ namespace AIStudio.ViewModels
     {
       if (parameter is AutomatizmDisplayItem automatizm)
       {
+        if (_currentAgentStage != 2)
+        {
+          MessageBox.Show(
+              $"Удаление автоматизмов доступно только на стадии 2 (текущая стадия: {_currentAgentStage})",
+              "Удаление недоступно",
+              MessageBoxButton.OK,
+              MessageBoxImage.Warning);
+          return;
+        }
         try
         {
           if (_allAutomatizms.Contains(automatizm))
@@ -570,6 +675,16 @@ namespace AIStudio.ViewModels
 
     public void RemoveAllAutomatizms(object parameter)
     {
+      if (_currentAgentStage != 2)
+      {
+        MessageBox.Show(
+            $"Удаление автоматизмов доступно только на стадии 2 (текущая стадия: {_currentAgentStage})",
+            "Удаление недоступно",
+            MessageBoxButton.OK,
+            MessageBoxImage.Warning);
+        return;
+      }
+
       var result = MessageBox.Show(
           $"Вы действительно хотите удалить ВСЕ автоматизмы агента? Это действие нельзя будет отменить.",
           "Подтверждение удаления",
@@ -623,7 +738,7 @@ namespace AIStudio.ViewModels
     private bool CanCloneReflexes(object parameter)
     {
       return !IsCloningInProgress &&
-             IsStageTwoOrHigher &&
+             _currentAgentStage == 2 &&
              !GlobalTimer.IsPulsationRunning &&
              _reflexConverter != null;
     }

@@ -85,6 +85,7 @@
     <Compile Include="Converters\AutomatizmActionsToTextConverter.cs" />
     <Compile Include="Converters\AutomatizmActionsToTooltipConverter.cs" />
     <Compile Include="Converters\AutomatizmTooltipMultiConverter.cs" />
+    <Compile Include="Converters\NullToVisibilityConverter.cs" />
     <Compile Include="Converters\OrientationReflexTooltipMultiConverter.cs" />
     <Compile Include="Converters\TreeNodeConditionsToTooltipConverter.cs" />
     <Compile Include="Converters\BeliefToTextWithTooltipConverter.cs" />
@@ -163,6 +164,9 @@
     </Compile>
     <Compile Include="Pages\AntagonistStylesEditor.xaml.cs">
       <DependentUpon>AntagonistStylesEditor.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Pages\Automatizm\ActionsImageSelectorDialog.xaml.cs">
+      <DependentUpon>ActionsImageSelectorDialog.xaml</DependentUpon>
     </Compile>
     <Compile Include="Pages\Automatizm\AutomatizmChainBindingDialog.xaml.cs">
       <DependentUpon>AutomatizmChainBindingDialog.xaml</DependentUpon>
@@ -336,6 +340,10 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
+    <Page Include="Pages\Automatizm\ActionsImageSelectorDialog.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="Pages\Automatizm\AutomatizmChainBindingDialog.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
@@ -485,6 +493,14 @@
   <ItemGroup>
     <Resource Include="isida.ico" />
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <Resource Include="Resources\Select.ico" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Resources\Info.ico" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Resources\Delete.ico" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

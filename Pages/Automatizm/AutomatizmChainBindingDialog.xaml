@@ -377,7 +377,7 @@
               </DataGridTextColumn.ElementStyle>
             </DataGridTextColumn>
 
-            <DataGridTextColumn Header="Образ действий" Binding="{Binding ActionsImageId}" Width="120">
+            <DataGridTextColumn Header="Образ действий" Binding="{Binding ActionsImageId}" Width="200">
               <DataGridTextColumn.HeaderStyle>
                 <Style TargetType="DataGridColumnHeader">
                   <Setter Property="FontWeight" Value="SemiBold"/>
@@ -396,7 +396,7 @@
               </DataGridTextColumn.ElementStyle>
             </DataGridTextColumn>
 
-            <DataGridTextColumn Header="Следующее (успех)" Binding="{Binding SuccessNextLink}" Width="110">
+            <DataGridTextColumn Header="Следующее (успех)" Binding="{Binding SuccessNextLink}" Width="130">
               <DataGridTextColumn.HeaderStyle>
                 <Style TargetType="DataGridColumnHeader">
                   <Setter Property="FontWeight" Value="SemiBold"/>
@@ -412,7 +412,7 @@
               </DataGridTextColumn.ElementStyle>
             </DataGridTextColumn>
 
-            <DataGridTextColumn Header="Следующее (неудача)" Binding="{Binding FailureNextLink}" Width="110">
+            <DataGridTextColumn Header="Следующее (неудача)" Binding="{Binding FailureNextLink}" Width="130">
               <DataGridTextColumn.HeaderStyle>
                 <Style TargetType="DataGridColumnHeader">
                   <Setter Property="FontWeight" Value="SemiBold"/>
