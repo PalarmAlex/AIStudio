@@ -85,7 +85,6 @@
     <Compile Include="Converters\AutomatizmActionsToTextConverter.cs" />
     <Compile Include="Converters\AutomatizmActionsToTooltipConverter.cs" />
     <Compile Include="Converters\AutomatizmTooltipMultiConverter.cs" />
-    <Compile Include="Converters\NullToVisibilityConverter.cs" />
     <Compile Include="Converters\OrientationReflexTooltipMultiConverter.cs" />
     <Compile Include="Converters\TreeNodeConditionsToTooltipConverter.cs" />
     <Compile Include="Converters\BeliefToTextWithTooltipConverter.cs" />
@@ -164,15 +163,6 @@
     </Compile>
     <Compile Include="Pages\AntagonistStylesEditor.xaml.cs">
       <DependentUpon>AntagonistStylesEditor.xaml</DependentUpon>
-    </Compile>
-    <Compile Include="Pages\Automatizm\ActionsImageSelectorDialog.xaml.cs">
-      <DependentUpon>ActionsImageSelectorDialog.xaml</DependentUpon>
-    </Compile>
-    <Compile Include="Pages\Automatizm\AutomatizmChainBindingDialog.xaml.cs">
-      <DependentUpon>AutomatizmChainBindingDialog.xaml</DependentUpon>
-    </Compile>
-    <Compile Include="Pages\Automatizm\AutomatizmChainEditorDialog.xaml.cs">
-      <DependentUpon>AutomatizmChainEditorDialog.xaml</DependentUpon>
     </Compile>
     <Compile Include="Pages\Automatizm\AutomatizmsView.xaml.cs">
       <DependentUpon>AutomatizmsView.xaml</DependentUpon>
@@ -261,7 +251,10 @@
     <Compile Include="ViewModels\AgentPultViewModel.cs" />
     <Compile Include="ViewModels\AgentViewModel.cs" />
     <Compile Include="ViewModels\AntagonistMatrixViewModel.cs" />
-    <Compile Include="ViewModels\Automatizm\AutomatizmChainBindingViewModel.cs" />
+    <Compile Include="Pages\Automatizm\AutomatizmChainsView.xaml.cs">
+      <DependentUpon>AutomatizmChainsView.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="ViewModels\Automatizm\AutomatizmChainsViewModel.cs" />
     <Compile Include="ViewModels\Automatizm\AutomatizmsViewModel.cs" />
     <Compile Include="ViewModels\BehaviorStylesViewModel.cs" />
     <Compile Include="ViewModels\AgentInfo.cs" />
@@ -337,18 +330,6 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="Pages\AntagonistStylesEditor.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="Pages\Automatizm\ActionsImageSelectorDialog.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="Pages\Automatizm\AutomatizmChainBindingDialog.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="Pages\Automatizm\AutomatizmChainEditorDialog.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
@@ -449,6 +430,10 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="Styles\MenuStyles.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Pages\Automatizm\AutomatizmChainsView.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

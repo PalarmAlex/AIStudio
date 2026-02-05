@@ -19,6 +19,7 @@ using System.Windows.Controls;
 using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Media;
+using static ISIDA.Psychic.Automatism.AutomatizmChainsSystem;
 using static ISIDA.Psychic.VerbalBrocaImagesSystem;
 
 namespace AIStudio
@@ -48,6 +49,7 @@ namespace AIStudio
     private readonly EmotionsImageSystem _emotionsImageSystem;
     private readonly VerbalBrocaImagesSystem _verbalBrocaImages;
     private readonly ConditionedReflexToAutomatizmConverter _conditionedReflexToAutomatizm;
+    private readonly AutomatizmChainsSystem _automatizmChains;
 
     public event PropertyChangedEventHandler PropertyChanged;
     private AgentViewModel _agentViewModel;
@@ -164,6 +166,7 @@ namespace AIStudio
         _emotionsImageSystem = _isidaContext.EmotionsImageSystem;
         _verbalBrocaImages = _isidaContext.VerbalBrocaImagesSystem;
         _conditionedReflexToAutomatizm = _isidaContext.ConditionedReflexToAutomatizm;
+        _automatizmChains = _isidaContext.AutomatizmChainsSystem;
 
         _stepInzialized = 4;
       }
@@ -302,17 +305,11 @@ namespace AIStudio
           case "5": // Условные рефлексы
             ShowConditionedReflexes();
             break;
-          case "6": // Дерево рефлексов
-            ShowStub("Дерево рефлексов");
-            break;
           case "8": // Таблица Автоматизмов
             ShowAutomatizms();
             break;
-          case "9": // Дерево Автоматизмов
-            ShowStub("Дерево Автоматизмов");
-            break;
           case "10": // Цепочки Автоматизмов
-            ShowStub("Цепочки Автоматизмов");
+            OpenAutomatizmChains();
             break;
           case "11": // Дерево эпизодической памяти
             ShowStub("Дерево эпизодической памяти");
@@ -831,6 +828,20 @@ namespace AIStudio
       var viewModel = new ParameterLogsViewModel();
       parameterLogsView.DataContext = viewModel;
       CurrentContent = parameterLogsView;
+    }
+
+    // Открыть страницу цепочек автоматизмов
+    private void OpenAutomatizmChains()
+    {
+      var automatizmChainsView = new AutomatizmChainsView();
+      var viewModel = new AutomatizmChainsViewModel(
+        _automatizmSystem, 
+        _automatizmChains, 
+        _actionsImagesSystem,
+        _influenceActionSystem,
+        _sensorySystem);
+      automatizmChainsView.DataContext = viewModel;
+      CurrentContent = automatizmChainsView;
     }
 
     // Открыть страницу сенсоров

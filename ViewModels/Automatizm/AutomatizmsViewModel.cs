@@ -100,7 +100,6 @@ namespace AIStudio.ViewModels
       ClearFiltersCommand = new RelayCommand(ClearFilters);
       RemoveAllCommand = new RelayCommand(RemoveAllAutomatizms);
       CloneReflexesCommand = new RelayCommand(CloneReflexesToAutomatizms, CanCloneReflexes);
-      SaveCommand = new RelayCommand(SaveData, CanSaveData);
 
       GlobalTimer.PulsationStateChanged += OnPulsationStateChanged;
       LoadAgentData();
@@ -514,73 +513,6 @@ namespace AIStudio.ViewModels
       }
     }
 
-    private bool CanSaveData(object parameter)
-    {
-      return _currentAgentStage == 2 && !GlobalTimer.IsPulsationRunning;
-    }
-
-    private void SaveData(object parameter)
-    {
-      if (_currentAgentStage != 2)
-      {
-        MessageBox.Show(
-            "Сохранение автоматизмов доступно только начиная со стадии 2",
-            "Сохранение недоступно",
-            MessageBoxButton.OK,
-            MessageBoxImage.Warning);
-        return;
-      }
-
-      if (GlobalTimer.IsPulsationRunning)
-      {
-        MessageBox.Show(
-            "Сохранение автоматизмов доступно только при выключенной пульсации",
-            "Сохранение недоступно",
-            MessageBoxButton.OK,
-            MessageBoxImage.Warning);
-        return;
-      }
-
-      try
-      {
-        var result = MessageBox.Show(
-            "Вы действительно хотите сохранить все изменения в автоматизмах?",
-            "Подтверждение сохранения",
-            MessageBoxButton.YesNo,
-            MessageBoxImage.Question);
-
-        if (result == MessageBoxResult.Yes)
-        {
-          var (success, error) = _automatizmSystem.SaveAutomatizm();
-
-          if (success)
-          {
-            MessageBox.Show(
-                "Автоматизмы успешно сохранены",
-                "Сохранение завершено",
-                MessageBoxButton.OK,
-                MessageBoxImage.Information);
-          }
-          else
-          {
-            MessageBox.Show(
-                $"Не удалось сохранить автоматизмы:\n{error}",
-                "Ошибка сохранения",
-                MessageBoxButton.OK,
-                MessageBoxImage.Error);
-          }
-        }
-      }
-      catch (Exception ex)
-      {
-        MessageBox.Show(
-            $"Ошибка при сохранении автоматизмов:\n{ex.Message}",
-            "Ошибка",
-            MessageBoxButton.OK,
-            MessageBoxImage.Error);
-      }
-    }
-
     public string GetTreeNodeConditionsInfo(int branchId)
     {
       try
@@ -818,95 +750,6 @@ namespace AIStudio.ViewModels
         IsCloningInProgress = false;
         MessageBox.Show(
             $"Ошибка при клонировании рефлексов: {ex.Message}",
-            "Ошибка",
-            MessageBoxButton.OK,
-            MessageBoxImage.Error);
-      }
-    }
-
-    public void UpdateChainBindingForAutomatizm(AutomatizmDisplayItem automatizm)
-    {
-      try
-      {
-        if (automatizm.BranchID <= 0)
-        {
-          MessageBox.Show("Нельзя привязать цепочку к узлу дерева с неверным ID",
-              "Ошибка",
-              MessageBoxButton.OK,
-              MessageBoxImage.Error);
-          return;
-        }
-
-        if (!IsDeletionEnabled)
-        {
-          MessageBox.Show("Обновление привязки цепочки доступно только при выключенной пульсации",
-              "Невозможно выполнить",
-              MessageBoxButton.OK,
-              MessageBoxImage.Warning);
-          return;
-        }
-
-        if (!AutomatizmChainsSystem.IsInitialized)
-        {
-          MessageBox.Show("Система цепочек автоматизмов не инициализирована",
-              "Ошибка",
-              MessageBoxButton.OK,
-              MessageBoxImage.Error);
-          return;
-        }
-
-        if (automatizm.ChainID > 0)
-        {
-          // Привязываем цепочку к узлу дерева
-          var chain = AutomatizmChainsSystem.Instance.GetChain(automatizm.ChainID);
-          if (chain != null)
-          {
-            chain.TreeNodeId = automatizm.BranchID;
-            var (success, error) = AutomatizmChainsSystem.Instance.SaveAutomatizmChains();
-
-            if (success)
-            {
-              Debug.WriteLine($"Цепочка {automatizm.ChainID} привязана к узлу {automatizm.BranchID}");
-            }
-            else
-            {
-              MessageBox.Show($"Не удалось привязать цепочку: {error}",
-                  "Ошибка",
-                  MessageBoxButton.OK,
-                  MessageBoxImage.Warning);
-            }
-          }
-          else
-          {
-            MessageBox.Show($"Цепочка с ID {automatizm.ChainID} не найдена",
-                "Ошибка",
-                MessageBoxButton.OK,
-                MessageBoxImage.Error);
-          }
-        }
-        else
-        {
-          // Отвязываем цепочку от узла дерева
-          var chain = AutomatizmChainsSystem.Instance.GetChainByTreeNode(automatizm.BranchID);
-          if (chain > 0)
-          {
-            var chainObj = AutomatizmChainsSystem.Instance.GetChain(chain);
-            if (chainObj != null)
-            {
-              chainObj.TreeNodeId = 0;
-              var (success, error) = AutomatizmChainsSystem.Instance.SaveAutomatizmChains();
-
-              if (success)
-              {
-                Debug.WriteLine($"Цепочка {chain} отвязана от узла {automatizm.BranchID}");
-              }
-            }
-          }
-        }
-      }
-      catch (Exception ex)
-      {
-        MessageBox.Show($"Ошибка обновления привязки цепочки: {ex.Message}",
             "Ошибка",
             MessageBoxButton.OK,
             MessageBoxImage.Error);

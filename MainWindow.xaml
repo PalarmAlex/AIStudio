@@ -139,11 +139,6 @@
               Command="{Binding VerticalMenuItemClickedCommand}"
               CommandParameter="5"/>
 
-            <Button Content="Дерево триггеров рефлексов" Margin="20,2,5,2" 
-              Style="{StaticResource MenuButtonStyle}"
-              Command="{Binding VerticalMenuItemClickedCommand}"
-              CommandParameter="6"/>
-
           </StackPanel>
         </Expander>
 
@@ -153,11 +148,6 @@
               Style="{StaticResource MenuButtonStyle}"
               Command="{Binding VerticalMenuItemClickedCommand}"
               CommandParameter="8"/>
-
-            <Button Content="Дерево Автоматизмов" Margin="20,2,5,2" 
-              Style="{StaticResource MenuButtonStyle}"
-              Command="{Binding VerticalMenuItemClickedCommand}"
-              CommandParameter="9"/>
 
             <Button Content="Цепочки Автоматизмов" Margin="20,2,5,2" 
               Style="{StaticResource MenuButtonStyle}"

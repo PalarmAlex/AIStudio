@@ -29,39 +29,6 @@
       </Style.Triggers>
     </Style>
 
-    <!-- Контекстное меню для ячеек с цепочками автоматизмов -->
-    <ContextMenu x:Key="AutomatizmChainContextMenu" x:Shared="False">
-      <MenuItem Header="Создать цепочку" 
-              Click="AddAutomatizmChainMenuItem_Click"
-              ToolTip="Создать новую цепочку автоматизмов">
-        <MenuItem.Icon>
-          <Image Source="/AIStudio;component/Resources/Add.ico" Width="16" Height="16"/>
-        </MenuItem.Icon>
-      </MenuItem>
-      <MenuItem Header="Привязать цепочку" 
-              Click="AttachAutomatizmChainMenuItem_Click"
-              ToolTip="Привязать существующую цепочку к узлу дерева">
-        <MenuItem.Icon>
-          <Image Source="/AIStudio;component/Resources/activate.png" Width="16" Height="16"/>
-        </MenuItem.Icon>
-      </MenuItem>
-      <MenuItem Header="Редактировать цепочку" 
-              Click="EditAutomatizmChainMenuItem_Click"
-              ToolTip="Открыть редактор привязанной цепочки">
-        <MenuItem.Icon>
-          <Image Source="/AIStudio;component/Resources/Modify.png" Width="16" Height="16"/>
-        </MenuItem.Icon>
-      </MenuItem>
-      <Separator/>
-      <MenuItem Header="Отвязать цепочку" 
-              Click="DetachAutomatizmChainMenuItem_Click"
-              ToolTip="Удалить привязку цепочки к узлу дерева">
-        <MenuItem.Icon>
-          <Image Source="/AIStudio;component/Resources/deactivate.png" Width="16" Height="16"/>
-        </MenuItem.Icon>
-      </MenuItem>
-    </ContextMenu>
-
   </UserControl.Resources>
 
   <Grid Margin="12">
@@ -285,11 +252,6 @@
             </DataGridTemplateColumn.CellTemplate>
             <DataGridTemplateColumn.CellStyle>
               <Style TargetType="DataGridCell">
-                <EventSetter Event="MouseDoubleClick" Handler="ChainCell_DoubleClick"/>
-                <EventSetter Event="PreviewMouseRightButtonDown" Handler="ChainCell_MouseRightButtonDown"/>
-                <Setter Property="ContextMenu" Value="{StaticResource AutomatizmChainContextMenu}"/>
-                <Setter Property="Cursor" Value="Hand"/>
-                <Setter Property="ToolTip" Value="Двойной клик или правый клик для работы с цепочками автоматизмов"/>
                 <Setter Property="HorizontalContentAlignment" Value="Center"/>
               </Style>
             </DataGridTemplateColumn.CellStyle>
@@ -408,13 +370,6 @@
       <StackPanel Grid.Column="1" 
               Orientation="Horizontal" 
               HorizontalAlignment="Right">
-        <!--<Button Content="Сохранить"
-            Command="{Binding SaveCommand}"
-            IsEnabled="{Binding IsDeletionEnabled}"
-            Style="{StaticResource ActionButtonStyle}"
-            ToolTip="Сохранить автоматизмы"
-            Margin="0,0,8,0"
-            Cursor="Hand"/>-->
 
         <Button Content="Очистить таблицу"
             Command="{Binding RemoveAllCommand}"
