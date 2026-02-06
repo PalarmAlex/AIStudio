@@ -5,6 +5,7 @@ using ISIDA.Common;
 using ISIDA.Gomeostas;
 using ISIDA.Psychic;
 using ISIDA.Psychic.Automatism;
+using ISIDA.Reflexes;
 using ISIDA.Sensors;
 using System;
 using System.Collections.Generic;
@@ -93,6 +94,7 @@ namespace AIStudio.ViewModels
       _adaptiveActionsSystem = adaptiveActionsSystem ?? throw new ArgumentNullException(nameof(adaptiveActionsSystem));
       _verbalBrocaImages = verbalBrocaImages ?? throw new ArgumentNullException(nameof(verbalBrocaImages));
       _reflexConverter = reflexConverter ?? throw new ArgumentNullException(nameof(reflexConverter));
+
 
       _automatizmsView = CollectionViewSource.GetDefaultView(_allAutomatizms);
       _automatizmsView.Filter = FilterAutomatizms;
@@ -289,8 +291,9 @@ namespace AIStudio.ViewModels
         _influenceActionsImagesCache.Clear();
         _emotionImageCache.Clear();
 
-        // Загружаем информацию о цепочках
-        Dictionary<int, int> treeNodeToChainMap = new Dictionary<int, int>();
+        Dictionary<int, AutomatizmChainsSystem.AutomatizmChain> treeNodeToChainMap = new Dictionary<int, AutomatizmChainsSystem.AutomatizmChain>();
+        Dictionary<int, List<AutomatizmChainsSystem.ChainLink>> chainLinksMap = new Dictionary<int, List<AutomatizmChainsSystem.ChainLink>>();
+
         if (AutomatizmChainsSystem.IsInitialized)
         {
           var allChains = AutomatizmChainsSystem.Instance.GetAllAutomatizmChains();
@@ -298,7 +301,8 @@ namespace AIStudio.ViewModels
           {
             if (chain.TreeNodeId > 0)
             {
-              treeNodeToChainMap[chain.TreeNodeId] = chain.ID;
+              treeNodeToChainMap[chain.TreeNodeId] = chain;
+              chainLinksMap[chain.ID] = chain.Links?.ToList() ?? new List<AutomatizmChainsSystem.ChainLink>();
             }
           }
         }
@@ -346,11 +350,34 @@ namespace AIStudio.ViewModels
             catch { }
           }
 
-          // Определяем ID цепочки для этого узла дерева
+          // Определяем информацию о цепочке для этого узла дерева
+          string chainInfo = string.Empty;
           int chainId = 0;
+
           if (treeNode != null && treeNodeToChainMap.ContainsKey(treeNode.ID))
           {
-            chainId = treeNodeToChainMap[treeNode.ID];
+            var chain = treeNodeToChainMap[treeNode.ID];
+            chainId = chain.ID;
+
+            // Формируем информацию о цепочке
+            if (chainLinksMap.ContainsKey(chainId))
+            {
+              var links = chainLinksMap[chainId];
+              var linkCount = links.Count;
+              var linkDescriptions = links.Take(3).Select(l => l.Description ?? $"Звено {l.ID}");
+
+              chainInfo = $"Цепочка {chainId}: {linkCount} звеньев";
+              if (chain.Name?.Length > 0)
+                chainInfo = $"{chain.Name} ({chainInfo})";
+
+              // Добавляем описание первого звена для tooltip
+              if (links.Any())
+              {
+                chainInfo += $"\nПервые звенья: {string.Join(" → ", linkDescriptions)}";
+                if (linkCount > 3)
+                  chainInfo += $" ... и еще {linkCount - 3}";
+              }
+            }
           }
 
           var displayItem = new AutomatizmDisplayItem
@@ -363,7 +390,8 @@ namespace AIStudio.ViewModels
             Energy = automatizm.Energy,
             Count = automatizm.Count,
             NextID = automatizm.NextID,
-            ChainID = chainId, // Добавляем ID цепочки
+            ChainID = chainId,
+            ChainInfo = chainInfo,
 
             BaseCondition = treeNode?.BaseID ?? 0,
             EmotionIdList = emotionIdList,
@@ -703,7 +731,8 @@ namespace AIStudio.ViewModels
       {
         System.Threading.Tasks.Task.Run(() =>
         {
-          var (newCount, existingCount, totalCount, duplicateCount, errors) =
+          // ИЗМЕНЕНИЕ: Теперь метод возвращает 6 значений вместо 5
+          var (newCount, existingCount, totalCount, duplicateCount, chainsCreated, errors) =
               ConditionedReflexToAutomatizmConverter.Instance.CloneAllConditionedReflexesToAutomatisms();
 
           // Возвращаемся в UI поток для показа результатов
@@ -718,11 +747,12 @@ namespace AIStudio.ViewModels
             }
             else
             {
-              // ИЗМЕНЕНИЕ: Новый формат сообщения
+              // ИЗМЕНЕНИЕ: Добавлена информация о цепочках
               message = $"Обработано {totalCount} условных рефлексов:\n" +
-                        $"• Создано новых: {newCount}\n" +
+                        $"• Создано новых автоматизмов: {newCount}\n" +
                         $"• Уже существовало: {existingCount}\n" +
-                        $"• Пропущено (дубликаты): {duplicateCount}";
+                        $"• Пропущено (дубликаты): {duplicateCount}\n" +
+                        $"• Создано цепочек автоматизмов: {chainsCreated}";
 
               if (errors != null && errors.Any())
               {
@@ -739,7 +769,7 @@ namespace AIStudio.ViewModels
                 message,
                 "Результат клонирования",
                 MessageBoxButton.OK,
-                newCount > 0 ? MessageBoxImage.Information : MessageBoxImage.Warning);
+                newCount > 0 || chainsCreated > 0 ? MessageBoxImage.Information : MessageBoxImage.Warning);
 
             RefreshAllCollections();
           });
@@ -753,6 +783,67 @@ namespace AIStudio.ViewModels
             "Ошибка",
             MessageBoxButton.OK,
             MessageBoxImage.Error);
+      }
+    }
+
+    public string GetChainDetailedInfo(int chainId)
+    {
+      if (chainId <= 0 || !AutomatizmChainsSystem.IsInitialized)
+        return "Цепочка не привязана";
+
+      try
+      {
+        var chainSystem = AutomatizmChainsSystem.Instance;
+        var chain = chainSystem.GetChain(chainId);
+        if (chain == null)
+          return $"Цепочка {chainId} не найдена";
+
+        var links = chainSystem.GetChainLinks(chainId);
+        if (!links.Any())
+          return $"Цепочка {chainId} не содержит звеньев";
+
+        var sb = new StringBuilder();
+        sb.AppendLine($"Цепочка: {chain.Name ?? $"ID {chainId}"}");
+        if (!string.IsNullOrEmpty(chain.Description))
+          sb.AppendLine($"Описание: {chain.Description}");
+
+        sb.AppendLine($"Всего звеньев: {links.Count}");
+        sb.AppendLine();
+
+        foreach (var link in links.OrderBy(l => l.ID))
+        {
+          sb.AppendLine($"Звено {link.ID}:");
+
+          // Получаем информацию об образе действий
+          var actionsImage = _actionsImagesSystem.GetActionsImage(link.ActionsImageId);
+          if (actionsImage != null)
+          {
+            if (actionsImage.ActIdList?.Any() == true)
+            {
+              var allActions = _adaptiveActionsSystem.GetAllAdaptiveActions();
+              var actionNames = actionsImage.ActIdList
+                  .Select(id => allActions.FirstOrDefault(a => a.Id == id)?.Name ?? $"Действие {id}")
+                  .ToList();
+              sb.AppendLine($"  Действия: {string.Join(", ", actionNames)}");
+            }
+          }
+
+          if (!string.IsNullOrEmpty(link.Description))
+            sb.AppendLine($"  Описание: {link.Description}");
+
+          if (link.SuccessNextLink > 0)
+            sb.AppendLine($"  При успехе → звено {link.SuccessNextLink}");
+          if (link.FailureNextLink > 0)
+            sb.AppendLine($"  При неудаче → звено {link.FailureNextLink}");
+
+          sb.AppendLine();
+        }
+
+        return sb.ToString();
+      }
+      catch (Exception ex)
+      {
+        return $"Ошибка получения информации о цепочке: {ex.Message}";
       }
     }
 
@@ -783,6 +874,9 @@ namespace AIStudio.ViewModels
       public string InfluenceActionsText { get; set; }
       public string ToneMoodText { get; set; }
       public string VerbalText { get; set; }
+
+      // Информация о цепочке (если есть)
+      public string ChainInfo { get; set; }
 
       // Образ действия
       public ActionsImageDisplay ActionsImageDisplay { get; set; }

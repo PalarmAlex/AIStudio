@@ -56,22 +56,6 @@
       </Style.Triggers>
     </Style>
 
-    <Style x:Key="AgentButtonStyle" TargetType="Button">
-      <Setter Property="Background" Value="#FF007ACC"/>
-      <Setter Property="Foreground" Value="White"/>
-      <Setter Property="BorderThickness" Value="0"/>
-      <Setter Property="Cursor" Value="Hand"/>
-      <Setter Property="FontWeight" Value="SemiBold"/>
-      <Style.Triggers>
-        <Trigger Property="IsMouseOver" Value="True">
-          <Setter Property="Background" Value="#FF1C97EA"/>
-        </Trigger>
-        <Trigger Property="IsPressed" Value="True">
-          <Setter Property="Background" Value="#FF005A9E"/>
-        </Trigger>
-      </Style.Triggers>
-    </Style>
-
   </UserControl.Resources>
 
   <Grid Margin="12">
@@ -106,7 +90,7 @@
                    FontWeight="Bold"/>
 
         <!-- Фильтр по ID автоматизма -->
-        <StackPanel Orientation="Vertical" Margin="0,0,5,0">
+        <StackPanel Orientation="Vertical" Margin="0,0,15,0">
           <TextBlock Text="ID автоматизма" FontSize="12" Margin="0,0,0,2"/>
           <TextBox Style="{StaticResource FilterTextBoxStyle}"
                    Text="{Binding FilterAutomatizmId, UpdateSourceTrigger=PropertyChanged}"
@@ -114,7 +98,7 @@
         </StackPanel>
 
         <!-- Фильтр по ID цепочки -->
-        <StackPanel Orientation="Vertical" Margin="0,0,5,0">
+        <StackPanel Orientation="Vertical" Margin="0,0,15,0">
           <TextBlock Text="ID цепочки" FontSize="12" Margin="0,0,0,2"/>
           <TextBox Style="{StaticResource FilterTextBoxStyle}"
                    Text="{Binding FilterChainId, UpdateSourceTrigger=PropertyChanged}"
@@ -122,7 +106,7 @@
         </StackPanel>
 
         <!-- Фильтр по действиям -->
-        <StackPanel Orientation="Vertical" Margin="0,0,5,0">
+        <StackPanel Orientation="Vertical" Margin="0,0,15,0">
           <TextBlock Text="Действия" FontSize="12" Margin="0,0,0,2"/>
           <TextBox Style="{StaticResource FilterTextBoxStyle}"
                    Text="{Binding FilterActions, UpdateSourceTrigger=PropertyChanged}"
@@ -130,7 +114,7 @@
         </StackPanel>
 
         <!-- Фильтр по фразам -->
-        <StackPanel Orientation="Vertical" Margin="0,0,5,0">
+        <StackPanel Orientation="Vertical" Margin="0,0,15,0">
           <TextBlock Text="Фразы" FontSize="12" Margin="0,0,0,2"/>
           <TextBox Style="{StaticResource FilterTextBoxStyle}"
                    Text="{Binding FilterPhrases, UpdateSourceTrigger=PropertyChanged}"
@@ -138,20 +122,21 @@
         </StackPanel>
 
         <!-- Фильтр по типу образа -->
-        <StackPanel Orientation="Vertical" Margin="0,0,5,0">
+        <StackPanel Orientation="Vertical" Margin="0,0,15,0">
           <TextBlock Text="Тип образа" FontSize="12" Margin="0,0,0,2"/>
-          <ComboBox Style="{StaticResource FilterComboBoxStyle}"
+          <ComboBox Style="{StaticResource AgentComboBoxStyle}"
                     ItemsSource="{Binding ImageKindOptions}"
                     SelectedValue="{Binding FilterImageKind}"
                     DisplayMemberPath="Value"
-                    SelectedValuePath="Key"/>
+                    SelectedValuePath="Key"
+                    Height="25"/>
         </StackPanel>
 
         <!-- Кнопка сброса фильтров -->
         <Button Content="Сбросить фильтры" 
                 Command="{Binding ClearFiltersCommand}"
                 Style="{StaticResource AgentButtonStyle}"
-                Margin="5,5,0,0"
+                Margin="10,15,0,0"
                 Height="30"
                 Width="150"
                 Cursor="Hand"
@@ -179,7 +164,6 @@
                 GridLinesVisibility="None"
                 VerticalScrollBarVisibility="Auto"
                 HorizontalScrollBarVisibility="Auto"
-                RowHeight="30"
                 ColumnWidth="Auto">
 
         <DataGrid.Columns>
@@ -351,13 +335,6 @@
             <DataGridTextColumn.ElementStyle>
               <Style TargetType="TextBlock">
                 <Setter Property="HorizontalAlignment" Value="Center"/>
-                <Style.Triggers>
-                  <DataTrigger Binding="{Binding SuccessNextLink}" Value="0">
-                    <Setter Property="Foreground" Value="Gray"/>
-                    <Setter Property="FontStyle" Value="Italic"/>
-                    <Setter Property="Text" Value="нет"/>
-                  </DataTrigger>
-                </Style.Triggers>
               </Style>
             </DataGridTextColumn.ElementStyle>
             <DataGridTextColumn.HeaderStyle>
@@ -375,13 +352,6 @@
             <DataGridTextColumn.ElementStyle>
               <Style TargetType="TextBlock">
                 <Setter Property="HorizontalAlignment" Value="Center"/>
-                <Style.Triggers>
-                  <DataTrigger Binding="{Binding FailureNextLink}" Value="0">
-                    <Setter Property="Foreground" Value="Gray"/>
-                    <Setter Property="FontStyle" Value="Italic"/>
-                    <Setter Property="Text" Value="нет"/>
-                  </DataTrigger>
-                </Style.Triggers>
               </Style>
             </DataGridTextColumn.ElementStyle>
             <DataGridTextColumn.HeaderStyle>

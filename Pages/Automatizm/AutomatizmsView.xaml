@@ -19,6 +19,7 @@
     <converters:IdListToNamesConverter x:Key="IdListToNamesConverter"/>
     <converters:InfluenceActionsToTooltipConverter x:Key="InfluenceActionsToTooltipConverter"/>
     <converters:AutomatizmActionsToTooltipConverter x:Key="AutomatizmActionsToTooltipConverter"/>
+    <converters:ChainToolTipConverter x:Key="ChainToolTipConverter"/>
 
     <Style x:Key="BaseTextBlockStyle" TargetType="TextBlock">
       <Setter Property="Background" Value="White"/>
@@ -238,11 +239,28 @@
                       <Setter Property="Text" Value="{Binding ChainID}"/>
                       <Setter Property="HorizontalAlignment" Value="Center"/>
                       <Setter Property="TextAlignment" Value="Center"/>
+                      <Setter Property="ToolTip">
+                        <Setter.Value>
+                          <MultiBinding Converter="{StaticResource ChainToolTipConverter}">
+                            <Binding Path="ChainID"/>
+                            <Binding RelativeSource="{RelativeSource FindAncestor, AncestorType={x:Type Window}}" 
+                                             Path="DataContext"/>
+                          </MultiBinding>
+                        </Setter.Value>
+                      </Setter>
+
                       <Style.Triggers>
                         <DataTrigger Binding="{Binding ChainID}" Value="0">
                           <Setter Property="Text" Value="Нет"/>
                           <Setter Property="Foreground" Value="Gray"/>
                           <Setter Property="FontStyle" Value="Italic"/>
+                          <Setter Property="ToolTip" Value="Цепочка не привязана"/>
+                        </DataTrigger>
+                        <DataTrigger Binding="{Binding ChainID}" Value="{x:Null}">
+                          <Setter Property="Text" Value="Нет"/>
+                          <Setter Property="Foreground" Value="Gray"/>
+                          <Setter Property="FontStyle" Value="Italic"/>
+                          <Setter Property="ToolTip" Value="Цепочка не привязана"/>
                         </DataTrigger>
                       </Style.Triggers>
                     </Style>
