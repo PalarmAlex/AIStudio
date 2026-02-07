@@ -24,7 +24,7 @@ namespace AIStudio.ViewModels
     private readonly AutomatizmSystem _automatizmSystem;
     private readonly AutomatizmChainsSystem _chainsSystem;
     private readonly ActionsImagesSystem _actionsImagesSystem;
-    private readonly InfluenceActionSystem _influenceActionSystem;
+    private readonly AdaptiveActionsSystem _adaptiveActionsSystem;
     private readonly SensorySystem _sensorySystem;
 
     private ObservableCollection<ChainDisplayItem> _allChains = new ObservableCollection<ChainDisplayItem>();
@@ -104,13 +104,13 @@ namespace AIStudio.ViewModels
         AutomatizmSystem automatizmSystem,
         AutomatizmChainsSystem chainsSystem,
         ActionsImagesSystem actionsImagesSystem,
-        InfluenceActionSystem influenceActionSystem,
+        AdaptiveActionsSystem adaptiveActionsSystem,
         SensorySystem sensorySystem)
     {
       _automatizmSystem = automatizmSystem ?? throw new ArgumentNullException(nameof(automatizmSystem));
       _chainsSystem = chainsSystem ?? throw new ArgumentNullException(nameof(chainsSystem));
       _actionsImagesSystem = actionsImagesSystem ?? throw new ArgumentNullException(nameof(actionsImagesSystem));
-      _influenceActionSystem = influenceActionSystem ?? throw new ArgumentNullException(nameof(influenceActionSystem));
+      _adaptiveActionsSystem = adaptiveActionsSystem ?? throw new ArgumentNullException(nameof(adaptiveActionsSystem));
       _sensorySystem = sensorySystem ?? throw new ArgumentNullException(nameof(sensorySystem));
 
       _chainsView = CollectionViewSource.GetDefaultView(_allChains);
@@ -181,14 +181,17 @@ namespace AIStudio.ViewModels
     }
 
     private ChainDisplayItem CreateChainDisplayItem(
-        ISIDA.Psychic.Automatism.Automatizm automatizm,
+        Automatizm automatizm,
         AutomatizmChainsSystem.AutomatizmChain chain,
         AutomatizmChainsSystem.ChainLink link)
     {
       try
       {
-        int automatizmId = automatizm?.ID ?? 0;
-        int automatizmActionsImageId = automatizm?.ActionsImageID ?? 0;
+        if (automatizm == null)
+          return null;
+
+        int automatizmId = automatizm.ID;
+        int automatizmActionsImageId = automatizm.ActionsImageID;
         int chainId = chain?.ID ?? 0;
         int linkId = link?.ID ?? 0;
         int linkActionsImageId = link?.ActionsImageId ?? 0;
@@ -241,7 +244,7 @@ namespace AIStudio.ViewModels
 
       try
       {
-        var allActions = _influenceActionSystem.GetAllInfluenceActions();
+        var allActions = _adaptiveActionsSystem.GetAllAdaptiveActions();
         var actionNames = new List<string>();
 
         foreach (var actionId in actionIds)

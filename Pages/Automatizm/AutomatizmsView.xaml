@@ -19,7 +19,6 @@
     <converters:IdListToNamesConverter x:Key="IdListToNamesConverter"/>
     <converters:InfluenceActionsToTooltipConverter x:Key="InfluenceActionsToTooltipConverter"/>
     <converters:AutomatizmActionsToTooltipConverter x:Key="AutomatizmActionsToTooltipConverter"/>
-    <converters:ChainToolTipConverter x:Key="ChainToolTipConverter"/>
 
     <Style x:Key="BaseTextBlockStyle" TargetType="TextBlock">
       <Setter Property="Background" Value="White"/>
@@ -233,19 +232,21 @@
             </DataGridTemplateColumn.HeaderStyle>
             <DataGridTemplateColumn.CellTemplate>
               <DataTemplate>
-                <TextBlock HorizontalAlignment="Center" TextAlignment="Center">
+                <TextBlock HorizontalAlignment="Center" TextAlignment="Center"
+                       ToolTipService.ShowDuration="60000">
                   <TextBlock.Style>
                     <Style TargetType="TextBlock">
                       <Setter Property="Text" Value="{Binding ChainID}"/>
                       <Setter Property="HorizontalAlignment" Value="Center"/>
                       <Setter Property="TextAlignment" Value="Center"/>
+
+                      <!-- Устанавливаем Tooltip с TextBlock для выравнивания -->
                       <Setter Property="ToolTip">
                         <Setter.Value>
-                          <MultiBinding Converter="{StaticResource ChainToolTipConverter}">
-                            <Binding Path="ChainID"/>
-                            <Binding RelativeSource="{RelativeSource FindAncestor, AncestorType={x:Type Window}}" 
-                                             Path="DataContext"/>
-                          </MultiBinding>
+                          <TextBlock Text="{Binding ChainDetailedInfo}" 
+                                           TextAlignment="Left"
+                                           TextWrapping="Wrap"
+                                           MaxWidth="500"/>
                         </Setter.Value>
                       </Setter>
 
@@ -265,12 +266,13 @@
                       </Style.Triggers>
                     </Style>
                   </TextBlock.Style>
-                </TextBlock>
+            </TextBlock>
               </DataTemplate>
             </DataGridTemplateColumn.CellTemplate>
             <DataGridTemplateColumn.CellStyle>
               <Style TargetType="DataGridCell">
                 <Setter Property="HorizontalContentAlignment" Value="Center"/>
+                <Setter Property="ToolTipService.ShowDuration" Value="60000"/>
               </Style>
             </DataGridTemplateColumn.CellStyle>
           </DataGridTemplateColumn>

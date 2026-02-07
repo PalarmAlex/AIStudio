@@ -392,6 +392,7 @@ namespace AIStudio.ViewModels
             NextID = automatizm.NextID,
             ChainID = chainId,
             ChainInfo = chainInfo,
+            ChainDetailedInfo = GetChainDetailedInfo(chainId),
 
             BaseCondition = treeNode?.BaseID ?? 0,
             EmotionIdList = emotionIdList,
@@ -679,7 +680,7 @@ namespace AIStudio.ViewModels
           }
           else
           {
-            MessageBox.Show("Не удалось удалить все автоматизмы. Проверьте стадию агента (должна быть ≥2)",
+            MessageBox.Show($"Не удалось удалить все автоматизмы.",
                 "Ошибка удаления",
                 MessageBoxButton.OK,
                 MessageBoxImage.Error);
@@ -731,11 +732,9 @@ namespace AIStudio.ViewModels
       {
         System.Threading.Tasks.Task.Run(() =>
         {
-          // ИЗМЕНЕНИЕ: Теперь метод возвращает 6 значений вместо 5
           var (newCount, existingCount, totalCount, duplicateCount, chainsCreated, errors) =
               ConditionedReflexToAutomatizmConverter.Instance.CloneAllConditionedReflexesToAutomatisms();
 
-          // Возвращаемся в UI поток для показа результатов
           Application.Current.Dispatcher.Invoke(() =>
           {
             IsCloningInProgress = false;
@@ -747,7 +746,6 @@ namespace AIStudio.ViewModels
             }
             else
             {
-              // ИЗМЕНЕНИЕ: Добавлена информация о цепочках
               message = $"Обработано {totalCount} условных рефлексов:\n" +
                         $"• Создано новых автоматизмов: {newCount}\n" +
                         $"• Уже существовало: {existingCount}\n" +
@@ -836,7 +834,7 @@ namespace AIStudio.ViewModels
           if (link.FailureNextLink > 0)
             sb.AppendLine($"  При неудаче → звено {link.FailureNextLink}");
 
-          sb.AppendLine();
+          //sb.AppendLine();
         }
 
         return sb.ToString();
@@ -877,6 +875,7 @@ namespace AIStudio.ViewModels
 
       // Информация о цепочке (если есть)
       public string ChainInfo { get; set; }
+      public string ChainDetailedInfo { get; set; }
 
       // Образ действия
       public ActionsImageDisplay ActionsImageDisplay { get; set; }

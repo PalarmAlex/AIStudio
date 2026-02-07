@@ -838,7 +838,7 @@ namespace AIStudio
         _automatizmSystem, 
         _automatizmChains, 
         _actionsImagesSystem,
-        _influenceActionSystem,
+        _actionsSystem,
         _sensorySystem);
       automatizmChainsView.DataContext = viewModel;
       CurrentContent = automatizmChainsView;
