@@ -134,7 +134,7 @@ namespace AIStudio.ViewModels
         {
           int chainId = 0;
           if (AutomatizmChainsSystem.IsInitialized)
-            chainId = _chainsSystem.GetChainByActionsImage(automatizm.ActionsImageID);
+            chainId = automatizm.NextID;
 
           if (chainId > 0)
           {
@@ -148,12 +148,6 @@ namespace AIStudio.ViewModels
                   _allChains.Add(displayItem);
               }
             }
-          }
-          else
-          {
-            var displayItem = CreateChainDisplayItem(automatizm, null, null);
-            if (displayItem != null)
-              _allChains.Add(displayItem);
           }
         }
 
