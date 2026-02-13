@@ -221,7 +221,7 @@ namespace AIStudio.ViewModels
           ToneMoodText = toneMoodText,
           SuccessNextLink = link?.SuccessNextLink ?? 0,
           FailureNextLink = link?.FailureNextLink ?? 0,
-          SuccessThreshold = link?.SuccessThreshold ?? 1
+          ChainUsefulness = link?.ChainUsefulness ?? 1
         };
       }
       catch (Exception ex)
@@ -418,7 +418,7 @@ namespace AIStudio.ViewModels
       public string ToneMoodText { get; set; }
       public int SuccessNextLink { get; set; }
       public int FailureNextLink { get; set; }
-      public int SuccessThreshold { get; set; }
+      public int ChainUsefulness { get; set; }
     }
 
   }

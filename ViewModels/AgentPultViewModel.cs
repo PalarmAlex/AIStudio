@@ -31,11 +31,12 @@ namespace AIStudio.ViewModels
     private readonly SensorySystem _sensorySystem;
     private readonly InfluenceActionSystem _influenceActionSystem;
     private readonly ReflexesActivator _reflexesActivator;
+    private AntagonistManager _antagonistManager;
+    private DispatcherTimer _chainStatusTimer;
+
     private ObservableCollection<InfluenceActionItem> _influenceActions;
     private ObservableCollection<InfluenceActionItem> _column1Actions;
     private ObservableCollection<InfluenceActionItem> _column2Actions;
-    private AntagonistManager _antagonistManager;
-    private DispatcherTimer _chainStatusTimer;
 
     private bool _isAgentDead;
     private bool _authoritativeMode;
@@ -129,7 +130,11 @@ namespace AIStudio.ViewModels
       get
       {
         if (_isChainActive && _activeChainId > 0)
-          return $"Цепочка активна (ID: {_activeChainId})";
+        {
+          string typeText = !string.IsNullOrEmpty(_currentChainType) ?
+              $" ({_currentChainType})" : "";
+          return $"Цепочка активна (ID: {_activeChainId}{typeText})";
+        }
         return "Цепочка не активна";
       }
     }
@@ -301,6 +306,21 @@ namespace AIStudio.ViewModels
       get => _isChainActive ? Brushes.DarkGreen : Brushes.DarkGray;
     }
 
+    private string _currentChainType = "";
+
+    /// <summary>
+    /// Текст, указывающий тип активной цепочки
+    /// </summary>
+    public string ChainTypeText
+    {
+      get
+      {
+        if (_isChainActive && !string.IsNullOrEmpty(_currentChainType))
+          return $"Тип: Цепочка {_currentChainType}";
+        return "";
+      }
+    }
+
     #endregion
 
     #region Команды
@@ -371,14 +391,38 @@ namespace AIStudio.ViewModels
       try
       {
         bool wasActive = _isChainActive;
-        bool isChainActive = _reflexesActivator.IsChainActive;
-        int newChainId = isChainActive ? _reflexesActivator.GetActiveChainId() : 0;
 
-        if (wasActive != isChainActive || ActiveChainId != newChainId)
+        // Проверяем наличие активных цепочек (рефлексов или автоматизмов)
+        bool isReflexChainActive = AppGlobalState.IsReflexChainActive;
+        bool isAutomatizmChainActive = AppGlobalState.IsAutomatizmChainActive;
+        bool isChainActive = isReflexChainActive || isAutomatizmChainActive;
+
+        int newChainId = 0;
+        string chainType = "";
+
+        // Определяем тип и ID активной цепочки
+        if (isReflexChainActive)
+        {
+          newChainId = _reflexesActivator.GetActiveChainId();
+          chainType = "рефлексов";
+        }
+        else if (isAutomatizmChainActive)
+        {
+          // Для цепочек автоматизмов получаем ID из AutomatismExecutionService
+          if (AutomatismExecutionService.IsInitialized)
+          {
+            newChainId = AutomatismExecutionService.Instance.GetActiveAutomatizmChainId();
+            chainType = "автоматизмов";
+          }
+        }
+
+        if (wasActive != isChainActive || ActiveChainId != newChainId || _currentChainType != chainType)
         {
           _isChainActive = isChainActive;
           ActiveChainId = newChainId;
-          ChainControlVisibility = _isChainActive ?
+          _currentChainType = chainType;
+
+          ChainControlVisibility = _isChainActive && _activeChainId > 0 ?
               System.Windows.Visibility.Visible :
               System.Windows.Visibility.Collapsed;
 
@@ -387,15 +431,29 @@ namespace AIStudio.ViewModels
           OnPropertyChanged(nameof(ChainActiveIndicatorColor));
           OnPropertyChanged(nameof(ChainActiveBackground));
           OnPropertyChanged(nameof(ChainActiveTextColor));
+          OnPropertyChanged(nameof(ChainTypeText));
 
           if (_isChainActive)
-            ChainStepSuccess = true;
+            ChainStepSuccess = true; // Сбрасываем на значение по умолчанию
           else
             ChainControlVisibility = System.Windows.Visibility.Collapsed;
         }
 
         if (_isChainActive)
-          UpdateChainStepResult();
+        {
+          // Для цепочек автоматизмов проверяем, ожидают ли они результата
+          if (isAutomatizmChainActive && AutomatismExecutionService.IsInitialized)
+          {
+            bool isWaiting = AutomatismExecutionService.Instance.IsChainWaitingForResult(newChainId);
+            if (isWaiting)
+              UpdateChainStepResult();
+          }
+          // Для цепочек рефлексов обновляем всегда, когда активны
+          else if (isReflexChainActive)
+          {
+            UpdateChainStepResult();
+          }
+        }
       }
       catch (Exception ex)
       {
@@ -404,14 +462,32 @@ namespace AIStudio.ViewModels
     }
 
     /// <summary>
-    /// Обновляет результат выполнения звена в активаторе рефлексов
+    /// Обновляет результат выполнения звена в соответствующем сервисе
     /// </summary>
     private void UpdateChainStepResult()
     {
       try
       {
-        if (_isChainActive)
+        if (!_isChainActive || ActiveChainId <= 0)
+          return;
+
+        // Проверяем тип активной цепочки
+        if (AppGlobalState.IsReflexChainActive)
+        {
+          // Для цепочек рефлексов
           _reflexesActivator.SetChainStepResult(_chainStepSuccess);
+        }
+        else if (AppGlobalState.IsAutomatizmChainActive && AutomatismExecutionService.IsInitialized)
+        {
+          // Для цепочек автоматизмов
+          // Преобразуем bool в int (1 - успех, -1 - неудача)
+          int usefulness = _chainStepSuccess ? 1 : -1;
+
+          AutomatismExecutionService.Instance.SetChainStepResult(ActiveChainId, usefulness);
+
+          // Логируем для отладки
+          Debug.WriteLine($"Установлен результат для цепочки автоматизмов {ActiveChainId}: полезность={usefulness}");
+        }
       }
       catch (Exception ex)
       {

@@ -363,7 +363,7 @@
 
           <!-- Оценка звена -->
           <DataGridTextColumn Header="Оценка" 
-                              Binding="{Binding SuccessThreshold}" 
+                              Binding="{Binding ChainUsefulness}" 
                               Width="Auto"
                               IsReadOnly="True">
             <DataGridTextColumn.ElementStyle>
@@ -372,15 +372,15 @@
                 <Setter Property="Foreground" Value="Black"/>
                 <Setter Property="FontWeight" Value="Normal"/>
                 <Style.Triggers>
-                  <DataTrigger Binding="{Binding SuccessThreshold}" Value="0">
+                  <DataTrigger Binding="{Binding ChainUsefulness}" Value="0">
                     <Setter Property="FontWeight" Value="Bold"/>
                     <Setter Property="Foreground" Value="#FF0066CC"/>
                   </DataTrigger>
-                  <DataTrigger Binding="{Binding SuccessThreshold}" Value="1">
+                  <DataTrigger Binding="{Binding ChainUsefulness}" Value="1">
                     <Setter Property="FontWeight" Value="Normal"/>
                     <Setter Property="Foreground" Value="Black"/>
                   </DataTrigger>
-                  <DataTrigger Binding="{Binding SuccessThreshold}" Value="{x:Static sys:Int32.MaxValue}">
+                  <DataTrigger Binding="{Binding ChainUsefulness}" Value="{x:Static sys:Int32.MaxValue}">
                     <Setter Property="FontWeight" Value="Bold"/>
                     <Setter Property="Foreground" Value="#FFCC0000"/>
                   </DataTrigger>

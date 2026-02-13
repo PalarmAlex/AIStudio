@@ -133,7 +133,7 @@
     <StackPanel Grid.Column="1" Grid.Row="2" Grid.RowSpan="2"
                 Style="{StaticResource ChainPanelStyle}"
                 Orientation="Vertical"
-                Margin="5,0,0,0" Height="45" VerticalAlignment="Center" Width="225">
+                Margin="5,0,0,0" Height="45" VerticalAlignment="Center" Width="290">
 
       <!-- Индикатор активности цепочки -->
       <Border BorderBrush="Gray" 

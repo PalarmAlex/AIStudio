@@ -137,67 +137,74 @@
 
       <Border Height="2" Background="{Binding HeaderBackground}" Margin="0,0,0,2"/>
 
-      <!-- Заголовок действий -->
-      <TextBlock Text="Действия агента"
+      <Grid>
+        <Grid.ColumnDefinitions>
+          <ColumnDefinition Width="*"/>
+          <ColumnDefinition Width="*"/>
+        </Grid.ColumnDefinitions>
+        <Grid.RowDefinitions>
+          <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <StackPanel Grid.Column="0" Grid.Row="0" HorizontalAlignment="Right">
+          <!-- Заголовок действий -->
+          <TextBlock Text="Действия агента"
            Foreground="{Binding HeaderBackground}"
            FontSize="18"
            FontWeight="DemiBold"
            HorizontalAlignment="Center"
            Margin="0,2,0,2"/>
+        </StackPanel>
+        <StackPanel Grid.Column="1" Grid.Row="0" HorizontalAlignment="Left">
+          <!-- Блок периода ожидания оценки оператора -->
+          <Border x:Name="WaitingPeriodPanel"
+            Background="{Binding WaitingPeriodBackground}" 
+            CornerRadius="4"
+            Padding="8,4"
+            Margin="10,2,10,2"
+            BorderBrush="{Binding WaitingPeriodBorderBrush}"
+            BorderThickness="1"
+            Cursor="{Binding WaitingPeriodCursor, FallbackValue=Arrow}"
+            ToolTip="{Binding WaitingPeriodToolTip, FallbackValue=''}">
+            <Border.InputBindings>
+              <MouseBinding MouseAction="LeftClick" Command="{Binding CancelWaitingPeriodCommand}"/>
+            </Border.InputBindings>
 
-      <local:AgentAdaptiveActionsView DataContext="{Binding AgentAdaptiveActionsViewModel}" />
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
+              <TextBlock Text="⏳" FontSize="14" Margin="0,0,5,0"/>
 
-      <!-- Блок периода ожидания оценки оператора -->
-      <Border x:Name="WaitingPeriodPanel"
-        Background="{Binding WaitingPeriodBackground}" 
-        CornerRadius="4"
-        Padding="8,4"
-        Margin="10,2,10,2"
-        BorderBrush="{Binding WaitingPeriodBorderBrush}"
-        BorderThickness="1"
-        Cursor="{Binding WaitingPeriodCursor, FallbackValue=Arrow}"
-        ToolTip="{Binding WaitingPeriodToolTip, FallbackValue=''}"
-        VerticalAlignment="Center">
-
-        <Border.InputBindings>
-          <MouseBinding MouseAction="LeftClick" Command="{Binding CancelWaitingPeriodCommand}"/>
-        </Border.InputBindings>
-
-        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
-          <TextBlock Text="⏳" FontSize="14" Margin="0,0,5,0"/>
-
-          <TextBlock Text="{Binding WaitingPeriodText}" 
+              <TextBlock Text="{Binding WaitingPeriodText}" 
                    FontWeight="{Binding WaitingPeriodFontWeight, FallbackValue=Normal}"
                    Foreground="{Binding WaitingPeriodForeground, FallbackValue=Gray}">
-            <TextBlock.Style>
-              <Style TargetType="TextBlock">
-                <Style.Triggers>
-                  <DataTrigger Binding="{Binding IsWaitingPeriodPulsating}" Value="True">
-                    <DataTrigger.EnterActions>
-                      <BeginStoryboard>
-                        <Storyboard RepeatBehavior="Forever" AutoReverse="True">
-                          <DoubleAnimation Storyboard.TargetProperty="Opacity"
+                <TextBlock.Style>
+                  <Style TargetType="TextBlock">
+                    <Style.Triggers>
+                      <DataTrigger Binding="{Binding IsWaitingPeriodPulsating}" Value="True">
+                        <DataTrigger.EnterActions>
+                          <BeginStoryboard>
+                            <Storyboard RepeatBehavior="Forever" AutoReverse="True">
+                              <DoubleAnimation Storyboard.TargetProperty="Opacity"
                                                          From="0.7" To="1.0" 
                                                          Duration="0:0:0.8"/>
-                        </Storyboard>
-                      </BeginStoryboard>
-                    </DataTrigger.EnterActions>
-                    <DataTrigger.ExitActions>
-                      <BeginStoryboard>
-                        <Storyboard>
-                          <DoubleAnimation Storyboard.TargetProperty="Opacity"
+                            </Storyboard>
+                          </BeginStoryboard>
+                        </DataTrigger.EnterActions>
+                        <DataTrigger.ExitActions>
+                          <BeginStoryboard>
+                            <Storyboard>
+                              <DoubleAnimation Storyboard.TargetProperty="Opacity"
                                                          To="1.0" 
                                                          Duration="0:0:0.3"/>
-                        </Storyboard>
-                      </BeginStoryboard>
-                    </DataTrigger.ExitActions>
-                  </DataTrigger>
-                </Style.Triggers>
-              </Style>
-            </TextBlock.Style>
-          </TextBlock>
+                            </Storyboard>
+                          </BeginStoryboard>
+                        </DataTrigger.ExitActions>
+                      </DataTrigger>
+                    </Style.Triggers>
+                  </Style>
+                </TextBlock.Style>
+              </TextBlock>
 
-          <Button Content="✕" 
+              <Button Content="✕" 
                 Width="20" 
                 Height="20" 
                 Margin="5,0,0,0"
@@ -211,8 +218,22 @@
                 Command="{Binding CancelWaitingPeriodCommand}"
                 ToolTip="Отменить ожидание"
                 Visibility="{Binding ShowCancelButton, Converter={StaticResource BoolToVisibilityConverter}}"/>
+            </StackPanel>
+          </Border>
         </StackPanel>
-      </Border>
+      </Grid>
+
+
+      <!-- Заголовок действий --><!--
+      <TextBlock Text="Действия агента"
+           Foreground="{Binding HeaderBackground}"
+           FontSize="18"
+           FontWeight="DemiBold"
+           HorizontalAlignment="Center"
+           Margin="0,2,0,2"/>-->
+
+
+      <local:AgentAdaptiveActionsView DataContext="{Binding AgentAdaptiveActionsViewModel}" />
 
       <Border Height="2" Background="{Binding HeaderBackground}" Margin="0,2,0,2"/>
 
