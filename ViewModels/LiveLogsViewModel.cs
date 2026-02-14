@@ -14,6 +14,7 @@ using System.Windows;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Threading;
+using static AIStudio.Common.MemoryLogManager;
 using static ISIDA.Reflexes.ConditionedReflexesSystem;
 using static ISIDA.Reflexes.PerceptionImagesSystem;
 
@@ -48,6 +49,11 @@ namespace AIStudio.ViewModels
     /// Коллекция записей логов только для чтения
     /// </summary>
     public ReadOnlyObservableCollection<LogEntry> LogEntries => MemoryLogManager.Instance.LogEntries;
+
+    /// <summary>
+    /// Коллекция записей логов цепочек рефлексов и автоматизмов только для чтения
+    /// </summary>
+    public ReadOnlyObservableCollection<MemoryLogManager.ChainLogEntry> ChainLogEntries => MemoryLogManager.Instance.ChainLogEntries;
 
     /// <summary>
     /// Команда очистки логов
@@ -116,6 +122,7 @@ namespace AIStudio.ViewModels
       {
         // Принудительно обновляем привязку
         OnPropertyChanged(nameof(LogEntries));
+        OnPropertyChanged(nameof(ChainLogEntries));
       }
     }
 
@@ -128,6 +135,7 @@ namespace AIStudio.ViewModels
 
       MemoryLogManager.Instance.Clear();
       OnPropertyChanged(nameof(LogEntries));
+      OnPropertyChanged(nameof(ChainLogEntries));
     }
 
     /// <summary>
@@ -163,6 +171,54 @@ namespace AIStudio.ViewModels
     }
 
     #region Конвертеры для ToolTip'ов
+
+    /// <summary>
+    /// Получает текст подсказки для цепочки рефлексов (формат "ChainId:ActionId")
+    /// </summary>
+    public string GetReflexChainTooltip(string chainInfo)
+    {
+      if (string.IsNullOrEmpty(chainInfo) || chainInfo == "-")
+        return "Нет активных цепочек рефлексов";
+
+      var parts = chainInfo.Split(':');
+      if (parts.Length != 2 || !int.TryParse(parts[1], out int actionId) || actionId <= 0)
+        return "Неверный формат цепочки рефлекса";
+
+      try
+      {
+        var allActions = _adaptiveActionsSystem.GetAllAdaptiveActions();
+        var action = allActions.FirstOrDefault(a => a.Id == actionId);
+        return action != null ? action.Name : $"Действие {actionId}";
+      }
+      catch (Exception ex)
+      {
+        return $"Ошибка загрузки действия: {ex.Message}";
+      }
+    }
+
+    /// <summary>
+    /// Получает текст подсказки для цепочки автоматизмов (формат "ChainId:ActionId")
+    /// </summary>
+    public string GetAutomatizmChainTooltip(string chainInfo)
+    {
+      if (string.IsNullOrEmpty(chainInfo) || chainInfo == "-")
+        return "Нет активных цепочек автоматизмов";
+
+      var parts = chainInfo.Split(':');
+      if (parts.Length != 2 || !int.TryParse(parts[1], out int actionId) || actionId <= 0)
+        return "Неверный формат цепочки автоматизма";
+
+      try
+      {
+        var allActions = _adaptiveActionsSystem.GetAllAdaptiveActions();
+        var action = allActions.FirstOrDefault(a => a.Id == actionId);
+        return action != null ? action.Name : $"Действие {actionId}";
+      }
+      catch (Exception ex)
+      {
+        return $"Ошибка загрузки действия: {ex.Message}";
+      }
+    }
 
     /// <summary>
     /// Получает текст подсказки для стиля поведения

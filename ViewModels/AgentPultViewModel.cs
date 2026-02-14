@@ -484,9 +484,6 @@ namespace AIStudio.ViewModels
           int usefulness = _chainStepSuccess ? 1 : -1;
 
           AutomatismExecutionService.Instance.SetChainStepResult(ActiveChainId, usefulness);
-
-          // Логируем для отладки
-          Debug.WriteLine($"Установлен результат для цепочки автоматизмов {ActiveChainId}: полезность={usefulness}");
         }
       }
       catch (Exception ex)

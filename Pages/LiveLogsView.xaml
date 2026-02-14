@@ -257,6 +257,18 @@
       </Style.Triggers>
     </Style>
 
+    <!-- Стиль для ячейки Цепочка рефлексов -->
+    <Style x:Key="ReflexChainCellStyle" TargetType="DataGridCell" BasedOn="{StaticResource MatrixCellStyle}">
+      <Setter Property="ToolTipService.ToolTip" Value="Наведите для просмотра названия действия"/>
+      <Setter Property="ToolTipService.InitialShowDelay" Value="500"/>
+    </Style>
+
+    <!-- Стиль для ячейки Цепочка автоматизмов -->
+    <Style x:Key="AutomatizmChainCellStyle" TargetType="DataGridCell" BasedOn="{StaticResource MatrixCellStyle}">
+      <Setter Property="ToolTipService.ToolTip" Value="Наведите для просмотра названия действия"/>
+      <Setter Property="ToolTipService.InitialShowDelay" Value="500"/>
+    </Style>
+
   </UserControl.Resources>
 
   <Grid Background="Black">
@@ -268,40 +280,41 @@
 
     <!-- Заголовок -->
     <Border Grid.Row="0" Background="#101010" Padding="10" BorderBrush="#00FF00" BorderThickness="0,0,0,1">
-      <StackPanel Orientation="Horizontal">
-        <TextBlock Text="ЛОГИ СИСТЕМЫ" 
-                         Foreground="#00FF00"
-                         FontFamily="Consolas, Courier New"
-                         FontSize="16"
-                         FontWeight="Bold"
-                         VerticalAlignment="Center"/>
-
-        <Rectangle Width="20" Height="2" Fill="#00FF00" Margin="20,0,0,0" VerticalAlignment="Center"/>
-
+      <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
         <TextBlock Text="{Binding AutoRefreshStatus}" 
                          Foreground="{Binding AutoRefreshColor}"
                          FontFamily="Consolas"
                          FontSize="11"
-                         VerticalAlignment="Center"
-                         Margin="10,0,0,0"/>
+                         VerticalAlignment="Center"/>
       </StackPanel>
     </Border>
 
     <!-- Таблица логов -->
     <Border Grid.Row="1" Margin="5" BorderBrush="#00FF00" BorderThickness="1" Background="#080808">
-      <DataGrid ItemsSource="{Binding LogEntries}"
-                      Style="{StaticResource MatrixDataGridStyle}"
-                      AutoGenerateColumns="False"
-                      IsReadOnly="True"
-                      RowStyle="{StaticResource MatrixRowStyle}"
-                      CellStyle="{StaticResource MatrixCellStyle}"
-                      VerticalScrollBarVisibility="Auto"
-                      HorizontalScrollBarVisibility="Auto"
-                      CanUserResizeColumns="True"
-                      CanUserSortColumns="True"
-                      CanUserAddRows="False"
-                      CanUserDeleteRows="False"
-                      SelectionMode="Extended">
+      <TabControl Background="#080808" BorderBrush="#00FF00" BorderThickness="1">
+        
+        <!-- Вкладка 1: Системные логи -->
+        <TabItem Header="Системные логи" Background="#101010" Foreground="#00FF00">
+          <TabItem.HeaderTemplate>
+            <DataTemplate>
+              <TextBlock Text="{Binding}" Foreground="#00FF00" FontFamily="Consolas" Padding="10,5"/>
+            </DataTemplate>
+          </TabItem.HeaderTemplate>
+          
+          <DataGrid ItemsSource="{Binding LogEntries}"
+                        x:Name="LogDataGrid"
+                        Style="{StaticResource MatrixDataGridStyle}"
+                        AutoGenerateColumns="False"
+                        IsReadOnly="True"
+                        RowStyle="{StaticResource MatrixRowStyle}"
+                        CellStyle="{StaticResource MatrixCellStyle}"
+                        VerticalScrollBarVisibility="Auto"
+                        HorizontalScrollBarVisibility="Auto"
+                        CanUserResizeColumns="True"
+                        CanUserSortColumns="True"
+                        CanUserAddRows="False"
+                        CanUserDeleteRows="False"
+                        SelectionMode="Extended">
 
         <DataGrid.Columns>
           <DataGridTextColumn Binding="{Binding DisplayTime}" Width="80">
@@ -386,6 +399,26 @@
             </DataGridTextColumn.Header>
           </DataGridTextColumn>
 
+          <DataGridTextColumn Binding="{Binding DisplayReflexChainInfo}" 
+                    Width="80" 
+                    CellStyle="{StaticResource ReflexChainCellStyle}">
+            <DataGridTextColumn.Header>
+              <DataGridColumnHeader Style="{StaticResource MatrixHeaderStyle}" 
+                            Content="Цепочка РФ"
+                            ToolTip="ID цепочки рефлекса и ID действия (ChainId:ActionId)"/>
+            </DataGridTextColumn.Header>
+          </DataGridTextColumn>
+
+          <DataGridTextColumn Binding="{Binding DisplayAutomatizmChainInfo}" 
+                    Width="80" 
+                    CellStyle="{StaticResource AutomatizmChainCellStyle}">
+            <DataGridTextColumn.Header>
+              <DataGridColumnHeader Style="{StaticResource MatrixHeaderStyle}" 
+                            Content="Цепочка АВ"
+                            ToolTip="ID цепочки автоматизма и ID действия (ChainId:ActionId)"/>
+            </DataGridTextColumn.Header>
+          </DataGridTextColumn>
+
           <DataGridTextColumn  Width="*">
             <DataGridTextColumn.Header>
               <DataGridColumnHeader Style="{StaticResource MatrixHeaderStyle}" 
@@ -394,7 +427,10 @@
             </DataGridTextColumn.Header>
           </DataGridTextColumn>
         </DataGrid.Columns>
-      </DataGrid>
+          </DataGrid>
+        </TabItem>
+
+      </TabControl>
     </Border>
 
     <!-- Панель управления -->
