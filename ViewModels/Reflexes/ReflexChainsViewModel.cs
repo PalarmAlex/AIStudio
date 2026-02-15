@@ -1,0 +1,268 @@
+using AIStudio.Common;
+using ISIDA.Actions;
+using ISIDA.Common;
+using ISIDA.Reflexes;
+using System;
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.ComponentModel;
+using System.Linq;
+using System.Windows.Data;
+using System.Windows.Input;
+
+namespace AIStudio.ViewModels
+{
+  public class ReflexChainsViewModel : INotifyPropertyChanged
+  {
+    public event PropertyChangedEventHandler PropertyChanged;
+    protected virtual void OnPropertyChanged(string propertyName)
+    {
+      PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+    }
+
+    private readonly ReflexChainsSystem _chainsSystem;
+    private readonly GeneticReflexesSystem _reflexesSystem;
+    private readonly AdaptiveActionsSystem _actionsSystem;
+
+    private readonly ObservableCollection<ChainDisplayItem> _allChains = new ObservableCollection<ChainDisplayItem>();
+    private readonly Dictionary<int, string> _actionNameById = new Dictionary<int, string>();
+
+    private string _filterReflexId;
+    private string _filterChainId;
+    private int _selectedActionFilterId;
+    private string _filterChainName;
+
+    public ICollectionView ChainsView { get; }
+    public ICommand ClearFiltersCommand { get; }
+    public List<KeyValuePair<int, string>> ActionFilterOptions { get; } = new List<KeyValuePair<int, string>>();
+
+    public string FilterReflexId
+    {
+      get => _filterReflexId;
+      set
+      {
+        _filterReflexId = value;
+        OnPropertyChanged(nameof(FilterReflexId));
+        ApplyFilters();
+      }
+    }
+
+    public string FilterChainId
+    {
+      get => _filterChainId;
+      set
+      {
+        _filterChainId = value;
+        OnPropertyChanged(nameof(FilterChainId));
+        ApplyFilters();
+      }
+    }
+
+    public int SelectedActionFilterId
+    {
+      get => _selectedActionFilterId;
+      set
+      {
+        _selectedActionFilterId = value;
+        OnPropertyChanged(nameof(SelectedActionFilterId));
+        ApplyFilters();
+      }
+    }
+
+    public string FilterChainName
+    {
+      get => _filterChainName;
+      set
+      {
+        _filterChainName = value;
+        OnPropertyChanged(nameof(FilterChainName));
+        ApplyFilters();
+      }
+    }
+
+    public ReflexChainsViewModel(
+      ReflexChainsSystem chainsSystem,
+      GeneticReflexesSystem reflexesSystem,
+      AdaptiveActionsSystem actionsSystem)
+    {
+      _chainsSystem = chainsSystem ?? throw new ArgumentNullException(nameof(chainsSystem));
+      _reflexesSystem = reflexesSystem ?? throw new ArgumentNullException(nameof(reflexesSystem));
+      _actionsSystem = actionsSystem ?? throw new ArgumentNullException(nameof(actionsSystem));
+
+      ChainsView = CollectionViewSource.GetDefaultView(_allChains);
+      ChainsView.Filter = FilterChains;
+
+      ClearFiltersCommand = new RelayCommand(ClearFilters);
+
+      LoadActionNames();
+      InitializeActionFilterOptions();
+      LoadChainsData();
+    }
+
+    private void LoadActionNames()
+    {
+      _actionNameById.Clear();
+
+      foreach (var action in _actionsSystem.GetAllAdaptiveActions())
+      {
+        _actionNameById[action.Id] = action.Name;
+      }
+    }
+
+    private void InitializeActionFilterOptions()
+    {
+      ActionFilterOptions.Clear();
+      ActionFilterOptions.Add(new KeyValuePair<int, string>(0, "Все действия"));
+
+      foreach (var action in _actionsSystem.GetAllAdaptiveActions().OrderBy(a => a.Name))
+      {
+        ActionFilterOptions.Add(new KeyValuePair<int, string>(action.Id, action.Name));
+      }
+
+      SelectedActionFilterId = 0;
+    }
+
+    private void LoadChainsData()
+    {
+      try
+      {
+        _allChains.Clear();
+
+        var allChains = _chainsSystem.GetAllReflexChains();
+        foreach (var chain in allChains.Values.OrderBy(c => c.ID))
+        {
+          var linkedReflexIds = _reflexesSystem.GetReflexesForChain(chain.ID)
+            .OrderBy(id => id)
+            .ToList();
+
+          var reflexIdsText = linkedReflexIds.Any()
+            ? string.Join(", ", linkedReflexIds)
+            : string.Empty;
+
+          var reflexIdsTooltip = linkedReflexIds.Any()
+            ? $"Привязана к рефлексам: {reflexIdsText}"
+            : "Цепочка пока не привязана ни к одному рефлексу";
+
+          var links = (chain.Links ?? new List<ReflexChainsSystem.ChainLink>())
+            .OrderBy(l => l.ID)
+            .ToList();
+
+          if (!links.Any())
+          {
+            _allChains.Add(new ChainDisplayItem
+            {
+              ChainId = chain.ID,
+              ChainName = chain.Name ?? string.Empty,
+              ChainDescription = chain.Description ?? string.Empty,
+              ReflexIds = linkedReflexIds,
+              ReflexIdsText = reflexIdsText,
+              ReflexIdsTooltip = reflexIdsTooltip
+            });
+            continue;
+          }
+
+          foreach (var link in links)
+          {
+            var actionText = GetActionText(link.ActionId);
+            _allChains.Add(new ChainDisplayItem
+            {
+              ChainId = chain.ID,
+              ChainName = chain.Name ?? string.Empty,
+              ChainDescription = chain.Description ?? string.Empty,
+              ReflexIds = linkedReflexIds,
+              ReflexIdsText = reflexIdsText,
+              ReflexIdsTooltip = reflexIdsTooltip,
+              LinkId = link.ID,
+              ActionId = link.ActionId,
+              ActionText = actionText,
+              ActionTooltip = $"Действие ID {link.ActionId}: {actionText}",
+              LinkDescription = link.Description ?? string.Empty,
+              SuccessNextLink = link.SuccessNextLink,
+              FailureNextLink = link.FailureNextLink
+            });
+          }
+        }
+      }
+      catch (Exception ex)
+      {
+        Logger.Error(ex.Message);
+      }
+    }
+
+    private string GetActionText(int actionId)
+    {
+      if (actionId <= 0)
+        return string.Empty;
+
+      if (_actionNameById.TryGetValue(actionId, out var actionName))
+        return actionName;
+
+      return $"Действие #{actionId}";
+    }
+
+    private bool FilterChains(object item)
+    {
+      if (!(item is ChainDisplayItem chainItem))
+        return false;
+
+      if (!string.IsNullOrWhiteSpace(FilterReflexId))
+      {
+        if (!int.TryParse(FilterReflexId, out var reflexId) || !chainItem.ReflexIds.Contains(reflexId))
+          return false;
+      }
+
+      if (!string.IsNullOrWhiteSpace(FilterChainId))
+      {
+        if (!int.TryParse(FilterChainId, out var chainId) || chainItem.ChainId != chainId)
+          return false;
+      }
+
+      if (SelectedActionFilterId > 0)
+      {
+        if (chainItem.ActionId != SelectedActionFilterId)
+          return false;
+      }
+
+      if (!string.IsNullOrWhiteSpace(FilterChainName))
+      {
+        var hasMatchInChainName = !string.IsNullOrEmpty(chainItem.ChainName) &&
+            chainItem.ChainName.IndexOf(FilterChainName, StringComparison.OrdinalIgnoreCase) >= 0;
+
+        if (!hasMatchInChainName)
+          return false;
+      }
+
+      return true;
+    }
+
+    private void ApplyFilters()
+    {
+      ChainsView.Refresh();
+    }
+
+    private void ClearFilters(object parameter = null)
+    {
+      FilterReflexId = string.Empty;
+      FilterChainId = string.Empty;
+      SelectedActionFilterId = 0;
+      FilterChainName = string.Empty;
+    }
+
+    public class ChainDisplayItem
+    {
+      public int ChainId { get; set; }
+      public string ChainName { get; set; }
+      public string ChainDescription { get; set; }
+      public List<int> ReflexIds { get; set; } = new List<int>();
+      public string ReflexIdsText { get; set; }
+      public string ReflexIdsTooltip { get; set; }
+      public int LinkId { get; set; }
+      public int ActionId { get; set; }
+      public string ActionText { get; set; }
+      public string ActionTooltip { get; set; }
+      public string LinkDescription { get; set; }
+      public int SuccessNextLink { get; set; }
+      public int FailureNextLink { get; set; }
+    }
+  }
+}

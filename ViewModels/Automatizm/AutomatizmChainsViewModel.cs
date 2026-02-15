@@ -1,4 +1,4 @@
-﻿using AIStudio.Views;
+using AIStudio.Views;
 using ISIDA.Actions;
 using ISIDA.Common;
 using ISIDA.Psychic.Automatism;
@@ -34,9 +34,9 @@ namespace AIStudio.ViewModels
 
     private string _filterAutomatizmId;
     private string _filterChainId;
-    private string _filterActions;
+    private int _selectedActionFilterId;
     private string _filterPhrases;
-    private string _filterImageKind;
+    private string _filterImageKind = string.Empty;
 
     public string FilterAutomatizmId
     {
@@ -60,13 +60,13 @@ namespace AIStudio.ViewModels
       }
     }
 
-    public string FilterActions
+    public int SelectedActionFilterId
     {
-      get => _filterActions;
+      get => _selectedActionFilterId;
       set
       {
-        _filterActions = value;
-        OnPropertyChanged(nameof(FilterActions));
+        _selectedActionFilterId = value;
+        OnPropertyChanged(nameof(SelectedActionFilterId));
         ApplyFilters();
       }
     }
@@ -100,6 +100,8 @@ namespace AIStudio.ViewModels
             new KeyValuePair<string, string>("1", "Субъективное предположение")
         };
 
+    public List<KeyValuePair<int, string>> ActionFilterOptions { get; } = new List<KeyValuePair<int, string>>();
+
     public AutomatizmChainsViewModel(
         AutomatizmSystem automatizmSystem,
         AutomatizmChainsSystem chainsSystem,
@@ -118,7 +120,21 @@ namespace AIStudio.ViewModels
 
       ClearFiltersCommand = new RelayCommand(ClearFilters);
 
+      InitializeActionFilterOptions();
+      FilterImageKind = string.Empty;
       LoadChainsData();
+    }
+
+    private void InitializeActionFilterOptions()
+    {
+      ActionFilterOptions.Clear();
+      ActionFilterOptions.Add(new KeyValuePair<int, string>(0, "Все действия"));
+
+      var allActions = _adaptiveActionsSystem.GetAllAdaptiveActions();
+      foreach (var action in allActions.OrderBy(a => a.Name))
+      {
+        ActionFilterOptions.Add(new KeyValuePair<int, string>(action.Id, action.Name));
+      }
     }
 
     private void LoadChainsData()
@@ -202,6 +218,7 @@ namespace AIStudio.ViewModels
           return null;
 
         string actionsText = GetActionsText(displayImage?.ActIdList);
+        var actionIds = displayImage?.ActIdList?.ToList() ?? new List<int>();
         string phrasesText = GetPhrasesText(displayImage?.PhraseIdList);
         string toneMoodText = GetToneMoodText(displayImage?.ToneId ?? 0, displayImage?.MoodId ?? 0);
         string imageKindText = GetImageKindText(displayImage?.Kind ?? 0);
@@ -216,6 +233,7 @@ namespace AIStudio.ViewModels
           LinkActionsImageId = linkActionsImageId,
           ImageKindText = imageKindText,
           ImageKindTooltip = imageKindTooltip,
+          ActionIds = actionIds,
           ActionsText = actionsText,
           PhrasesText = phrasesText,
           ToneMoodText = toneMoodText,
@@ -353,12 +371,10 @@ namespace AIStudio.ViewModels
           return false;
       }
 
-      // Фильтр по действиям (поиск подстроки)
-      if (!string.IsNullOrEmpty(FilterActions) &&
-          !string.IsNullOrWhiteSpace(FilterActions))
+      // Фильтр по действиям
+      if (SelectedActionFilterId > 0)
       {
-        if (string.IsNullOrEmpty(chainItem.ActionsText) ||
-            chainItem.ActionsText.IndexOf(FilterActions, StringComparison.OrdinalIgnoreCase) < 0)
+        if (chainItem.ActionIds == null || !chainItem.ActionIds.Contains(SelectedActionFilterId))
           return false;
       }
 
@@ -399,7 +415,7 @@ namespace AIStudio.ViewModels
     {
       FilterAutomatizmId = string.Empty;
       FilterChainId = string.Empty;
-      FilterActions = string.Empty;
+      SelectedActionFilterId = 0;
       FilterPhrases = string.Empty;
       FilterImageKind = string.Empty;
     }
@@ -413,6 +429,7 @@ namespace AIStudio.ViewModels
       public int LinkActionsImageId { get; set; }
       public string ImageKindText { get; set; }
       public string ImageKindTooltip { get; set; }
+      public List<int> ActionIds { get; set; }
       public string ActionsText { get; set; }
       public string PhrasesText { get; set; }
       public string ToneMoodText { get; set; }

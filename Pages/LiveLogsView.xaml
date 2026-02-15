@@ -170,7 +170,7 @@
         </Setter.Value>
       </Setter>
     </Style>
-    
+
     <!-- Стиль для ячейки Триггер -->
     <Style x:Key="TriggerCellStyle" TargetType="DataGridCell" BasedOn="{StaticResource MatrixCellStyle}">
       <Setter Property="ToolTip">
@@ -280,28 +280,29 @@
 
     <!-- Заголовок -->
     <Border Grid.Row="0" Background="#101010" Padding="10" BorderBrush="#00FF00" BorderThickness="0,0,0,1">
-      <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+      <StackPanel Orientation="Horizontal" HorizontalAlignment="Left">
+        <TextBlock Text="Системные логи"
+                         Foreground="#00FF00"
+                         FontFamily="Consolas"
+                         FontSize="12"
+                         FontWeight="Bold"
+                         VerticalAlignment="Center"/>
+        <TextBlock Text="   |   " 
+                         Foreground="#00FF00"
+                         FontFamily="Consolas"
+                         FontSize="12"
+                         VerticalAlignment="Center"/>
         <TextBlock Text="{Binding AutoRefreshStatus}" 
                          Foreground="{Binding AutoRefreshColor}"
                          FontFamily="Consolas"
-                         FontSize="11"
+                         FontSize="12"
                          VerticalAlignment="Center"/>
       </StackPanel>
     </Border>
 
     <!-- Таблица логов -->
     <Border Grid.Row="1" Margin="5" BorderBrush="#00FF00" BorderThickness="1" Background="#080808">
-      <TabControl Background="#080808" BorderBrush="#00FF00" BorderThickness="1">
-        
-        <!-- Вкладка 1: Системные логи -->
-        <TabItem Header="Системные логи" Background="#101010" Foreground="#00FF00">
-          <TabItem.HeaderTemplate>
-            <DataTemplate>
-              <TextBlock Text="{Binding}" Foreground="#00FF00" FontFamily="Consolas" Padding="10,5"/>
-            </DataTemplate>
-          </TabItem.HeaderTemplate>
-          
-          <DataGrid ItemsSource="{Binding LogEntries}"
+      <DataGrid ItemsSource="{Binding LogEntries}"
                         x:Name="LogDataGrid"
                         Style="{StaticResource MatrixDataGridStyle}"
                         AutoGenerateColumns="False"
@@ -395,7 +396,7 @@
             <DataGridTextColumn.Header>
               <DataGridColumnHeader Style="{StaticResource MatrixHeaderStyle}" 
                             Content="Автоматизм"
-                            ToolTip="ID запущенного автоматизма"/>
+                            ToolTip="ID автоматизма"/>
             </DataGridTextColumn.Header>
           </DataGridTextColumn>
 
@@ -427,10 +428,7 @@
             </DataGridTextColumn.Header>
           </DataGridTextColumn>
         </DataGrid.Columns>
-          </DataGrid>
-        </TabItem>
-
-      </TabControl>
+      </DataGrid>
     </Border>
 
     <!-- Панель управления -->

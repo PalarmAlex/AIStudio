@@ -1,4 +1,4 @@
-﻿<Window x:Class="AIStudio.MainWindow"
+<Window x:Class="AIStudio.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
@@ -133,6 +133,11 @@
               Style="{StaticResource MenuButtonStyle}"
               Command="{Binding VerticalMenuItemClickedCommand}"
               CommandParameter="4"/>
+
+            <Button Content="Цепочки безусл. рефлексов" Margin="20,2,5,2" 
+              Style="{StaticResource MenuButtonStyle}"
+              Command="{Binding VerticalMenuItemClickedCommand}"
+              CommandParameter="6"/>
 
             <Button Content="Условные рефлексы" Margin="20,2,5,2" 
               Style="{StaticResource MenuButtonStyle}"

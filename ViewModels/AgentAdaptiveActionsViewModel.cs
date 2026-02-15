@@ -1,4 +1,4 @@
-﻿using ISIDA.Actions;
+using ISIDA.Actions;
 using ISIDA.Common;
 using ISIDA.Sensors;
 using System;
@@ -104,7 +104,7 @@ namespace AIStudio.ViewModels
       try
       {
         var reflexPhrases = new List<string>();
-        foreach (var action in CurrentActiveActions)
+        foreach (var action in CurrentActiveActions.Where(a => a.ActivationSource == ActionActivationSource.AutomatizmVerbalResponse))
         {
           int phraseId = _adaptiveActionsSystem.GetPhraseIdForAction(action.Id);
           string phraseText = GetPhraseText(phraseId);

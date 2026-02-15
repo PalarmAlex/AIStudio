@@ -1,4 +1,4 @@
-﻿<UserControl x:Class="AIStudio.Pages.AgentAdaptiveActionsView"
+<UserControl x:Class="AIStudio.Pages.AgentAdaptiveActionsView"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
@@ -61,39 +61,6 @@
             </MultiBinding>
           </TextBlock.Foreground>
 
-          <TextBlock.RenderTransform>
-            <ScaleTransform ScaleX="1" ScaleY="1"/>
-          </TextBlock.RenderTransform>
-
-          <TextBlock.Style>
-            <Style TargetType="TextBlock">
-              <Style.Triggers>
-                <DataTrigger Value="True">
-                  <DataTrigger.Binding>
-                    <MultiBinding Converter="{StaticResource IsActiveActionMultiConverter}">
-                      <Binding Path="DataContext.CurrentActiveActions" RelativeSource="{RelativeSource AncestorType=UserControl}"/>
-                      <Binding Path="."/>
-                    </MultiBinding>
-                  </DataTrigger.Binding>
-                  <DataTrigger.EnterActions>
-                    <BeginStoryboard x:Name="PulseStoryboard">
-                      <Storyboard RepeatBehavior="Forever" AutoReverse="True">
-                        <DoubleAnimation Storyboard.TargetProperty="(TextBlock.RenderTransform).(ScaleTransform.ScaleX)"
-                                                           From="1" To="1.05" 
-                                                           Duration="0:0:1"/>
-                        <DoubleAnimation Storyboard.TargetProperty="(TextBlock.RenderTransform).(ScaleTransform.ScaleY)"
-                                                           From="1" To="1.05" 
-                                                           Duration="0:0:1"/>
-                      </Storyboard>
-                    </BeginStoryboard>
-                  </DataTrigger.EnterActions>
-                  <DataTrigger.ExitActions>
-                    <StopStoryboard BeginStoryboardName="PulseStoryboard"/>
-                  </DataTrigger.ExitActions>
-                </DataTrigger>
-              </Style.Triggers>
-            </Style>
-          </TextBlock.Style>
         </TextBlock>
       </Grid>
     </DataTemplate>
@@ -206,10 +173,35 @@
                 BorderBrush="#FFE0E0E0" 
                 Padding="5"
                 Height="50">
-          <TextBlock Text="{Binding ReflexPhrasesText}"
-                     Style="{StaticResource ReflexWordsTextStyle}"
+          <Grid>
+            <TextBlock Text="Нет ответных фраз">
+              <TextBlock.Style>
+                <Style TargetType="TextBlock" BasedOn="{StaticResource NoAdaptationTextStyle}">
+                  <Setter Property="Visibility" Value="Collapsed"/>
+                  <Style.Triggers>
+                    <DataTrigger Binding="{Binding ReflexPhrasesText}" Value="">
+                      <Setter Property="Visibility" Value="Visible"/>
+                    </DataTrigger>
+                  </Style.Triggers>
+                </Style>
+              </TextBlock.Style>
+            </TextBlock>
+
+            <TextBlock Text="{Binding ReflexPhrasesText}"
                      TextWrapping="Wrap"
-                     VerticalAlignment="Center"/>
+                     VerticalAlignment="Center">
+              <TextBlock.Style>
+                <Style TargetType="TextBlock" BasedOn="{StaticResource ReflexWordsTextStyle}">
+                  <Setter Property="Visibility" Value="Visible"/>
+                  <Style.Triggers>
+                    <DataTrigger Binding="{Binding ReflexPhrasesText}" Value="">
+                      <Setter Property="Visibility" Value="Collapsed"/>
+                    </DataTrigger>
+                  </Style.Triggers>
+                </Style>
+              </TextBlock.Style>
+            </TextBlock>
+          </Grid>
         </Border>
 
       </Grid>

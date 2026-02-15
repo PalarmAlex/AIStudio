@@ -1,4 +1,4 @@
-﻿using AIStudio.Common;
+using AIStudio.Common;
 using AIStudio.Pages;
 using AIStudio.Pages.Automatizm;
 using AIStudio.Pages.Reflexes;
@@ -301,6 +301,9 @@ namespace AIStudio
             break;
           case "4": // Безусловные рефлексы
             ShowGeneticReflexes();
+            break;
+          case "6": // Цепочки безусловных рефлексов
+            OpenReflexChains();
             break;
           case "5": // Условные рефлексы
             ShowConditionedReflexes();
@@ -842,6 +845,18 @@ namespace AIStudio
         _sensorySystem);
       automatizmChainsView.DataContext = viewModel;
       CurrentContent = automatizmChainsView;
+    }
+
+    // Открыть страницу цепочек безусловных рефлексов
+    private void OpenReflexChains()
+    {
+      var reflexChainsView = new ReflexChainsView();
+      var viewModel = new ReflexChainsViewModel(
+        _reflexChains,
+        _geneticReflexesSystem,
+        _actionsSystem);
+      reflexChainsView.DataContext = viewModel;
+      CurrentContent = reflexChainsView;
     }
 
     // Открыть страницу сенсоров
