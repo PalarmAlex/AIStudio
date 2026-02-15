@@ -1,4 +1,5 @@
 ﻿using ISIDA.Actions;
+using ISIDA.Common;
 using ISIDA.Reflexes;
 using ISIDA.Sensors;
 using System;
@@ -118,7 +119,7 @@ namespace AIStudio.Converters
       }
       catch (Exception ex)
       {
-        System.Diagnostics.Debug.WriteLine($"Ошибка в PerceptionImageIdToTooltipConverter: {ex.Message}");
+        Logger.Error(ex.Message);
         return $"Ошибка загрузки деталей образа: {ex.Message}";
       }
     }

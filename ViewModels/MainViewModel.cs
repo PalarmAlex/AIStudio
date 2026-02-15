@@ -172,14 +172,14 @@ namespace AIStudio
       }
       catch (IsidaInitializationException ex)
       {
-        Debug.WriteLine($"Ошибка инициализации ISIDA (шаг {ex.InitializationStep}): {ex.Message}");
+        Logger.Error(ex.Message);
         MessageBox.Show($"StepInzialized: {_stepInzialized}, Ошибка инициализации ISIDA на шаге {ex.InitializationStep}: {ex.Message}",
             "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
         return;
       }
       catch (Exception ex)
       {
-        Debug.WriteLine($"Общая ошибка инициализации: {ex.Message}");
+        Logger.Error(ex.Message);
         MessageBox.Show($"StepInzialized: {_stepInzialized}, Общая ошибка инициализации: {ex.Message}",
             "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
         return;
@@ -222,27 +222,27 @@ namespace AIStudio
     {
       try
       {
-        Debug.WriteLine("[MainViewModel] Начало завершения работы...");
+        Logger.Info("Начало завершения работы...");
 
         // 1. Останавливаем пульсацию если активна
         if (IsPulsating)
         {
           IsPulsating = false;
-          Debug.WriteLine("[MainViewModel] Пульсация остановлена");
+          Logger.Info("Пульсация остановлена");
         }
 
         // 2. Вызываем Dispose у всех систем через IsidaContext
         if (_isidaContext != null)
         {
           _isidaContext.Dispose();
-          Debug.WriteLine("[MainViewModel] IsidaContext освобожден");
+          Logger.Info("IsidaContext освобожден");
         }
 
-        Debug.WriteLine("[MainViewModel] Завершение работы успешно завершено");
+        Logger.Info("Завершение работы успешно завершено");
       }
       catch (Exception ex)
       {
-        Debug.WriteLine($"[MainViewModel] Ошибка при завершении: {ex.Message}");
+        Logger.Error(ex.Message);
       }
     }
 
@@ -258,14 +258,14 @@ namespace AIStudio
           // Если агент только что умер и пульсация активна
           if (!wasDead && IsAgentDead && IsPulsating)
           {
-            Debug.WriteLine("UpdateAgentState: Агент умер, останавливаем пульсацию");
+            Logger.Info("Агент умер, останавливаем пульсацию");
             StopPulsationDueToDeath();
           }
         }
       }
       catch (Exception ex)
       {
-        Debug.WriteLine($"Ошибка получения состояния агента: {ex.Message}");
+        Logger.Error(ex.Message);
       }
     }
 
@@ -1117,7 +1117,7 @@ namespace AIStudio
           }
           catch (Exception ex)
           {
-            Debug.WriteLine($"PulseBrightness ERROR: {ex.Message}");
+            Logger.Error(ex.Message);
           }
         });
       };
@@ -1141,7 +1141,7 @@ namespace AIStudio
           }
           catch (Exception ex)
           {
-            Debug.WriteLine($"OnPulseCompleted ERROR: {ex.Message}");
+            Logger.Error(ex.Message);
           }
         });
       };
@@ -1202,7 +1202,7 @@ namespace AIStudio
       }
       catch (Exception ex)
       {
-        Debug.WriteLine($"UpdateWaitingPeriodDisplay ERROR: {ex.Message}");
+        Logger.Error(ex.Message);
         ResetWaitingPeriodDisplay();
       }
     }
@@ -1240,7 +1240,7 @@ namespace AIStudio
       }
       catch (Exception ex)
       {
-        Debug.WriteLine($"CancelWaitingPeriod ERROR: {ex.Message}");
+        Logger.Error(ex.Message);
         MessageBox.Show($"Ошибка при отмене периода ожидания: {ex.Message}",
             "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
       }
@@ -1283,11 +1283,11 @@ namespace AIStudio
                 MessageBoxButton.OK,
                 MessageBoxImage.Error);
           }
-          Debug.WriteLine($"Пульсация остановлена: {reason}");
+          Logger.Warning($"Пульсация остановлена: {reason}");
         }
         catch (Exception ex)
         {
-          Debug.WriteLine($"Критическая ошибка при остановке пульсации: {ex.Message}");
+          Logger.Error(ex.Message);
 
           // Принудительно устанавливаем состояние
           IsPulsating = false;

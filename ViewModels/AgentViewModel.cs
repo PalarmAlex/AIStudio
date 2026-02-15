@@ -567,7 +567,7 @@ namespace AIStudio.ViewModels
       }
       catch (Exception ex)
       {
-        Debug.WriteLine($"Ошибка при загрузке данных агента: {ex.Message}");
+        Logger.Error(ex.Message);
       }
     }
 

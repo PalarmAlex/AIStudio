@@ -193,7 +193,7 @@ namespace AIStudio.ViewModels
             }
             catch (Exception ex)
             {
-              Debug.WriteLine($"Ошибка получения образа стилей: {ex.Message}");
+              Logger.Error(ex.Message);
               styleImageId = GetHashForList(reflex.Level2);
             }
           }
@@ -216,7 +216,7 @@ namespace AIStudio.ViewModels
             }
             catch (Exception ex)
             {
-              Debug.WriteLine($"Ошибка получения образа воздействий: {ex.Message}");
+              Logger.Error(ex.Message);
               actionImageId = GetHashForList(reflex.Level3);
             }
           }
@@ -238,7 +238,7 @@ namespace AIStudio.ViewModels
             bool attached = _reflexTreeSystem.AttachChainToNode(nodeId, reflex.ReflexChainID);
             if (attached)
             {
-              Debug.WriteLine($"Цепочка {reflex.ReflexChainID} привязана к узлу {nodeId} для рефлекса {reflex.Id}");
+              Logger.Info($"Цепочка {reflex.ReflexChainID} привязана к узлу {nodeId} для рефлекса {reflex.Id}");
             }
             else
             {
@@ -252,7 +252,7 @@ namespace AIStudio.ViewModels
           {
             bool detached = _reflexTreeSystem.DetachChainFromNode(nodeId);
             if (detached)
-              Debug.WriteLine($"Цепочка отвязана от узла {nodeId} для рефлекса {reflex.Id}");
+              Logger.Info($"Цепочка отвязана от узла {nodeId} для рефлекса {reflex.Id}");
           }
 
           var (saveSuccess, error) = _reflexTreeSystem.SaveReflexTree();
@@ -329,7 +329,7 @@ namespace AIStudio.ViewModels
           catch (Exception ex)
           {
             errorCount++;
-            Debug.WriteLine($"Ошибка обновления привязки для рефлекса {reflex.Id}: {ex.Message}");
+            Logger.Error(ex.Message);
           }
         }
 
@@ -342,7 +342,7 @@ namespace AIStudio.ViewModels
         }
         else
         {
-          Debug.WriteLine($"Успешно обновлено {updatedCount} привязок цепочек");
+          Logger.Info($"Успешно обновлено {updatedCount} привязок цепочек");
         }
       }
       catch (Exception ex)

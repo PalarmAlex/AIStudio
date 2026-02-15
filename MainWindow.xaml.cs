@@ -66,7 +66,7 @@ namespace AIStudio
       }
       catch (Exception ex)
       {
-        Debug.WriteLine($"[MainWindow] Ошибка при завершении: {ex.Message}");
+        Logger.Error(ex.Message);
       }
     }
   }

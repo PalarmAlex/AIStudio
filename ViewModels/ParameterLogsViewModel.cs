@@ -408,8 +408,6 @@ namespace AIStudio.ViewModels
       {
         int stateCode = GetStateCode(paramId);
         
-        Debug.WriteLine($"paramId:{paramId}, stateCode:{stateCode}");
-
         if (stateCode == -1)
           return new SolidColorBrush(Color.FromArgb(64, 255, 0, 0));   // Красный для плохо
         else if (stateCode == 1)

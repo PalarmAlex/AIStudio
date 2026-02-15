@@ -1,4 +1,5 @@
 ﻿using ISIDA.Actions;
+using ISIDA.Common;
 using ISIDA.Sensors;
 using System;
 using System.Collections.Generic;
@@ -135,7 +136,7 @@ namespace AIStudio.ViewModels
       }
       catch (Exception ex)
       {
-        System.Diagnostics.Debug.WriteLine($"Ошибка получения фразы {phraseId}: {ex.Message}");
+        Logger.Error(ex.Message);
       }
 
       return string.Empty;

@@ -16,6 +16,7 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Threading;
 using ISIDA.Psychic.Automatism;
+using ISIDA.Common;
 
 namespace AIStudio.ViewModels
 {
@@ -366,7 +367,7 @@ namespace AIStudio.ViewModels
       }
       catch (Exception ex)
       {
-        Debug.WriteLine($"Ошибка инициализации списков тона и настроения: {ex.Message}");
+        Logger.Error(ex.Message);
         ToneList = new Dictionary<int, string> { { 0, "Нормальный" } };
         MoodList = new Dictionary<int, string> { { 0, "Нормальное" } };
       }
@@ -457,7 +458,7 @@ namespace AIStudio.ViewModels
       }
       catch (Exception ex)
       {
-        Debug.WriteLine($"Ошибка при проверке статуса цепочки: {ex.Message}");
+        Logger.Error(ex.Message);
       }
     }
 
@@ -488,7 +489,7 @@ namespace AIStudio.ViewModels
       }
       catch (Exception ex)
       {
-        Debug.WriteLine($"Ошибка при обновлении результата звена: {ex.Message}");
+        Logger.Error(ex.Message);
       }
     }
 
@@ -504,7 +505,7 @@ namespace AIStudio.ViewModels
       }
       catch (Exception ex)
       {
-        Debug.WriteLine($"Ошибка получения состояния агента: {ex.Message}");
+        Logger.Error(ex.Message);
       }
     }
 
@@ -548,7 +549,7 @@ namespace AIStudio.ViewModels
       }
       catch (Exception ex)
       {
-        Debug.WriteLine($"Ошибка при обновлении отображения распознавания: {ex.Message}");
+        Logger.Error(ex.Message);
         RecognitionDisplayText = MessageText;
       }
     }
@@ -615,7 +616,7 @@ namespace AIStudio.ViewModels
       }
       catch (Exception ex)
       {
-        Debug.WriteLine($"Ошибка загрузки воздействий: {ex.Message}");
+        Logger.Error(ex.Message);
       }
     }
 
@@ -708,7 +709,7 @@ namespace AIStudio.ViewModels
             "Ошибка",
             MessageBoxButton.OK,
             MessageBoxImage.Error);
-        Debug.WriteLine($"Ошибка ApplyInfluenceActions: {ex.Message}");
+        Logger.Error(ex.Message);
       }
     }
 

@@ -1,11 +1,12 @@
-﻿using System;
+﻿using AIStudio.ViewModels;
+using ISIDA.Common;
+using System;
 using System.Diagnostics;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
 using System.Windows.Media;
-using AIStudio.ViewModels;
 
 namespace AIStudio.Pages
 {
@@ -36,7 +37,7 @@ namespace AIStudio.Pages
           item.DataContext is VerbalTreesViewModel.WordNode node &&
           !node.IsLetter)
       {
-        Debug.WriteLine($"Selected word: {node.Text} (ID: {node.Id})");
+        Logger.Info($"Selected word: {node.Text} (ID: {node.Id})");
       }
     }
 
@@ -45,7 +46,7 @@ namespace AIStudio.Pages
       if (e.OriginalSource is TreeViewItem item &&
           item.DataContext is VerbalTreesViewModel.PhraseNode node)
       {
-        Debug.WriteLine($"Selected phrase: {node.Text} (ID: {node.Id})");
+        Logger.Info($"Selected phrase: {node.Text} (ID: {node.Id})");
       }
     }
   }

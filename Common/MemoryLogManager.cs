@@ -171,8 +171,6 @@ namespace AIStudio.Common
     {
       if (_disposed) return;
 
-      System.Diagnostics.Debug.WriteLine($"[MEMORY LOG] pulse={pulse}, reflex={reflexChainInfo}, automatizm={automatizmChainInfo}");
-
       var entry = new LogEntry
       {
         ClassName = className ?? string.Empty,

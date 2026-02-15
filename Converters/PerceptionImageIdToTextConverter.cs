@@ -1,5 +1,6 @@
-﻿using ISIDA.Reflexes;
-using ISIDA.Actions;
+﻿using ISIDA.Actions;
+using ISIDA.Common;
+using ISIDA.Reflexes;
 using ISIDA.Sensors;
 using System;
 using System.Globalization;
@@ -47,7 +48,7 @@ namespace AIStudio.Converters
       }
       catch (Exception ex)
       {
-        System.Diagnostics.Debug.WriteLine($"Ошибка в PerceptionImageIdToTextConverter: {ex.Message}");
+        Logger.Error(ex.Message);
         return "Ошибка загрузки";
       }
     }

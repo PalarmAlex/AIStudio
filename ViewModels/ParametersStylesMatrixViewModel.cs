@@ -1,5 +1,6 @@
 ﻿using AIStudio.Common;
 using AIStudio.Pages;
+using ISIDA.Common;
 using ISIDA.Gomeostas;
 using System;
 using System.Collections.Generic;
@@ -410,7 +411,7 @@ namespace AIStudio.ViewModels
       }
       catch (Exception ex)
       {
-        Debug.WriteLine($"Ошибка создания матрицы: {ex.Message}");
+        Logger.Error(ex.Message);
       }
     }
 

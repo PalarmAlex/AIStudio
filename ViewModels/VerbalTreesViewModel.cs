@@ -452,7 +452,7 @@ namespace AIStudio.ViewModels
       }
       catch (Exception ex)
       {
-        Debug.WriteLine($"Ошибка при сохранении данных: {ex.Message}");
+        Logger.Error(ex.Message);
         MessageBox.Show("Не удалось сохранить изменения на диск", "Ошибка",
             MessageBoxButton.OK, MessageBoxImage.Warning);
       }
@@ -489,7 +489,7 @@ namespace AIStudio.ViewModels
       }
       catch (Exception ex)
       {
-        Debug.WriteLine($"Ошибка при очистке деревьев: {ex.Message}");
+        Logger.Info(ex.Message);
         MessageBox.Show($"Не удалось очистить деревья: {ex.Message}",
             "Ошибка",
             MessageBoxButton.OK,

@@ -62,7 +62,7 @@ public static class AppConfig
     }
     catch (Exception ex)
     {
-      Debug.WriteLine($"Ошибка инициализации конфига: {ex.Message}");
+      Logger.Error(ex.Message);
     }
   }
 
@@ -123,11 +123,11 @@ public static class AppConfig
       SetSetting("SettingsPath", Path.Combine(appDataPath, "Settings"));
       SetSetting("LogsFolderPath", Path.Combine(appDataPath, "Logs"));
 
-      Debug.WriteLine($"Конфигурационные пути обновлены для установки в: {appDataPath}");
+      Logger.Info($"Конфигурационные пути обновлены для установки в: {appDataPath}");
     }
     catch (Exception ex)
     {
-      Debug.WriteLine($"Ошибка обновления путей конфигурации: {ex.Message}");
+      Logger.Error(ex.Message);
     }
   }
 
@@ -146,7 +146,7 @@ public static class AppConfig
     }
     catch (Exception ex)
     {
-      Debug.WriteLine($"Ошибка чтения настройки {key}: {ex.Message}");
+      Logger.Error(ex.Message);
       return null;
     }
   }
@@ -172,7 +172,7 @@ public static class AppConfig
     }
     catch (Exception ex)
     {
-      Debug.WriteLine($"Ошибка сохранения настройки {key}: {ex.Message}");
+      Logger.Error(ex.Message);
     }
   }
 
@@ -200,7 +200,7 @@ public static class AppConfig
     }
     catch (Exception ex)
     {
-      Debug.WriteLine($"Ошибка сохранения настройки {key}: {ex.Message}");
+      Logger.Error(ex.Message);
     }
   }
 
@@ -231,7 +231,7 @@ public static class AppConfig
     }
     catch (Exception ex)
     {
-      Debug.WriteLine($"Ошибка сохранения настройки {key}: {ex.Message}");
+      Logger.Error(ex.Message);
     }
   }
 
@@ -262,7 +262,7 @@ public static class AppConfig
     }
     catch (Exception ex)
     {
-      Debug.WriteLine($"Ошибка сохранения настройки {key}: {ex.Message}");
+      Logger.Error(ex.Message);
     }
   }
 
