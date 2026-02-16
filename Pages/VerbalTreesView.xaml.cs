@@ -1,4 +1,4 @@
-﻿using AIStudio.ViewModels;
+using AIStudio.ViewModels;
 using ISIDA.Common;
 using System;
 using System.Diagnostics;
@@ -58,19 +58,6 @@ namespace AIStudio.Pages
     public object Convert(object value, Type targetType, object parameter, System.Globalization.CultureInfo culture)
     {
       return (value is bool b && b) ? "[-]" : "[+]";
-    }
-
-    public object ConvertBack(object value, Type targetType, object parameter, System.Globalization.CultureInfo culture)
-    {
-      throw new NotImplementedException();
-    }
-  }
-
-  public class BoolToVisibilityConverter : IValueConverter
-  {
-    public object Convert(object value, Type targetType, object parameter, System.Globalization.CultureInfo culture)
-    {
-      return (value is bool b && b) ? Visibility.Visible : Visibility.Collapsed;
     }
 
     public object ConvertBack(object value, Type targetType, object parameter, System.Globalization.CultureInfo culture)

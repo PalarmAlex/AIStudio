@@ -20,9 +20,7 @@
       <!--конвертеры-->
       <conv:BrightnessToBlurConverter x:Key="BrightnessToBlurConverter"/>
       <conv:BoolToAngleConverter x:Key="BoolToAngleConverter"/>
-      <conv:BoolToStyleConverter x:Key="BoolToStyleConverter"/>
       <conv:BoolToVisibilityConverter x:Key="BoolToVisibilityConverter"/>
-      <conv:StringToVisibilityConverter x:Key="StringToVisibilityConverter"/>
 
       <BitmapImage x:Key="ActivateIcon" UriSource="/Resources/activate.png"/>
       <BitmapImage x:Key="DeactivateIcon" UriSource="/Resources/deactivate.png"/>

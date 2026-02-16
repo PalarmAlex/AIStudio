@@ -165,7 +165,7 @@
             </DataGridTextColumn.HeaderStyle>
           </DataGridTextColumn>
 
-          <DataGridTemplateColumn Header="Действие" Width="220">
+          <DataGridTemplateColumn Header="Действие" Width="150">
             <DataGridTemplateColumn.CellTemplate>
               <DataTemplate>
                 <TextBlock Text="{Binding ActionText}"

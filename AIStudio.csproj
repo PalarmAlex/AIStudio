@@ -81,20 +81,15 @@
     <Compile Include="Converters\ActionsForConditionReflexConverter.cs" />
     <Compile Include="Converters\ActionsForGeneticReflexConverter.cs" />
     <Compile Include="Converters\ActionSizeConverter.cs" />
-    <Compile Include="Converters\ActiveBrushConverter.cs" />
-    <Compile Include="Converters\AutomatizmActionsToTextConverter.cs" />
     <Compile Include="Converters\AutomatizmActionsToTooltipConverter.cs" />
     <Compile Include="Converters\AutomatizmTooltipMultiConverter.cs" />
     <Compile Include="Converters\OrientationReflexTooltipMultiConverter.cs" />
     <Compile Include="Converters\TreeNodeConditionsToTooltipConverter.cs" />
     <Compile Include="Converters\BeliefToTextWithTooltipConverter.cs" />
     <Compile Include="Converters\BeliefToTooltipConverter.cs" />
-    <Compile Include="Converters\BooleanToVisibilityConverter.cs" />
     <Compile Include="Converters\CollectionCountToVisibilityConverter.cs" />
-    <Compile Include="Converters\DictionaryToStringActionConverter.cs" />
     <Compile Include="Converters\DictionaryToStringConverter.cs" />
     <Compile Include="Converters\IdListToNamesConverter.cs" />
-    <Compile Include="Converters\InfluenceActionsToTooltipConverter.cs" />
     <Compile Include="Converters\InfluenceValidationRule.cs" />
     <Compile Include="Converters\IntDictionaryToStringConverter.cs" />
     <Compile Include="Converters\IntToVisibilityConverter.cs" />
@@ -106,7 +101,6 @@
     <Compile Include="Converters\Level1ToTextConverter.cs" />
     <Compile Include="Converters\ListToStringConverter.cs" />
     <Compile Include="Converters\MatrixColumnsConverter.cs" />
-    <Compile Include="Converters\NameToReadOnlyConverter.cs" />
     <Compile Include="Converters\NumericWithCommaValidationRule.cs" />
     <Compile Include="Converters\ParameterGradientConverter.cs" />
     <Compile Include="Converters\ParametersStylesColumnsConverter.cs" />
@@ -116,17 +110,13 @@
     <Compile Include="Converters\ParameterValueToIndicatorPositionConverter.cs" />
     <Compile Include="Converters\PerceptionImageIdToTooltipConverter.cs" />
     <Compile Include="Converters\PerceptionImageIdToTextConverter.cs" />
-    <Compile Include="Converters\StringStartsWithConverter.cs" />
     <Compile Include="Converters\StyleBackgroundConverter.cs" />
     <Compile Include="Converters\StyleTooltipMultiConverter.cs" />
     <Compile Include="Converters\TriggerTooltipMultiConverter.cs" />
     <Compile Include="Converters\UsefulnessToColorConverter.cs" />
     <Compile Include="Converters\WordIdToTextConverter.cs" />
-    <Compile Include="Converters\PositiveInfluenceSumConverter.cs" />
-    <Compile Include="Converters\RowCountToHeightConverter.cs" />
     <Compile Include="Converters\SecondsToTimeFormatConverter.cs" />
     <Compile Include="Converters\SignificanceConverter.cs" />
-    <Compile Include="Converters\StringEmptyToVisibilityConverter.cs" />
     <Compile Include="Converters\StyleActivationsToStringConverter.cs" />
     <Compile Include="Converters\StyleColorConverter.cs" />
     <Compile Include="Converters\StyleValidationRules.cs" />
@@ -230,9 +220,7 @@
     <Compile Include="Common\AIStudioSettings.cs" />
     <Compile Include="AppConfig.cs" />
     <Compile Include="Common\ShowInputDialog.cs" />
-    <Compile Include="Converters\BoolToStyleConverter.cs" />
     <Compile Include="Converters\BoolToVisibilityConverter.cs" />
-    <Compile Include="Converters\StringToVisibilityConverter.cs" />
     <Compile Include="Pages\AgentView.xaml.cs">
       <DependentUpon>AgentView.xaml</DependentUpon>
     </Compile>

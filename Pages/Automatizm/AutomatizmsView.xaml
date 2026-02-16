@@ -1,4 +1,4 @@
-﻿<UserControl x:Class="AIStudio.Pages.Automatizm.AutomatizmsView"
+<UserControl x:Class="AIStudio.Pages.Automatizm.AutomatizmsView"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
@@ -17,7 +17,6 @@
     <converters:BeliefToTooltipConverter x:Key="BeliefToTooltipConverter"/>
     <converters:UsefulnessToColorConverter x:Key="UsefulnessToColorConverter"/>
     <converters:IdListToNamesConverter x:Key="IdListToNamesConverter"/>
-    <converters:InfluenceActionsToTooltipConverter x:Key="InfluenceActionsToTooltipConverter"/>
     <converters:AutomatizmActionsToTooltipConverter x:Key="AutomatizmActionsToTooltipConverter"/>
 
     <Style x:Key="BaseTextBlockStyle" TargetType="TextBlock">

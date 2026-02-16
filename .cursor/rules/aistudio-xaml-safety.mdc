@@ -1,0 +1,16 @@
+---
+description: Small safety checklist for AIStudio XAML edits
+globs: "**/*.xaml"
+alwaysApply: false
+---
+
+# AIStudio XAML Safety
+
+- Never set `Style` and `TextBlock.Style` (or `Control.Style`) at the same time on one element.
+- Before using `StaticResource`, ensure the key exists in current scope or merged dictionaries.
+- Keep triggers minimal and deterministic; avoid overlapping triggers that fight over `Visibility`/`Opacity`.
+- Prefer simple visibility logic for empty states; every output block should have a clear placeholder text.
+- Do not change style-card animations unless explicitly requested; text/content blocks should avoid unnecessary pulse effects.
+- For optional panels, bind `Visibility` to an explicit VM flag (`BoolToVisibilityConverter`) instead of visual hacks.
+- Keep bindings one-way unless two-way is required.
+- After XAML edits, verify compile errors from the changed view first; cascading resource errors often come from one malformed node.

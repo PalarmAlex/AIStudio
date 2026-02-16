@@ -1,0 +1,23 @@
+---
+description: AIStudio client coding standards and ISIDA integration rules
+globs: "**/*.{cs,xaml}"
+alwaysApply: false
+---
+
+# AIStudio Client Standards
+
+Apply these rules for AIStudio (client/UI layer).
+
+- Follow MVVM boundaries: UI logic in ViewModels, rendering/layout in XAML, domain logic stays in `isida`.
+- Do not duplicate core logic from `isida` in AIStudio; consume services via `IsidaContext`.
+- For new integrations, prefer using existing context services and explicit dependency passing.
+- Avoid direct singleton use from UI code when context-provided reference is available.
+- If a ViewModel subscribes to timers/events, it must unsubscribe safely (`IDisposable` where needed).
+- Use `INotifyPropertyChanged` correctly: raise only required properties, avoid noisy updates.
+- Keep UI responsive: long operations should not block UI thread; marshal UI updates through Dispatcher.
+- In XAML, avoid brittle animation/trigger coupling that can break resource resolution.
+- Add placeholder/empty states for user-facing lists/blocks where applicable.
+- Keep Russian UX text consistent and explicit; avoid technical/internal wording in UI labels.
+- Respect existing design behavior: do not change style animations unless requested.
+- Do not add ISIDA engine initialization logic in AIStudio; AIStudio only configures/uses engine APIs.
+- For any new feature touching both projects, verify `isida` build and AIStudio compile path consistency.
