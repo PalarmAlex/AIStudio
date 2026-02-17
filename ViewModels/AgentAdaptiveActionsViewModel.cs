@@ -79,6 +79,8 @@ namespace AIStudio.ViewModels
       ConditionedReflexActions.Clear();
       AutomatizmActions.Clear();
 
+      int defaultActionId = _adaptiveActionsSystem.DefaultAdaptiveActionId;
+
       foreach (var action in CurrentActiveActions)
       {
         switch (action.ActivationSource)
@@ -91,6 +93,11 @@ namespace AIStudio.ViewModels
             break;
           case ActionActivationSource.Automatizm:
             AutomatizmActions.Add(action);
+            break;
+          case ActionActivationSource.AutomatizmVerbalResponse:
+            // Смешанный образ (действие + фраза): невербальная часть — в секцию «Автоматизмы»
+            if (action.Id != defaultActionId)
+              AutomatizmActions.Add(action);
             break;
         }
       }
@@ -109,7 +116,7 @@ namespace AIStudio.ViewModels
           int phraseId = _adaptiveActionsSystem.GetPhraseIdForAction(action.Id);
           string phraseText = GetPhraseText(phraseId);
 
-          if (!string.IsNullOrEmpty(phraseText))
+          if (!string.IsNullOrEmpty(phraseText) && !reflexPhrases.Contains(phraseText))
             reflexPhrases.Add(phraseText);
         }
 

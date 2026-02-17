@@ -199,7 +199,7 @@
 
       <!-- Время удержания состояний Плохо/Хорошо -->
       <StackPanel Grid.Column="0" Grid.Row="2" Orientation="Horizontal" Margin="100,0,0,5">
-        <TextBlock Text="Время удержания состояний сек.:" 
+        <TextBlock Text="Время удержания состояний (пульсов):" 
           Width="250"
           VerticalAlignment="Center"/>
 
@@ -212,7 +212,7 @@
 
       <!-- Время удержания рефлексов -->
       <StackPanel Grid.Column="0" Grid.Row="3" Orientation="Horizontal" Margin="100,0,0,5">
-        <TextBlock Text="Время удержания рефлексов сек.:" 
+        <TextBlock Text="Время удержания рефлексов (пульсов):" 
           Width="250"
           VerticalAlignment="Center"/>
 
@@ -307,13 +307,13 @@
 
       <!-- Период ожидания реакции оператора -->
       <StackPanel Grid.Column="0" Grid.Row="0" Orientation="Horizontal" Margin="100,0,0,5">
-        <TextBlock Text="Период ожидания реакции оператора:"
-          Width="250"
+        <TextBlock Text="Период ожидания ответа оператора (пульсов):"
+          Width="260"
           VerticalAlignment="Center"/>
 
         <TextBox Text="{Binding CompareLevel, Mode=TwoWay, UpdateSourceTrigger=LostFocus}"
           Width="100"
-          Margin="25,0"
+          Margin="15,0,25,0"
           Background="#FFFFFFFF"
           IsReadOnly="False"/>
       </StackPanel>

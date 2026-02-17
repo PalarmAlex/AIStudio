@@ -1,4 +1,4 @@
-﻿using AIStudio.Converters;
+using AIStudio.Converters;
 using AIStudio.Views;
 using ISIDA.Actions;
 using ISIDA.Common;
@@ -148,22 +148,25 @@ namespace AIStudio.ViewModels
 
     #region Блокировка страницы в зависимости от стажа
 
+    /// <summary>Удаление автоматизмов разрешено на стадии 2 и 3.</summary>
     public bool IsDeletionEnabled =>
         IsStageTwoOrHigher &&
-        _currentAgentStage == 2 &&
+        (_currentAgentStage == 2 || _currentAgentStage == 3) &&
         !GlobalTimer.IsPulsationRunning;
 
     public string PulseWarningMessage =>
         !IsStageTwoOrHigher
             ? "[КРИТИЧНО] Управление автоматизмами доступно только в стадии 2"
-            : _currentAgentStage != 2
-                ? "[КРИТИЧНО] Автоматизмы можно редактировать только на стадии 2"
+            : _currentAgentStage != 2 && _currentAgentStage != 3
+                ? "[КРИТИЧНО] Автоматизмы можно редактировать и удалять только на стадии 2 и 3"
                 : GlobalTimer.IsPulsationRunning
                     ? "Управление автоматизмами доступно только при выключенной пульсации"
-                    : string.Empty;
+                    : _currentAgentStage == 3
+                        ? "Редактирование только на стадии 2; удаление доступно на стадии 2 и 3."
+                        : string.Empty;
 
     public Brush WarningMessageColor =>
-        !IsStageTwoOrHigher || _currentAgentStage > 2
+        !IsStageTwoOrHigher || _currentAgentStage > 3
             ? Brushes.Red
             : Brushes.Gray;
 
@@ -600,10 +603,10 @@ namespace AIStudio.ViewModels
     {
       if (parameter is AutomatizmDisplayItem automatizm)
       {
-        if (_currentAgentStage != 2)
+        if (_currentAgentStage != 2 && _currentAgentStage != 3)
         {
           MessageBox.Show(
-              $"Удаление автоматизмов доступно только на стадии 2 (текущая стадия: {_currentAgentStage})",
+              $"Удаление автоматизмов доступно только на стадии 2 и 3 (текущая стадия: {_currentAgentStage})",
               "Удаление недоступно",
               MessageBoxButton.OK,
               MessageBoxImage.Warning);
@@ -636,10 +639,10 @@ namespace AIStudio.ViewModels
 
     public void RemoveAllAutomatizms(object parameter)
     {
-      if (_currentAgentStage != 2)
+      if (_currentAgentStage != 2 && _currentAgentStage != 3)
       {
         MessageBox.Show(
-            $"Удаление автоматизмов доступно только на стадии 2 (текущая стадия: {_currentAgentStage})",
+            $"Удаление автоматизмов доступно только на стадии 2 и 3 (текущая стадия: {_currentAgentStage})",
             "Удаление недоступно",
             MessageBoxButton.OK,
             MessageBoxImage.Warning);

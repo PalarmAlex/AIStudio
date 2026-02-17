@@ -1,4 +1,4 @@
-﻿using AIStudio.Common;
+using AIStudio.Common;
 using ISIDA.Common;
 using ISIDA.Gomeostas;
 using System;
@@ -13,6 +13,30 @@ using static ISIDA.Gomeostas.GomeostasSystem;
 
 namespace AIStudio.ViewModels
 {
+  /// <summary>Элемент списка стадий развития агента: номер и описание.</summary>
+  public class EvolutionStageItem
+  {
+    public int StageNumber { get; set; }
+    public string Description { get; set; } = string.Empty;
+
+    private static readonly string[] StageDescriptions =
+    {
+      "Настройка системы гомеостаза",
+      "Формирование условных рефлексов",
+      "Формирование базовых автоматизмов на основе рефлексов",
+      "Формирование базовых автоматизмов на основе отзеркаливаний действий оператора",
+      "Формирование эпизодической памяти, дерева понимания, активация циклов мышления",
+      "Творчество и инсайды"
+    };
+
+    public static string GetDescription(int stageNumber)
+    {
+      if (stageNumber >= 0 && stageNumber < StageDescriptions.Length)
+        return StageDescriptions[stageNumber];
+      return string.Empty;
+    }
+  }
+
   public class AgentViewModel : INotifyPropertyChanged
   {
     private readonly GomeostasSystem _gomeostas;
@@ -27,7 +51,15 @@ namespace AIStudio.ViewModels
     private bool _isAgentDead;
 
     public ObservableCollection<AgentProperty> AgentProperties { get; }
-    public ObservableCollection<int> AvailableStages { get; } = new ObservableCollection<int> { 0, 1, 2, 3, 4, 5 };
+    public ObservableCollection<EvolutionStageItem> AvailableStages { get; } = new ObservableCollection<EvolutionStageItem>
+    {
+      new EvolutionStageItem { StageNumber = 0, Description = EvolutionStageItem.GetDescription(0) },
+      new EvolutionStageItem { StageNumber = 1, Description = EvolutionStageItem.GetDescription(1) },
+      new EvolutionStageItem { StageNumber = 2, Description = EvolutionStageItem.GetDescription(2) },
+      new EvolutionStageItem { StageNumber = 3, Description = EvolutionStageItem.GetDescription(3) },
+      new EvolutionStageItem { StageNumber = 4, Description = EvolutionStageItem.GetDescription(4) },
+      new EvolutionStageItem { StageNumber = 5, Description = EvolutionStageItem.GetDescription(5) }
+    };
 
     private string _agentName;
     public string AgentName
@@ -266,6 +298,7 @@ namespace AIStudio.ViewModels
         {
           _selectedStage = value;
           OnPropertyChanged(nameof(SelectedStage));
+          OnPropertyChanged(nameof(SelectedStageDescription));
           OnPropertyChanged(nameof(IsEditingEnabled));
           OnPropertyChanged(nameof(PulseWarningMessage));
           OnPropertyChanged(nameof(WarningMessageColor));
@@ -277,6 +310,9 @@ namespace AIStudio.ViewModels
         }
       }
     }
+
+    /// <summary>Описание выбранной стадии для всплывающей подсказки.</summary>
+    public string SelectedStageDescription => EvolutionStageItem.GetDescription(SelectedStage);
 
     private AgentAdaptiveActionsViewModel _agentAdaptiveActionsViewModel;
     public AgentAdaptiveActionsViewModel AgentAdaptiveActionsViewModel

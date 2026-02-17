@@ -1,4 +1,4 @@
-﻿<UserControl x:Class="AIStudio.Pages.AgentPultView"
+<UserControl x:Class="AIStudio.Pages.AgentPultView"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
@@ -93,40 +93,55 @@
 
     <!-- Панель тона и настроения -->
     <StackPanel Grid.Column="0" Grid.Row="2" 
-                Orientation="Horizontal" 
+                Orientation="Vertical" 
                 HorizontalAlignment="Left"
+                Margin="0,5,0,20"
+                VerticalAlignment="Top" Grid.RowSpan="2" Width="347">
+
+      <!-- Строка: Тон, Настроение, Авторитарная запись -->
+      <StackPanel Orientation="Horizontal" Height="25">
+        <!-- Выбор тона -->
+        <StackPanel Orientation="Horizontal" Margin="0,0,10,0">
+          <TextBlock Text="Тон:" 
+                     VerticalAlignment="Center" 
+                     Margin="0,0,2,0"
+                     Width="30"/>
+          <ComboBox ItemsSource="{Binding ToneList}"
+                    SelectedValuePath="Key"
+                    DisplayMemberPath="Value"
+                    SelectedValue="{Binding SelectedToneId}"
+                    Width="100"
+                    Height="25"/>
+        </StackPanel>
+
+        <!-- Выбор настроения -->
+        <StackPanel Orientation="Horizontal">
+          <TextBlock Text="Настроение:" 
+                     VerticalAlignment="Center" 
+                     Margin="5,0,5,0"
+                     Width="75"/>
+          <ComboBox ItemsSource="{Binding MoodList}"
+                    SelectedValuePath="Key"
+                    DisplayMemberPath="Value"
+                    SelectedValue="{Binding SelectedMoodId}"
+                    Width="120"
+                    Height="25"/>
+        </StackPanel>
+
+        <CheckBox Content="Авторитарная запись"
+                  IsChecked="{Binding AuthoritativeMode}"
+                  ToolTip="Новые фразы сразу записываются в дерево, минуя песочницу"
+                  Margin="0,5,0,5"
+                  FontWeight="Bold"
+                  VerticalAlignment="Center"/>
+      </StackPanel>
+
+      <!-- Режим наблюдения -->
+      <CheckBox Content="Режим наблюдения"
+                IsChecked="{Binding ObservationMode}"
                 Margin="0,5,0,0"
-                VerticalAlignment="Top" Height="25" Grid.RowSpan="2" Width="347">
-
-      <!-- Выбор тона -->
-      <StackPanel Orientation="Horizontal" Margin="0,0,10,0">
-        <TextBlock Text="Тон:" 
-                   VerticalAlignment="Center" 
-                   Margin="0,0,2,0"
-                   FontWeight="Bold"
-                   Width="30"/>
-        <ComboBox ItemsSource="{Binding ToneList}"
-                  SelectedValuePath="Key"
-                  DisplayMemberPath="Value"
-                  SelectedValue="{Binding SelectedToneId}"
-                  Width="100"
-                  Height="25"/>
-      </StackPanel>
-
-      <!-- Выбор настроения -->
-      <StackPanel Orientation="Horizontal">
-        <TextBlock Text="Настроение:" 
-                   VerticalAlignment="Center" 
-                   Margin="5,0,5,0"
-                   FontWeight="Bold"
-                   Width="75"/>
-        <ComboBox ItemsSource="{Binding MoodList}"
-                  SelectedValuePath="Key"
-                  DisplayMemberPath="Value"
-                  SelectedValue="{Binding SelectedMoodId}"
-                  Width="120"
-                  Height="25"/>
-      </StackPanel>
+                ToolTip="Действия с пульта не оказывают влияния на гомеостаз агента, как будто он их наблюдает на другом"
+                VerticalAlignment="Center"/>
     </StackPanel>
 
     <!-- Панель управления цепочкой -->
@@ -213,7 +228,6 @@
                 IsChecked="{Binding AuthoritativeMode}"
                 ToolTip="Новые фразы сразу записываются в дерево, минуя песочницу"
                 Margin="0,5"
-                FontWeight="Bold"
                 VerticalAlignment="Center"/>
 
       <Button Content="Отправить" 

@@ -1,5 +1,5 @@
 ---
-description: Small safety checklist for AIStudio XAML edits
+description: Small safety checklist for AIStudio XAML edits (incl. ComboBox/ItemTemplate gotcha)
 globs: "**/*.xaml"
 alwaysApply: false
 ---
@@ -14,3 +14,23 @@ alwaysApply: false
 - For optional panels, bind `Visibility` to an explicit VM flag (`BoolToVisibilityConverter`) instead of visual hacks.
 - Keep bindings one-way unless two-way is required.
 - After XAML edits, verify compile errors from the changed view first; cascading resource errors often come from one malformed node.
+
+## ComboBox: не задавать ItemTemplate в XAML
+
+В этом проекте задание свойства `ItemsControl.ItemTemplate` у `ComboBox` в XAML приводит к **XamlParseException** при запуске («Задание свойства "System.Windows.Controls.ItemsControl.ItemTemplate" вызвало исключение»). Причина — взаимодействие стилей (в т.ч. локального BasedOn от FrameworkElement) и/или глобальных стилей ComboBox из `Styles/ComboBoxStiles.xaml` с шаблоном элементов.
+
+**Что делать вместо ItemTemplate:**
+
+- Нужен только номер/ключ в списке и при выборе → `DisplayMemberPath` и `SelectedValuePath` по свойству элемента (например `StageNumber`).
+- Нужна дополнительная информация по пункту (описание) при наведении → **не** второй столбец через `ItemTemplate`, а всплывающая подсказка через **ItemContainerStyle**:
+  - Задать стиль для `ComboBoxItem` с `Setter Property="ToolTip" Value="{Binding Description}"/>`.
+  - Подсказка по выбранному значению в закрытом комбобоксе — через `ToolTip="{Binding SelectedItemDescription}"` на самом `ComboBox` (свойство из ViewModel).
+
+**Пример (стадии развития агента):**
+
+- `ItemsSource` — коллекция объектов с полями `StageNumber` и `Description`.
+- `SelectedValuePath="StageNumber"`, `SelectedValue="{Binding SelectedStage}"`, `DisplayMemberPath="StageNumber"` — выбор и отображение номера.
+- `ItemContainerStyle="{StaticResource StageItemContainerStyle}"`, где стиль: `Setter Property="ToolTip" Value="{Binding Description}"/>` — описание при наведении на пункт в списке.
+- На ComboBox: `ToolTip="{Binding SelectedStageDescription}"` — описание при наведении на выбранную стадию.
+
+Такой подход избегает установки `ItemTemplate` в XAML и стабильно работает в текущей конфигурации стилей проекта.

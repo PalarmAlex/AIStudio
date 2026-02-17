@@ -39,6 +39,11 @@
       <Setter Property="IsEnabled" Value="True"/>
     </Style>
 
+    <!-- Стиль контейнера пункта стадии: подсказка с описанием при наведении -->
+    <Style x:Key="StageItemContainerStyle" TargetType="ComboBoxItem">
+      <Setter Property="ToolTip" Value="{Binding Description}"/>
+    </Style>
+
   </UserControl.Resources>
 
   <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
@@ -93,12 +98,18 @@
         <StackPanel Grid.Column="2" Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,2">
           <TextBlock Text="Стадия:" Style="{StaticResource PropertyNameStyle}"/>
           <ComboBox ItemsSource="{Binding AvailableStages}"
+            SelectedValuePath="StageNumber"
             SelectedValue="{Binding SelectedStage, Mode=OneWay}"
+            DisplayMemberPath="StageNumber"
             IsEnabled="{Binding IsStageSelectionEnabled}"
-            Style="{StaticResource StageComboBoxStyle}" 
             Height="22" 
             MinWidth="100"  
             VerticalAlignment="Top"
+            BorderThickness="1"
+            BorderBrush="#FF7F9DB9"
+            Padding="2"
+            ToolTip="{Binding SelectedStageDescription}"
+            ItemContainerStyle="{StaticResource StageItemContainerStyle}"
             SelectionChanged="StageComboBox_SelectionChanged"/>
         </StackPanel>
 

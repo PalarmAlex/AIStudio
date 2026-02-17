@@ -1,4 +1,4 @@
-﻿using AIStudio.Common;
+using AIStudio.Common;
 using ISIDA.Actions;
 using ISIDA.Gomeostas;
 using ISIDA.Reflexes;
@@ -77,6 +77,22 @@ namespace AIStudio.ViewModels
         if (_authoritativeMode != value)
         {
           _authoritativeMode = value;
+          OnPropertyChanged();
+        }
+      }
+    }
+
+    /// <summary>
+    /// Режим наблюдения: при true воздействия с пульта не применяются к параметрам гомеостаза (синхрон с AppGlobalState.ObservationMode).
+    /// </summary>
+    public bool ObservationMode
+    {
+      get => AppGlobalState.ObservationMode;
+      set
+      {
+        if (AppGlobalState.ObservationMode != value)
+        {
+          AppGlobalState.ObservationMode = value;
           OnPropertyChanged();
         }
       }

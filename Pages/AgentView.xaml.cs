@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
@@ -19,11 +19,12 @@ namespace AIStudio.Pages
     {
       if (!(sender is ComboBox comboBox) ||
           !(comboBox.DataContext is AgentViewModel viewModel) ||
-          e.AddedItems.Count == 0 ||
-          !(e.AddedItems[0] is int newStage))
+          e.AddedItems.Count == 0)
       {
         return;
       }
+
+      int newStage = (e.AddedItems[0] as EvolutionStageItem)?.StageNumber ?? viewModel.SelectedStage;
 
       int currentStage = viewModel.Gomeostas.GetAgentState().EvolutionStage;
       if (newStage == currentStage)
