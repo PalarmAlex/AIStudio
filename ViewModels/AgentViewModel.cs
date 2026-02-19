@@ -519,6 +519,11 @@ namespace AIStudio.ViewModels
         OnPropertyChanged(nameof(IsStageSelectionEnabled));
         OnPropertyChanged(nameof(IsAnyControlEnabled));
         UpdateEditableProperties();
+
+        if (!GlobalTimer.IsPulsationRunning)
+        {
+          LoadAgentData();
+        }
       });
     }
 

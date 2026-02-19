@@ -311,6 +311,9 @@ namespace AIStudio
           case "8": // Таблица Автоматизмов
             ShowAutomatizms();
             break;
+          case "9": // Дерево автоматизмов
+            ShowAutomatizmTree();
+            break;
           case "10": // Цепочки Автоматизмов
             OpenAutomatizmChains();
             break;
@@ -422,6 +425,24 @@ namespace AIStudio
           _conditionedReflexToAutomatizm);
       automatizmsView.DataContext = viewModel;
       CurrentContent = automatizmsView;
+    }
+
+    private void ShowAutomatizmTree()
+    {
+      var treeView = new AutomatizmTreeView();
+      var viewModel = new AutomatizmTreeViewModel(
+          _automatizmTreeSystem,
+          _automatizmSystem,
+          _actionsImagesSystem,
+          _sensorySystem,
+          _actionsSystem,
+          _gomeostas,
+          _emotionsImageSystem,
+          _influenceActionsImagesSystem,
+          _influenceActionSystem,
+          _verbalBrocaImages);
+      treeView.DataContext = viewModel;
+      CurrentContent = treeView;
     }
 
     private void ShowAbout()
@@ -1098,6 +1119,7 @@ namespace AIStudio
         if (IsPulsating)
         {
           GlobalTimer.Stop();
+          ResetWaitingPeriodDisplay();
         }
         else
         {
@@ -1276,6 +1298,9 @@ namespace AIStudio
           OnPropertyChanged(nameof(PulseButtonText));
           OnPropertyChanged(nameof(PulseButtonColor));
           OnPropertyChanged(nameof(PulseStatus));
+
+          // Сбрасываем отображение периода ожидания
+          ResetWaitingPeriodDisplay();
 
           // Обновляем состояние агента
           UpdateAgentState();

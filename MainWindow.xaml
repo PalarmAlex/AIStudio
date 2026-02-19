@@ -152,6 +152,11 @@
               Command="{Binding VerticalMenuItemClickedCommand}"
               CommandParameter="8"/>
 
+            <Button Content="Дерево автоматизмов" Margin="20,2,5,2" 
+              Style="{StaticResource MenuButtonStyle}"
+              Command="{Binding VerticalMenuItemClickedCommand}"
+              CommandParameter="9"/>
+
             <Button Content="Цепочки Автоматизмов" Margin="20,2,5,2" 
               Style="{StaticResource MenuButtonStyle}"
               Command="{Binding VerticalMenuItemClickedCommand}"

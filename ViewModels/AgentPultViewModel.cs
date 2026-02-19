@@ -366,6 +366,16 @@ namespace AIStudio.ViewModels
 
       InitializeToneAndMoodLists();
       InitializeChainStatusPolling();
+
+      GlobalTimer.PulsationStateChanged += OnPulsationStateChanged;
+    }
+
+    private void OnPulsationStateChanged()
+    {
+      if (!GlobalTimer.IsPulsationRunning)
+      {
+        Application.Current.Dispatcher.Invoke(() => CheckChainStatus(null, EventArgs.Empty));
+      }
     }
 
     /// <summary>
@@ -731,6 +741,7 @@ namespace AIStudio.ViewModels
 
     public void Dispose()
     {
+      GlobalTimer.PulsationStateChanged -= OnPulsationStateChanged;
       _antagonistManager?.Dispose();
 
       // Останавливаем таймер
