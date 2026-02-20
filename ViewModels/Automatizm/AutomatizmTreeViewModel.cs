@@ -97,12 +97,15 @@ namespace AIStudio.ViewModels
     public ObservableCollection<AutomatizmTreeNodeItem> RootNodes => _rootNodes;
 
     private int? _selectedStyleFilter;
+    private int _selectedPerceptionActionFilterId;
     private int _selectedActionFilterId;
+    private string _filterPhrasePerception = string.Empty;
     private string _filterPhrase = string.Empty;
 
     public string PageTitle => "Дерево автоматизмов";
 
     public List<KeyValuePair<int?, string>> StyleFilterOptions { get; } = new List<KeyValuePair<int?, string>>();
+    public List<KeyValuePair<int, string>> PerceptionActionFilterOptions { get; } = new List<KeyValuePair<int, string>>();
     public List<KeyValuePair<int, string>> ActionFilterOptions { get; } = new List<KeyValuePair<int, string>>();
 
     public int? SelectedStyleFilter
@@ -116,6 +119,17 @@ namespace AIStudio.ViewModels
       }
     }
 
+    public int SelectedPerceptionActionFilterId
+    {
+      get => _selectedPerceptionActionFilterId;
+      set
+      {
+        _selectedPerceptionActionFilterId = value;
+        OnPropertyChanged(nameof(SelectedPerceptionActionFilterId));
+        RebuildTreeWithFilters();
+      }
+    }
+
     public int SelectedActionFilterId
     {
       get => _selectedActionFilterId;
@@ -123,6 +137,17 @@ namespace AIStudio.ViewModels
       {
         _selectedActionFilterId = value;
         OnPropertyChanged(nameof(SelectedActionFilterId));
+        RebuildTreeWithFilters();
+      }
+    }
+
+    public string FilterPhrasePerception
+    {
+      get => _filterPhrasePerception;
+      set
+      {
+        _filterPhrasePerception = value ?? string.Empty;
+        OnPropertyChanged(nameof(FilterPhrasePerception));
         RebuildTreeWithFilters();
       }
     }
@@ -163,10 +188,16 @@ namespace AIStudio.ViewModels
       _influenceActionSystem = influenceActionSystem ?? throw new ArgumentNullException(nameof(influenceActionSystem));
       _verbalBrocaImages = verbalBrocaImages ?? throw new ArgumentNullException(nameof(verbalBrocaImages));
 
-      StyleFilterOptions.Add(new KeyValuePair<int?, string>(null, "Все стили"));
+      StyleFilterOptions.Add(new KeyValuePair<int?, string>(null, "Все эмоции"));
       var styles = _gomeostas?.GetAllBehaviorStyles()?.Values?.ToList() ?? new List<GomeostasSystem.BehaviorStyle>();
       foreach (var s in styles)
         StyleFilterOptions.Add(new KeyValuePair<int?, string>(s.Id, s.Name));
+
+      PerceptionActionFilterOptions.Add(new KeyValuePair<int, string>(0, "Все действия"));
+      var influenceActions = _influenceActionSystem?.GetAllInfluenceActions();
+      if (influenceActions != null)
+        foreach (var a in influenceActions)
+          PerceptionActionFilterOptions.Add(new KeyValuePair<int, string>(a.Id, a.Name));
 
       ActionFilterOptions.Add(new KeyValuePair<int, string>(0, "Все действия"));
       var actionsCollection = _adaptiveActionsSystem?.GetAllAdaptiveActions();
@@ -181,7 +212,9 @@ namespace AIStudio.ViewModels
     private void ClearFilters(object _ = null)
     {
       SelectedStyleFilter = null;
+      SelectedPerceptionActionFilterId = 0;
       SelectedActionFilterId = 0;
+      FilterPhrasePerception = string.Empty;
       FilterPhrase = string.Empty;
     }
 
@@ -255,11 +288,25 @@ namespace AIStudio.ViewModels
       return set;
     }
 
+    private (int activityId, int verbId) GetPathActivityAndVerbId(AutomatizmNode node)
+    {
+      int activityId = 0, verbId = 0;
+      var current = node;
+      while (current != null)
+      {
+        if (activityId == 0 && current.ActivityID > 0) activityId = current.ActivityID;
+        if (verbId == 0 && current.VerbID > 0) verbId = current.VerbID;
+        current = current.ParentNode;
+      }
+      return (activityId, verbId);
+    }
+
     private void FillChildren(AutomatizmTreeNodeItem item, AutomatizmNode node)
     {
       if (node.Children == null || node.Children.Count == 0)
       {
-        FillAutomatizmLines(item, node.ID);
+        var (pathActivityId, pathVerbId) = GetPathActivityAndVerbId(node);
+        FillAutomatizmLines(item, node.ID, pathActivityId, pathVerbId);
         return;
       }
       foreach (var ch in node.Children)
@@ -320,7 +367,7 @@ namespace AIStudio.ViewModels
       if (node.SimbolID > 0 && (parent == null || parent.SimbolID != node.SimbolID))
         return GetSimbolDisplay(node.SimbolID);
       if (node.VerbID > 0 && (parent == null || parent.VerbID != node.VerbID))
-        return "Верб. образ: " + node.VerbID;
+        return GetTriggerText(node.ActivityID, node.VerbID);
 
       return "Узел " + node.ID;
     }
@@ -382,11 +429,12 @@ namespace AIStudio.ViewModels
 
     private string GetSimbolDisplay(int simbolId)
     {
-      if (simbolId <= 0) return "1 символ: Нет";
-      return "1 символ: ID " + simbolId;
+      if (simbolId <= 0) return "Первый символ: Нет";
+      var letter = _sensorySystem?.VerbalChannel?.GetPrimarySensorSymbol(simbolId) ?? '\0';
+      return letter != '\0' ? "Первый символ: " + letter : "Первый символ: ID " + simbolId;
     }
 
-    private void FillAutomatizmLines(AutomatizmTreeNodeItem item, int nodeId)
+    private void FillAutomatizmLines(AutomatizmTreeNodeItem item, int nodeId, int pathActivityId, int pathVerbId)
     {
       item.AutomatizmLines.Clear();
       var list = _automatizmSystem.GetMotorsAutomatizmListFromTreeId(nodeId);
@@ -402,10 +450,10 @@ namespace AIStudio.ViewModels
       var toAdd = new List<AutomatizmLineItem>();
       foreach (var a in sorted)
       {
-        if (!AutomatizmPassesFilters(a.ActionsImageID, item.StyleIdsInPath))
+        if (!AutomatizmPassesFilters(a.ActionsImageID, item.StyleIdsInPath, pathActivityId, pathVerbId))
           continue;
         var actionText = GetActionText(a.ActionsImageID);
-        var phraseText = GetPhraseText(a.ActionsImageID);
+        var phraseText = GetPhraseText(a.ActionsImageID, inQuotes: true);
         var beliefText = a.Belief == 0 ? "Предположение" : a.Belief == 1 ? "Чужие сведения" : "Проверенное знание";
         var block = new StringBuilder();
         block.AppendLine("ID: " + a.ID);
@@ -436,7 +484,7 @@ namespace AIStudio.ViewModels
       return string.Join(", ", names);
     }
 
-    private string GetPhraseText(int actionsImageId)
+    private string GetPhraseText(int actionsImageId, bool inQuotes = false)
     {
       if (actionsImageId <= 0) return "Нет";
       var img = _actionsImagesSystem.GetActionsImage(actionsImageId);
@@ -445,32 +493,61 @@ namespace AIStudio.ViewModels
       if (phrases == null) return "Нет";
       var texts = img.PhraseIdList
           .Where(id => phrases.ContainsKey(id))
-          .Select(id => phrases[id])
+          .Select(id => inQuotes ? "\"" + phrases[id] + "\"" : phrases[id])
           .ToList();
       return texts.Any() ? string.Join(", ", texts) : "Нет";
     }
 
-    private bool AutomatizmPassesFilters(int actionsImageId, HashSet<int> styleIdsInPath)
+    private bool AutomatizmPassesFilters(int actionsImageId, HashSet<int> styleIdsInPath, int pathActivityId, int pathVerbId)
     {
       if (SelectedStyleFilter.HasValue && SelectedStyleFilter.Value != 0)
       {
         if (styleIdsInPath == null || !styleIdsInPath.Contains(SelectedStyleFilter.Value))
           return false;
       }
+      if (SelectedPerceptionActionFilterId != 0 && pathActivityId > 0)
+      {
+        var actionIds = _influenceActionsImagesSystem?.GetInfluenceActionIds(pathActivityId)?.ToList();
+        if (actionIds == null || !actionIds.Contains(SelectedPerceptionActionFilterId))
+          return false;
+      }
+      else if (SelectedPerceptionActionFilterId != 0)
+        return false;
       if (SelectedActionFilterId != 0)
       {
         var img = actionsImageId > 0 ? _actionsImagesSystem.GetActionsImage(actionsImageId) : null;
         if (img?.ActIdList == null || !img.ActIdList.Contains(SelectedActionFilterId))
           return false;
       }
+      if (!string.IsNullOrWhiteSpace(FilterPhrasePerception))
+      {
+        var phraseText = GetPerceptionPhraseText(pathVerbId);
+        if (string.IsNullOrEmpty(phraseText) ||
+            phraseText.IndexOf(FilterPhrasePerception.Trim(), StringComparison.OrdinalIgnoreCase) < 0)
+          return false;
+      }
       if (!string.IsNullOrWhiteSpace(FilterPhrase))
       {
-        var phraseText = GetPhraseText(actionsImageId);
+        var phraseText = GetPhraseText(actionsImageId, inQuotes: false);
         if (string.IsNullOrEmpty(phraseText) ||
             phraseText.IndexOf(FilterPhrase.Trim(), StringComparison.OrdinalIgnoreCase) < 0)
           return false;
       }
       return true;
+    }
+
+    private string GetPerceptionPhraseText(int verbId)
+    {
+      if (verbId <= 0 || _verbalBrocaImages == null || _sensorySystem == null) return string.Empty;
+      try
+      {
+        var verbal = _verbalBrocaImages.GetVerbalBrocaImage(verbId);
+        if (verbal?.PhraseIdList == null || !verbal.PhraseIdList.Any()) return string.Empty;
+        var phrases = _sensorySystem.VerbalChannel?.GetAllPhrases();
+        if (phrases == null) return string.Empty;
+        return string.Join(" ", verbal.PhraseIdList.Where(id => phrases.ContainsKey(id)).Select(id => phrases[id]));
+      }
+      catch { return string.Empty; }
     }
 
     private void RebuildTreeWithFilters()
