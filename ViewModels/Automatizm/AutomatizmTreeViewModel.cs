@@ -471,17 +471,42 @@ namespace AIStudio.ViewModels
       }
     }
 
+    /// <summary>
+    /// Возвращает текстовое представление действий из образа.
+    /// Kind==0 (объективное действие с пульта): ActIdList содержит InfluenceAction ID (Развеселить, Напугать).
+    /// Kind==1 или рефлекс: ActIdList содержит AdaptiveAction ID (Смеется, Пугается).
+    /// </summary>
     private string GetActionText(int actionsImageId)
     {
       if (actionsImageId <= 0) return "Нет";
       var img = _actionsImagesSystem.GetActionsImage(actionsImageId);
       if (img?.ActIdList == null || !img.ActIdList.Any()) return "Нет";
-      var actionsCollection = _adaptiveActionsSystem?.GetAllAdaptiveActions();
-      var actionsList = actionsCollection != null ? actionsCollection.ToList() : new List<AdaptiveActionsSystem.AdaptiveAction>();
-      var names = img.ActIdList
-          .Select(id => actionsList.FirstOrDefault(a => a.Id == id)?.Name ?? $"#{id}")
-          .ToList();
+      // Kind 0 = объективное действие с пульта → InfluenceAction (Развеселить, Напугать)
+      if (img.Kind == 0 && _influenceActionSystem != null)
+      {
+        var influenceActions = _influenceActionSystem.GetAllInfluenceActions();
+        var names = img.ActIdList
+            .Select(id => influenceActions.FirstOrDefault(a => a.Id == id)?.Name ?? ResolveActionNameFromAdaptive(id))
+            .ToList();
+        if (names.Any(n => !n.StartsWith("#")))
+          return string.Join(", ", names);
+      }
+      // Kind 1 или fallback: AdaptiveAction (Смеется, Пугается)
+      return ResolveActionNamesFromAdaptive(img.ActIdList);
+    }
+
+    private string ResolveActionNamesFromAdaptive(List<int> actIdList)
+    {
+      if (actIdList == null || !actIdList.Any()) return "Нет";
+      var actionsList = _adaptiveActionsSystem?.GetAllAdaptiveActions()?.ToList() ?? new List<AdaptiveActionsSystem.AdaptiveAction>();
+      var names = actIdList.Select(id => ResolveActionNameFromAdaptive(id, actionsList)).ToList();
       return string.Join(", ", names);
+    }
+
+    private string ResolveActionNameFromAdaptive(int id, List<AdaptiveActionsSystem.AdaptiveAction> actionsList = null)
+    {
+      var list = actionsList ?? _adaptiveActionsSystem?.GetAllAdaptiveActions()?.ToList() ?? new List<AdaptiveActionsSystem.AdaptiveAction>();
+      return list.FirstOrDefault(a => a.Id == id)?.Name ?? $"#{id}";
     }
 
     private string GetPhraseText(int actionsImageId, bool inQuotes = false)

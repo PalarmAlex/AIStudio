@@ -1,4 +1,4 @@
-﻿<UserControl x:Class="AIStudio.Pages.AdaptiveActionsView"
+<UserControl x:Class="AIStudio.Pages.AdaptiveActionsView"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
@@ -14,6 +14,7 @@
     <converters:ListToStringConverter x:Key="ListToStringConverter"/>
     <converters:InverseBooleanConverter x:Key="InverseBooleanConverter"/>
     <converters:InverseBooleanToVisibilityConverter x:Key="InverseBooleanToVisibilityConverter"/>
+    <converters:StringToIntConverter x:Key="StringToIntConverter"/>
 
     <Style x:Key="BaseTextBlockStyle" TargetType="TextBlock">
       <Setter Property="Background" Value="White"/>
@@ -154,9 +155,25 @@
             <DataGridTextColumn.HeaderStyle>
               <Style TargetType="DataGridColumnHeader">
                 <Setter Property="ToolTip" 
-                    Value="Список ID параметров гомеостаза, которые которые потенциально улучшваются данным действием.&#x0a;Пример: плач, крик о помощи - не влияют непосредственно на гомеостаз, но служат сигналом для других, кто может повлиять.&#x0a;Это определяет простейшую гомеостатическую цель действия.&#x0a;ДБ клик открывает окно ввода."/>
+                    Value="Список ID параметров гомеостаза, которые потенциально улучшаются данным действием.&#x0a;Пример: плач, крик о помощи - не влияют непосредственно на гомеостаз, но служат сигналом для других, кто может повлиять.&#x0a;Это определяет простейшую гомеостатическую цель действия.&#x0a;ДБ клик открывает окно ввода."/>
               </Style>
             </DataGridTextColumn.HeaderStyle>
+          </DataGridTextColumn>
+
+          <DataGridTextColumn Header="ID действия с пульта" 
+            Binding="{Binding InfluenceActionId, Mode=TwoWay, Converter={StaticResource StringToIntConverter}}" 
+            Width="120">
+            <DataGridTextColumn.HeaderStyle>
+              <Style TargetType="DataGridColumnHeader" BasedOn="{StaticResource {x:Type DataGridColumnHeader}}">
+                <Setter Property="ToolTip" 
+                    Value="ID связанного действия с пульта (InfluenceAction) для отзеркаливания. Пустое поле = нет связи.&#x0a;При создании зеркального автоматизма по стимулу с пульта ищется это действие агента по данному полю."/>
+              </Style>
+            </DataGridTextColumn.HeaderStyle>
+            <DataGridTextColumn.EditingElementStyle>
+              <Style TargetType="TextBox">
+                <EventSetter Event="PreviewTextInput" Handler="NumericColumn_PreviewTextInput"/>
+              </Style>
+            </DataGridTextColumn.EditingElementStyle>
           </DataGridTextColumn>
 
         </DataGrid.Columns>

@@ -50,7 +50,8 @@ namespace AIStudio.Pages
         Name = $"Новое действие {nextId}",
         Description = string.Empty,
         AntagonistActions = new List<int>(),
-        TargetGomeoParamIdArr = new List<int>()
+        TargetGomeoParamIdArr = new List<int>(),
+        InfluenceActionId = 0
       };
     }
 
@@ -207,6 +208,12 @@ namespace AIStudio.Pages
       {
         if (!TryParseFloat(input, out float value) || value < 0.01f || value > 1.0f)
           msgText = "Введите число от 0.01 до 1.0";
+      }
+      else if (e.Column.Header.ToString() == "ID действия с пульта")
+      {
+        // Пустая строка разрешена (конвертер преобразует ее в 0)
+        if (!string.IsNullOrWhiteSpace(input) && !int.TryParse(input, out int value))
+          msgText = "Введите целое число или оставьте поле пустым";
       }
 
       if (msgText != "")

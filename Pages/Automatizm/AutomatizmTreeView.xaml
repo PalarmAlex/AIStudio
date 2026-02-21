@@ -76,7 +76,7 @@
                    Margin="0,0,10,0"
                    FontWeight="Bold"/>
 
-        <StackPanel Orientation="Vertical" Margin="0,0,15,0" Width="160">
+        <StackPanel Orientation="Vertical" Margin="0,0,10,0" Width="160">
           <TextBlock Text="Эмоции" FontSize="12" Margin="0,0,0,2"/>
           <ComboBox Style="{StaticResource AgentComboBoxStyle}"
                     ItemsSource="{Binding StyleFilterOptions}"
@@ -86,8 +86,8 @@
                     Height="25" Cursor="Hand"/>
         </StackPanel>
 
-        <StackPanel Orientation="Vertical" Margin="0,0,15,0" Width="170">
-          <TextBlock Text="Действия восприятия" FontSize="12" Margin="0,0,0,2"/>
+        <StackPanel Orientation="Vertical" Margin="0,0,10,0" Width="170">
+          <TextBlock Text="Действия триггера" FontSize="12" Margin="0,0,0,2"/>
           <ComboBox Style="{StaticResource AgentComboBoxStyle}"
                     ItemsSource="{Binding PerceptionActionFilterOptions}"
                     SelectedValue="{Binding SelectedPerceptionActionFilterId}"
@@ -96,7 +96,7 @@
                     Height="25"/>
         </StackPanel>
 
-        <StackPanel Orientation="Vertical" Margin="0,0,15,0" Width="170">
+        <StackPanel Orientation="Vertical" Margin="0,0,10,0" Width="170">
           <TextBlock Text="Действия автоматизма" FontSize="12" Margin="0,0,0,2"/>
           <ComboBox Style="{StaticResource AgentComboBoxStyle}"
                     ItemsSource="{Binding ActionFilterOptions}"
@@ -106,15 +106,15 @@
                     Height="25"/>
         </StackPanel>
 
-        <StackPanel Orientation="Vertical" Margin="0,0,15,0" Width="140">
-          <TextBlock Text="Фраза восприятия" FontSize="12" Margin="0,0,0,2"/>
+        <StackPanel Orientation="Vertical" Margin="0,0,10,0" Width="140">
+          <TextBlock Text="Фраза триггера" FontSize="12" Margin="0,0,0,2"/>
           <TextBox Style="{StaticResource AgentFilterTextBoxStyle}"
                    Text="{Binding FilterPhrasePerception, UpdateSourceTrigger=PropertyChanged}"
                    Height="25"
                    ToolTip="Поиск по вхождению текста в фразу образа восприятия"/>
         </StackPanel>
 
-        <StackPanel Orientation="Vertical" Margin="0,0,15,0" Width="140">
+        <StackPanel Orientation="Vertical" Margin="0,0,10,0" Width="140">
           <TextBlock Text="Фраза автоматизма" FontSize="12" Margin="0,0,0,2"/>
           <TextBox Style="{StaticResource AgentFilterTextBoxStyle}"
                    Text="{Binding FilterPhrase, UpdateSourceTrigger=PropertyChanged}"
@@ -125,7 +125,7 @@
         <Button Content="Сбросить фильтры"
                 Command="{Binding ClearFiltersCommand}"
                 Style="{StaticResource AgentButtonStyle}"
-                Margin="10,15,0,0"
+                Margin="10,10,0,0"
                 Height="30"
                 Width="150"
                 Cursor="Hand"
