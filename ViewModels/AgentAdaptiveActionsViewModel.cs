@@ -137,9 +137,7 @@ namespace AIStudio.ViewModels
 
       try
       {
-        var allphrases = _sensorySystem.VerbalChannel.GetAllPhrases();
-        if (allphrases.TryGetValue(phraseId, out string phraseText))
-          return phraseText;
+        return _sensorySystem.VerbalChannel.GetPhraseFromPhraseId(phraseId);
       }
       catch (Exception ex)
       {

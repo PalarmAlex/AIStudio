@@ -2,6 +2,7 @@
 using ISIDA.Actions;
 using ISIDA.Sensors;
 using System;
+using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Text;
@@ -43,15 +44,18 @@ namespace AIStudio.Converters
           if (SensorySystem.IsInitialized)
           {
             var sensorySystem = SensorySystem.Instance;
-            var allSensors = sensorySystem.VerbalChannel.GetAllPhrases();
-            var phraseTexts = actionsImage.PhraseIdList
-                .Where(id => allSensors.Any(a => a.Key == id))
-                .Select(id =>
-                {
-                  var phrase = allSensors.First(a => a.Key == id);
-                  return $"\"{phrase.Value}\" (ID: {phrase.Key})";
-                })
-                .ToList();
+            var phraseTexts = new List<string>();
+
+            foreach (var phraseId in actionsImage.PhraseIdList)
+            {
+              // Используем прямой метод получения фразы по ID вместо GetAllPhrases()
+              string phraseText = sensorySystem.VerbalChannel.GetPhraseFromPhraseId(phraseId);
+
+              if (!string.IsNullOrEmpty(phraseText))
+                phraseTexts.Add($"\"{phraseText}\" (ID: {phraseId})");
+              else
+                phraseTexts.Add($"ID: {phraseId} (фраза не найдена)");
+            }
 
             if (phraseTexts.Any())
               sb.AppendLine($"Фразы ({actionsImage.PhraseIdList.Count}): {string.Join(", ", phraseTexts)}");
