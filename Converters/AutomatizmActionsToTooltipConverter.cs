@@ -48,7 +48,6 @@ namespace AIStudio.Converters
 
             foreach (var phraseId in actionsImage.PhraseIdList)
             {
-              // Используем прямой метод получения фразы по ID вместо GetAllPhrases()
               string phraseText = sensorySystem.VerbalChannel.GetPhraseFromPhraseId(phraseId);
 
               if (!string.IsNullOrEmpty(phraseText))

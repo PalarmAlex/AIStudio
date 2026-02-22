@@ -29,6 +29,7 @@ public static class AppConfig
   public static string PsychicDataFolderPath => GetSetting("PsychicDataFolderPath");
   public static string SettingsPath => GetSetting("SettingsPath");
   public static string LogsFolderPath => GetSetting("LogsFolderPath");
+  public static string BootDataFolderPath => GetSetting("BootDataFolderPath");
   public static ResearchLogger.LogFormat LogFormat => GetLogFormatSetting("DefaultFormatLog", ResearchLogger.LogFormat.All);
   public static int FirstRun => GetIntSetting("FirstRun", (int)GetDefaultValueSettings("FirstRun"));
   public static bool LogEnabled => GetBoolSetting("LogEnabled", (bool)GetDefaultValueSettings("LogEnabled"));
@@ -86,6 +87,7 @@ public static class AppConfig
           new XElement("PsychicDataFolderPath", Path.Combine(appDataPath, "Data", "Psychic")),
           new XElement("SettingsPath", Path.Combine(appDataPath, "Settings")),
           new XElement("LogsFolderPath", Path.Combine(appDataPath, "Logs")),
+          new XElement("BootDataFolderPath", Path.Combine(appDataPath, "BootData")),
           new XElement("DefaultStileId", 0),
           new XElement("DefaultAdaptiveActionId", 0),
           new XElement("RecognitionThreshold", 3),
@@ -122,6 +124,7 @@ public static class AppConfig
       SetSetting("PsychicDataFolderPath", Path.Combine(appDataPath, "Data", "Psychic"));
       SetSetting("SettingsPath", Path.Combine(appDataPath, "Settings"));
       SetSetting("LogsFolderPath", Path.Combine(appDataPath, "Logs"));
+      SetSetting("BootDataFolderPath", Path.Combine(appDataPath, "BootData"));
 
       Logger.Info($"Конфигурационные пути обновлены для установки в: {appDataPath}");
     }

@@ -94,11 +94,17 @@ namespace AIStudio.Dialogs
       if (SensorySystem.IsInitialized)
       {
         var sensorySystem = SensorySystem.Instance;
-        var allSensors = sensorySystem.VerbalChannel.GetAllPhrases();
-        var names = image.PhraseIdList
-            .Where(id => allSensors.Any(a => a.Key == id))
-            .Select(id => allSensors.First(a => a.Key == id).Value)
-            .ToList();
+        var names = new List<string>();
+
+        foreach (var phraseId in image.PhraseIdList)
+        {
+          string phraseText = sensorySystem.VerbalChannel.GetPhraseFromPhraseId(phraseId);
+          if (!string.IsNullOrEmpty(phraseText))
+            names.Add(phraseText);
+          else
+            names.Add($"[ID:{phraseId}]");
+        }
+
         return string.Join(", ", names);
       }
       return "Нет фраз";

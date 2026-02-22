@@ -177,9 +177,47 @@ namespace AIStudio.ViewModels
     }
 
     public Dictionary<int, string> Words => _verbalChannel?.GetAllWords() ?? new Dictionary<int, string>();
-    public Dictionary<int, string> Phrases => _verbalChannel?.GetAllPhrases() ?? new Dictionary<int, string>();
+    public Dictionary<int, string> Phrases
+    {
+      get
+      {
+        var result = new Dictionary<int, string>();
+        try
+        {
+          if (_verbalChannel?.PhraseTree?.Nodes == null)
+            return result;
+
+          foreach (var node in _verbalChannel.PhraseTree.Nodes.Values)
+          {
+            if (node.Id == 0) continue; // пропускаем корневой узел
+
+            string phraseText = _verbalChannel.GetPhraseFromPhraseId(node.Id);
+            if (!string.IsNullOrEmpty(phraseText))
+              result[node.Id] = phraseText;
+          }
+        }
+        catch (Exception ex)
+        {
+          Logger.Error($"Ошибка получения фраз: {ex.Message}");
+        }
+        return result;
+      }
+    }
     public int WordsCount => Words.Count;
-    public int PhrasesCount => Phrases.Count;
+    public int PhrasesCount
+    {
+      get
+      {
+        try
+        {
+          return _verbalChannel.PhraseTree.Nodes.Count(n => n.Key != 0);
+        }
+        catch
+        {
+          return 0;
+        }
+      }
+    }
 
     #endregion
 
@@ -317,62 +355,83 @@ namespace AIStudio.ViewModels
 
     private ObservableCollection<PhraseNode> LoadInitialPhraseNodes()
     {
-      var allPhrases = _verbalChannel.GetAllPhrases();
       var rootNodes = new ObservableCollection<PhraseNode>();
 
-      // Создаем полное дерево фраз
-      foreach (var phrase in allPhrases.OrderBy(p => p.Value))
+      try
       {
-        var words = phrase.Value.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
-        if (words.Length == 0) continue;
+        // Получаем все узлы дерева фраз через внутреннюю структуру
+        var phraseNodes = _verbalChannel.PhraseTree.Nodes;
 
-        // Находим или создаем корневой узел
-        var firstWord = words[0];
-        var rootNode = rootNodes.FirstOrDefault(n =>
-            n.Text.Equals(firstWord, StringComparison.OrdinalIgnoreCase));
+        // Словарь для хранения узлов по ID
+        var nodeDict = new Dictionary<int, PhraseNode>();
 
-        if (rootNode == null)
+        // Сначала создаем все узлы
+        foreach (var node in phraseNodes.Values)
         {
-          rootNode = new PhraseNode
+          if (node.Id == 0) continue; // Пропускаем корневой узел
+
+          // Получаем полный текст фразы для этого узла
+          string phraseText = _verbalChannel.GetPhraseFromPhraseId(node.Id);
+
+          var phraseNode = new PhraseNode
           {
-            Id = 0,
-            Text = firstWord,
-            FullPath = firstWord,
-            HasChildren = words.Length > 1
+            Id = node.Id,
+            Text = GetLastWordFromPhrase(phraseText), // Последнее слово для отображения
+            FullPath = phraseText,
+            HasChildren = node.Children.Count > 0
           };
-          rootNodes.Add(rootNode);
+
+          nodeDict[node.Id] = phraseNode;
         }
 
-        // Строим полный путь для фразы
-        var currentNode = rootNode;
-        var currentPath = firstWord;
-
-        for (int i = 1; i < words.Length; i++)
+        // Строим иерархию
+        foreach (var node in phraseNodes.Values)
         {
-          var word = words[i];
-          currentPath += " " + word;
+          if (node.Id == 0) continue;
 
-          // Ищем существующий дочерний узел
-          var childNode = currentNode.Children.FirstOrDefault(n =>
-              n.Text.Equals(word, StringComparison.OrdinalIgnoreCase));
+          var phraseNode = nodeDict[node.Id];
 
-          if (childNode == null)
+          // Находим родителя
+          if (node.Parent != null && node.Parent.Id != 0)
           {
-            childNode = new PhraseNode
+            if (nodeDict.TryGetValue(node.Parent.Id, out var parentNode))
             {
-              Id = i == words.Length - 1 ? phrase.Key : 0,
-              Text = word,
-              FullPath = currentPath,
-              HasChildren = i < words.Length - 1
-            };
-            currentNode.Children.Add(childNode);
+              parentNode.Children.Add(phraseNode);
+            }
           }
-
-          currentNode = childNode;
+          else
+          {
+            // Это корневой узел (первое слово фразы)
+            rootNodes.Add(phraseNode);
+          }
         }
+
+        // Сортируем корневые узлы по алфавиту
+        var sortedRoots = rootNodes.OrderBy(n => n.Text).ToList();
+        rootNodes.Clear();
+        foreach (var node in sortedRoots)
+        {
+          rootNodes.Add(node);
+        }
+      }
+      catch (Exception ex)
+      {
+        Logger.Error($"Ошибка загрузки дерева фраз: {ex.Message}");
       }
 
       return rootNodes;
+    }
+
+    /// <summary>
+    /// Вспомогательный метод для получения последнего слова из фразы
+    /// </summary>
+    private string GetLastWordFromPhrase(string phrase)
+    {
+      if (string.IsNullOrEmpty(phrase))
+        return string.Empty;
+
+      var words = phrase.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+      return words.Length > 0 ? words[words.Length - 1] : phrase;
     }
 
     public void LoadWordChildren(int parentId)
@@ -601,8 +660,19 @@ namespace AIStudio.ViewModels
 
     private PhraseNode FilterPhraseNodeRecursive(PhraseNode node, string searchText)
     {
+      // Получаем полный текст фразы для этого узла
+      string fullPhraseText = string.Empty;
+      if (node.Id > 0)
+      {
+        fullPhraseText = _verbalChannel.GetPhraseFromPhraseId(node.Id);
+      }
+
       // Проверяем, содержит ли текущий узел искомый текст
-      bool matches = node.Text.ToLower().Contains(searchText);
+      bool matches = !string.IsNullOrEmpty(fullPhraseText) &&
+                     fullPhraseText.ToLower().Contains(searchText);
+
+      // Также проверяем текст узла (для отображения)
+      matches = matches || node.Text.ToLower().Contains(searchText);
 
       // Рекурсивно фильтруем дочерние узлы
       var filteredChildren = new ObservableCollection<PhraseNode>();
@@ -612,18 +682,17 @@ namespace AIStudio.ViewModels
         if (filteredChild != null)
         {
           filteredChildren.Add(filteredChild);
-          matches = true; // Если есть подходящие дети, показываем родителя
+          matches = true;
         }
       }
 
-      // Если узел или его дети подходят под фильтр
       if (matches || filteredChildren.Count > 0)
       {
         return new PhraseNode
         {
           Id = node.Id,
           Text = node.Text,
-          FullPath = node.FullPath,
+          FullPath = node.FullPath ?? fullPhraseText,
           HasChildren = filteredChildren.Count > 0,
           Children = filteredChildren
         };

@@ -128,6 +128,7 @@ namespace AIStudio
         config.ReflexesFolder = AppConfig.ReflexesFolderPath;
         config.PsychicDataFolder = AppConfig.PsychicDataFolderPath;
         config.LogsFolder = AppConfig.LogsFolderPath;
+        config.BootDataFolder = AppConfig.BootDataFolderPath;
         config.LogFormat = AppConfig.LogFormat;
         config.LogEnabled = AppConfig.LogEnabled;
         config.DefaultStileId = AppConfig.DefaultStileId;

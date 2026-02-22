@@ -406,6 +406,7 @@ namespace AIStudio.ViewModels
         }
         catch { }
       }
+
       var phrasePart = "Нет";
       if (verbId > 0 && _verbalBrocaImages != null && _sensorySystem != null)
       {
@@ -414,12 +415,15 @@ namespace AIStudio.ViewModels
           var verbal = _verbalBrocaImages.GetVerbalBrocaImage(verbId);
           if (verbal?.PhraseIdList != null && verbal.PhraseIdList.Any())
           {
-            var phrases = _sensorySystem.VerbalChannel?.GetAllPhrases();
-            if (phrases != null)
+            var texts = new List<string>();
+            foreach (var phraseId in verbal.PhraseIdList)
             {
-              var texts = verbal.PhraseIdList.Where(id => phrases.ContainsKey(id)).Select(id => "\"" + phrases[id] + "\"").ToList();
-              if (texts.Any()) phrasePart = string.Join(", ", texts);
+              string phraseText = _sensorySystem.VerbalChannel.GetPhraseFromPhraseId(phraseId);
+              if (!string.IsNullOrEmpty(phraseText))
+                texts.Add("\"" + phraseText + "\"");
             }
+            if (texts.Any())
+              phrasePart = string.Join(", ", texts);
           }
         }
         catch { }
@@ -514,13 +518,22 @@ namespace AIStudio.ViewModels
       if (actionsImageId <= 0) return "Нет";
       var img = _actionsImagesSystem.GetActionsImage(actionsImageId);
       if (img?.PhraseIdList == null || !img.PhraseIdList.Any()) return "Нет";
-      var phrases = _sensorySystem?.VerbalChannel?.GetAllPhrases();
-      if (phrases == null) return "Нет";
-      var texts = img.PhraseIdList
-          .Where(id => phrases.ContainsKey(id))
-          .Select(id => inQuotes ? "\"" + phrases[id] + "\"" : phrases[id])
-          .ToList();
-      return texts.Any() ? string.Join(", ", texts) : "Нет";
+
+      try
+      {
+        var texts = new List<string>();
+        foreach (var phraseId in img.PhraseIdList)
+        {
+          string phraseText = _sensorySystem.VerbalChannel.GetPhraseFromPhraseId(phraseId);
+          if (!string.IsNullOrEmpty(phraseText))
+            texts.Add(inQuotes ? "\"" + phraseText + "\"" : phraseText);
+        }
+        return texts.Any() ? string.Join(", ", texts) : "Нет";
+      }
+      catch
+      {
+        return "Нет";
+      }
     }
 
     private bool AutomatizmPassesFilters(int actionsImageId, HashSet<int> styleIdsInPath, int pathActivityId, int pathVerbId)
@@ -568,9 +581,15 @@ namespace AIStudio.ViewModels
       {
         var verbal = _verbalBrocaImages.GetVerbalBrocaImage(verbId);
         if (verbal?.PhraseIdList == null || !verbal.PhraseIdList.Any()) return string.Empty;
-        var phrases = _sensorySystem.VerbalChannel?.GetAllPhrases();
-        if (phrases == null) return string.Empty;
-        return string.Join(" ", verbal.PhraseIdList.Where(id => phrases.ContainsKey(id)).Select(id => phrases[id]));
+
+        var texts = new List<string>();
+        foreach (var phraseId in verbal.PhraseIdList)
+        {
+          string phraseText = _sensorySystem.VerbalChannel.GetPhraseFromPhraseId(phraseId);
+          if (!string.IsNullOrEmpty(phraseText))
+            texts.Add(phraseText);
+        }
+        return string.Join(" ", texts);
       }
       catch { return string.Empty; }
     }

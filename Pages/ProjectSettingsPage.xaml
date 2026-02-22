@@ -147,6 +147,25 @@
         Margin="5,0"/>
     </StackPanel>
 
+    <!-- Каталог загрузочных данных -->
+    <StackPanel Orientation="Horizontal" Margin="0,5">
+      <TextBlock Text="Каталог загрузочных данных:" 
+        Width="265"
+        VerticalAlignment="Center"/>
+
+      <TextBox Text="{Binding BootDataFolderPath, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+        Width="400"
+        Margin="5,0"
+        Background="#FFE0EBEB"
+        IsReadOnly="True"/>
+
+      <Button Content="Обзор..."
+        Command="{Binding BrowseFolderCommand}"
+        CommandParameter="BootDataFolderPath"
+        MinWidth="80"
+        Margin="5,0"/>
+    </StackPanel>
+
     <Border Height="2" Background='Gray' Margin="0,0,0,8"/>
 
       <!-- Настройки гомеостаза -->

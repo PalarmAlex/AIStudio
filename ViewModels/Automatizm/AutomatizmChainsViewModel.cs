@@ -284,15 +284,17 @@ namespace AIStudio.ViewModels
 
       try
       {
-        var allPhrases = _sensorySystem.VerbalChannel.GetAllPhrases();
         var phraseTexts = new List<string>();
 
         foreach (var phraseId in phraseIds)
         {
-          if (allPhrases.ContainsKey(phraseId))
-            phraseTexts.Add($"\"{allPhrases[phraseId]}\"");
+          // Используем прямой метод получения фразы по ID
+          string phraseText = _sensorySystem.VerbalChannel.GetPhraseFromPhraseId(phraseId);
+
+          if (!string.IsNullOrEmpty(phraseText))
+            phraseTexts.Add($"\"{phraseText}\"");
           else
-            phraseTexts.Add($"Фраза #{phraseId}");
+            phraseTexts.Add($"[ID:{phraseId}]");
         }
 
         return string.Join(", ", phraseTexts);

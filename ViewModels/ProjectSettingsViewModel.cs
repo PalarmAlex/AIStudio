@@ -29,6 +29,7 @@ namespace AIStudio.ViewModels
     private string _reflexesFolderPath;
     private string _psychicDataFolderPath;
     private string _logsFolderPath;
+    private string _bootDataFolderPath;
     private int _defaultStileId;
     private int _defaultAdaptiveActionId;
     private int _defaultFormatLog;
@@ -110,6 +111,15 @@ namespace AIStudio.ViewModels
       {
         _logsFolderPath = value;
         OnPropertyChanged(nameof(LogsFolderPath));
+      }
+    }
+    public string BootDataFolderPath
+    {
+      get => _bootDataFolderPath;
+      set
+      {
+        _bootDataFolderPath = value;
+        OnPropertyChanged(nameof(BootDataFolderPath));
       }
     }
 
@@ -337,6 +347,7 @@ namespace AIStudio.ViewModels
       ReflexesFolderPath = AppConfig.ReflexesFolderPath;
       PsychicDataFolderPath = AppConfig.PsychicDataFolderPath;
       LogsFolderPath = AppConfig.LogsFolderPath;
+      BootDataFolderPath = AppConfig.BootDataFolderPath;
       DefaultStileId = AppConfig.DefaultStileId;
       WaitingPeriodForActionsVal = AppConfig.WaitingPeriodForActionsVal;
       DefaultAdaptiveActionId = AppConfig.DefaultAdaptiveActionId;
@@ -467,6 +478,9 @@ namespace AIStudio.ViewModels
         case nameof(LogsFolderPath):
           initialPath = Directory.Exists(LogsFolderPath) ? LogsFolderPath : "";
           break;
+        case nameof(BootDataFolderPath):
+          initialPath = Directory.Exists(BootDataFolderPath) ? BootDataFolderPath : "";
+          break;
         default:
           initialPath = "";
           break;
@@ -498,6 +512,9 @@ namespace AIStudio.ViewModels
             break;
           case nameof(LogsFolderPath):
             LogsFolderPath = dialog.SelectedPath;
+            break;
+          case nameof(BootDataFolderPath):
+            BootDataFolderPath = dialog.SelectedPath;
             break;
         }
       }
@@ -538,6 +555,7 @@ namespace AIStudio.ViewModels
         AppConfig.SetSetting(nameof(ReflexesFolderPath), ReflexesFolderPath);
         AppConfig.SetSetting(nameof(PsychicDataFolderPath), PsychicDataFolderPath);
         AppConfig.SetSetting(nameof(LogsFolderPath), LogsFolderPath);
+        AppConfig.SetSetting(nameof(BootDataFolderPath), BootDataFolderPath);
         AppConfig.SetIntSetting(nameof(DefaultStileId), DefaultStileId);
         AppConfig.SetIntSetting(nameof(WaitingPeriodForActionsVal), WaitingPeriodForActionsVal);
         AppConfig.SetIntSetting(nameof(DefaultAdaptiveActionId), DefaultAdaptiveActionId);

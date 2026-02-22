@@ -1,4 +1,5 @@
 using AIStudio.Converters;
+using AIStudio.Dialogs;
 using AIStudio.Views;
 using ISIDA.Actions;
 using ISIDA.Common;
@@ -12,6 +13,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Windows;
@@ -50,6 +52,7 @@ namespace AIStudio.ViewModels
     private int? _selectedBaseConditionFilter;
     private string _selectedUsefulnessFilter;
     private int? _selectedBeliefFilter;
+    private bool _isLoadingInProgress;
 
     private Dictionary<int, ActionsImagesSystem.ActionsImage> _actionsImageCache = new Dictionary<int, ActionsImagesSystem.ActionsImage>();
     private Dictionary<int, AutomatizmNode> _nodeCache = new Dictionary<int, AutomatizmNode>();
@@ -69,6 +72,7 @@ namespace AIStudio.ViewModels
     public ICommand RemoveAllCommand { get; }
     public ICommand CloneReflexesCommand { get; }
     public ICommand SaveCommand { get; }
+    public ICommand LoadFromFileCommand { get; }
 
     public AutomatizmsViewModel(
         GomeostasSystem gomeostasSystem,
@@ -104,8 +108,38 @@ namespace AIStudio.ViewModels
       CloneReflexesCommand = new RelayCommand(CloneReflexesToAutomatizms, CanCloneReflexes);
 
       GlobalTimer.PulsationStateChanged += OnPulsationStateChanged;
+      LoadFromFileCommand = new RelayCommand(LoadFromFile, CanLoadFromFile);
       LoadAgentData();
     }
+
+    public bool IsLoadingInProgress
+    {
+      get => _isLoadingInProgress;
+      set
+      {
+        _isLoadingInProgress = value;
+        OnPropertyChanged(nameof(IsLoadingInProgress));
+        OnPropertyChanged(nameof(IsLoadFromFileEnabled));
+        ((RelayCommand)LoadFromFileCommand).RaiseCanExecuteChanged();
+      }
+    }
+
+    public bool IsLoadFromFileEnabled
+    {
+      get
+      {
+        return !IsLoadingInProgress &&
+               _currentAgentStage == 2 &&
+               !GlobalTimer.IsPulsationRunning &&
+               PsychicSystem.IsInitialized;
+      }
+    }
+
+    private bool CanLoadFromFile(object parameter)
+    {
+      return IsLoadFromFileEnabled;
+    }
+
 
     private bool FilterAutomatizms(object item)
     {
@@ -267,6 +301,45 @@ namespace AIStudio.ViewModels
     }
 
     #endregion
+
+    private void LoadFromFile(object parameter)
+    {
+      if (!IsLoadFromFileEnabled) return;
+
+      try
+      {
+        string bootDataFolder = Path.Combine(
+            Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData),
+            "ISIDA", "BootData");
+
+        var dialog = new AutomatizmLoadDialog(_gomeostas, bootDataFolder)
+        {
+          Owner = Application.Current.MainWindow
+        };
+
+        if (dialog.ShowDialog() == true && dialog.SelectedBaseState.HasValue)
+        {
+          int chainsLoaded = AutomatizmFileLoader.LoadFromFile(
+              bootDataFolder,
+              dialog.SelectedBaseState.Value,
+              dialog.SelectedStyleIds ?? new List<int>());
+
+          RefreshAllCollections();
+
+          MessageBox.Show(
+              $"Автоматизмы загружены.\nОбработано цепочек: {chainsLoaded}",
+              "Загрузка завершена",
+              MessageBoxButton.OK,
+              MessageBoxImage.Information);
+        }
+      }
+      catch (Exception ex)
+      {
+        MessageBox.Show($"Ошибка: {ex.Message}", "Ошибка",
+            MessageBoxButton.OK, MessageBoxImage.Error);
+      }
+    }
+
     private void LoadAgentData()
     {
       try
@@ -341,16 +414,24 @@ namespace AIStudio.ViewModels
               var verbalImage = _verbalBrocaImages.GetVerbalBrocaImage(treeNode.VerbID);
               if (verbalImage != null && verbalImage.PhraseIdList != null && verbalImage.PhraseIdList.Any())
               {
-                var phrases = _sensorySystem.VerbalChannel.GetAllPhrases();
-                var phraseTexts = verbalImage.PhraseIdList
-                    .Where(id => phrases.ContainsKey(id))
-                    .Select(id => $"\"{phrases[id]}\"")
-                    .ToList();
+                var phraseTexts = new List<string>();
+                foreach (var phraseId in verbalImage.PhraseIdList)
+                {
+                  string phraseText = _sensorySystem.VerbalChannel.GetPhraseFromPhraseId(phraseId);
+                  if (!string.IsNullOrEmpty(phraseText))
+                    phraseTexts.Add($"\"{phraseText}\"");
+                  else
+                    phraseTexts.Add($"[ID:{phraseId}]");
+                }
+
                 if (phraseTexts.Any())
                   verbalText = string.Join(" ", phraseTexts);
               }
             }
-            catch { }
+            catch (Exception ex)
+            {
+              Logger.Error($"Ошибка получения текста фразы: {ex.Message}");
+            }
           }
 
           // Определяем информацию о цепочке для этого узла дерева

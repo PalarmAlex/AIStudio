@@ -3,6 +3,7 @@ using ISIDA.Common;
 using ISIDA.Reflexes;
 using ISIDA.Sensors;
 using System;
+using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Text;
@@ -67,22 +68,22 @@ namespace AIStudio.Converters
 
               tooltip.AppendLine();
 
-              // Добавляем фразы
               tooltip.Append("Фразы: ");
               if (image.PhraseIdList != null && image.PhraseIdList.Any())
               {
                 if (SensorySystem.IsInitialized)
                 {
                   var sensorySystem = SensorySystem.Instance;
-                  var allSensors = sensorySystem.VerbalChannel.GetAllPhrases();
-                  var phraseTexts = image.PhraseIdList
-                      .Where(id => allSensors.Any(a => a.Key == id))
-                      .Select(id =>
-                      {
-                        var phrase = allSensors.First(a => a.Key == id);
-                        return $"\"{phrase.Value}\" (ID: {phrase.Key})";
-                      })
-                      .ToList();
+                  var phraseTexts = new List<string>();
+
+                  foreach (var phraseId in image.PhraseIdList)
+                  {
+                    string phraseText = sensorySystem.VerbalChannel.GetPhraseFromPhraseId(phraseId);
+                    if (!string.IsNullOrEmpty(phraseText))
+                      phraseTexts.Add($"\"{phraseText}\" (ID: {phraseId})");
+                    else
+                      phraseTexts.Add($"[ID:{phraseId}] (фраза не найдена)");
+                  }
 
                   if (phraseTexts.Any())
                   {
