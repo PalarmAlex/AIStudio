@@ -368,13 +368,21 @@
       </Grid.ColumnDefinitions>
 
       <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
-        <Button Content="Клонировать рефлексы в автоматизмы"
+        <Button Content="Клонировать рефлексы"
       Command="{Binding CloneReflexesCommand}"
       IsEnabled="{Binding IsDeletionEnabled}"
       Style="{StaticResource AgentButtonStyle}"
       Margin="5,0,5,0"
       Cursor="Hand"
       ToolTip="Создать автоматизмы на основе всех условных рефлексов"/>
+
+        <!-- Загрузить из файла -->
+        <Button Content="Загрузить из файла"
+        Command="{Binding LoadFromFileCommand}"
+        IsEnabled="{Binding IsLoadFromFileEnabled}"
+        Style="{StaticResource AgentButtonStyle}"
+        ToolTip="Загрузить автоматизмы из файла *.csv"
+        Margin="0,0,5,0"/>
 
         <!-- Текст предупреждения -->
         <TextBlock Grid.Column="0"
@@ -389,14 +397,6 @@
       <StackPanel Grid.Column="1" 
           Orientation="Horizontal" 
           HorizontalAlignment="Right">
-
-        <!-- Загрузить из файла -->
-        <Button Content="Загрузить из файла"
-        Command="{Binding LoadFromFileCommand}"
-        IsEnabled="{Binding IsLoadFromFileEnabled}"
-        Style="{StaticResource AgentButtonStyle}"
-        ToolTip="Загрузить автоматизмы из файла *.csv"
-        Margin="0,0,5,0"/>
 
         <Button Content="Очистить таблицу"
         Command="{Binding RemoveAllCommand}"

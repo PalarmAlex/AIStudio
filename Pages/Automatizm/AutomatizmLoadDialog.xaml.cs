@@ -3,8 +3,10 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.IO;
 using System.Linq;
+using System.Text;
 using System.Windows;
 using System.Windows.Input;
+using System.Windows.Media;
 using ISIDA.Gomeostas;
 using ISIDA.Common;
 using AIStudio.ViewModels;
@@ -48,6 +50,13 @@ namespace AIStudio.Dialogs
         Close();
       }
     }
+
+    private void Window_Loaded(object sender, RoutedEventArgs e)
+    {
+      // Автоматически загружаем содержимое CSV и промпта при загрузке окна
+      ViewModel.LoadCsvContent();
+      ViewModel.LoadPromptContent();
+    }
   }
 
   public class AutomatizmLoadDialogViewModel : INotifyPropertyChanged
@@ -63,8 +72,11 @@ namespace AIStudio.Dialogs
 
     // Команды
     public RelayCommand LoadStylesCommand { get; }
-    public RelayCommand LoadCommand { get; }
+    public RelayCommand ApplyCommand { get; }
     public RelayCommand CancelCommand { get; }
+    public RelayCommand SaveCsvCommand { get; }
+    public RelayCommand ValidateCsvCommand { get; }
+    public RelayCommand SavePromptCommand { get; }
 
     public AutomatizmLoadDialogViewModel(GomeostasSystem gomeostasSystem, string bootDataFolder)
     {
@@ -74,7 +86,10 @@ namespace AIStudio.Dialogs
       // Инициализация команд
       LoadStylesCommand = new RelayCommand(ExecuteGenerateStyles);
       CancelCommand = new RelayCommand(ExecuteCancel);
-      LoadCommand = new RelayCommand(ExecuteLoad, CanExecuteLoad);
+      ApplyCommand = new RelayCommand(ExecuteApply, CanExecuteApply);
+      SaveCsvCommand = new RelayCommand(ExecuteSaveCsv, CanExecuteSaveCsv);
+      ValidateCsvCommand = new RelayCommand(ExecuteValidateCsv);
+      SavePromptCommand = new RelayCommand(ExecuteSavePrompt, CanExecuteSavePrompt);
 
       // Базовые состояния
       BaseStates = new List<KeyValuePair<int, string>>
@@ -84,11 +99,17 @@ namespace AIStudio.Dialogs
                 new KeyValuePair<int, string>(1, "Хорошо")
             };
 
-      SelectedBaseState = 0;
+      SelectedBaseState = null; // По умолчанию ничего не выбрано
 
       // Загружаем комбинации стилей
       LoadStyleCombinations();
+
+      // Загружаем содержимое CSV и промпта
+      LoadCsvContent();
+      LoadPromptContent();
     }
+
+    #region CSV Properties
 
     private string _filePath;
     public string FilePath
@@ -103,6 +124,56 @@ namespace AIStudio.Dialogs
       }
     }
 
+    private string _csvContent;
+    public string CsvContent
+    {
+      get => _csvContent;
+      set
+      {
+        _csvContent = value;
+        OnPropertyChanged(nameof(CsvContent));
+        OnPropertyChanged(nameof(CanApply));
+        SaveCsvCommand?.RaiseCanExecuteChanged();
+      }
+    }
+
+    public bool IsEditingEnabled => !string.IsNullOrEmpty(FilePath) && File.Exists(FilePath);
+
+    #endregion
+
+    #region Prompt Properties
+
+    private string _promptFilePath;
+    public string PromptFilePath
+    {
+      get
+      {
+        if (string.IsNullOrEmpty(_promptFilePath))
+        {
+          _promptFilePath = Path.Combine(_bootDataFolder, "prompt_automatizm_generate_list_1.txt");
+        }
+        return _promptFilePath;
+      }
+    }
+
+    private string _promptContent;
+    public string PromptContent
+    {
+      get => _promptContent;
+      set
+      {
+        _promptContent = value;
+        OnPropertyChanged(nameof(PromptContent));
+        SavePromptCommand?.RaiseCanExecuteChanged();
+      }
+    }
+
+    public bool IsPromptEditingEnabled => !string.IsNullOrEmpty(PromptFilePath) && File.Exists(PromptFilePath);
+
+    #endregion
+
+    #region Selection Properties
+
     public List<KeyValuePair<int, string>> BaseStates { get; }
 
     private int? _selectedBaseState;
@@ -114,8 +185,9 @@ namespace AIStudio.Dialogs
         _selectedBaseState = value;
         OnPropertyChanged(nameof(SelectedBaseState));
         OnPropertyChanged(nameof(SelectedBaseStateDisplay));
-        OnPropertyChanged(nameof(CanLoad));
-        LoadCommand?.RaiseCanExecuteChanged();
+        OnPropertyChanged(nameof(CanApply));
+        OnPropertyChanged(nameof(ShowSelectionWarning));
+        ApplyCommand?.RaiseCanExecuteChanged();
       }
     }
 
@@ -142,17 +214,21 @@ namespace AIStudio.Dialogs
       }
     }
 
-    private List<int> _selectedStyleIds = new List<int>();
+    private List<int> _selectedStyleIds;
     public List<int> SelectedStyleIds
     {
       get => _selectedStyleIds;
       set
       {
-        _selectedStyleIds = value ?? new List<int>();
+        _selectedStyleIds = value;
         OnPropertyChanged(nameof(SelectedStyleIds));
         OnPropertyChanged(nameof(SelectedStylesDisplay));
-        OnPropertyChanged(nameof(CanLoad));
-        LoadCommand?.RaiseCanExecuteChanged();
+        OnPropertyChanged(nameof(CanApply));
+        OnPropertyChanged(nameof(ShowSelectionWarning));
+        OnPropertyChanged(nameof(SelectedStyleValidationMessage));
+        OnPropertyChanged(nameof(SelectedStyleValidationColor));
+        OnPropertyChanged(nameof(ShowStyleValidation));
+        ApplyCommand?.RaiseCanExecuteChanged();
       }
     }
 
@@ -172,6 +248,20 @@ namespace AIStudio.Dialogs
       }
     }
 
+    public string SelectedStyleValidationMessage
+    {
+      get
+      {
+        if (SelectedStyleIds == null || SelectedStyleIds.Count == 0)
+          return "⚠️ Необходимо выбрать комбинацию стилей";
+        return string.Empty;
+      }
+    }
+
+    public Brush SelectedStyleValidationColor => Brushes.OrangeRed;
+
+    public bool ShowStyleValidation => SelectedStyleIds == null || SelectedStyleIds.Count == 0;
+
     private string _stylesStatusText;
     public string StylesStatusText
     {
@@ -183,11 +273,63 @@ namespace AIStudio.Dialogs
       }
     }
 
-    public bool CanLoad => SelectedBaseState.HasValue && File.Exists(FilePath);
+    public bool CanApply =>
+        SelectedBaseState.HasValue &&
+        SelectedStyleIds != null &&
+        SelectedStyleIds.Count > 0 &&
+        File.Exists(FilePath) &&
+        !string.IsNullOrWhiteSpace(CsvContent) &&
+        HasValidSeparators();
 
-    private bool CanExecuteLoad(object parameter)
+    public bool ShowSelectionWarning =>
+        !SelectedBaseState.HasValue ||
+        SelectedStyleIds == null ||
+        SelectedStyleIds.Count == 0;
+
+    #endregion
+
+    #region Command CanExecute
+
+    private bool CanExecuteApply(object parameter)
     {
-      return CanLoad;
+      return CanApply;
+    }
+
+    private bool CanExecuteSaveCsv(object parameter)
+    {
+      return !string.IsNullOrWhiteSpace(CsvContent) && File.Exists(FilePath);
+    }
+
+    private bool CanExecuteSavePrompt(object parameter)
+    {
+      return !string.IsNullOrWhiteSpace(PromptContent) && File.Exists(PromptFilePath);
+    }
+
+    #endregion
+
+    #region Helper Methods
+
+    private bool HasValidSeparators()
+    {
+      if (string.IsNullOrWhiteSpace(CsvContent))
+        return false;
+
+      var lines = CsvContent.Split(new[] { "\r\n", "\r", "\n" }, StringSplitOptions.RemoveEmptyEntries);
+
+      foreach (var line in lines)
+      {
+        var trimmedLine = line.Trim();
+        if (string.IsNullOrWhiteSpace(trimmedLine) || trimmedLine.StartsWith("#"))
+          continue;
+
+        // Проверяем наличие хотя бы одного допустимого разделителя
+        if (trimmedLine.Contains(";") || trimmedLine.Contains(" - "))
+        {
+          return true;
+        }
+      }
+
+      return false;
     }
 
     private bool AreListsEqual(List<int> list1, List<int> list2)
@@ -206,6 +348,10 @@ namespace AIStudio.Dialogs
       return true;
     }
 
+    #endregion
+
+    #region Load Methods
+
     private void LoadStyleCombinations()
     {
       try
@@ -220,14 +366,14 @@ namespace AIStudio.Dialogs
           combinations = new List<List<GomeostasSystem.BehaviorStyle>>();
         }
 
-        var items = new List<StyleCombinationItem>
-                {
-                    new StyleCombinationItem
-                    {
-                        DisplayName = "[Не выбрано]",
-                        StyleIds = new List<int>()
-                    }
-                };
+        var items = new List<StyleCombinationItem>();
+
+        // Добавляем пустой элемент для возможности сброса выбора
+        items.Add(new StyleCombinationItem
+        {
+          DisplayName = "[Не выбрано]",
+          StyleIds = new List<int>()
+        });
 
         foreach (var combo in combinations.OrderBy(c => c.Count))
         {
@@ -243,13 +389,59 @@ namespace AIStudio.Dialogs
 
         StyleCombinations = items;
         StylesStatusText = $"Загружено комбинаций: {combinations.Count}";
+
+        // Сбрасываем выбор
+        SelectedStyleIds = new List<int>();
       }
       catch (Exception ex)
       {
         StylesStatusText = $"Ошибка загрузки: {ex.Message}";
         StyleCombinations = new List<StyleCombinationItem>();
+        SelectedStyleIds = new List<int>();
       }
     }
+
+    public void LoadCsvContent()
+    {
+      try
+      {
+        if (File.Exists(FilePath))
+        {
+          CsvContent = File.ReadAllText(FilePath, Encoding.UTF8);
+        }
+        else
+        {
+          CsvContent = string.Empty;
+        }
+      }
+      catch (Exception ex)
+      {
+        CsvContent = $"# Ошибка загрузки файла: {ex.Message}";
+      }
+    }
+
+    public void LoadPromptContent()
+    {
+      try
+      {
+        if (File.Exists(PromptFilePath))
+        {
+          PromptContent = File.ReadAllText(PromptFilePath, Encoding.UTF8);
+        }
+        else
+        {
+          PromptContent = string.Empty;
+        }
+      }
+      catch (Exception ex)
+      {
+        PromptContent = $"# Ошибка загрузки промпта: {ex.Message}";
+      }
+    }
+
+    #endregion
+
+    #region Command Executions
 
     private void ExecuteGenerateStyles(object parameter)
     {
@@ -289,17 +481,8 @@ namespace AIStudio.Dialogs
         StyleCombinations = items;
         StylesStatusText = $"Сгенерировано комбинаций: {combinations.Count}";
 
-        // Если был выбран какой-то элемент, пытаемся сохранить выбор
-        if (SelectedStyleIds != null && SelectedStyleIds.Count > 0)
-        {
-          var selectedItem = items.FirstOrDefault(x =>
-              x.StyleIds != null && AreListsEqual(x.StyleIds, SelectedStyleIds));
-
-          if (selectedItem == null)
-          {
-            SelectedStyleIds = new List<int>();
-          }
-        }
+        // Сбрасываем выбор, так как список изменился
+        SelectedStyleIds = new List<int>();
 
         MessageBox.Show($"Сгенерировано {combinations.Count} комбинаций стилей",
             "Готово", MessageBoxButton.OK, MessageBoxImage.Information);
@@ -311,8 +494,191 @@ namespace AIStudio.Dialogs
       }
     }
 
-    private void ExecuteLoad(object parameter)
+    private void ExecuteSaveCsv(object parameter)
     {
+      try
+      {
+        // Проверяем наличие разделителей, но не блокируем сохранение
+        if (!HasValidSeparators() && !string.IsNullOrWhiteSpace(CsvContent))
+        {
+          var result = MessageBox.Show(
+              "В файле не обнаружено корректных разделителей (; или -).\n" +
+              "Возможно, файл имеет неправильный формат.\n\n" +
+              "Всё равно сохранить?",
+              "Предупреждение",
+              MessageBoxButton.YesNo,
+              MessageBoxImage.Warning);
+
+          if (result != MessageBoxResult.Yes)
+            return;
+        }
+
+        // Создаем директорию, если её нет
+        Directory.CreateDirectory(_bootDataFolder);
+
+        File.WriteAllText(FilePath, CsvContent, Encoding.UTF8);
+        MessageBox.Show("Файл успешно сохранен", "Сохранение",
+            MessageBoxButton.OK, MessageBoxImage.Information);
+
+        // Обновляем состояние команд
+        ApplyCommand?.RaiseCanExecuteChanged();
+      }
+      catch (Exception ex)
+      {
+        MessageBox.Show($"Ошибка сохранения файла: {ex.Message}", "Ошибка",
+            MessageBoxButton.OK, MessageBoxImage.Error);
+      }
+    }
+
+    private void ExecuteValidateCsv(object parameter)
+    {
+      if (string.IsNullOrWhiteSpace(CsvContent))
+      {
+        MessageBox.Show(
+            "Файл пуст.",
+            "Проверка формата",
+            MessageBoxButton.OK,
+            MessageBoxImage.Warning);
+        return;
+      }
+
+      var lines = CsvContent.Split(new[] { "\r\n", "\r", "\n" }, StringSplitOptions.RemoveEmptyEntries);
+      int validLines = 0;
+      int invalidLines = 0;
+      int commentLines = 0;
+      var invalidExamples = new List<string>();
+
+      foreach (var line in lines)
+      {
+        var trimmedLine = line.Trim();
+
+        if (string.IsNullOrWhiteSpace(trimmedLine))
+          continue;
+
+        if (trimmedLine.StartsWith("#"))
+        {
+          commentLines++;
+          continue;
+        }
+
+        bool hasSemicolon = trimmedLine.Contains(";");
+        bool hasDashSeparator = trimmedLine.Contains(" - ");
+
+        if (hasSemicolon || hasDashSeparator)
+        {
+          // Проверяем, что есть хотя бы две части
+          if (hasSemicolon)
+          {
+            var parts = trimmedLine.Split(new[] { ';' }, StringSplitOptions.RemoveEmptyEntries);
+            if (parts.Length >= 2 && parts.All(p => !string.IsNullOrWhiteSpace(p)))
+            {
+              validLines++;
+            }
+            else
+            {
+              invalidLines++;
+              if (invalidExamples.Count < 3)
+                invalidExamples.Add(trimmedLine.Length > 50 ? trimmedLine.Substring(0, 47) + "..." : trimmedLine);
+            }
+          }
+          else // hasDashSeparator
+          {
+            var parts = trimmedLine.Split(new[] { " - " }, StringSplitOptions.RemoveEmptyEntries);
+            if (parts.Length >= 2 && parts.All(p => !string.IsNullOrWhiteSpace(p)))
+            {
+              validLines++;
+            }
+            else
+            {
+              invalidLines++;
+              if (invalidExamples.Count < 3)
+                invalidExamples.Add(trimmedLine.Length > 50 ? trimmedLine.Substring(0, 47) + "..." : trimmedLine);
+            }
+          }
+        }
+        else
+        {
+          invalidLines++;
+          if (invalidExamples.Count < 3)
+            invalidExamples.Add(trimmedLine.Length > 50 ? trimmedLine.Substring(0, 47) + "..." : trimmedLine);
+        }
+      }
+
+      string message;
+      MessageBoxImage icon;
+
+      if (invalidLines == 0 && validLines > 0)
+      {
+        message = $"✅ Файл корректен.\n\n" +
+                  $"📊 Статистика:\n" +
+                  $"• Валидных строк: {validLines}\n" +
+                  $"• Строк с комментариями: {commentLines}\n" +
+                  $"• Всего строк: {lines.Length}\n\n" +
+                  $"Формат строк: фразы, разделенные ';' или ' - '";
+        icon = MessageBoxImage.Information;
+      }
+      else if (validLines == 0 && invalidLines > 0)
+      {
+        message = $"❌ Файл содержит только некорректные строки.\n\n" +
+                  $"📊 Статистика:\n" +
+                  $"• Некорректных строк: {invalidLines}\n" +
+                  $"• Строк с комментариями: {commentLines}\n\n" +
+                  $"⚠️ Примеры ошибок:\n" +
+                  $"{string.Join("\n", invalidExamples)}\n\n" +
+                  $"✅ Правильный формат:\n" +
+                  $"• фраза1;фраза2;фраза3\n" +
+                  $"• фраза1 - фраза2 - фраза3";
+        icon = MessageBoxImage.Warning;
+      }
+      else
+      {
+        message = $"⚠️ Файл содержит смешанные данные.\n\n" +
+                  $"📊 Статистика:\n" +
+                  $"• Корректных строк: {validLines}\n" +
+                  $"• Некорректных строк: {invalidLines}\n" +
+                  $"• Строк с комментариями: {commentLines}\n\n";
+
+        if (invalidExamples.Any())
+        {
+          message += $"❌ Примеры ошибок:\n" +
+                    $"{string.Join("\n", invalidExamples)}\n\n";
+        }
+
+        message += $"✅ Правильный формат:\n" +
+                  $"• фраза1;фраза2;фраза3\n" +
+                  $"• фраза1 - фраза2 - фраза3";
+        icon = MessageBoxImage.Warning;
+      }
+
+      MessageBox.Show(message, "Проверка формата", MessageBoxButton.OK, icon);
+    }
+
+    private void ExecuteSavePrompt(object parameter)
+    {
+      try
+      {
+        // Создаем директорию, если её нет
+        Directory.CreateDirectory(_bootDataFolder);
+
+        File.WriteAllText(PromptFilePath, PromptContent, Encoding.UTF8);
+        MessageBox.Show("Промпт успешно сохранен", "Сохранение",
+            MessageBoxButton.OK, MessageBoxImage.Information);
+      }
+      catch (Exception ex)
+      {
+        MessageBox.Show($"Ошибка сохранения промпта: {ex.Message}", "Ошибка",
+            MessageBoxButton.OK, MessageBoxImage.Error);
+      }
+    }
+
+    private void ExecuteApply(object parameter)
+    {
+      // Перед применением сохраняем изменения в файл, если они были
+      if (CanExecuteSaveCsv(null))
+      {
+        ExecuteSaveCsv(null);
+      }
+
       CloseAction?.Invoke(true, SelectedBaseState, SelectedStyleIds ?? new List<int>());
     }
 
@@ -320,6 +686,8 @@ namespace AIStudio.Dialogs
     {
       CloseAction?.Invoke(false, null, null);
     }
+
+    #endregion
   }
 
   public class StyleCombinationItem

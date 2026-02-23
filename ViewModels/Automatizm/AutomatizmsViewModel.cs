@@ -44,6 +44,7 @@ namespace AIStudio.ViewModels
     private readonly AdaptiveActionsSystem _adaptiveActionsSystem;
     private readonly VerbalBrocaImagesSystem _verbalBrocaImages;
     private readonly ConditionedReflexToAutomatizmConverter _reflexConverter;
+    private readonly AutomatizmFileLoader _automatizmFileLoader;
 
     private string _currentAgentName;
     private int _currentAgentStage;
@@ -85,7 +86,8 @@ namespace AIStudio.ViewModels
         InfluenceActionSystem influenceActionSystem,
         AdaptiveActionsSystem adaptiveActionsSystem,
         VerbalBrocaImagesSystem verbalBrocaImages,
-        ConditionedReflexToAutomatizmConverter reflexConverter)
+        ConditionedReflexToAutomatizmConverter reflexConverter,
+        AutomatizmFileLoader automatizmFileLoader)
     {
       _gomeostas = gomeostasSystem ?? throw new ArgumentNullException(nameof(gomeostasSystem));
       _automatizmSystem = automatizmSystem ?? throw new ArgumentNullException(nameof(automatizmSystem));
@@ -98,7 +100,7 @@ namespace AIStudio.ViewModels
       _adaptiveActionsSystem = adaptiveActionsSystem ?? throw new ArgumentNullException(nameof(adaptiveActionsSystem));
       _verbalBrocaImages = verbalBrocaImages ?? throw new ArgumentNullException(nameof(verbalBrocaImages));
       _reflexConverter = reflexConverter ?? throw new ArgumentNullException(nameof(reflexConverter));
-
+      _automatizmFileLoader = automatizmFileLoader ?? throw new ArgumentNullException(nameof(automatizmFileLoader));
 
       _automatizmsView = CollectionViewSource.GetDefaultView(_allAutomatizms);
       _automatizmsView.Filter = FilterAutomatizms;
@@ -319,8 +321,8 @@ namespace AIStudio.ViewModels
 
         if (dialog.ShowDialog() == true && dialog.SelectedBaseState.HasValue)
         {
-          int chainsLoaded = AutomatizmFileLoader.LoadFromFile(
-              bootDataFolder,
+          // Файл уже мог быть изменен через редактор в диалоге
+          int chainsLoaded = _automatizmFileLoader.LoadFromFile(
               dialog.SelectedBaseState.Value,
               dialog.SelectedStyleIds ?? new List<int>());
 
@@ -332,6 +334,14 @@ namespace AIStudio.ViewModels
               MessageBoxButton.OK,
               MessageBoxImage.Information);
         }
+      }
+      catch (ObjectDisposedException)
+      {
+        MessageBox.Show(
+            "Загрузчик автоматизмов уже освобожден.",
+            "Ошибка",
+            MessageBoxButton.OK,
+            MessageBoxImage.Error);
       }
       catch (Exception ex)
       {
