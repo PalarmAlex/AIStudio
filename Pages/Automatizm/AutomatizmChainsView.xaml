@@ -89,7 +89,7 @@
           <TextBlock Text="ID автоматизма" FontSize="12" Margin="0,0,0,2"/>
           <TextBox Style="{StaticResource FilterTextBoxStyle}"
                    Text="{Binding FilterAutomatizmId, UpdateSourceTrigger=PropertyChanged}"
-                   ToolTip="Фильтр по ID автоматизма"/>
+                   ToolTip="Фильтр по ID автоматизма" Width="100" Margin="0,0,5,0"/>
         </StackPanel>
 
         <!-- Фильтр по ID цепочки -->
@@ -97,20 +97,20 @@
           <TextBlock Text="ID цепочки" FontSize="12" Margin="0,0,0,2"/>
           <TextBox Style="{StaticResource FilterTextBoxStyle}"
                    Text="{Binding FilterChainId, UpdateSourceTrigger=PropertyChanged}"
-                   ToolTip="Фильтр по ID цепочки"/>
+                   ToolTip="Фильтр по ID цепочки" Width="100" Margin="0,0,5,0"/>
         </StackPanel>
 
         <!-- Фильтр по действиям -->
         <StackPanel Orientation="Vertical" Margin="0,0,15,0">
           <TextBlock Text="Действия" FontSize="12" Margin="0,0,0,2"/>
           <ComboBox Style="{StaticResource AgentComboBoxStyle}"
-                    Width="220"
+                    Width="150"
                     Height="25"
                     ItemsSource="{Binding ActionFilterOptions}"
                     SelectedValue="{Binding SelectedActionFilterId}"
                     DisplayMemberPath="Value"
                     SelectedValuePath="Key"
-                    ToolTip="Фильтр по действию звена цепочки"/>
+                    ToolTip="Фильтр по действию звена цепочки" Margin="0,0,5,0"/>
         </StackPanel>
 
         <!-- Фильтр по фразам -->
@@ -118,7 +118,7 @@
           <TextBlock Text="Фразы" FontSize="12" Margin="0,0,0,2"/>
           <TextBox Style="{StaticResource FilterTextBoxStyle}"
                    Text="{Binding FilterPhrases, UpdateSourceTrigger=PropertyChanged}"
-                   ToolTip="Фильтр по тексту фраз"/>
+                   ToolTip="Фильтр по тексту фраз" Width="100" Margin="0,0,5,0"/>
         </StackPanel>
 
         <!-- Фильтр по типу образа -->
@@ -129,14 +129,27 @@
                     SelectedValue="{Binding FilterImageKind}"
                     DisplayMemberPath="Value"
                     SelectedValuePath="Key"
-                    Height="25"/>
+                    Height="25" Margin="0,0,5,0"/>
+        </StackPanel>
+
+        <!-- Записей на страницу -->
+        <StackPanel Orientation="Vertical" Margin="0,0,15,0">
+          <TextBlock Text="Записей на страницу" FontSize="12" Margin="0,0,0,2"/>
+          <ComboBox Style="{StaticResource AgentComboBoxStyle}"
+                    Width="100"
+                    Height="25"
+                    ItemsSource="{Binding PageSizeOptions}"
+                    SelectedValue="{Binding SelectedPageSize}"
+                    DisplayMemberPath="Value"
+                    SelectedValuePath="Key"
+                    ToolTip="Ограничить количество отображаемых записей" Margin="0,0,5,0"/>
         </StackPanel>
 
         <!-- Кнопка сброса фильтров -->
         <Button Content="Сбросить фильтры" 
                 Command="{Binding ClearFiltersCommand}"
                 Style="{StaticResource AgentButtonStyle}"
-                Margin="10,15,0,0"
+                Margin="0,15,0,0"
                 Height="30"
                 Width="150"
                 Cursor="Hand"
@@ -405,13 +418,18 @@
         <ColumnDefinition Width="Auto"/>
       </Grid.ColumnDefinitions>
 
-      <!-- Текст пояснения -->
-      <TextBlock Grid.Column="0"
-                 Text="Таблица только для чтения. Отображает связи между автоматизмами и цепочками действий."
-                 Foreground="Gray"
-                 FontStyle="Italic"
-                 VerticalAlignment="Center"
-                 TextWrapping="Wrap"/>
+      <!-- Текст пояснения и счётчик -->
+      <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
+        <TextBlock Text="Таблица только для чтения. Отображает связи между автоматизмами и цепочками действий."
+                   Foreground="Gray"
+                   FontStyle="Italic"
+                   VerticalAlignment="Center"
+                   TextWrapping="Wrap"/>
+        <TextBlock Text="{Binding DisplayCountText}"
+                   Margin="15,0,0,0"
+                   VerticalAlignment="Center"
+                   FontWeight="SemiBold"/>
+      </StackPanel>
     </Grid>
 
   </Grid>

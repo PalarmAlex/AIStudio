@@ -249,11 +249,7 @@
     <Compile Include="Pages\Automatizm\AutomatizmChainsView.xaml.cs">
       <DependentUpon>AutomatizmChainsView.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Pages\Automatizm\AutomatizmTreeView.xaml.cs">
-      <DependentUpon>AutomatizmTreeView.xaml</DependentUpon>
-    </Compile>
     <Compile Include="ViewModels\Automatizm\AutomatizmChainsViewModel.cs" />
-    <Compile Include="ViewModels\Automatizm\AutomatizmTreeViewModel.cs" />
     <Compile Include="ViewModels\Automatizm\AutomatizmsViewModel.cs" />
     <Compile Include="ViewModels\BehaviorStylesViewModel.cs" />
     <Compile Include="ViewModels\AgentInfo.cs" />
@@ -442,10 +438,6 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="Pages\Automatizm\AutomatizmChainsView.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="Pages\Automatizm\AutomatizmTreeView.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

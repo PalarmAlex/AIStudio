@@ -28,9 +28,44 @@ namespace AIStudio.ViewModels
     private readonly SensorySystem _sensorySystem;
 
     private ObservableCollection<ChainDisplayItem> _allChains = new ObservableCollection<ChainDisplayItem>();
+    private ObservableCollection<ChainDisplayItem> _displayChains = new ObservableCollection<ChainDisplayItem>();
     private ICollectionView _chainsView;
     public ICollectionView ChainsView => _chainsView;
     public ICommand ClearFiltersCommand { get; }
+
+    /// <summary>Варианты количества записей на страницу: 100, 500, 1000, 5000, 10000, Все.</summary>
+    public List<KeyValuePair<int?, string>> PageSizeOptions { get; } = new List<KeyValuePair<int?, string>>
+    {
+      new KeyValuePair<int?, string>(100, "100"),
+      new KeyValuePair<int?, string>(500, "500"),
+      new KeyValuePair<int?, string>(1000, "1000"),
+      new KeyValuePair<int?, string>(5000, "5000"),
+      new KeyValuePair<int?, string>(10000, "10000"),
+      new KeyValuePair<int?, string>(null, "Все")
+    };
+
+    private int? _selectedPageSize = 100;
+    public int? SelectedPageSize
+    {
+      get => _selectedPageSize;
+      set
+      {
+        _selectedPageSize = value;
+        OnPropertyChanged(nameof(SelectedPageSize));
+        RefreshDisplay();
+      }
+    }
+
+    /// <summary>Текст вида "Показано 100 из 500" для отображения в интерфейсе.</summary>
+    public string DisplayCountText
+    {
+      get
+      {
+        int filtered = _allChains.Count(FilterChains);
+        int shown = Math.Min(filtered, SelectedPageSize ?? int.MaxValue);
+        return filtered == shown ? $"Показано: {shown}" : $"Показано: {shown} из {filtered}";
+      }
+    }
 
     private string _filterAutomatizmId;
     private string _filterChainId;
@@ -115,8 +150,7 @@ namespace AIStudio.ViewModels
       _adaptiveActionsSystem = adaptiveActionsSystem ?? throw new ArgumentNullException(nameof(adaptiveActionsSystem));
       _sensorySystem = sensorySystem ?? throw new ArgumentNullException(nameof(sensorySystem));
 
-      _chainsView = CollectionViewSource.GetDefaultView(_allChains);
-      _chainsView.Filter = FilterChains;
+      _chainsView = CollectionViewSource.GetDefaultView(_displayChains);
 
       ClearFiltersCommand = new RelayCommand(ClearFilters);
 
@@ -188,6 +222,18 @@ namespace AIStudio.ViewModels
       {
         Logger.Error(ex.Message);
       }
+
+      RefreshDisplay();
+    }
+
+    private void RefreshDisplay()
+    {
+      var filtered = _allChains.Where(FilterChains).ToList();
+      int take = SelectedPageSize ?? int.MaxValue;
+      _displayChains.Clear();
+      foreach (var item in filtered.Take(take))
+        _displayChains.Add(item);
+      OnPropertyChanged(nameof(DisplayCountText));
     }
 
     private ChainDisplayItem CreateChainDisplayItem(
@@ -410,7 +456,7 @@ namespace AIStudio.ViewModels
 
     private void ApplyFilters()
     {
-      _chainsView.Refresh();
+      RefreshDisplay();
     }
 
     private void ClearFilters(object parameter = null)

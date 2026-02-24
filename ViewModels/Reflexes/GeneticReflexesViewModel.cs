@@ -1,4 +1,4 @@
-﻿using ISIDA.Actions;
+using ISIDA.Actions;
 using ISIDA.Common;
 using ISIDA.Gomeostas;
 using ISIDA.Reflexes;
@@ -52,7 +52,41 @@ namespace AIStudio.ViewModels
     public string CurrentAgentTitle => $"Безусловные рефлексы Агента: {_currentAgentName ?? "Не определен"}";
     private ObservableCollection<GeneticReflexesSystem.GeneticReflex> _allGeneticReflexes = new ObservableCollection<GeneticReflexesSystem.GeneticReflex>();
     private ICollectionView _geneticReflexesView;
+    /// <summary>Множество записей, проходящих фильтр и лимит страницы (для отображения в таблице).</summary>
+    private HashSet<GeneticReflexesSystem.GeneticReflex> _visibleSet = new HashSet<GeneticReflexesSystem.GeneticReflex>();
     public ICollectionView GeneticReflexesView => _geneticReflexesView;
+
+    public List<KeyValuePair<int?, string>> PageSizeOptions { get; } = new List<KeyValuePair<int?, string>>
+    {
+      new KeyValuePair<int?, string>(100, "100"),
+      new KeyValuePair<int?, string>(500, "500"),
+      new KeyValuePair<int?, string>(1000, "1000"),
+      new KeyValuePair<int?, string>(5000, "5000"),
+      new KeyValuePair<int?, string>(10000, "10000"),
+      new KeyValuePair<int?, string>(null, "Все")
+    };
+
+    private int? _selectedPageSize = 100;
+    public int? SelectedPageSize
+    {
+      get => _selectedPageSize;
+      set
+      {
+        _selectedPageSize = value;
+        OnPropertyChanged(nameof(SelectedPageSize));
+        RefreshDisplay();
+      }
+    }
+
+    public string DisplayCountText
+    {
+      get
+      {
+        int filtered = _allGeneticReflexes.Count(FilterGeneticReflexes);
+        int shown = Math.Min(filtered, SelectedPageSize ?? int.MaxValue);
+        return filtered == shown ? $"Показано: {shown}" : $"Показано: {shown} из {filtered}";
+      }
+    }
 
     public ICommand SaveCommand { get; }
     public ICommand RemoveCommand { get; }
@@ -77,7 +111,7 @@ namespace AIStudio.ViewModels
       _reflexChainsSystem = reflexChainsSystem ?? throw new ArgumentNullException(nameof(reflexChainsSystem));
 
       _geneticReflexesView = CollectionViewSource.GetDefaultView(_allGeneticReflexes);
-      _geneticReflexesView.Filter = FilterGeneticReflexes;
+      _geneticReflexesView.Filter = item => _visibleSet != null && item is GeneticReflexesSystem.GeneticReflex r && _visibleSet.Contains(r);
 
       SaveCommand = new RelayCommand(SaveData);
       RemoveCommand = new RelayCommand(RemoveSelectedReflexes);
@@ -453,9 +487,18 @@ namespace AIStudio.ViewModels
       }
     }
 
+    private void RefreshDisplay()
+    {
+      var filtered = _allGeneticReflexes.Where(FilterGeneticReflexes).ToList();
+      int take = SelectedPageSize ?? int.MaxValue;
+      _visibleSet = new HashSet<GeneticReflexesSystem.GeneticReflex>(filtered.Take(take));
+      _geneticReflexesView.Refresh();
+      OnPropertyChanged(nameof(DisplayCountText));
+    }
+
     private void ApplyFilters()
     {
-      _geneticReflexesView.Refresh();
+      RefreshDisplay();
     }
 
     private void ClearFilters(object parameter = null)
@@ -533,6 +576,7 @@ namespace AIStudio.ViewModels
         _allGeneticReflexes.Add(reflexCopy);
       }
 
+      RefreshDisplay();
       LoadFilterOptions();
 
       OnPropertyChanged(nameof(IsStageZero));
@@ -714,6 +758,7 @@ namespace AIStudio.ViewModels
         {
           if (_allGeneticReflexes.Contains(reflex))
             _allGeneticReflexes.Remove(reflex);
+          RefreshDisplay();
 
           if (reflex.Id > 0)
           {
@@ -749,6 +794,7 @@ namespace AIStudio.ViewModels
           if (removeAll)
           {
             _allGeneticReflexes.Clear();
+            RefreshDisplay();
 
             var (success, error) = _geneticReflexesSystem.SaveGeneticReflexes(false); // все удалено - не надо валидаций 
             if (success)

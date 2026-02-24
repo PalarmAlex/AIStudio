@@ -1,10 +1,11 @@
-﻿<Window x:Class="AIStudio.Dialogs.AutomatizmLoadDialog"
+<Window x:Class="AIStudio.Dialogs.AutomatizmLoadDialog"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         Title="Загрузка автоматизмов из файла" 
-        Height="650" Width="800"
+        Height="600" Width="800"
         WindowStartupLocation="CenterOwner"
         ResizeMode="NoResize"
+        ShowInTaskbar="False"
         PreviewKeyDown="Window_PreviewKeyDown"
         Loaded="Window_Loaded">
 
@@ -12,35 +13,51 @@
     <Style x:Key="DialogHeaderStyle" TargetType="TextBlock">
       <Setter Property="FontSize" Value="16"/>
       <Setter Property="FontWeight" Value="SemiBold"/>
-      <Setter Property="Margin" Value="0,0,0,15"/>
+      <Setter Property="Margin" Value="0,0,0,10"/>
     </Style>
 
     <Style x:Key="SectionHeaderStyle" TargetType="TextBlock">
-      <Setter Property="FontSize" Value="14"/>
+      <Setter Property="FontSize" Value="13"/>
       <Setter Property="FontWeight" Value="SemiBold"/>
-      <Setter Property="Margin" Value="0,10,0,5"/>
+      <Setter Property="Margin" Value="0,6,0,4"/>
     </Style>
 
     <Style x:Key="InfoTextStyle" TargetType="TextBlock">
       <Setter Property="Foreground" Value="#FF666666"/>
       <Setter Property="FontStyle" Value="Italic"/>
-      <Setter Property="Margin" Value="0,0,0,10"/>
+      <Setter Property="Margin" Value="0,0,0,6"/>
     </Style>
 
     <Style x:Key="TabHeaderStyle" TargetType="TabItem">
-      <Setter Property="FontSize" Value="13"/>
-      <Setter Property="Padding" Value="15,5"/>
+      <Setter Property="FontSize" Value="12"/>
+      <Setter Property="Padding" Value="10,3"/>
     </Style>
 
     <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter"/>
   </Window.Resources>
 
-  <Grid Margin="20">
+  <Grid Margin="12">
     <Grid.RowDefinitions>
       <RowDefinition Height="Auto"/>
       <RowDefinition Height="*"/>
       <RowDefinition Height="Auto"/>
     </Grid.RowDefinitions>
+
+    <!-- Оверлей индикации загрузки -->
+    <Grid x:Name="BusyOverlay" 
+          Grid.RowSpan="3"
+          Background="#80FFFFFF" 
+          Visibility="{Binding IsBusy, Converter={StaticResource BooleanToVisibilityConverter}}"
+          Panel.ZIndex="1000">
+      <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
+        <ProgressBar IsIndeterminate="True" 
+                     Width="200" Height="20" 
+                     Margin="0,0,0,10"/>
+        <TextBlock Text="Выполняется загрузка..." 
+                   HorizontalAlignment="Center"
+                   FontSize="14"/>
+      </StackPanel>
+    </Grid>
 
     <!-- Заголовок -->
     <TextBlock Grid.Row="0" 
@@ -48,7 +65,7 @@
                Style="{StaticResource DialogHeaderStyle}"/>
 
     <!-- Таб контроль для переключения между режимами -->
-    <TabControl Grid.Row="1" Margin="0,10,0,10" x:Name="MainTabControl">
+    <TabControl Grid.Row="1" Margin="0,6,0,6" x:Name="MainTabControl">
       <!-- Вкладка загрузки -->
       <TabItem Header="Загрузка из файла" Style="{StaticResource TabHeaderStyle}">
         <ScrollViewer VerticalScrollBarVisibility="Auto">
@@ -57,9 +74,9 @@
             <Border BorderBrush="#FFE0E0E0" 
                     BorderThickness="1"
                     CornerRadius="4"
-                    Padding="10"
+                    Padding="8"
                     Background="#FFF9F9F9"
-                    Margin="0,0,0,15">
+                    Margin="0,0,0,10">
               <StackPanel>
                 <TextBlock Text="Информация о файле" 
                            FontWeight="SemiBold"
@@ -71,7 +88,7 @@
             </Border>
 
             <!-- Выбор базового состояния -->
-            <StackPanel Margin="0,0,0,15">
+            <StackPanel Margin="0,0,0,10">
               <TextBlock Text="Базовое состояние агента"
                          Style="{StaticResource SectionHeaderStyle}"/>
 
@@ -86,7 +103,7 @@
             </StackPanel>
 
             <!-- Выбор комбинации стилей -->
-            <StackPanel Margin="0,0,0,15">
+            <StackPanel Margin="0,0,0,10">
               <TextBlock Text="Комбинация стилей поведения"
                          Style="{StaticResource SectionHeaderStyle}"/>
 
@@ -124,9 +141,9 @@
             <Border BorderBrush="#FFF0E68C"
                     BorderThickness="1"
                     CornerRadius="4"
-                    Padding="10"
+                    Padding="8"
                     Background="#FFFFFACD"
-                    Margin="0,0,0,15"
+                    Margin="0,0,0,10"
                     Visibility="{Binding ShowSelectionWarning, Converter={StaticResource BooleanToVisibilityConverter}}">
               <TextBlock Text="Для применения необходимо выбрать базовое состояние и комбинацию стилей"
                          Foreground="#8B4513"
@@ -150,9 +167,9 @@
                   BorderBrush="#FFE0E0E0" 
                   BorderThickness="1"
                   CornerRadius="4"
-                  Padding="10"
+                  Padding="8"
                   Background="#FFF9F9F9"
-                  Margin="0,0,0,10">
+                  Margin="0,0,0,8">
             <StackPanel>
               <TextBlock Text="Редактирование файла" 
                          FontWeight="SemiBold"
@@ -181,7 +198,7 @@
                    FontSize="12"
                    VerticalScrollBarVisibility="Auto"
                    HorizontalScrollBarVisibility="Auto"
-                   Padding="5"
+                   Padding="4"
                    BorderBrush="#FFE0E0E0"
                    BorderThickness="1"
                    IsEnabled="{Binding IsEditingEnabled}"/>
@@ -208,8 +225,8 @@
         </Grid>
       </TabItem>
 
-      <!-- Вкладка редактирования промпта для ИИ -->
-      <TabItem Header="Промпт для ИИ" Style="{StaticResource TabHeaderStyle}">
+      <!-- Вкладка редактирования промпта для ИИ - 1 шаг -->
+      <TabItem Header="Промпт для ИИ - 1 шаг" Style="{StaticResource TabHeaderStyle}">
         <Grid Margin="0,10,0,0">
           <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
@@ -222,17 +239,79 @@
                   BorderBrush="#FFE0E0E0" 
                   BorderThickness="1"
                   CornerRadius="4"
-                  Padding="10"
+                  Padding="8"
                   Background="#FFF9F9F9"
-                  Margin="0,0,0,10">
+                  Margin="0,0,0,8">
             <StackPanel>
-              <TextBlock Text="Редактирование промпта для ИИ" 
+              <TextBlock Text="Редактирование промпта для ИИ - 1 шаг" 
+                         FontWeight="SemiBold"
+                         Margin="0,0,0,5"/>
+              <TextBlock Text="{Binding PromptFilePath1, Mode=OneWay}"
+                         TextWrapping="Wrap"
+                         Style="{StaticResource InfoTextStyle}"/>
+              <TextBlock Text="Этот промпт используется при генерации групп параметров для промпта 2. Вы можете отредактировать его по своему усмотрению."
+                         Style="{StaticResource InfoTextStyle}"
+                         Margin="0,5,0,0"
+                         TextWrapping="Wrap"/>
+            </StackPanel>
+          </Border>
+
+          <!-- Текстовое поле для редактирования промпта -->
+          <TextBox Grid.Row="1"
+                   x:Name="Prompt1EditorTextBox"
+                   Text="{Binding PromptContent1, UpdateSourceTrigger=PropertyChanged}"
+                   AcceptsReturn="True"
+                   AcceptsTab="True"
+                   FontFamily="Segoe UI"
+                   FontSize="12"
+                   VerticalScrollBarVisibility="Auto"
+                   HorizontalScrollBarVisibility="Auto"
+                   Padding="4"
+                   BorderBrush="#FFE0E0E0"
+                   BorderThickness="1"
+                   IsEnabled="{Binding IsPrompt1EditingEnabled}"/>
+
+          <!-- Кнопки для редактирования промпта -->
+          <StackPanel Grid.Row="2"
+                      Orientation="Horizontal"
+                      HorizontalAlignment="Right"
+                      Margin="0,10,0,0">
+            <Button Content="Сохранить промпт"
+                    Command="{Binding SavePrompt1Command}"
+                    Height="35"
+                    Width="150"
+                    Margin="0,0,10,0"
+                    Cursor="Hand"
+                    ToolTip="Сохранить изменения в файл промпта"/>
+          </StackPanel>
+        </Grid>
+      </TabItem>
+
+      <!-- Вкладка редактирования промпта для ИИ - 2 шаг -->
+      <TabItem Header="Промпт для ИИ - 2 шаг" Style="{StaticResource TabHeaderStyle}">
+        <Grid Margin="0,10,0,0">
+          <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+          </Grid.RowDefinitions>
+
+          <!-- Информация о промпте -->
+          <Border Grid.Row="0"
+                  BorderBrush="#FFE0E0E0" 
+                  BorderThickness="1"
+                  CornerRadius="4"
+                  Padding="8"
+                  Background="#FFF9F9F9"
+                  Margin="0,0,0,8">
+            <StackPanel>
+              <TextBlock Text="Редактирование промпта для ИИ - 2 шаг" 
                          FontWeight="SemiBold"
                          Margin="0,0,0,5"/>
               <TextBlock Text="{Binding PromptFilePath, Mode=OneWay}"
                          TextWrapping="Wrap"
                          Style="{StaticResource InfoTextStyle}"/>
-              <TextBlock Text="Этот промпт используется при генерации содержимого файла цепочек диалога automatizm_generate_list_1.csv через ИИ. Вы можете отредактировать его по своему усмотрению."
+              <TextBlock Text="Этот промпт используется при генерации содержимого файла цепочек диалога automatizm_generate_list.csv через ИИ. Вы можете отредактировать его по своему усмотрению."
                          Style="{StaticResource InfoTextStyle}"
                          Margin="0,5,0,0"
                          TextWrapping="Wrap"/>
@@ -249,7 +328,7 @@
                    FontSize="12"
                    VerticalScrollBarVisibility="Auto"
                    HorizontalScrollBarVisibility="Auto"
-                   Padding="5"
+                   Padding="4"
                    BorderBrush="#FFE0E0E0"
                    BorderThickness="1"
                    IsEnabled="{Binding IsPromptEditingEnabled}"/>

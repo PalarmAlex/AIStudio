@@ -47,14 +47,14 @@
           <TextBlock Text="ID рефлекса" FontSize="12" Margin="0,0,0,2"/>
           <TextBox Style="{StaticResource FilterTextBoxStyle}"
                    Text="{Binding FilterReflexId, UpdateSourceTrigger=PropertyChanged}"
-                   ToolTip="Показать цепочки, привязанные к конкретному безусловному рефлексу"/>
+                   ToolTip="Показать цепочки, привязанные к конкретному безусловному рефлексу" Width="100"/>
         </StackPanel>
 
         <StackPanel Orientation="Vertical" Margin="0,0,15,0">
           <TextBlock Text="ID цепочки" FontSize="12" Margin="0,0,0,2"/>
           <TextBox Style="{StaticResource FilterTextBoxStyle}"
                    Text="{Binding FilterChainId, UpdateSourceTrigger=PropertyChanged}"
-                   ToolTip="Фильтр по ID цепочки"/>
+                   ToolTip="Фильтр по ID цепочки" Width="100"/>
         </StackPanel>
 
         <StackPanel Orientation="Vertical" Margin="0,0,15,0">
@@ -72,9 +72,21 @@
         <StackPanel Orientation="Vertical" Margin="0,0,15,0">
           <TextBlock Text="Название" FontSize="12" Margin="0,0,0,2"/>
           <TextBox Style="{StaticResource FilterTextBoxStyle}"
-                   Width="220"
+                   Width="100"
                    Text="{Binding FilterChainName, UpdateSourceTrigger=PropertyChanged}"
                    ToolTip="Фильтр по названию цепочки"/>
+        </StackPanel>
+
+        <StackPanel Orientation="Vertical" Margin="0,0,15,0">
+          <TextBlock Text="Записей на страницу" FontSize="12" Margin="0,0,0,2"/>
+          <ComboBox Style="{StaticResource AgentComboBoxStyle}"
+                    Width="100"
+                    Height="25"
+                    ItemsSource="{Binding PageSizeOptions}"
+                    SelectedValue="{Binding SelectedPageSize}"
+                    DisplayMemberPath="Value"
+                    SelectedValuePath="Key"
+                    ToolTip="Ограничить количество отображаемых записей"/>
         </StackPanel>
 
         <Button Content="Сбросить фильтры"
@@ -228,11 +240,22 @@
       </DataGrid>
     </Border>
 
-    <TextBlock Grid.Row="3"
-               Text="Таблица только для чтения. Показывает структуру цепочек и связи с безусловными рефлексами."
-               Foreground="Gray"
-               FontStyle="Italic"
-               VerticalAlignment="Center"
-               TextWrapping="Wrap"/>
+    <Grid Grid.Row="3">
+      <Grid.ColumnDefinitions>
+        <ColumnDefinition Width="*"/>
+        <ColumnDefinition Width="Auto"/>
+      </Grid.ColumnDefinitions>
+      <TextBlock Grid.Column="0"
+                 Text="Таблица только для чтения. Показывает структуру цепочек и связи с безусловными рефлексами."
+                 Foreground="Gray"
+                 FontStyle="Italic"
+                 VerticalAlignment="Center"
+                 TextWrapping="Wrap"/>
+      <TextBlock Grid.Column="1"
+                 Text="{Binding DisplayCountText}"
+                 Margin="15,0,0,0"
+                 VerticalAlignment="Center"
+                 FontWeight="SemiBold"/>
+    </Grid>
   </Grid>
 </UserControl>

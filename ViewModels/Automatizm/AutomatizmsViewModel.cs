@@ -53,6 +53,12 @@ namespace AIStudio.ViewModels
     private int? _selectedBaseConditionFilter;
     private string _selectedUsefulnessFilter;
     private int? _selectedBeliefFilter;
+    private int _selectedPerceptionActionFilterId;
+    private int _selectedActionFilterId;
+    private string _filterPhrasePerception = string.Empty;
+    private string _filterPhrase = string.Empty;
+    private string _filterPhrasePerceptionInput = string.Empty;
+    private string _filterPhraseInput = string.Empty;
     private bool _isLoadingInProgress;
 
     private Dictionary<int, ActionsImagesSystem.ActionsImage> _actionsImageCache = new Dictionary<int, ActionsImagesSystem.ActionsImage>();
@@ -66,8 +72,41 @@ namespace AIStudio.ViewModels
     public string CurrentAgentTitle => $"Автоматизмы Агента: {_currentAgentName ?? "Не определен"}";
 
     private ObservableCollection<AutomatizmDisplayItem> _allAutomatizms = new ObservableCollection<AutomatizmDisplayItem>();
+    private ObservableCollection<AutomatizmDisplayItem> _displayAutomatizms = new ObservableCollection<AutomatizmDisplayItem>();
     private ICollectionView _automatizmsView;
     public ICollectionView AutomatizmsView => _automatizmsView;
+
+    public List<KeyValuePair<int?, string>> PageSizeOptions { get; } = new List<KeyValuePair<int?, string>>
+    {
+      new KeyValuePair<int?, string>(100, "100"),
+      new KeyValuePair<int?, string>(500, "500"),
+      new KeyValuePair<int?, string>(1000, "1000"),
+      new KeyValuePair<int?, string>(5000, "5000"),
+      new KeyValuePair<int?, string>(10000, "10000"),
+      new KeyValuePair<int?, string>(null, "Все")
+    };
+
+    private int? _selectedPageSize = 100;
+    public int? SelectedPageSize
+    {
+      get => _selectedPageSize;
+      set
+      {
+        _selectedPageSize = value;
+        OnPropertyChanged(nameof(SelectedPageSize));
+        RefreshDisplay();
+      }
+    }
+
+    public string DisplayCountText
+    {
+      get
+      {
+        int filtered = _allAutomatizms.Count(FilterAutomatizms);
+        int shown = Math.Min(filtered, SelectedPageSize ?? int.MaxValue);
+        return filtered == shown ? $"Показано: {shown}" : $"Показано: {shown} из {filtered}";
+      }
+    }
 
     public ICommand ClearFiltersCommand { get; }
     public ICommand RemoveAllCommand { get; }
@@ -102,9 +141,21 @@ namespace AIStudio.ViewModels
       _reflexConverter = reflexConverter ?? throw new ArgumentNullException(nameof(reflexConverter));
       _automatizmFileLoader = automatizmFileLoader ?? throw new ArgumentNullException(nameof(automatizmFileLoader));
 
-      _automatizmsView = CollectionViewSource.GetDefaultView(_allAutomatizms);
-      _automatizmsView.Filter = FilterAutomatizms;
+      _automatizmsView = CollectionViewSource.GetDefaultView(_displayAutomatizms);
 
+      PerceptionActionFilterOptions.Add(new KeyValuePair<int, string>(0, "Все действия"));
+      var influenceActions = _influenceActionSystem?.GetAllInfluenceActions();
+      if (influenceActions != null)
+        foreach (var a in influenceActions)
+          PerceptionActionFilterOptions.Add(new KeyValuePair<int, string>(a.Id, a.Name));
+
+      ActionFilterOptions.Add(new KeyValuePair<int, string>(0, "Все действия"));
+      var actionsCollection = _adaptiveActionsSystem?.GetAllAdaptiveActions();
+      var actionsList = actionsCollection != null ? actionsCollection.ToList() : new List<AdaptiveActionsSystem.AdaptiveAction>();
+      foreach (var a in actionsList)
+        ActionFilterOptions.Add(new KeyValuePair<int, string>(a.Id, a.Name));
+
+      ApplyFiltersCommand = new RelayCommand(ApplyFiltersFromButton);
       ClearFiltersCommand = new RelayCommand(ClearFilters);
       RemoveAllCommand = new RelayCommand(RemoveAllAutomatizms);
       CloneReflexesCommand = new RelayCommand(CloneReflexesToAutomatizms, CanCloneReflexes);
@@ -167,7 +218,34 @@ namespace AIStudio.ViewModels
 
       bool beliefMatch = !SelectedBeliefFilter.HasValue || automatizm.Belief == SelectedBeliefFilter.Value;
 
+      if (SelectedPerceptionActionFilterId != 0 && (automatizm.InfluenceActionIds == null || !automatizm.InfluenceActionIds.Contains(SelectedPerceptionActionFilterId)))
+        return false;
+
+      if (SelectedActionFilterId != 0 && (automatizm.ActionsImageDisplay?.ActIdList == null || !automatizm.ActionsImageDisplay.ActIdList.Contains(SelectedActionFilterId)))
+        return false;
+
+      if (!string.IsNullOrWhiteSpace(FilterPhrasePerception))
+      {
+        var phrase = (automatizm.VerbalText ?? string.Empty);
+        if (string.IsNullOrEmpty(phrase) || phrase.IndexOf(FilterPhrasePerception.Trim(), StringComparison.OrdinalIgnoreCase) < 0)
+          return false;
+      }
+
+      if (!string.IsNullOrWhiteSpace(FilterPhrase))
+      {
+        var phrase = (automatizm.AutomatizmPhraseText ?? string.Empty);
+        if (string.IsNullOrEmpty(phrase) || phrase.IndexOf(FilterPhrase.Trim(), StringComparison.OrdinalIgnoreCase) < 0)
+          return false;
+      }
+
       return baseConditionMatch && level2Match && usefulnessMatch && beliefMatch;
+    }
+
+    private void ApplyFiltersFromButton(object parameter = null)
+    {
+      FilterPhrasePerception = FilterPhrasePerceptionInput;
+      FilterPhrase = FilterPhraseInput;
+      RefreshDisplay();
     }
 
     private void OnPulsationStateChanged()
@@ -232,6 +310,8 @@ namespace AIStudio.ViewModels
       new KeyValuePair<int?, string>(2, "Проверенное знание")
     };
     public List<KeyValuePair<int?, string>> Level2FilterOptions { get; private set; } = new List<KeyValuePair<int?, string>>();
+    public List<KeyValuePair<int, string>> PerceptionActionFilterOptions { get; } = new List<KeyValuePair<int, string>>();
+    public List<KeyValuePair<int, string>> ActionFilterOptions { get; } = new List<KeyValuePair<int, string>>();
 
     public int? SelectedBaseConditionFilter
     {
@@ -278,6 +358,54 @@ namespace AIStudio.ViewModels
       }
     }
 
+    public int SelectedPerceptionActionFilterId
+    {
+      get => _selectedPerceptionActionFilterId;
+      set
+      {
+        _selectedPerceptionActionFilterId = value;
+        OnPropertyChanged(nameof(SelectedPerceptionActionFilterId));
+        ApplyFilters();
+      }
+    }
+
+    public int SelectedActionFilterId
+    {
+      get => _selectedActionFilterId;
+      set
+      {
+        _selectedActionFilterId = value;
+        OnPropertyChanged(nameof(SelectedActionFilterId));
+        ApplyFilters();
+      }
+    }
+
+    public string FilterPhrasePerception
+    {
+      get => _filterPhrasePerception;
+      set { _filterPhrasePerception = value ?? string.Empty; OnPropertyChanged(nameof(FilterPhrasePerception)); }
+    }
+
+    public string FilterPhrase
+    {
+      get => _filterPhrase;
+      set { _filterPhrase = value ?? string.Empty; OnPropertyChanged(nameof(FilterPhrase)); }
+    }
+
+    public string FilterPhrasePerceptionInput
+    {
+      get => _filterPhrasePerceptionInput;
+      set { _filterPhrasePerceptionInput = value ?? string.Empty; OnPropertyChanged(nameof(FilterPhrasePerceptionInput)); }
+    }
+
+    public string FilterPhraseInput
+    {
+      get => _filterPhraseInput;
+      set { _filterPhraseInput = value ?? string.Empty; OnPropertyChanged(nameof(FilterPhraseInput)); }
+    }
+
+    public ICommand ApplyFiltersCommand { get; }
+
     public bool IsCloningInProgress
     {
       get => _isCloningInProgress;
@@ -289,9 +417,19 @@ namespace AIStudio.ViewModels
       }
     }
 
+    private void RefreshDisplay()
+    {
+      var filtered = _allAutomatizms.Where(FilterAutomatizms).ToList();
+      int take = SelectedPageSize ?? int.MaxValue;
+      _displayAutomatizms.Clear();
+      foreach (var item in filtered.Take(take))
+        _displayAutomatizms.Add(item);
+      OnPropertyChanged(nameof(DisplayCountText));
+    }
+
     private void ApplyFilters()
     {
-      _automatizmsView.Refresh();
+      RefreshDisplay();
     }
 
     private void ClearFilters(object parameter = null)
@@ -300,6 +438,13 @@ namespace AIStudio.ViewModels
       SelectedLevel2Filter = null;
       SelectedUsefulnessFilter = null;
       SelectedBeliefFilter = null;
+      SelectedPerceptionActionFilterId = 0;
+      SelectedActionFilterId = 0;
+      FilterPhrasePerception = string.Empty;
+      FilterPhrase = string.Empty;
+      FilterPhrasePerceptionInput = string.Empty;
+      FilterPhraseInput = string.Empty;
+      RefreshDisplay();
     }
 
     #endregion
@@ -314,25 +459,15 @@ namespace AIStudio.ViewModels
             Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData),
             "ISIDA", "BootData");
 
-        var dialog = new AutomatizmLoadDialog(_gomeostas, bootDataFolder)
+        var dialog = new AutomatizmLoadDialog(_gomeostas, bootDataFolder, _automatizmFileLoader)
         {
           Owner = Application.Current.MainWindow
         };
 
         if (dialog.ShowDialog() == true && dialog.SelectedBaseState.HasValue)
         {
-          // Файл уже мог быть изменен через редактор в диалоге
-          int chainsLoaded = _automatizmFileLoader.LoadFromFile(
-              dialog.SelectedBaseState.Value,
-              dialog.SelectedStyleIds ?? new List<int>());
-
+          // Загрузка выполнена в диалоге с индикацией
           RefreshAllCollections();
-
-          MessageBox.Show(
-              $"Автоматизмы загружены.\nОбработано цепочек: {chainsLoaded}",
-              "Загрузка завершена",
-              MessageBoxButton.OK,
-              MessageBoxImage.Information);
         }
       }
       catch (ObjectDisposedException)
@@ -444,6 +579,27 @@ namespace AIStudio.ViewModels
             }
           }
 
+          string automatizmPhraseText = string.Empty;
+          if (actionsImage?.PhraseIdList != null && actionsImage.PhraseIdList.Any())
+          {
+            try
+            {
+              var phraseTexts = new List<string>();
+              foreach (var phraseId in actionsImage.PhraseIdList)
+              {
+                string phraseText = _sensorySystem.VerbalChannel.GetPhraseFromPhraseId(phraseId);
+                if (!string.IsNullOrEmpty(phraseText))
+                  phraseTexts.Add(phraseText);
+              }
+              if (phraseTexts.Any())
+                automatizmPhraseText = string.Join(" ", phraseTexts);
+            }
+            catch (Exception ex)
+            {
+              Logger.Error($"Ошибка получения фразы образа действия: {ex.Message}");
+            }
+          }
+
           // Определяем информацию о цепочке для этого узла дерева
           string chainInfo = string.Empty;
           int chainId = 0;
@@ -502,6 +658,7 @@ namespace AIStudio.ViewModels
             InfluenceActionsText = GetInfluenceActionsText(influenceActionIds),
             ToneMoodText = toneMoodText,
             VerbalText = verbalText,
+            AutomatizmPhraseText = automatizmPhraseText,
 
             ActionsImageDisplay = actionsImage != null ? new ActionsImageDisplay
             {
@@ -515,6 +672,7 @@ namespace AIStudio.ViewModels
           _allAutomatizms.Add(displayItem);
         }
 
+        RefreshDisplay();
         LoadLevel2FilterOptions();
 
         OnPropertyChanged(nameof(IsStageTwoOrHigher));
@@ -707,6 +865,7 @@ namespace AIStudio.ViewModels
         {
           if (_allAutomatizms.Contains(automatizm))
             _allAutomatizms.Remove(automatizm);
+          RefreshDisplay();
 
           if (automatizm.ID > 0)
           {
@@ -755,6 +914,7 @@ namespace AIStudio.ViewModels
           if (success)
           {
             _allAutomatizms.Clear();
+            RefreshDisplay();
 
             var (saveSuccess, error) = _automatizmSystem.SaveAutomatizm();
             if (saveSuccess)
@@ -966,6 +1126,8 @@ namespace AIStudio.ViewModels
       public string InfluenceActionsText { get; set; }
       public string ToneMoodText { get; set; }
       public string VerbalText { get; set; }
+      /// <summary>Текст фраз образа действия автоматизма (для фильтра «Фраза автоматизма»).</summary>
+      public string AutomatizmPhraseText { get; set; }
 
       // Информация о цепочке (если есть)
       public string ChainInfo { get; set; }

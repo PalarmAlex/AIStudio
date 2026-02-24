@@ -1,14 +1,16 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Input;
 using System.Windows.Media;
 using ISIDA.Gomeostas;
 using ISIDA.Common;
+using ISIDA.Psychic.Automatism;
 using AIStudio.ViewModels;
 
 namespace AIStudio.Dialogs
@@ -19,12 +21,13 @@ namespace AIStudio.Dialogs
 
     public AutomatizmLoadDialog(
         GomeostasSystem gomeostasSystem,
-        string bootDataFolder)
+        string bootDataFolder,
+        AutomatizmFileLoader automatizmFileLoader = null)
     {
       InitializeComponent();
 
       // Создаем ViewModel
-      ViewModel = new AutomatizmLoadDialogViewModel(gomeostasSystem, bootDataFolder);
+      ViewModel = new AutomatizmLoadDialogViewModel(gomeostasSystem, bootDataFolder, automatizmFileLoader ?? AutomatizmFileLoader.Instance);
 
       // Устанавливаем DataContext
       DataContext = ViewModel;
@@ -53,9 +56,10 @@ namespace AIStudio.Dialogs
 
     private void Window_Loaded(object sender, RoutedEventArgs e)
     {
-      // Автоматически загружаем содержимое CSV и промпта при загрузке окна
+      // Автоматически загружаем содержимое CSV и промптов при загрузке окна
       ViewModel.LoadCsvContent();
       ViewModel.LoadPromptContent();
+      ViewModel.LoadPrompt1Content();
     }
   }
 
@@ -67,8 +71,20 @@ namespace AIStudio.Dialogs
 
     private readonly GomeostasSystem _gomeostasSystem;
     private readonly string _bootDataFolder;
+    private readonly AutomatizmFileLoader _automatizmFileLoader;
 
     public Action<bool, int?, List<int>> CloseAction { get; set; }
+
+    private bool _isBusy;
+    public bool IsBusy
+    {
+      get => _isBusy;
+      set
+      {
+        _isBusy = value;
+        OnPropertyChanged(nameof(IsBusy));
+      }
+    }
 
     // Команды
     public RelayCommand LoadStylesCommand { get; }
@@ -77,11 +93,13 @@ namespace AIStudio.Dialogs
     public RelayCommand SaveCsvCommand { get; }
     public RelayCommand ValidateCsvCommand { get; }
     public RelayCommand SavePromptCommand { get; }
+    public RelayCommand SavePrompt1Command { get; }
 
-    public AutomatizmLoadDialogViewModel(GomeostasSystem gomeostasSystem, string bootDataFolder)
+    public AutomatizmLoadDialogViewModel(GomeostasSystem gomeostasSystem, string bootDataFolder, AutomatizmFileLoader automatizmFileLoader)
     {
       _gomeostasSystem = gomeostasSystem;
       _bootDataFolder = bootDataFolder;
+      _automatizmFileLoader = automatizmFileLoader;
 
       // Инициализация команд
       LoadStylesCommand = new RelayCommand(ExecuteGenerateStyles);
@@ -90,6 +108,7 @@ namespace AIStudio.Dialogs
       SaveCsvCommand = new RelayCommand(ExecuteSaveCsv, CanExecuteSaveCsv);
       ValidateCsvCommand = new RelayCommand(ExecuteValidateCsv);
       SavePromptCommand = new RelayCommand(ExecuteSavePrompt, CanExecuteSavePrompt);
+      SavePrompt1Command = new RelayCommand(ExecuteSavePrompt1, CanExecuteSavePrompt1);
 
       // Базовые состояния
       BaseStates = new List<KeyValuePair<int, string>>
@@ -104,9 +123,10 @@ namespace AIStudio.Dialogs
       // Загружаем комбинации стилей
       LoadStyleCombinations();
 
-      // Загружаем содержимое CSV и промпта
+      // Загружаем содержимое CSV и промптов
       LoadCsvContent();
       LoadPromptContent();
+      LoadPrompt1Content();
     }
 
     #region CSV Properties
@@ -118,7 +138,7 @@ namespace AIStudio.Dialogs
       {
         if (string.IsNullOrEmpty(_filePath))
         {
-          _filePath = Path.Combine(_bootDataFolder, "automatizm_generate_list_1.csv");
+          _filePath = Path.Combine(_bootDataFolder, "automatizm_generate_list.csv");
         }
         return _filePath;
       }
@@ -143,6 +163,33 @@ namespace AIStudio.Dialogs
 
     #region Prompt Properties
 
+    private string _promptFilePath1;
+    public string PromptFilePath1
+    {
+      get
+      {
+        if (string.IsNullOrEmpty(_promptFilePath1))
+        {
+          _promptFilePath1 = Path.Combine(_bootDataFolder, "prompt_automatizm_generate_list_1.txt");
+        }
+        return _promptFilePath1;
+      }
+    }
+
+    private string _promptContent1;
+    public string PromptContent1
+    {
+      get => _promptContent1;
+      set
+      {
+        _promptContent1 = value;
+        OnPropertyChanged(nameof(PromptContent1));
+        SavePrompt1Command?.RaiseCanExecuteChanged();
+      }
+    }
+
+    public bool IsPrompt1EditingEnabled => !string.IsNullOrEmpty(PromptFilePath1) && File.Exists(PromptFilePath1);
+
     private string _promptFilePath;
     public string PromptFilePath
     {
@@ -150,7 +197,7 @@ namespace AIStudio.Dialogs
       {
         if (string.IsNullOrEmpty(_promptFilePath))
         {
-          _promptFilePath = Path.Combine(_bootDataFolder, "prompt_automatizm_generate_list_1.txt");
+          _promptFilePath = Path.Combine(_bootDataFolder, "prompt_automatizm_generate_list_2.txt");
         }
         return _promptFilePath;
       }
@@ -305,6 +352,11 @@ namespace AIStudio.Dialogs
       return !string.IsNullOrWhiteSpace(PromptContent) && File.Exists(PromptFilePath);
     }
 
+    private bool CanExecuteSavePrompt1(object parameter)
+    {
+      return !string.IsNullOrWhiteSpace(PromptContent1) && File.Exists(PromptFilePath1);
+    }
+
     #endregion
 
     #region Helper Methods
@@ -439,6 +491,25 @@ namespace AIStudio.Dialogs
       }
     }
 
+    public void LoadPrompt1Content()
+    {
+      try
+      {
+        if (File.Exists(PromptFilePath1))
+        {
+          PromptContent1 = File.ReadAllText(PromptFilePath1, Encoding.UTF8);
+        }
+        else
+        {
+          PromptContent1 = string.Empty;
+        }
+      }
+      catch (Exception ex)
+      {
+        PromptContent1 = $"# Ошибка загрузки промпта: {ex.Message}";
+      }
+    }
+
     #endregion
 
     #region Command Executions
@@ -496,6 +567,11 @@ namespace AIStudio.Dialogs
 
     private void ExecuteSaveCsv(object parameter)
     {
+      ExecuteSaveCsvInternal(suppressSuccessMessage: false);
+    }
+
+    private void ExecuteSaveCsvInternal(bool suppressSuccessMessage)
+    {
       try
       {
         // Проверяем наличие разделителей, но не блокируем сохранение
@@ -517,8 +593,11 @@ namespace AIStudio.Dialogs
         Directory.CreateDirectory(_bootDataFolder);
 
         File.WriteAllText(FilePath, CsvContent, Encoding.UTF8);
-        MessageBox.Show("Файл успешно сохранен", "Сохранение",
-            MessageBoxButton.OK, MessageBoxImage.Information);
+        if (!suppressSuccessMessage)
+        {
+          MessageBox.Show("Файл успешно сохранен", "Сохранение",
+              MessageBoxButton.OK, MessageBoxImage.Information);
+        }
 
         // Обновляем состояние команд
         ApplyCommand?.RaiseCanExecuteChanged();
@@ -671,15 +750,45 @@ namespace AIStudio.Dialogs
       }
     }
 
-    private void ExecuteApply(object parameter)
+    private void ExecuteSavePrompt1(object parameter)
     {
-      // Перед применением сохраняем изменения в файл, если они были
-      if (CanExecuteSaveCsv(null))
+      try
       {
-        ExecuteSaveCsv(null);
+        Directory.CreateDirectory(_bootDataFolder);
+
+        File.WriteAllText(PromptFilePath1, PromptContent1, Encoding.UTF8);
+        MessageBox.Show("Промпт успешно сохранен", "Сохранение",
+            MessageBoxButton.OK, MessageBoxImage.Information);
+      }
+      catch (Exception ex)
+      {
+        MessageBox.Show($"Ошибка сохранения промпта: {ex.Message}", "Ошибка",
+            MessageBoxButton.OK, MessageBoxImage.Error);
+      }
+    }
+
+    private async void ExecuteApply(object parameter)
+    {
+      // Автосохранение данных вкладки «Редактирование CSV» в файл перед применением (в т.ч. если файла ещё нет)
+      if (!string.IsNullOrWhiteSpace(CsvContent) && !string.IsNullOrWhiteSpace(FilePath))
+      {
+        ExecuteSaveCsvInternal(suppressSuccessMessage: true);
       }
 
-      CloseAction?.Invoke(true, SelectedBaseState, SelectedStyleIds ?? new List<int>());
+      IsBusy = true;
+      try
+      {
+        var baseState = SelectedBaseState.Value;
+        var styleIds = SelectedStyleIds ?? new List<int>();
+        await Task.Run(() => _automatizmFileLoader.LoadFromFile(baseState, styleIds));
+        CloseAction?.Invoke(true, baseState, styleIds);
+      }
+      catch (Exception ex)
+      {
+        IsBusy = false;
+        MessageBox.Show($"Ошибка загрузки: {ex.Message}", "Ошибка",
+            MessageBoxButton.OK, MessageBoxImage.Error);
+      }
     }
 
     private void ExecuteCancel(object parameter)

@@ -21,9 +21,9 @@ namespace AIStudio.Converters
         double normalized = Math.Min(1.0, (double)significance / 30.0);
 
         // Увеличиваем диапазон размеров
-        return 16 + normalized * 12;
+        return 14 + normalized * 10;
       }
-      return 16;
+      return 14;
     }
 
     public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)

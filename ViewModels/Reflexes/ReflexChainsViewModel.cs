@@ -25,7 +25,40 @@ namespace AIStudio.ViewModels
     private readonly AdaptiveActionsSystem _actionsSystem;
 
     private readonly ObservableCollection<ChainDisplayItem> _allChains = new ObservableCollection<ChainDisplayItem>();
+    private readonly ObservableCollection<ChainDisplayItem> _displayChains = new ObservableCollection<ChainDisplayItem>();
     private readonly Dictionary<int, string> _actionNameById = new Dictionary<int, string>();
+
+    public List<KeyValuePair<int?, string>> PageSizeOptions { get; } = new List<KeyValuePair<int?, string>>
+    {
+      new KeyValuePair<int?, string>(100, "100"),
+      new KeyValuePair<int?, string>(500, "500"),
+      new KeyValuePair<int?, string>(1000, "1000"),
+      new KeyValuePair<int?, string>(5000, "5000"),
+      new KeyValuePair<int?, string>(10000, "10000"),
+      new KeyValuePair<int?, string>(null, "Все")
+    };
+
+    private int? _selectedPageSize = 100;
+    public int? SelectedPageSize
+    {
+      get => _selectedPageSize;
+      set
+      {
+        _selectedPageSize = value;
+        OnPropertyChanged(nameof(SelectedPageSize));
+        RefreshDisplay();
+      }
+    }
+
+    public string DisplayCountText
+    {
+      get
+      {
+        int filtered = _allChains.Count(FilterChains);
+        int shown = Math.Min(filtered, SelectedPageSize ?? int.MaxValue);
+        return filtered == shown ? $"Показано: {shown}" : $"Показано: {shown} из {filtered}";
+      }
+    }
 
     private string _filterReflexId;
     private string _filterChainId;
@@ -89,8 +122,7 @@ namespace AIStudio.ViewModels
       _reflexesSystem = reflexesSystem ?? throw new ArgumentNullException(nameof(reflexesSystem));
       _actionsSystem = actionsSystem ?? throw new ArgumentNullException(nameof(actionsSystem));
 
-      ChainsView = CollectionViewSource.GetDefaultView(_allChains);
-      ChainsView.Filter = FilterChains;
+      ChainsView = CollectionViewSource.GetDefaultView(_displayChains);
 
       ClearFiltersCommand = new RelayCommand(ClearFilters);
 
@@ -187,6 +219,18 @@ namespace AIStudio.ViewModels
       {
         Logger.Error(ex.Message);
       }
+
+      RefreshDisplay();
+    }
+
+    private void RefreshDisplay()
+    {
+      var filtered = _allChains.Where(FilterChains).ToList();
+      int take = SelectedPageSize ?? int.MaxValue;
+      _displayChains.Clear();
+      foreach (var item in filtered.Take(take))
+        _displayChains.Add(item);
+      OnPropertyChanged(nameof(DisplayCountText));
     }
 
     private string GetActionText(int actionId)
@@ -237,7 +281,7 @@ namespace AIStudio.ViewModels
 
     private void ApplyFilters()
     {
-      ChainsView.Refresh();
+      RefreshDisplay();
     }
 
     private void ClearFilters(object parameter = null)

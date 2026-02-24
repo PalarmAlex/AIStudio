@@ -1,4 +1,4 @@
-﻿<UserControl x:Class="AIStudio.Pages.Reflexes.GeneticReflexesView"
+<UserControl x:Class="AIStudio.Pages.Reflexes.GeneticReflexesView"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
@@ -158,6 +158,18 @@
                     DisplayMemberPath="Value"
                     SelectedValuePath="Key"
                     Height="25"/>
+        </StackPanel>
+
+        <!-- Записей на страницу -->
+        <StackPanel Orientation="Vertical" Margin="0,0,15,0" Width="130">
+          <TextBlock Text="Записей на страницу" FontSize="12" Margin="0,0,0,2"/>
+          <ComboBox Style="{StaticResource AgentComboBoxStyle}"
+                    ItemsSource="{Binding PageSizeOptions}"
+                    SelectedValue="{Binding SelectedPageSize}"
+                    DisplayMemberPath="Value"
+                    SelectedValuePath="Key"
+                    Height="25"
+                    ToolTip="Ограничить количество отображаемых записей"/>
         </StackPanel>
 
         <!-- Кнопка сброса фильтров -->
@@ -332,8 +344,12 @@
         <ColumnDefinition Width="Auto"/>
       </Grid.ColumnDefinitions>
 
-      <!-- Левая часть - текст предупреждения и кнопка генерации -->
+      <!-- Левая часть - счётчик, кнопка генерации и текст предупреждения -->
       <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
+        <TextBlock Text="{Binding DisplayCountText}"
+                   Margin="0,0,15,0"
+                   VerticalAlignment="Center"
+                   FontWeight="SemiBold"/>
         <!-- Кнопка генерации -->
         <Button Content="Сгенерировать рефлексы"
                     Command="{Binding GenerateReflexesCommand}"
