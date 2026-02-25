@@ -40,6 +40,7 @@ namespace AIStudio.ViewModels
   public class AgentViewModel : INotifyPropertyChanged
   {
     private readonly GomeostasSystem _gomeostas;
+    private readonly Action _onCancelWaitingPeriod;
     public GomeostasSystem Gomeostas => _gomeostas;
     private ICommand _updateCommand;
     public ICommand UpdateCommand => _updateCommand ?? (_updateCommand = new RelayCommand(_ => UpdateAgentProperties(), _ => !IsAgentDead));
@@ -382,9 +383,10 @@ namespace AIStudio.ViewModels
         ? Brushes.Black
         : AppConfig.GetBaseStateColor((int)(CurrentHomeostasisState?.OverallState ?? HomeostasisOverallState.Normal));
 
-    public AgentViewModel(GomeostasSystem gomeostas)
+    public AgentViewModel(GomeostasSystem gomeostas, Action onCancelWaitingPeriod = null)
     {
       _gomeostas = gomeostas;
+      _onCancelWaitingPeriod = onCancelWaitingPeriod;
       _previousStage = _gomeostas.GetAgentState().EvolutionStage;
       AgentProperties = new ObservableCollection<AgentProperty>();
       ParametersViewModel = new AgentParametersViewModel(_gomeostas);
@@ -633,7 +635,10 @@ namespace AIStudio.ViewModels
       {
         if (AppGlobalState.WaitingForOperatorEvaluation)
         {
-          AppGlobalState.ForceStopWaitingForOperatorEvaluation();
+          if (_onCancelWaitingPeriod != null)
+            _onCancelWaitingPeriod();
+          else
+            AppGlobalState.ForceStopWaitingForOperatorEvaluation();
           UpdateWaitingPeriodDisplay();
 
           Logger.Info("Период ожидания оценки оператора отменен пользователем");

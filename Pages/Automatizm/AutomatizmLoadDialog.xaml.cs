@@ -157,7 +157,7 @@ namespace AIStudio.Dialogs
       }
     }
 
-    public bool IsEditingEnabled => !string.IsNullOrEmpty(FilePath) && File.Exists(FilePath);
+    public bool IsEditingEnabled => true;
 
     #endregion
 
@@ -324,9 +324,7 @@ namespace AIStudio.Dialogs
         SelectedBaseState.HasValue &&
         SelectedStyleIds != null &&
         SelectedStyleIds.Count > 0 &&
-        File.Exists(FilePath) &&
-        !string.IsNullOrWhiteSpace(CsvContent) &&
-        HasValidSeparators();
+        !string.IsNullOrWhiteSpace(CsvContent);
 
     public bool ShowSelectionWarning =>
         !SelectedBaseState.HasValue ||
@@ -344,7 +342,7 @@ namespace AIStudio.Dialogs
 
     private bool CanExecuteSaveCsv(object parameter)
     {
-      return !string.IsNullOrWhiteSpace(CsvContent) && File.Exists(FilePath);
+      return !string.IsNullOrWhiteSpace(CsvContent);
     }
 
     private bool CanExecuteSavePrompt(object parameter)
@@ -769,10 +767,12 @@ namespace AIStudio.Dialogs
 
     private async void ExecuteApply(object parameter)
     {
-      // Автосохранение данных вкладки «Редактирование CSV» в файл перед применением (в т.ч. если файла ещё нет)
-      if (!string.IsNullOrWhiteSpace(CsvContent) && !string.IsNullOrWhiteSpace(FilePath))
+      var content = CsvContent?.Trim();
+      if (string.IsNullOrEmpty(content))
       {
-        ExecuteSaveCsvInternal(suppressSuccessMessage: true);
+        MessageBox.Show("Введите текст цепочек во вкладке «Текст цепочек».", "Нет данных",
+            MessageBoxButton.OK, MessageBoxImage.Warning);
+        return;
       }
 
       IsBusy = true;
@@ -780,13 +780,19 @@ namespace AIStudio.Dialogs
       {
         var baseState = SelectedBaseState.Value;
         var styleIds = SelectedStyleIds ?? new List<int>();
-        await Task.Run(() => _automatizmFileLoader.LoadFromFile(baseState, styleIds));
+        await Task.Run(() => _automatizmFileLoader.LoadFromContent(content, baseState, styleIds));
         CloseAction?.Invoke(true, baseState, styleIds);
+      }
+      catch (ArgumentException ex)
+      {
+        IsBusy = false;
+        MessageBox.Show(ex.Message, "Ошибка валидации",
+            MessageBoxButton.OK, MessageBoxImage.Warning);
       }
       catch (Exception ex)
       {
         IsBusy = false;
-        MessageBox.Show($"Ошибка загрузки: {ex.Message}", "Ошибка",
+        MessageBox.Show($"Ошибка: {ex.Message}", "Ошибка",
             MessageBoxButton.OK, MessageBoxImage.Error);
       }
     }

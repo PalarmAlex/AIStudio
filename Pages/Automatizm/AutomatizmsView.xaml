@@ -449,12 +449,12 @@
       Cursor="Hand"
       ToolTip="Создать автоматизмы на основе всех условных рефлексов"/>
 
-        <!-- Загрузить из файла -->
-        <Button Content="Загрузить из файла"
+        <!-- Создать по цепочкам -->
+        <Button Content="Создать по цепочкам"
         Command="{Binding LoadFromFileCommand}"
         IsEnabled="{Binding IsLoadFromFileEnabled}"
         Style="{StaticResource AgentButtonStyle}"
-        ToolTip="Загрузить автоматизмы из файла *.csv"
+        ToolTip="Открыть окно создания автоматизмов по введённому тексту цепочек диалога"
         Margin="0,0,5,0"/>
 
         <!-- Текст предупреждения -->

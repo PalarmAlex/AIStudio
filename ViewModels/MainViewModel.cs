@@ -884,7 +884,7 @@ namespace AIStudio
     private void OpenAgent()
     {
       var agentView = new AgentView();
-      _agentViewModel = new AgentViewModel(_gomeostas);
+      _agentViewModel = new AgentViewModel(_gomeostas, () => _isidaContext.CancelWaitingPeriodAndResetMirror());
       agentView.DataContext = _agentViewModel;
       CurrentContent = agentView;
       UpdateAgentState();
@@ -1251,7 +1251,7 @@ namespace AIStudio
       {
         if (AppGlobalState.WaitingForOperatorEvaluation)
         {
-          AppGlobalState.ForceStopWaitingForOperatorEvaluation();
+          _isidaContext.CancelWaitingPeriodAndResetMirror();
           ShowWaitingPeriod = false;
           IsWaitingPeriodPulsating = false;
 

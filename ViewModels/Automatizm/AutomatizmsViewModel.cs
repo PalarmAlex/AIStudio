@@ -177,12 +177,13 @@ namespace AIStudio.ViewModels
       }
     }
 
+    /// <summary>Загрузка из файла доступна только на третьей стадии развития (EvolutionStage == 3).</summary>
     public bool IsLoadFromFileEnabled
     {
       get
       {
         return !IsLoadingInProgress &&
-               _currentAgentStage == 2 &&
+               _currentAgentStage == 3 &&
                !GlobalTimer.IsPulsationRunning &&
                PsychicSystem.IsInitialized;
       }
@@ -254,6 +255,8 @@ namespace AIStudio.ViewModels
       {
         OnPropertyChanged(nameof(IsStageTwoOrHigher));
         OnPropertyChanged(nameof(IsDeletionEnabled));
+        OnPropertyChanged(nameof(IsLoadFromFileEnabled));
+        ((RelayCommand)LoadFromFileCommand)?.RaiseCanExecuteChanged();
         OnPropertyChanged(nameof(PulseWarningMessage));
         OnPropertyChanged(nameof(WarningMessageColor));
         ((RelayCommand)SaveCommand)?.RaiseCanExecuteChanged();
@@ -512,22 +515,6 @@ namespace AIStudio.ViewModels
         _influenceActionsImagesCache.Clear();
         _emotionImageCache.Clear();
 
-        Dictionary<int, AutomatizmChainsSystem.AutomatizmChain> treeNodeToChainMap = new Dictionary<int, AutomatizmChainsSystem.AutomatizmChain>();
-        Dictionary<int, List<AutomatizmChainsSystem.ChainLink>> chainLinksMap = new Dictionary<int, List<AutomatizmChainsSystem.ChainLink>>();
-
-        if (AutomatizmChainsSystem.IsInitialized)
-        {
-          var allChains = AutomatizmChainsSystem.Instance.GetAllAutomatizmChains();
-          foreach (var chain in allChains.Values)
-          {
-            if (chain.TreeNodeId > 0)
-            {
-              treeNodeToChainMap[chain.TreeNodeId] = chain;
-              chainLinksMap[chain.ID] = chain.Links?.ToList() ?? new List<AutomatizmChainsSystem.ChainLink>();
-            }
-          }
-        }
-
         foreach (var automatizm in _automatizmSystem.GetAllAutomatizms().OrderBy(a => a.ID))
         {
           var treeNode = GetTreeNode(automatizm.BranchID);
@@ -600,29 +587,22 @@ namespace AIStudio.ViewModels
             }
           }
 
-          // Определяем информацию о цепочке для этого узла дерева
+          // Цепочка запускается по NextID в записи автоматизма; отображаем именно его
+          int chainId = automatizm.NextID;
           string chainInfo = string.Empty;
-          int chainId = 0;
-
-          if (treeNode != null && treeNodeToChainMap.ContainsKey(treeNode.ID))
+          if (chainId > 0 && AutomatizmChainsSystem.IsInitialized)
           {
-            var chain = treeNodeToChainMap[treeNode.ID];
-            chainId = chain.ID;
-
-            // Формируем информацию о цепочке
-            if (chainLinksMap.ContainsKey(chainId))
+            var chain = AutomatizmChainsSystem.Instance.GetChain(chainId);
+            if (chain != null)
             {
-              var links = chainLinksMap[chainId];
+              var links = chain.Links ?? new List<AutomatizmChainsSystem.ChainLink>();
               var linkCount = links.Count;
-              var linkDescriptions = links.Take(3).Select(l => l.Description ?? $"Звено {l.ID}");
-
               chainInfo = $"Цепочка {chainId}: {linkCount} звеньев";
-              if (chain.Name?.Length > 0)
+              if (!string.IsNullOrEmpty(chain.Name))
                 chainInfo = $"{chain.Name} ({chainInfo})";
-
-              // Добавляем описание первого звена для tooltip
               if (links.Any())
               {
+                var linkDescriptions = links.Take(3).Select(l => l.Description ?? $"Звено {l.ID}");
                 chainInfo += $"\nПервые звенья: {string.Join(" → ", linkDescriptions)}";
                 if (linkCount > 3)
                   chainInfo += $" ... и еще {linkCount - 3}";
@@ -677,6 +657,8 @@ namespace AIStudio.ViewModels
 
         OnPropertyChanged(nameof(IsStageTwoOrHigher));
         OnPropertyChanged(nameof(IsDeletionEnabled));
+        OnPropertyChanged(nameof(IsLoadFromFileEnabled));
+        ((RelayCommand)LoadFromFileCommand)?.RaiseCanExecuteChanged();
         OnPropertyChanged(nameof(PulseWarningMessage));
         OnPropertyChanged(nameof(WarningMessageColor));
         OnPropertyChanged(nameof(CurrentAgentTitle));
