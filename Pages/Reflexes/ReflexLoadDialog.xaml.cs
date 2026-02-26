@@ -92,7 +92,7 @@ namespace AIStudio.Dialogs
     }
 
     private string _promptFilePath;
-    public string PromptFilePath => _promptFilePath ?? (_promptFilePath = Path.Combine(_bootDataFolder, "prompt_reflex_generate.txt"));
+    public string PromptFilePath => _promptFilePath ?? (_promptFilePath = Path.Combine(_bootDataFolder, "prompt_genetic_reflex_generate.txt"));
 
     private string _promptContent;
     public string PromptContent

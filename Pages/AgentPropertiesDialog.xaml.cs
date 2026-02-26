@@ -43,6 +43,72 @@ namespace AIStudio.Pages
       ComboStage.ItemsSource = stages;
     }
 
+    private void ComboStage_SelectionChanged(object sender, SelectionChangedEventArgs e)
+    {
+      if (e.AddedItems.Count == 0) return;
+
+      int newStage = (e.AddedItems[0] as EvolutionStageItem)?.StageNumber ?? 0;
+      var state = _gomeostas.GetAgentState();
+      if (state == null) return;
+      int currentStage = state.EvolutionStage;
+
+      if (newStage == currentStage) return;
+
+      if (newStage > currentStage + 1)
+      {
+        MessageBox.Show(
+          "Недопустимый переход! Можно переходить только на следующую стадию.",
+          "Ошибка",
+          MessageBoxButton.OK,
+          MessageBoxImage.Warning);
+        ComboStage.Dispatcher.InvokeAsync(() => { ComboStage.SelectedValue = currentStage; });
+        return;
+      }
+
+      bool isBackward = newStage < currentStage;
+      string title = isBackward ? "ВНИМАНИЕ: Возврат на предыдущую стадию" : "Подтверждение перехода";
+      string message = isBackward
+        ? $"Возврат на стадию {newStage} очистит все данные последующих стадий. Продолжить?"
+        : $"Перейти со стадии {currentStage} на стадию {newStage}?";
+
+      var result = MessageBox.Show(message, title,
+        MessageBoxButton.YesNo,
+        isBackward ? MessageBoxImage.Warning : MessageBoxImage.Question);
+
+      if (result != MessageBoxResult.Yes)
+      {
+        ComboStage.Dispatcher.InvokeAsync(() => { ComboStage.SelectedValue = currentStage; });
+        return;
+      }
+
+      var stageResult = _gomeostas.SetEvolutionStage(newStage, isBackward, false);
+
+      if (stageResult.Success)
+      {
+        LoadData();
+
+        var (saveSuccess, error) = _gomeostas.SaveAgentProperties();
+        if (!saveSuccess)
+        {
+          MessageBox.Show($"Ошибка сохранения: {error}",
+            "Предупреждение",
+            MessageBoxButton.OK,
+            MessageBoxImage.Warning);
+        }
+        if (stageResult.Success && saveSuccess)
+          MessageBox.Show(stageResult.Message,
+            "Изменение стадии развития агента",
+            MessageBoxButton.OK,
+            MessageBoxImage.Information);
+      }
+      else
+      {
+        MessageBox.Show(stageResult.Message, "Ошибка",
+          MessageBoxButton.OK, MessageBoxImage.Error);
+        ComboStage.Dispatcher.InvokeAsync(() => { ComboStage.SelectedValue = currentStage; });
+      }
+    }
+
     private void LoadData()
     {
       var state = _gomeostas.GetAgentState();
@@ -269,7 +335,7 @@ namespace AIStudio.Pages
           "ISIDA", "BootData");
         if (!System.IO.Directory.Exists(bootDataPath))
           System.IO.Directory.CreateDirectory(bootDataPath);
-        var filePath = System.IO.Path.Combine(bootDataPath, "AgentUnconditionalReflexPrompt.txt");
+        var filePath = System.IO.Path.Combine(bootDataPath, "prompt_genetic_reflex_generate.txt");
         System.IO.File.WriteAllText(filePath, content, System.Text.Encoding.UTF8);
         MessageBox.Show($"Файл промпта сохранён:\n{filePath}", "Промпт для ИИ", MessageBoxButton.OK, MessageBoxImage.Information);
       }
@@ -296,39 +362,41 @@ namespace AIStudio.Pages
 
       var text = template;
 
-      // [stileCombination] — из LoadStyleCombinations (как в AutomatizmLoadDialog)
-      var styleCombinationLines = new List<string>();
+      // [stileCombination] — тот же перечень комбинаций, что в StyleCombinations.comb (используется для подстановок). Загружаем из файла — один источник данных.
+      var styleCombinationStrings = new List<string>();
       try
       {
         var combinations = _gomeostas.LoadStyleCombinations();
-        foreach (var combo in combinations.OrderBy(c => c.Count))
+        foreach (var combo in combinations)
         {
-          var styleNames = combo.Select(s => s.Name).ToList();
-          styleCombinationLines.Add($"[{combo.Count}]: {string.Join(" + ", styleNames)}");
+          var names = combo
+            .Where(s => !string.IsNullOrWhiteSpace(s.Name))
+            .Select(s => s.Name.Trim())
+            .ToList();
+          if (names.Count > 0)
+            styleCombinationStrings.Add(string.Join("+", names));
         }
       }
       catch { /* игнорируем ошибки загрузки */ }
-      text = text.Replace("[stileCombination]", string.Join(Environment.NewLine, styleCombinationLines));
+      text = text.Replace("[stileCombination]", string.Join(", ", styleCombinationStrings));
 
-      // [AdaptiveActionList] — список адаптивных действий
-      var adaptiveListLines = new List<string>();
+      // [AdaptiveActionList] — названия адаптивных действий через запятую
+      var adaptiveNames = new List<string>();
       if (AdaptiveActionsSystem.IsInitialized)
       {
         var actions = AdaptiveActionsSystem.Instance.GetAllAdaptiveActions();
-        foreach (var a in actions.OrderBy(x => x.Id))
-          adaptiveListLines.Add($"{a.Id}: {a.Name}");
+        adaptiveNames = actions.OrderBy(x => x.Id).Select(a => a.Name).Where(n => !string.IsNullOrWhiteSpace(n)).ToList();
       }
-      text = text.Replace("[AdaptiveActionList]", string.Join(Environment.NewLine, adaptiveListLines));
+      text = text.Replace("[AdaptiveActionList]", string.Join(", ", adaptiveNames));
 
-      // [InfluenceActionList] — список воздействий с пульта
-      var influenceListLines = new List<string>();
+      // [InfluenceActionList] — названия воздействий с пульта через запятую
+      var influenceNames = new List<string>();
       if (InfluenceActionSystem.IsInitialized)
       {
         var influences = InfluenceActionSystem.Instance.GetAllInfluenceActions();
-        foreach (var i in influences.OrderBy(x => x.Id))
-          influenceListLines.Add($"{i.Id}: {i.Name}");
+        influenceNames = influences.OrderBy(x => x.Id).Select(i => i.Name).Where(n => !string.IsNullOrWhiteSpace(n)).ToList();
       }
-      text = text.Replace("[InfluenceActionList]", string.Join(Environment.NewLine, influenceListLines));
+      text = text.Replace("[InfluenceActionList]", string.Join(", ", influenceNames));
 
       return text;
     }

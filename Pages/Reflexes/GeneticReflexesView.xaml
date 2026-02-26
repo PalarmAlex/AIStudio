@@ -366,7 +366,7 @@
                    Margin="0,0,15,0"
                    VerticalAlignment="Center"
                    FontWeight="SemiBold"/>
-        <Button Content="Создать по тексту"
+        <Button Content="Создать по шаблону"
             Command="{Binding LoadFromFileCommand}"
             IsEnabled="{Binding IsLoadFromFileEnabled}"
             Style="{StaticResource AgentButtonStyle}"

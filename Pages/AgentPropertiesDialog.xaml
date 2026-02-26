@@ -6,147 +6,161 @@
         MinHeight="500" MinWidth="500">
   <Grid Margin="12">
     <Grid.RowDefinitions>
+      <RowDefinition Height="Auto"/>
+      <RowDefinition Height="Auto"/>
+      <RowDefinition Height="Auto"/>
+      <RowDefinition Height="Auto"/>
+      <RowDefinition Height="Auto"/>
+      <RowDefinition Height="Auto"/>
+      <RowDefinition Height="Auto"/>
       <RowDefinition Height="*"/>
       <RowDefinition Height="Auto"/>
     </Grid.RowDefinitions>
+    <Grid.ColumnDefinitions>
+      <ColumnDefinition Width="Auto"/>
+      <ColumnDefinition Width="*"/>
+      <ColumnDefinition Width="*"/>
+    </Grid.ColumnDefinitions>
 
-    <ScrollViewer Grid.Row="0" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
-      <StackPanel>
-        <!-- 1. Имя агента -->
-        <TextBlock Text="Имя агента:" Margin="0,4,0,2"/>
-        <TextBox x:Name="TextBoxAgentName" Margin="0,0,0,10" Padding="4,3"
-                 ToolTip="Уникальное имя агента, используется для идентификации в системе и генерации промптов."
-                 VerticalContentAlignment="Center"/>
+    <!-- Блок 1: Колонка 0 — 4 поля по строкам; Колонки 1–2 — Описание и Доп. пожелания на 4 строки -->
+    <StackPanel Grid.Row="0" Grid.Column="0" Margin="0,0,6,8">
+      <TextBlock Text="Имя агента:" Margin="0,4,0,2"/>
+      <TextBox x:Name="TextBoxAgentName" Padding="4,3"
+               ToolTip="Уникальное имя агента, используется для идентификации в системе и генерации промптов."
+               VerticalContentAlignment="Center"/>
+    </StackPanel>
+    <StackPanel Grid.Row="1" Grid.Column="0" Margin="0,0,6,8">
+      <TextBlock Text="Стадия развития:" Margin="0,4,0,2"/>
+      <ComboBox x:Name="ComboStage" Padding="4,3" MinWidth="120"
+                ToolTip="Текущая стадия развития агента, определяет доступные возможности и поведение."
+                DisplayMemberPath="StageNumber" SelectedValuePath="StageNumber"
+                SelectionChanged="ComboStage_SelectionChanged"/>
+    </StackPanel>
+    <StackPanel Grid.Row="2" Grid.Column="0" Margin="0,0,6,8">
+      <TextBlock Text="Особые триггеры:" Margin="0,4,0,2"/>
+      <ComboBox x:Name="ComboSpecialTriggers" Padding="4,3" IsEditable="True"
+                ToolTip="Факторы, которые могут вызвать нестабильность или неадекватную реакцию. Важно для ИИ при моделировании поведения."
+                LostFocus="ComboEditable_LostFocus"/>
+    </StackPanel>
+    <StackPanel Grid.Row="3" Grid.Column="0" Margin="0,0,6,8">
+      <TextBlock Text="Особые табу:" Margin="0,4,0,2"/>
+      <ComboBox x:Name="ComboSpecialTaboos" Padding="4,3" IsEditable="True"
+                ToolTip="Действия или ситуации, которых агент избегает даже в хорошем состоянии. Критически важно для избегания неконсистентного поведения."
+                LostFocus="ComboEditable_LostFocus"/>
+    </StackPanel>
 
-        <!-- 2. Описание агента -->
-        <TextBlock Text="Описание агента:" Margin="0,4,0,2"/>
-        <TextBox x:Name="TextBoxDescription" Margin="0,0,0,10" Padding="4,3"
-                 AcceptsReturn="True" TextWrapping="Wrap" Height="72"
-                 VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto"
-                 ToolTip="Развернутое описание характера, предыстории и особенностей агента. Будет использовано ИИ для понимания контекста."/>
+    <DockPanel Grid.Row="0" Grid.RowSpan="4" Grid.Column="1" Margin="6,0,6,8">
+      <TextBlock Text="Описание агента:" DockPanel.Dock="Top" Margin="0,4,0,2"/>
+      <TextBox x:Name="TextBoxDescription" Padding="4,3" MinHeight="60"
+               AcceptsReturn="True" TextWrapping="Wrap"
+               VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto"
+               ToolTip="Развернутое описание характера, предыстории и особенностей агента. Будет использовано ИИ для понимания контекста."/>
+    </DockPanel>
+    <DockPanel Grid.Row="0" Grid.RowSpan="4" Grid.Column="2" Margin="6,0,0,8">
+      <TextBlock Text="Дополнительные пожелания:" DockPanel.Dock="Top" Margin="0,4,0,2"/>
+      <TextBox x:Name="TextBoxAdditionalWishes" Padding="4,3" MinHeight="60"
+               AcceptsReturn="True" TextWrapping="Wrap"
+               VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto"
+               ToolTip="Дополнительные замечания, особенности или пожелания по поведению агента, которые нужно учесть при генерации."/>
+    </DockPanel>
 
-        <!-- 3. Стадия развития -->
-        <TextBlock Text="Стадия развития:" Margin="0,4,0,2"/>
-        <ComboBox x:Name="ComboStage" Margin="0,0,0,10" Padding="4,3" MinWidth="200"
-                  ToolTip="Текущая стадия развития агента, определяет доступные возможности и поведение."
-                  DisplayMemberPath="StageNumber" SelectedValuePath="StageNumber"/>
+    <!-- Строка 4: Базовый архетип, Ключевая мотивация, Социальность -->
+    <StackPanel Grid.Row="4" Grid.Column="0" Margin="0,0,6,8">
+      <TextBlock Text="Базовый архетип:" Margin="0,4,0,2"/>
+      <ComboBox x:Name="ComboBaseArchetype" Padding="4,3" IsEditable="True"
+                ToolTip="Базовый психологический архетип, определяющий фундаментальные паттерны поведения."
+                LostFocus="ComboEditable_LostFocus"/>
+    </StackPanel>
+    <StackPanel Grid.Row="4" Grid.Column="1" Margin="6,0,6,8">
+      <TextBlock Text="Ключевая мотивация:" Margin="0,4,0,2"/>
+      <ComboBox x:Name="ComboKeyMotivation" Padding="4,3" IsEditable="True"
+                ToolTip="Главный движущий мотив агента, определяет приоритеты в принятии решений."
+                LostFocus="ComboEditable_LostFocus"/>
+    </StackPanel>
+    <StackPanel Grid.Row="4" Grid.Column="2" Margin="6,0,0,8">
+      <TextBlock Text="Социальность:" Margin="0,4,0,2"/>
+      <ComboBox x:Name="ComboSociality" Padding="4,3" IsEditable="True"
+                ToolTip="Стиль социального взаимодействия: Одиночка - избегает контактов; Избирательный - выбирает узкий круг; Стайный - комфортно в группе; Зависимый - нуждается в постоянном общении."
+                LostFocus="ComboEditable_LostFocus"/>
+    </StackPanel>
 
-        <!-- 4. Базовый архетип -->
-        <TextBlock Text="Базовый архетип:" Margin="0,4,0,2"/>
-        <ComboBox x:Name="ComboBaseArchetype" Margin="0,0,0,10" Padding="4,3" MinWidth="200"
-                  IsEditable="True"
-                  ToolTip="Базовый психологический архетип, определяющий фундаментальные паттерны поведения."
-                  LostFocus="ComboEditable_LostFocus"/>
+    <!-- Строка 5: Темперамент активность, Темперамент реактивность, Поведение в стрессе (с кнопкой) -->
+    <StackPanel Grid.Row="5" Grid.Column="0" Margin="0,0,6,8">
+      <TextBlock Text="Темперамент активность:" Margin="0,4,0,2"/>
+      <ComboBox x:Name="ComboTemperamentActivity" Padding="4,3" IsEditable="False"
+                ToolTip="Уровень общей активности: Низкая - флегматичность, экономия энергии; Средняя - сбалансированность; Высокая - гиперактивность, постоянное движение."/>
+    </StackPanel>
+    <StackPanel Grid.Row="5" Grid.Column="1" Margin="6,0,6,8">
+      <TextBlock Text="Темперамент реактивность:" Margin="0,4,0,2"/>
+      <ComboBox x:Name="ComboTemperamentReactivity" Padding="4,3" IsEditable="False"
+                ToolTip="Скорость и интенсивность реакции на внешние стимулы: Низкая - замедленные реакции; Средняя - адекватные; Высокая - мгновенные, импульсивные."/>
+    </StackPanel>
+    <StackPanel Grid.Row="5" Grid.Column="2" Margin="6,0,0,8">
+      <TextBlock Text="Поведение в стрессе:" Margin="0,4,0,2"/>
+      <Grid>
+        <Grid.ColumnDefinitions>
+          <ColumnDefinition Width="*"/>
+          <ColumnDefinition Width="Auto"/>
+        </Grid.ColumnDefinitions>
+        <TextBox x:Name="TextStressBehavior" Grid.Column="0" IsReadOnly="True" Padding="4,3"
+                 ToolTip="Набор возможных реакций на стрессовые ситуации. Может быть выбрано несколько вариантов."
+                 Background="#FFF0F0F0"/>
+        <Button Grid.Column="1" Content="Выбрать..." Margin="8,0,0,0" Padding="8,4" Click="ButtonSelectStressBehavior_Click"/>
+      </Grid>
+    </StackPanel>
 
-        <!-- 5. Ключевая мотивация -->
-        <TextBlock Text="Ключевая мотивация:" Margin="0,4,0,2"/>
-        <ComboBox x:Name="ComboKeyMotivation" Margin="0,0,0,10" Padding="4,3" MinWidth="200"
-                  IsEditable="True"
-                  ToolTip="Главный движущий мотив агента, определяет приоритеты в принятии решений."
-                  LostFocus="ComboEditable_LostFocus"/>
+    <!-- Строка 6: Реакции на угрозу, Реакции на поощрение, Реакции на наказание (с кнопками) -->
+    <StackPanel Grid.Row="6" Grid.Column="0" Margin="0,0,6,8">
+      <TextBlock Text="Реакции на угрозу:" Margin="0,4,0,2"/>
+      <Grid>
+        <Grid.ColumnDefinitions>
+          <ColumnDefinition Width="*"/>
+          <ColumnDefinition Width="Auto"/>
+        </Grid.ColumnDefinitions>
+        <TextBox x:Name="TextThreatResponse" Grid.Column="0" IsReadOnly="True" Padding="4,3"
+                 ToolTip="Первичная, инстинктивная реакция при обнаружении угрозы."
+                 Background="#FFF0F0F0"/>
+        <Button Grid.Column="1" Content="Выбрать..." Margin="8,0,0,0" Padding="8,4" Click="ButtonSelectThreatResponse_Click"/>
+      </Grid>
+    </StackPanel>
+    <StackPanel Grid.Row="6" Grid.Column="1" Margin="6,0,6,8">
+      <TextBlock Text="Реакции на поощрение:" Margin="0,4,0,2"/>
+      <Grid>
+        <Grid.ColumnDefinitions>
+          <ColumnDefinition Width="*"/>
+          <ColumnDefinition Width="Auto"/>
+        </Grid.ColumnDefinitions>
+        <TextBox x:Name="TextRewardResponse" Grid.Column="0" IsReadOnly="True" Padding="4,3"
+                 ToolTip="Типичная реакция на получение поощрения, ресурса или положительной обратной связи."
+                 Background="#FFF0F0F0"/>
+        <Button Grid.Column="1" Content="Выбрать..." Margin="8,0,0,0" Padding="8,4" Click="ButtonSelectRewardResponse_Click"/>
+      </Grid>
+    </StackPanel>
+    <StackPanel Grid.Row="6" Grid.Column="2" Margin="6,0,0,8">
+      <TextBlock Text="Реакции на наказание:" Margin="0,4,0,2"/>
+      <Grid>
+        <Grid.ColumnDefinitions>
+          <ColumnDefinition Width="*"/>
+          <ColumnDefinition Width="Auto"/>
+        </Grid.ColumnDefinitions>
+        <TextBox x:Name="TextPunishmentResponse" Grid.Column="0" IsReadOnly="True" Padding="4,3"
+                 ToolTip="Типичная реакция на наказание, порицание или лишение ресурса."
+                 Background="#FFF0F0F0"/>
+        <Button Grid.Column="1" Content="Выбрать..." Margin="8,0,0,0" Padding="8,4" Click="ButtonSelectPunishmentResponse_Click"/>
+      </Grid>
+    </StackPanel>
 
-        <!-- 6. Темперамент активность -->
-        <TextBlock Text="Темперамент активность:" Margin="0,4,0,2"/>
-        <ComboBox x:Name="ComboTemperamentActivity" Margin="0,0,0,10" Padding="4,3" MinWidth="200"
-                  IsEditable="False"
-                  ToolTip="Уровень общей активности: Низкая - флегматичность, экономия энергии; Средняя - сбалансированность; Высокая - гиперактивность, постоянное движение."/>
+    <!-- Текст вставки для промпта -->
+    <StackPanel Grid.Row="7" Grid.Column="0" Grid.ColumnSpan="3" Margin="0,0,0,8">
+      <TextBlock Text="Текст вставки для промпта:" Margin="0,4,0,2"/>
+      <TextBox x:Name="TextBoxPromptSuffix" Padding="4,3" Height="220"
+               AcceptsReturn="True" TextWrapping="Wrap"
+               VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto"
+               ToolTip="Текст, добавляемый в конец сохраняемого промпта. Поддерживаются плейсхолдеры: [stileCombination] — комбинации стилей реагирования; [AdaptiveActionList] — список адаптивных действий; [InfluenceActionList] — список воздействий с пульта."/>
+    </StackPanel>
 
-        <!-- 7. Темперамент реактивность -->
-        <TextBlock Text="Темперамент реактивность:" Margin="0,4,0,2"/>
-        <ComboBox x:Name="ComboTemperamentReactivity" Margin="0,0,0,10" Padding="4,3" MinWidth="200"
-                  IsEditable="False"
-                  ToolTip="Скорость и интенсивность реакции на внешние стимулы: Низкая - замедленные реакции; Средняя - адекватные; Высокая - мгновенные, импульсивные."/>
-
-        <!-- 8. Поведение в стрессе -->
-        <TextBlock Text="Поведение в стрессе:" Margin="0,4,0,2"/>
-        <Grid Margin="0,0,0,10">
-          <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="*"/>
-            <ColumnDefinition Width="Auto"/>
-          </Grid.ColumnDefinitions>
-          <TextBox x:Name="TextStressBehavior" Grid.Column="0" IsReadOnly="True" Padding="4,3"
-                   ToolTip="Набор возможных реакций на стрессовые ситуации. Может быть выбрано несколько вариантов."
-                   Background="#FFF0F0F0"/>
-          <Button Grid.Column="1" Content="Выбрать..." Margin="8,0,0,0" Padding="8,4" Click="ButtonSelectStressBehavior_Click"/>
-        </Grid>
-
-        <!-- 9. Социальность -->
-        <TextBlock Text="Социальность:" Margin="0,4,0,2"/>
-        <ComboBox x:Name="ComboSociality" Margin="0,0,0,10" Padding="4,3" MinWidth="200"
-                  IsEditable="True"
-                  ToolTip="Стиль социального взаимодействия: Одиночка - избегает контактов; Избирательный - выбирает узкий круг; Стайный - комфортно в группе; Зависимый - нуждается в постоянном общении."
-                  LostFocus="ComboEditable_LostFocus"/>
-
-        <!-- 10. Реакция на угрозу -->
-        <TextBlock Text="Реакция на угрозу:" Margin="0,4,0,2"/>
-        <Grid Margin="0,0,0,10">
-          <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="*"/>
-            <ColumnDefinition Width="Auto"/>
-          </Grid.ColumnDefinitions>
-          <TextBox x:Name="TextThreatResponse" Grid.Column="0" IsReadOnly="True" Padding="4,3"
-                   ToolTip="Первичная, инстинктивная реакция при обнаружении угрозы."
-                   Background="#FFF0F0F0"/>
-          <Button Grid.Column="1" Content="Выбрать..." Margin="8,0,0,0" Padding="8,4" Click="ButtonSelectThreatResponse_Click"/>
-        </Grid>
-
-        <!-- 11. Реакция на поощрение -->
-        <TextBlock Text="Реакция на поощрение:" Margin="0,4,0,2"/>
-        <Grid Margin="0,0,0,10">
-          <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="*"/>
-            <ColumnDefinition Width="Auto"/>
-          </Grid.ColumnDefinitions>
-          <TextBox x:Name="TextRewardResponse" Grid.Column="0" IsReadOnly="True" Padding="4,3"
-                   ToolTip="Типичная реакция на получение поощрения, ресурса или положительной обратной связи."
-                   Background="#FFF0F0F0"/>
-          <Button Grid.Column="1" Content="Выбрать..." Margin="8,0,0,0" Padding="8,4" Click="ButtonSelectRewardResponse_Click"/>
-        </Grid>
-
-        <!-- 12. Реакция на наказание -->
-        <TextBlock Text="Реакция на наказание:" Margin="0,4,0,2"/>
-        <Grid Margin="0,0,0,10">
-          <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="*"/>
-            <ColumnDefinition Width="Auto"/>
-          </Grid.ColumnDefinitions>
-          <TextBox x:Name="TextPunishmentResponse" Grid.Column="0" IsReadOnly="True" Padding="4,3"
-                   ToolTip="Типичная реакция на наказание, порицание или лишение ресурса."
-                   Background="#FFF0F0F0"/>
-          <Button Grid.Column="1" Content="Выбрать..." Margin="8,0,0,0" Padding="8,4" Click="ButtonSelectPunishmentResponse_Click"/>
-        </Grid>
-
-        <!-- 13. Особые триггеры -->
-        <TextBlock Text="Особые триггеры:" Margin="0,4,0,2"/>
-        <ComboBox x:Name="ComboSpecialTriggers" Margin="0,0,0,10" Padding="4,3" MinWidth="200"
-                  IsEditable="True"
-                  ToolTip="Факторы, которые могут вызвать нестабильность или неадекватную реакцию. Важно для ИИ при моделировании поведения."
-                  LostFocus="ComboEditable_LostFocus"/>
-
-        <!-- 14. Особые табу -->
-        <TextBlock Text="Особые табу:" Margin="0,4,0,2"/>
-        <ComboBox x:Name="ComboSpecialTaboos" Margin="0,0,0,10" Padding="4,3" MinWidth="200"
-                  IsEditable="True"
-                  ToolTip="Действия или ситуации, которых агент избегает даже в хорошем состоянии. Критически важно для избегания неконсистентного поведения."
-                  LostFocus="ComboEditable_LostFocus"/>
-
-        <!-- 15. Дополнительные пожелания -->
-        <TextBlock Text="Дополнительные пожелания:" Margin="0,4,0,2"/>
-        <TextBox x:Name="TextBoxAdditionalWishes" Margin="0,0,0,10" Padding="4,3"
-                 AcceptsReturn="True" TextWrapping="Wrap" Height="72"
-                 VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto"
-                 ToolTip="Дополнительные замечания, особенности или пожелания по поведению агента, которые нужно учесть при генерации."/>
-
-        <!-- 16. Текст вставки для промпта -->
-        <TextBlock Text="Текст вставки для промпта:" Margin="0,4,0,2"/>
-        <TextBox x:Name="TextBoxPromptSuffix" Margin="0,0,0,10" Padding="4,3"
-                 AcceptsReturn="True" TextWrapping="Wrap" Height="72"
-                 VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto"
-                 ToolTip="Текст, добавляемый в конец сохраняемого промпта. Поддерживаются плейсхолдеры: [stileCombination] — комбинации стилей реагирования; [AdaptiveActionList] — список адаптивных действий; [InfluenceActionList] — список воздействий с пульта."/>
-      </StackPanel>
-    </ScrollViewer>
-
-    <StackPanel Grid.Row="1" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,12,0,0">
+    <!-- Кнопки -->
+    <StackPanel Grid.Row="8" Grid.Column="0" Grid.ColumnSpan="3" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,12,0,0">
       <Button Content="Создать промпт для ИИ" Margin="0,0,10,0" Padding="12,6" Click="ButtonCreatePrompt_Click"/>
       <Button Content="Сохранить" Margin="0,0,10,0" Padding="12,6" IsDefault="True" Click="ButtonSave_Click"/>
       <Button Content="Закрыть" Padding="12,6" IsCancel="True" Click="ButtonClose_Click"/>
