@@ -65,65 +65,6 @@
            TextWrapping="Wrap"
            Visibility="{Binding IsEditingEnabled, Converter={StaticResource InverseBooleanToVisibilityConverter}}"/>
 
-      <!-- 3. Свойства агента -->
-      <Grid>
-        <Grid.ColumnDefinitions>
-          <ColumnDefinition Width="300"/>
-          <ColumnDefinition Width="370"/>
-          <ColumnDefinition Width="200"/>
-          <ColumnDefinition Width="*"/>
-        </Grid.ColumnDefinitions>
-        <Grid.RowDefinitions>
-          <RowDefinition Height="Auto"/>
-        </Grid.RowDefinitions>
-
-        <StackPanel Grid.Column="0" Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,2">
-          <TextBlock Text="Имя:" Style="{StaticResource PropertyNameStyle}"/>
-          <TextBox Text="{Binding AgentProperties[0].Value, UpdateSourceTrigger=PropertyChanged}"
-                 IsEnabled="{Binding AgentProperties[0].IsEditable}"
-                 Style="{StaticResource EditableFieldStyle}"
-                 MinWidth="180"/>
-        </StackPanel>
-
-        <StackPanel Grid.Column="1" Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,2">
-          <TextBlock Text="Описание:" Style="{StaticResource PropertyNameStyle}"/>
-          <TextBox Text="{Binding AgentProperties[1].Value, UpdateSourceTrigger=PropertyChanged}"
-                 IsEnabled="{Binding AgentProperties[1].IsEditable}"
-                 Style="{StaticResource EditableFieldStyle}"
-                 MinWidth="250"
-                 MaxWidth="250"
-                 MouseDoubleClick="DescriptionCell_DoubleClick"/>
-        </StackPanel>
-
-        <StackPanel Grid.Column="2" Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,2">
-          <TextBlock Text="Стадия:" Style="{StaticResource PropertyNameStyle}"/>
-          <ComboBox ItemsSource="{Binding AvailableStages}"
-            SelectedValuePath="StageNumber"
-            SelectedValue="{Binding SelectedStage, Mode=OneWay}"
-            DisplayMemberPath="StageNumber"
-            IsEnabled="{Binding IsStageSelectionEnabled}"
-            Height="22" 
-            MinWidth="100"  
-            VerticalAlignment="Top"
-            BorderThickness="1"
-            BorderBrush="#FF7F9DB9"
-            Padding="2"
-            ToolTip="{Binding SelectedStageDescription}"
-            ItemContainerStyle="{StaticResource StageItemContainerStyle}"
-            SelectionChanged="StageComboBox_SelectionChanged"/>
-        </StackPanel>
-
-        <StackPanel Grid.Column="3" Grid.Row="0" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,0,0,2">
-          <Button Content="Сохранить" 
-                        Command="{Binding UpdateCommand}"
-                        Style="{StaticResource ActionButtonStyle}"
-                        IsEnabled="{Binding IsEditingEnabled}" Margin="0,0,0,0" Height="30" VerticalAlignment="Bottom" HorizontalAlignment="Right" Cursor="Hand"/>
-        </StackPanel>
-
-      </Grid>
-
-      <Border Height="2" Background="{Binding HeaderBackground}" Margin="0,0,0,2"/>
-
       <!--Заголовок параметров -->
       <TextBlock Text="{Binding AgentBaseSost}"
                Foreground="{Binding HomeostasisStatusColor}"

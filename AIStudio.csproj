@@ -232,6 +232,9 @@
     <Compile Include="Pages\AgentView.xaml.cs">
       <DependentUpon>AgentView.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Pages\AgentPropertiesDialog.xaml.cs">
+      <DependentUpon>AgentPropertiesDialog.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Pages\TextInputDialog.xaml.cs">
       <DependentUpon>TextInputDialog.xaml</DependentUpon>
     </Compile>
@@ -318,6 +321,10 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="Pages\AgentView.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Pages\AgentPropertiesDialog.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

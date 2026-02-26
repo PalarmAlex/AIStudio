@@ -386,6 +386,9 @@ namespace AIStudio
           case "33": // Агент
             OpenAgent();
             break;
+          case "39": // Свойства агента
+            ShowAgentProperties();
+            break;
           case "34":  // логи системы
             ShowLiveLogs();
             break;
@@ -888,6 +891,13 @@ namespace AIStudio
       agentView.DataContext = _agentViewModel;
       CurrentContent = agentView;
       UpdateAgentState();
+    }
+
+    private void ShowAgentProperties()
+    {
+      var dialog = new AgentPropertiesDialog(_gomeostas);
+      dialog.Owner = Application.Current.MainWindow;
+      dialog.ShowDialog();
     }
 
     // Открыть страницу системных параметров

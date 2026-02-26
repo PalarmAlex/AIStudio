@@ -88,10 +88,14 @@
 
         <Expander Header="Агент" Style="{StaticResource MenuExpanderStyle}" IsExpanded="{Binding IsAgentExpanded}">
           <StackPanel>
-            <Button Content="Данные Агента" Margin="20,2,5,2" 
+            <Button Content="Пульт" Margin="20,2,5,2" 
               Style="{StaticResource MenuButtonStyle}"
               Command="{Binding VerticalMenuItemClickedCommand}"
               CommandParameter="33"/>
+            <Button Content="Свойства агента" Margin="20,2,5,2" 
+              Style="{StaticResource MenuButtonStyle}"
+              Command="{Binding VerticalMenuItemClickedCommand}"
+              CommandParameter="39"/>
           </StackPanel>
         </Expander>
 
