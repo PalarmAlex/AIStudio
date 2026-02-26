@@ -5,7 +5,7 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:converters="clr-namespace:AIStudio.Converters"
              mc:Ignorable="d" 
-             d:DesignHeight="600" d:DesignWidth="800">
+             d:DesignHeight="600" d:DesignWidth="1000">
 
   <UserControl.Resources>
 
@@ -281,21 +281,21 @@
     <!-- Заголовок -->
     <Border Grid.Row="0" Background="#101010" Padding="10" BorderBrush="#00FF00" BorderThickness="0,0,0,1">
       <StackPanel Orientation="Horizontal" HorizontalAlignment="Left">
-        <TextBlock Text="Системные логи"
+        <TextBlock Text="СИСТЕМНЫЕ ЛОГИ"
                          Foreground="#00FF00"
-                         FontFamily="Consolas"
-                         FontSize="12"
+                         FontFamily="Consolas, Courier New"
+                         FontSize="16"
                          FontWeight="Bold"
                          VerticalAlignment="Center"/>
-        <TextBlock Text="   |   " 
+        <TextBlock Text=" | " 
                          Foreground="#00FF00"
-                         FontFamily="Consolas"
-                         FontSize="12"
+                         FontFamily="Consolas, Courier New"
+                         FontSize="16"
                          VerticalAlignment="Center"/>
         <TextBlock Text="{Binding AutoRefreshStatus}" 
                          Foreground="{Binding AutoRefreshColor}"
-                         FontFamily="Consolas"
-                         FontSize="12"
+                         FontFamily="Consolas, Courier New"
+                         FontSize="16"
                          VerticalAlignment="Center"/>
       </StackPanel>
     </Border>

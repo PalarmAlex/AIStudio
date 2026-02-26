@@ -84,6 +84,7 @@
     <Compile Include="Converters\AutomatizmActionsToTooltipConverter.cs" />
     <Compile Include="Converters\AutomatizmTooltipMultiConverter.cs" />
     <Compile Include="Converters\OrientationReflexTooltipMultiConverter.cs" />
+    <Compile Include="Converters\ReflexChainDetailTooltipConverter.cs" />
     <Compile Include="Converters\TreeNodeConditionsToTooltipConverter.cs" />
     <Compile Include="Converters\BeliefToTextWithTooltipConverter.cs" />
     <Compile Include="Converters\BeliefToTooltipConverter.cs" />
@@ -190,6 +191,9 @@
     </Compile>
     <Compile Include="Pages\Reflexes\ReflexChainEditorDialog.xaml.cs">
       <DependentUpon>ReflexChainEditorDialog.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Pages\Reflexes\ReflexLoadDialog.xaml.cs">
+      <DependentUpon>ReflexLoadDialog.xaml</DependentUpon>
     </Compile>
     <Compile Include="Pages\Reflexes\ReflexChainsView.xaml.cs">
       <DependentUpon>ReflexChainsView.xaml</DependentUpon>
@@ -374,6 +378,10 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="Pages\Reflexes\ReflexChainEditorDialog.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Pages\Reflexes\ReflexLoadDialog.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

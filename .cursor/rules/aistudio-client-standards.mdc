@@ -21,3 +21,4 @@ Apply these rules for AIStudio (client/UI layer).
 - Respect existing design behavior: do not change style animations unless requested.
 - Do not add ISIDA engine initialization logic in AIStudio; AIStudio only configures/uses engine APIs.
 - For any new feature touching both projects, verify `isida` build and AIStudio compile path consistency.
+- **Commands**: Use `AIStudio.ViewModels.RelayCommand` for ICommand in ViewModels and dialogs. Add `using AIStudio.ViewModels;` in code-behind (e.g. Dialogs) when using RelayCommand; do not introduce a different command implementation.

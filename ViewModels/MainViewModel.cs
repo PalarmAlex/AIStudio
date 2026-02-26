@@ -925,13 +925,18 @@ namespace AIStudio
     private void ShowGeneticReflexes()
     {
       var geneticReflexesView = new GeneticReflexesView();
+      string bootDataFolder = AppConfig.BootDataFolderPath ?? Path.Combine(
+          Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData),
+          "ISIDA", "BootData");
       var viewModel = new GeneticReflexesViewModel(
-        _gomeostas, 
-        _geneticReflexesSystem, 
-        _actionsSystem, 
+        _gomeostas,
+        _geneticReflexesSystem,
+        _actionsSystem,
         _influenceActionSystem,
         _reflexTree,
-        _reflexChains);
+        _reflexChains,
+        _isidaContext?.GeneticReflexFileLoader,
+        bootDataFolder);
       geneticReflexesView.DataContext = viewModel;
       CurrentContent = geneticReflexesView;
     }

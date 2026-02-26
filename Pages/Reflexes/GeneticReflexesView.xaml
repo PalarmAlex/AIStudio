@@ -18,6 +18,7 @@
     <converters:Level1ToTextConverter x:Key="Level1ToTextConverter"/>
     <converters:WordIdToTextConverter x:Key="WordIdToTextConverter"/>
     <converters:IdListToNamesConverter x:Key="IdListToNamesConverter"/>
+    <converters:ReflexChainDetailTooltipConverter x:Key="ReflexChainDetailTooltipConverter"/>
 
     <Style x:Key="BaseTextBlockStyle" TargetType="TextBlock">
       <Setter Property="Background" Value="White"/>
@@ -304,17 +305,32 @@
 
           <!-- Цепочки -->
           <DataGridTemplateColumn Header="Цепочка" Width="100">
+            <DataGridTemplateColumn.HeaderStyle>
+              <Style TargetType="DataGridColumnHeader">
+                <Setter Property="ToolTip"
+                    Value="Цепочка рефлексов для данной комбинации триггера.&#x0a;Последовательность адаптивных действий при срабатывании рефлекса."/>
+              </Style>
+            </DataGridTemplateColumn.HeaderStyle>
             <DataGridTemplateColumn.CellTemplate>
               <DataTemplate>
-                <TextBlock>
+                <TextBlock ToolTipService.ShowDuration="60000">
                   <TextBlock.Style>
                     <Style TargetType="TextBlock">
                       <Setter Property="Text" Value="{Binding ReflexChainID}"/>
+                      <Setter Property="ToolTip">
+                        <Setter.Value>
+                          <MultiBinding Converter="{StaticResource ReflexChainDetailTooltipConverter}">
+                            <Binding RelativeSource="{RelativeSource AncestorType=UserControl}" Path="DataContext"/>
+                            <Binding Path="ReflexChainID"/>
+                          </MultiBinding>
+                        </Setter.Value>
+                      </Setter>
                       <Style.Triggers>
                         <DataTrigger Binding="{Binding ReflexChainID}" Value="0">
                           <Setter Property="Text" Value="Нет"/>
                           <Setter Property="Foreground" Value="Gray"/>
                           <Setter Property="FontStyle" Value="Italic"/>
+                          <Setter Property="ToolTip" Value="Цепочка не привязана"/>
                         </DataTrigger>
                       </Style.Triggers>
                     </Style>
@@ -328,7 +344,7 @@
                 <EventSetter Event="PreviewMouseRightButtonDown" Handler="ChainCell_MouseRightButtonDown"/>
                 <Setter Property="ContextMenu" Value="{StaticResource ChainContextMenu}"/>
                 <Setter Property="Cursor" Value="Hand"/>
-                <Setter Property="ToolTip" Value="Двойной клик или правый клик для работы с цепочками"/>
+                <Setter Property="ToolTipService.ShowDuration" Value="60000"/>
               </Style>
             </DataGridTemplateColumn.CellStyle>
           </DataGridTemplateColumn>
@@ -344,22 +360,20 @@
         <ColumnDefinition Width="Auto"/>
       </Grid.ColumnDefinitions>
 
-      <!-- Левая часть - счётчик, кнопка генерации и текст предупреждения -->
+      <!-- Левая часть - счётчик, кнопка «Создать по тексту» и текст предупреждения -->
       <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
         <TextBlock Text="{Binding DisplayCountText}"
                    Margin="0,0,15,0"
                    VerticalAlignment="Center"
                    FontWeight="SemiBold"/>
-        <!-- Кнопка генерации -->
-        <Button Content="Сгенерировать рефлексы"
-                    Command="{Binding GenerateReflexesCommand}"
-                    IsEnabled="{Binding IsEditingEnabled}"
-                    Style="{StaticResource ActionButtonStyle}"
-                    ToolTip="Создать рефлексы для всех состояний и комбинаций стилей"
-                    Margin="8,0,15,0"
-                    Height="30"
-                    Width="185" Cursor="Hand"/>
-
+        <Button Content="Создать по тексту"
+            Command="{Binding LoadFromFileCommand}"
+            IsEnabled="{Binding IsLoadFromFileEnabled}"
+            Style="{StaticResource AgentButtonStyle}"
+            ToolTip="Создать рефлексы и цепочки из файла (формат: Состояние|Стили|Триггер|Действие|Цепочка)"
+            Margin="8,0,15,0"
+            Height="30"
+            Cursor="Hand"/>
         <!-- Текст предупреждения -->
         <TextBlock Text="{Binding PulseWarningMessage}"
                      Foreground="{Binding WarningMessageColor}"
@@ -377,13 +391,7 @@
             Command="{Binding RemoveAllCommand}"
             IsEnabled="{Binding IsEditingEnabled}"
             Style="{StaticResource RedButtonStyle}"
-            ToolTip="Удалить все данные из таблицы"
-            Margin="0,0,8,0"/>
-        <Button Content="Обновить"
-            Command="{Binding UpdateAllCommand}"
-            IsEnabled="{Binding IsEditingEnabled}"
-            Style="{StaticResource AgentButtonStyle}"
-            ToolTip="Обновить дерево рефлексов и образы после ручного редактирования файла"
+            ToolTip="Удалить все данные из таблицы, дерево рефлексов и цепочки"
             Margin="0,0,8,0"/>
         <Button Content="Сохранить" 
             Command="{Binding SaveCommand}"

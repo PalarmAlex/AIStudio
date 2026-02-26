@@ -92,8 +92,12 @@ namespace AIStudio.ViewModels
     public ICommand RemoveCommand { get; }
     public ICommand ClearFiltersCommand { get; }
     public ICommand RemoveAllCommand { get; }
-    public ICommand GenerateReflexesCommand { get; }
-    public ICommand UpdateAllCommand { get; }
+    public ICommand LoadFromFileCommand { get; }
+
+    private readonly GeneticReflexFileLoader _reflexFileLoader;
+    private readonly string _bootDataFolder;
+
+    public bool IsLoadFromFileEnabled => _reflexFileLoader != null && IsStageZero;
 
     public GeneticReflexesViewModel(
       GomeostasSystem gomeostasSystem,
@@ -101,7 +105,9 @@ namespace AIStudio.ViewModels
       AdaptiveActionsSystem actionsSystem,
       InfluenceActionSystem influenceActionSystem,
       ReflexTreeSystem reflexTreeSystem,
-      ReflexChainsSystem reflexChainsSystem)
+      ReflexChainsSystem reflexChainsSystem,
+      GeneticReflexFileLoader reflexFileLoader = null,
+      string bootDataFolder = null)
     {
       _gomeostas = gomeostasSystem;
       _geneticReflexesSystem = geneticReflexesSystem ?? throw new ArgumentNullException(nameof(geneticReflexesSystem));
@@ -109,6 +115,8 @@ namespace AIStudio.ViewModels
       _influenceActionSystem = influenceActionSystem ?? throw new ArgumentNullException(nameof(influenceActionSystem));
       _reflexTreeSystem = reflexTreeSystem ?? throw new ArgumentNullException(nameof(reflexTreeSystem));
       _reflexChainsSystem = reflexChainsSystem ?? throw new ArgumentNullException(nameof(reflexChainsSystem));
+      _reflexFileLoader = reflexFileLoader;
+      _bootDataFolder = bootDataFolder;
 
       _geneticReflexesView = CollectionViewSource.GetDefaultView(_allGeneticReflexes);
       _geneticReflexesView.Filter = item => _visibleSet != null && item is GeneticReflexesSystem.GeneticReflex r && _visibleSet.Contains(r);
@@ -117,74 +125,10 @@ namespace AIStudio.ViewModels
       RemoveCommand = new RelayCommand(RemoveSelectedReflexes);
       ClearFiltersCommand = new RelayCommand(ClearFilters);
       RemoveAllCommand = new RelayCommand(RemoveAllReflexes);
-      GenerateReflexesCommand = new RelayCommand(GenerateReflexes);
-      UpdateAllCommand = new RelayCommand(UpdateAllReflexes);
+      LoadFromFileCommand = new RelayCommand(LoadFromFile);
 
       GlobalTimer.PulsationStateChanged += OnPulsationStateChanged;
       LoadAgentData();
-    }
-
-    /// <summary>
-    /// Обновляет все рефлексы и синхронизирует с деревом рефлексов
-    /// </summary>
-    private void UpdateAllReflexes(object parameter)
-    {
-      if (!IsEditingEnabled)
-      {
-        MessageBox.Show("Обновление рефлексов доступно только в стадии 0 при выключенной пульсации",
-            "Невозможно выполнить",
-            MessageBoxButton.OK,
-            MessageBoxImage.Warning);
-        return;
-      }
-
-      var result = MessageBox.Show(
-          "Вы действительно хотите обновить все рефлексы?\n\n" +
-          "Это действие:\n" +
-          "• Обновит дерево рефлексов\n" +
-          "• Обновит образы триггеров и стилей\n" +
-          "• Синхронизирует данные после ручного редактирования файла\n" +
-          "• Сохранит текущие привязки цепочек\n\n" +
-          "Используйте эту функцию после ручного редактирования файла рефлексов.",
-          "Подтверждение обновления рефлексов",
-          MessageBoxButton.YesNo,
-          MessageBoxImage.Question);
-
-      if (result == MessageBoxResult.Yes)
-      {
-        Mouse.OverrideCursor = Cursors.Wait;
-
-        try
-        {
-          var (success, updatedCount, errorMessage) = _geneticReflexesSystem.UpdateAllGeneticReflex();
-
-          Mouse.OverrideCursor = null;
-
-          if (success)
-          {
-            MessageBox.Show($"Успешно обновлено {updatedCount} рефлексов.",
-                "Обновление завершено",
-                MessageBoxButton.OK,
-                MessageBoxImage.Information);
-          }
-          else
-          {
-            MessageBox.Show($"Не удалось обновить рефлексы:\n{errorMessage}",
-                "Ошибка обновления",
-                MessageBoxButton.OK,
-                MessageBoxImage.Error);
-          }
-        }
-        catch (Exception ex)
-        {
-          Mouse.OverrideCursor = null;
-
-          MessageBox.Show($"Ошибка при обновлении рефлексов:\n{ex.Message}",
-              "Ошибка",
-              MessageBoxButton.OK,
-              MessageBoxImage.Error);
-        }
-      }
     }
 
     /// <summary>
@@ -558,6 +502,8 @@ namespace AIStudio.ViewModels
       var agentInfo = _gomeostas.GetAgentState();
       _currentAgentStage = agentInfo?.EvolutionStage ?? 0;
       _currentAgentName = agentInfo.Name;
+      OnPropertyChanged(nameof(IsStageZero));
+      OnPropertyChanged(nameof(IsLoadFromFileEnabled));
 
       _allGeneticReflexes.Clear();
 
@@ -780,7 +726,11 @@ namespace AIStudio.ViewModels
     public void RemoveAllReflexes(object parameter)
     {
       var result = MessageBox.Show(
-          $"Вы действительно хотите удалить ВСЕ безусловные рефлексы агента? Это действие нельзя будет отменить.",
+          "Вы действительно хотите удалить ВСЕ безусловные рефлексы агента?\n\n" +
+          "Будут также полностью очищены:\n" +
+          "• дерево рефлексов (все узлы);\n" +
+          "• все цепочки рефлексов (включая не привязанные).\n\n" +
+          "Это действие нельзя будет отменить.",
           "Подтверждение удаления",
           MessageBoxButton.YesNo,
           MessageBoxImage.Warning);
@@ -793,20 +743,23 @@ namespace AIStudio.ViewModels
 
           if (removeAll)
           {
+            _reflexTreeSystem.ClearReflexTreeCompletely();
+            _reflexChainsSystem.RemoveAllReflexChains();
+
             _allGeneticReflexes.Clear();
             RefreshDisplay();
 
-            var (success, error) = _geneticReflexesSystem.SaveGeneticReflexes(false); // все удалено - не надо валидаций 
+            var (success, error) = _geneticReflexesSystem.SaveGeneticReflexes(false); // все удалено - не надо валидаций
             if (success)
             {
-              MessageBox.Show("Все безусловные рефлексы агента, кроме заданного по умолчанию, успешно удалены",
+              MessageBox.Show("Все безусловные рефлексы, дерево рефлексов и цепочки успешно удалены.",
                   "Удаление завершено",
                   MessageBoxButton.OK,
                   MessageBoxImage.Information);
             }
             else
             {
-              MessageBox.Show($"Не удалось удалить безусловные рефлексы агента:\n{error}",
+              MessageBox.Show($"Не удалось сохранить после удаления:\n{error}",
                   "Ошибка сохранения после удаления",
                   MessageBoxButton.OK,
                   MessageBoxImage.Error);
@@ -815,7 +768,7 @@ namespace AIStudio.ViewModels
         }
         catch (Exception ex)
         {
-          MessageBox.Show($"Ошибка удаления безусловных рефлексов агента: {ex.Message}",
+          MessageBox.Show($"Ошибка удаления: {ex.Message}",
               "Ошибка",
               MessageBoxButton.OK,
               MessageBoxImage.Error);
@@ -826,60 +779,77 @@ namespace AIStudio.ViewModels
     /// <summary>
     /// Генерация рефлексов по всем состояниям и комбинациям стилей
     /// </summary>
-    private void GenerateReflexes(object parameter)
+    private void LoadFromFile(object parameter)
     {
-      if (!IsEditingEnabled)
-      {
-        MessageBox.Show("Генерация рефлексов доступна только в стадии 0 при выключенной пульсации",
-            "Невозможно выполнить",
-            MessageBoxButton.OK,
-            MessageBoxImage.Warning);
+      if (!IsLoadFromFileEnabled || _reflexFileLoader == null)
         return;
-      }
-
-      var result = MessageBox.Show(
-          "Вы действительно хотите сгенерировать безусловные рефлексы для всех состояний и комбинаций стилей?\n\n" +
-          "Это действие:\n" +
-          "• Создаст рефлексы для состояний: Плохо, Норма, Хорошо\n" +
-          "• Использует все существующие комбинации стилей поведения\n" +
-          "• Применит действие по умолчанию для всех рефлексов\n" +
-          "• Автоматически заполнит дерево рефлексов и образы восприятия\n" +
-          "• Существующие рефлексы не будут дублироваться\n\n" +
-          "Существующие рефлексы будут сохранены, новые добавятся к ним.",
-          "Подтверждение генерации рефлексов",
-          MessageBoxButton.YesNo,
-          MessageBoxImage.Question);
-
-      if (result == MessageBoxResult.Yes)
+      try
       {
-        try
+        string bootFolder = _bootDataFolder ?? System.IO.Path.Combine(
+            Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData),
+            "ISIDA", "BootData");
+        var dialog = new Dialogs.ReflexLoadDialog(bootFolder, _reflexFileLoader)
         {
-          var (success, createdCount, errorMessage) = _geneticReflexesSystem.CreateGeneticReflexesForAllStatesAndStyles(_gomeostas);
+          Owner = Application.Current.MainWindow
+        };
+        if (dialog.ShowDialog() == true)
+          LoadAgentData();
+      }
+      catch (ObjectDisposedException)
+      {
+        MessageBox.Show("Загрузчик рефлексов освобождён.", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
+      }
+      catch (Exception ex)
+      {
+        MessageBox.Show("Ошибка: " + ex.Message, "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
+      }
+    }
 
-          if (success)
-          {
-            RefreshAllCollections();
+    /// <summary>
+    /// Возвращает подробное описание цепочки рефлексов для подсказки.
+    /// </summary>
+    public string GetChainDetailedInfo(int chainId)
+    {
+      if (chainId <= 0 || !ReflexChainsSystem.IsInitialized)
+        return "Цепочка не привязана";
 
-            MessageBox.Show(errorMessage,
-                "Генерация завершена",
-                MessageBoxButton.OK,
-                MessageBoxImage.Information);
-          }
-          else
-          {
-            MessageBox.Show($"Не удалось сгенерировать рефлексы:\n{errorMessage}",
-                "Ошибка генерации",
-                MessageBoxButton.OK,
-                MessageBoxImage.Error);
-          }
-        }
-        catch (Exception ex)
+      try
+      {
+        var chain = _reflexChainsSystem.GetChain(chainId);
+        if (chain == null)
+          return $"Цепочка {chainId} не найдена";
+
+        var links = _reflexChainsSystem.GetChainLinks(chainId);
+        if (!links.Any())
+          return $"Цепочка {chainId} не содержит звеньев";
+
+        var sb = new StringBuilder();
+        sb.AppendLine($"Цепочка: {chain.Name ?? $"ID {chainId}"}");
+        if (!string.IsNullOrEmpty(chain.Description))
+          sb.AppendLine($"Описание: {chain.Description}");
+
+        sb.AppendLine($"Всего звеньев: {links.Count}");
+        sb.AppendLine();
+
+        var allActions = _actionsSystem.GetAllAdaptiveActions();
+        foreach (var link in links.OrderBy(l => l.ID))
         {
-          MessageBox.Show($"Ошибка при генерации рефлексов:\n{ex.Message}",
-              "Ошибка",
-              MessageBoxButton.OK,
-              MessageBoxImage.Error);
+          sb.AppendLine($"Звено {link.ID}:");
+          var action = allActions.FirstOrDefault(a => a.Id == link.ActionId);
+          sb.AppendLine($"  Действие: {action?.Name ?? $"ID {link.ActionId}"}");
+          if (!string.IsNullOrEmpty(link.Description))
+            sb.AppendLine($"  Описание: {link.Description}");
+          if (link.SuccessNextLink > 0)
+            sb.AppendLine($"  При успехе → звено {link.SuccessNextLink}");
+          if (link.FailureNextLink > 0)
+            sb.AppendLine($"  При неудаче → звено {link.FailureNextLink}");
         }
+
+        return sb.ToString();
+      }
+      catch (Exception ex)
+      {
+        return $"Ошибка получения информации о цепочке: {ex.Message}";
       }
     }
 
