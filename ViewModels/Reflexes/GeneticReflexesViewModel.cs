@@ -337,9 +337,13 @@ namespace AIStudio.ViewModels
       if (!(item is GeneticReflexesSystem.GeneticReflex reflex))
         return false;
 
+      bool level3Match = !SelectedLevel3Filter.HasValue
+        || (SelectedLevel3Filter.Value == -1
+          ? (reflex.Level3 == null || !reflex.Level3.Any())
+          : (reflex.Level3 != null && reflex.Level3.Contains(SelectedLevel3Filter.Value)));
       return (!SelectedLevel1Filter.HasValue || reflex.Level1 == SelectedLevel1Filter.Value) &&
              (!SelectedLevel2Filter.HasValue || (reflex.Level2 != null && reflex.Level2.Contains(SelectedLevel2Filter.Value))) &&
-             (!SelectedLevel3Filter.HasValue || (reflex.Level3 != null && reflex.Level3.Contains(SelectedLevel3Filter.Value))) &&
+             level3Match &&
              (!SelectedAdaptiveActionsFilter.HasValue || (reflex.AdaptiveActions != null && reflex.AdaptiveActions.Contains(SelectedAdaptiveActionsFilter.Value)));
     }
 
@@ -460,7 +464,11 @@ namespace AIStudio.ViewModels
       var level2Items = _gomeostas?.GetAllBehaviorStyles()?.Values?.ToList() ?? new List<GomeostasSystem.BehaviorStyle>();
       Level2FilterOptions.AddRange(level2Items.Select(x => new KeyValuePair<int?, string>(x.Id, x.Name)));
 
-      Level3FilterOptions = new List<KeyValuePair<int?, string>> { new KeyValuePair<int?, string>(null, "Все воздействия") };
+      Level3FilterOptions = new List<KeyValuePair<int?, string>>
+      {
+        new KeyValuePair<int?, string>(null, "Все воздействия"),
+        new KeyValuePair<int?, string>(-1, "Без триггера")
+      };
 
       var level3Items = _influenceActionSystem?.GetAllInfluenceActions()?.ToList() ?? new List<InfluenceActionSystem.GomeostasisInfluenceAction>();
       Level3FilterOptions.AddRange(level3Items.Select(x => new KeyValuePair<int?, string>(x.Id, x.Name)));

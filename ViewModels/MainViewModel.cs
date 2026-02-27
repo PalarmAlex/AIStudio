@@ -955,12 +955,16 @@ namespace AIStudio
     private void ShowConditionedReflexes()
     {
       var conditionedReflexesView = new ConditionedReflexesView();
+      string bootDataFolder = AppConfig.BootDataFolderPath ?? Path.Combine(
+          Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData),
+          "ISIDA", "BootData");
       var viewModel = new ConditionedReflexesViewModel(
           _gomeostas,
           _conditionedReflexesSystem,
           _actionsSystem,
           _perceptionImagesSystem,
-          _geneticReflexesSystem);
+          _geneticReflexesSystem,
+          bootDataFolder);
       conditionedReflexesView.DataContext = viewModel;
       CurrentContent = conditionedReflexesView;
     }

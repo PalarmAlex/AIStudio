@@ -134,7 +134,7 @@
             </DataGridTextColumn.HeaderStyle>
           </DataGridTextColumn>
 
-          <DataGridTemplateColumn Header="Привязанные рефлексы" Width="*">
+          <DataGridTemplateColumn Header="Привязанные рефлексы" Width="200">
             <DataGridTemplateColumn.CellTemplate>
               <DataTemplate>
                 <TextBlock Text="{Binding ReflexIdsText}"
@@ -164,7 +164,7 @@
 
           <DataGridTextColumn Header="ID звена"
                               Binding="{Binding LinkId}"
-                              Width="Auto">
+                              Width="100">
             <DataGridTextColumn.ElementStyle>
               <Style TargetType="TextBlock">
                 <Setter Property="HorizontalAlignment" Value="Center"/>
@@ -177,7 +177,7 @@
             </DataGridTextColumn.HeaderStyle>
           </DataGridTextColumn>
 
-          <DataGridTemplateColumn Header="Действие" Width="150">
+          <DataGridTemplateColumn Header="Действие" Width="*">
             <DataGridTemplateColumn.CellTemplate>
               <DataTemplate>
                 <TextBlock Text="{Binding ActionText}"
@@ -192,7 +192,7 @@
             </DataGridTemplateColumn.HeaderStyle>
           </DataGridTemplateColumn>
 
-          <DataGridTemplateColumn Header="Название цепочки" Width="160">
+          <DataGridTemplateColumn Header="Название цепочки" Width="200">
             <DataGridTemplateColumn.CellTemplate>
               <DataTemplate>
                 <TextBlock Text="{Binding ChainName}"
@@ -209,7 +209,7 @@
 
           <DataGridTextColumn Header="Шаг успех"
                               Binding="{Binding SuccessNextLink}"
-                              Width="Auto">
+                              Width="100">
             <DataGridTextColumn.ElementStyle>
               <Style TargetType="TextBlock">
                 <Setter Property="HorizontalAlignment" Value="Center"/>
@@ -224,7 +224,7 @@
 
           <DataGridTextColumn Header="Шаг неудача"
                               Binding="{Binding FailureNextLink}"
-                              Width="Auto">
+                              Width="100">
             <DataGridTextColumn.ElementStyle>
               <Style TargetType="TextBlock">
                 <Setter Property="HorizontalAlignment" Value="Center"/>

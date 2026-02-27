@@ -354,7 +354,8 @@ namespace AIStudio.Pages
     /// Подставляет в шаблон текста вставки промпта плейсхолдеры:
     /// [stileCombination] — комбинации стилей реагирования;
     /// [AdaptiveActionList] — список адаптивных действий;
-    /// [InfluenceActionList] — список воздействий с пульта.
+    /// [InfluenceActionList] — список воздействий с пульта;
+    /// [ReflexGenStyleCount], [ReflexGenTriggerCount], [ReflexGenLinesPerState], [ReflexGenLinesThreeStates], [ReflexGenLinesStage1PerState], [ReflexGenLinesStage1ThreeStates] — числа для нейросети.
     /// </summary>
     private string ReplacePromptSuffixPlaceholders(string template)
     {
@@ -362,7 +363,7 @@ namespace AIStudio.Pages
 
       var text = template;
 
-      // [stileCombination] — тот же перечень комбинаций, что в StyleCombinations.comb (используется для подстановок). Загружаем из файла — один источник данных.
+      // [stileCombination] — перечень комбинаций из StyleCombinations.comb (все сочетания стилей, не более 3 в группе)
       var styleCombinationStrings = new List<string>();
       try
       {
@@ -397,6 +398,21 @@ namespace AIStudio.Pages
         influenceNames = influences.OrderBy(x => x.Id).Select(i => i.Name).Where(n => !string.IsNullOrWhiteSpace(n)).ToList();
       }
       text = text.Replace("[InfluenceActionList]", string.Join(", ", influenceNames));
+
+      // Количество комбинаций стилей и воздействий для подсказки нейросети по числу строк
+      int styleCount = styleCombinationStrings.Count;
+      int triggerCount = influenceNames.Count;
+      int linesPerState = styleCount * triggerCount;
+      int linesThreeStates = 3 * linesPerState;
+      int stage1PerState = styleCount;
+      int stage1ThreeStates = 3 * styleCount;
+
+      text = text.Replace("[ReflexGenStyleCount]", styleCount.ToString());
+      text = text.Replace("[ReflexGenTriggerCount]", triggerCount.ToString());
+      text = text.Replace("[ReflexGenLinesPerState]", linesPerState.ToString());
+      text = text.Replace("[ReflexGenLinesThreeStates]", linesThreeStates.ToString());
+      text = text.Replace("[ReflexGenLinesStage1PerState]", stage1PerState.ToString());
+      text = text.Replace("[ReflexGenLinesStage1ThreeStates]", stage1ThreeStates.ToString());
 
       return text;
     }

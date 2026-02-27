@@ -1,4 +1,5 @@
-﻿using AIStudio.Views;
+using AIStudio.Views;
+using AIStudio.Dialogs;
 using ISIDA.Actions;
 using ISIDA.Common;
 using ISIDA.Gomeostas;
@@ -32,6 +33,7 @@ namespace AIStudio.ViewModels
     private readonly GeneticReflexesSystem _geneticReflexesSystem;
     private string _currentAgentName;
     private int _currentAgentStage;
+    private readonly string _bootDataFolder;
 
     private int? _selectedLevel1Filter;
     private int? _selectedLevel2Filter;
@@ -54,19 +56,24 @@ namespace AIStudio.ViewModels
     public ICommand ClearFiltersCommand { get; }
     public ICommand RemoveAllCommand { get; }
     public ICommand OpenSettingsCommand { get; }
+    public ICommand OpenTemplateCommand { get; }
+
+    public bool IsTemplateCreationEnabled => _currentAgentStage == 1 && !GlobalTimer.IsPulsationRunning && !string.IsNullOrEmpty(_bootDataFolder);
 
     public ConditionedReflexesViewModel(
         GomeostasSystem gomeostasSystem,
         ConditionedReflexesSystem conditionedReflexesSystem,
         AdaptiveActionsSystem actionsSystem,
         PerceptionImagesSystem perceptionImagesSystem,
-        GeneticReflexesSystem geneticReflexesSystem)
+        GeneticReflexesSystem geneticReflexesSystem,
+        string bootDataFolder = null)
     {
       _gomeostas = gomeostasSystem ?? throw new ArgumentNullException(nameof(gomeostasSystem));
       _conditionedReflexesSystem = conditionedReflexesSystem ?? throw new ArgumentNullException(nameof(conditionedReflexesSystem));
       _actionsSystem = actionsSystem ?? throw new ArgumentNullException(nameof(actionsSystem));
       _perceptionImagesSystem = perceptionImagesSystem ?? throw new ArgumentNullException(nameof(perceptionImagesSystem));
       _geneticReflexesSystem = geneticReflexesSystem ?? throw new ArgumentNullException(nameof(geneticReflexesSystem));
+      _bootDataFolder = bootDataFolder;
 
       _conditionedReflexesView = CollectionViewSource.GetDefaultView(_allConditionedReflexes);
       _conditionedReflexesView.Filter = FilterConditionedReflexes;
@@ -76,6 +83,7 @@ namespace AIStudio.ViewModels
       ClearFiltersCommand = new RelayCommand(ClearFilters);
       RemoveAllCommand = new RelayCommand(RemoveAllReflexes);
       OpenSettingsCommand = new RelayCommand(OpenSettings);
+      OpenTemplateCommand = new RelayCommand(OpenTemplate, _ => IsTemplateCreationEnabled);
 
       GlobalTimer.PulsationStateChanged += OnPulsationStateChanged;
       LoadAgentData();
@@ -137,6 +145,7 @@ namespace AIStudio.ViewModels
       {
         OnPropertyChanged(nameof(IsStageOneOrHigher));
         OnPropertyChanged(nameof(IsDeletionEnabled));
+        OnPropertyChanged(nameof(IsTemplateCreationEnabled));
         OnPropertyChanged(nameof(PulseWarningMessage));
         OnPropertyChanged(nameof(WarningMessageColor));
       });
@@ -304,6 +313,8 @@ namespace AIStudio.ViewModels
       var agentInfo = _gomeostas.GetAgentState();
       _currentAgentStage = agentInfo?.EvolutionStage ?? 0;
       _currentAgentName = agentInfo.Name;
+      OnPropertyChanged(nameof(IsTemplateCreationEnabled));
+      ((RelayCommand)OpenTemplateCommand)?.RaiseCanExecuteChanged();
 
       _allConditionedReflexes.Clear();
       _sourceGeneticReflexActionsCache.Clear();
@@ -515,6 +526,35 @@ namespace AIStudio.ViewModels
               MessageBoxButton.OK,
               MessageBoxImage.Error);
         }
+      }
+    }
+
+    public void OpenTemplate(object parameter)
+    {
+      try
+      {
+        if (!IsTemplateCreationEnabled)
+        {
+          MessageBox.Show("Создание по шаблону доступно только в стадии 1 и при выключенной пульсации.",
+              "Предупреждение", MessageBoxButton.OK, MessageBoxImage.Warning);
+          return;
+        }
+        if (string.IsNullOrEmpty(_bootDataFolder))
+        {
+          MessageBox.Show("Каталог данных не задан.", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Warning);
+          return;
+        }
+        var dialog = new ConditionedReflexLoadDialog(_bootDataFolder)
+        {
+          Owner = Application.Current.MainWindow
+        };
+        bool? result = dialog.ShowDialog();
+        if (result == true)
+          LoadAgentData();
+      }
+      catch (Exception ex)
+      {
+        MessageBox.Show("Ошибка открытия диалога: " + ex.Message, "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
       }
     }
 

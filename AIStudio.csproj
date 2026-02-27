@@ -195,6 +195,9 @@
     <Compile Include="Pages\Reflexes\ReflexLoadDialog.xaml.cs">
       <DependentUpon>ReflexLoadDialog.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Pages\Reflexes\ConditionedReflexLoadDialog.xaml.cs">
+      <DependentUpon>ConditionedReflexLoadDialog.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Pages\Reflexes\ReflexChainsView.xaml.cs">
       <DependentUpon>ReflexChainsView.xaml</DependentUpon>
     </Compile>
@@ -389,6 +392,10 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="Pages\Reflexes\ReflexLoadDialog.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Pages\Reflexes\ConditionedReflexLoadDialog.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

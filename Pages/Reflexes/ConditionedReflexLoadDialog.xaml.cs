@@ -6,18 +6,20 @@ using System.Text;
 using System.Windows;
 using System.Windows.Input;
 using AIStudio.ViewModels;
+using ISIDA.Common;
 using ISIDA.Reflexes;
 
 namespace AIStudio.Dialogs
 {
-  public partial class ReflexLoadDialog : Window
+  public partial class ConditionedReflexLoadDialog : Window
   {
-    public ReflexLoadDialogViewModel ViewModel { get; }
+    public ConditionedReflexLoadDialogViewModel ViewModel { get; }
 
-    public ReflexLoadDialog(string bootDataFolder, GeneticReflexFileLoader loader)
+    public ConditionedReflexLoadDialog(string bootDataFolder)
     {
       InitializeComponent();
-      ViewModel = new ReflexLoadDialogViewModel(bootDataFolder, loader ?? GeneticReflexFileLoader.Instance);
+      var loader = new ConditionedReflexFileLoader(bootDataFolder ?? throw new ArgumentNullException(nameof(bootDataFolder)));
+      ViewModel = new ConditionedReflexLoadDialogViewModel(bootDataFolder, loader);
       DataContext = ViewModel;
       ViewModel.CloseAction = (result) =>
       {
@@ -42,13 +44,13 @@ namespace AIStudio.Dialogs
     }
   }
 
-  public class ReflexLoadDialogViewModel : INotifyPropertyChanged
+  public class ConditionedReflexLoadDialogViewModel : INotifyPropertyChanged
   {
     public event PropertyChangedEventHandler PropertyChanged;
     protected void OnPropertyChanged(string name) => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
 
     private readonly string _bootDataFolder;
-    private readonly GeneticReflexFileLoader _loader;
+    private readonly ConditionedReflexFileLoader _loader;
 
     public Action<bool> CloseAction { get; set; }
 
@@ -65,7 +67,7 @@ namespace AIStudio.Dialogs
     public RelayCommand ApplyCommand { get; }
     public RelayCommand CancelCommand { get; }
 
-    public ReflexLoadDialogViewModel(string bootDataFolder, GeneticReflexFileLoader loader)
+    public ConditionedReflexLoadDialogViewModel(string bootDataFolder, ConditionedReflexFileLoader loader)
     {
       _bootDataFolder = bootDataFolder ?? throw new ArgumentNullException(nameof(bootDataFolder));
       _loader = loader ?? throw new ArgumentNullException(nameof(loader));
@@ -92,7 +94,7 @@ namespace AIStudio.Dialogs
     }
 
     private string _promptFilePath;
-    public string PromptFilePath => _promptFilePath ?? (_promptFilePath = Path.Combine(_bootDataFolder, "prompt_genetic_reflex_generate.txt"));
+    public string PromptFilePath => _promptFilePath ?? (_promptFilePath = _loader.GetPromptFilePath());
 
     private string _promptContent;
     public string PromptContent
@@ -170,7 +172,7 @@ namespace AIStudio.Dialogs
       }
       string msg = valid > 0
           ? $"Корректных строк: {valid}. Некорректных: {invalid}."
-          : $"Нет корректных строк. Ожидается формат: Состояние|Стили|Триггер|Действие|Цепочка";
+          : "Нет корректных строк. Ожидается формат: Состояние|Стили|Триггер безусловного рефлекса|Новый триггер (фраза)";
       MessageBox.Show(msg, "Проверка формата", MessageBoxButton.OK, invalid > 0 ? MessageBoxImage.Warning : MessageBoxImage.Information);
     }
 
@@ -197,12 +199,22 @@ namespace AIStudio.Dialogs
         MessageBox.Show("Введите текст рефлексов во вкладке «Текст рефлексов».", "Нет данных", MessageBoxButton.OK, MessageBoxImage.Warning);
         return;
       }
+      if (AppGlobalState.EvolutionStage != 1)
+      {
+        MessageBox.Show("Генерация условных рефлексов по шаблону разрешена только в стадии 1.", "Неверная стадия", MessageBoxButton.OK, MessageBoxImage.Warning);
+        return;
+      }
       IsBusy = true;
       try
       {
         var result = await System.Threading.Tasks.Task.Run(() => _loader.LoadFromContent(CsvContent.Trim())).ConfigureAwait(true);
         MessageBox.Show(result.ToSummaryString(), "Готово", MessageBoxButton.OK, MessageBoxImage.Information);
         CloseAction?.Invoke(true);
+      }
+      catch (InvalidOperationException ex)
+      {
+        IsBusy = false;
+        MessageBox.Show(ex.Message, "Ошибка", MessageBoxButton.OK, MessageBoxImage.Warning);
       }
       catch (ArgumentException ex)
       {

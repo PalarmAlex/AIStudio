@@ -1,7 +1,7 @@
-<Window x:Class="AIStudio.Dialogs.ReflexLoadDialog"
+<Window x:Class="AIStudio.Dialogs.ConditionedReflexLoadDialog"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="Создание безусловных рефлексов шаблону"
+        Title="Создание условных рефлексов по шаблону"
         Height="560" Width="780"
         WindowStartupLocation="CenterOwner"
         ResizeMode="NoResize"
@@ -46,12 +46,12 @@
           Panel.ZIndex="1000">
       <StackPanel VerticalAlignment="Bottom" HorizontalAlignment="Left" Margin="15,0,0,15">
         <ProgressBar IsIndeterminate="True" Width="200" Height="20" Margin="0,0,0,10"/>
-        <TextBlock Text="Создание рефлексов и цепочек..." HorizontalAlignment="Center" FontSize="14"/>
+        <TextBlock Text="Создание условных рефлексов..." HorizontalAlignment="Center" FontSize="14"/>
       </StackPanel>
     </Grid>
 
     <TextBlock Grid.Row="0"
-               Text="Создание безусловных рефлексов по шаблону"
+               Text="Создание условных рефлексов по шаблону"
                Style="{StaticResource DialogHeaderStyle}"/>
 
     <TabControl Grid.Row="1" Margin="0,6,0,6" x:Name="MainTabControl">
@@ -72,12 +72,11 @@
             <StackPanel>
               <TextBlock Text="Формат текста" FontWeight="SemiBold" Margin="0,0,0,5"/>
               <TextBlock TextWrapping="Wrap" Style="{StaticResource InfoTextStyle}">
-                <Run Text="Строка: Состояние|Стили|Триггер|Действие|Цепочка"/><LineBreak/>
+                <Run Text="Строка: Состояние|Стили|Триггер безусловного рефлекса|Новый триггер условного рефлекса"/><LineBreak/>
                 <Run Text="Стили: имена через + (например: Расслабление+Игра)"/><LineBreak/>
-                <Run Text="Триггер: имя внешнего воздействия или Нет — без триггера (только гомеостаз + стили)"/><LineBreak/>
-                <Run Text="Цепочка: 1.Действие(успех,неудача);2.Действие(0,0) — 0 = конец"/><LineBreak/>
-                <Run Text="С триггером: Плохо|Страх+Напряжение|Напугать|Пугается|1.Просит помощи(2,0);2.Плачет(0,0)" FontFamily="Consolas"/><LineBreak/>
-                <Run Text="Без триггера: Плохо|Страх+Напряжение|Нет|Пугается|1.Просит помощи(2,0);2.Плачет(0,0)" FontFamily="Consolas"/>
+                <Run Text="Триггер безусловного рефлекса: одиночное действие с пульта (внешнее воздействие)"/><LineBreak/>
+                <Run Text="Новый триггер: фраза с пульта. Крепость созданных рефлексов 0,95. Генерация только в стадии 1."/><LineBreak/>
+                <Run Text="Пример: Норма|Расслабление+Игра|Поощрить|молодец" FontFamily="Consolas"/>
               </TextBlock>
             </StackPanel>
           </Border>
@@ -114,7 +113,7 @@
                   Background="#FFF9F9F9"
                   Margin="0,0,0,8">
             <StackPanel>
-              <TextBlock Text="Редактирование промпта для генерации шаблона рефлексов" FontWeight="SemiBold" Margin="0,0,0,5"/>
+              <TextBlock Text="Редактирование промпта для генерации шаблона условных рефлексов" FontWeight="SemiBold" Margin="0,0,0,5"/>
               <TextBlock Text="{Binding PromptFilePath, Mode=OneWay}" TextWrapping="Wrap" Style="{StaticResource InfoTextStyle}"/>
             </StackPanel>
           </Border>
@@ -146,7 +145,7 @@
               Width="120"
               Margin="0,0,10,0"
               Cursor="Hand"
-              ToolTip="Создать рефлексы и цепочки по шаблону"/>
+              ToolTip="Создать условные рефлексы по шаблону (только стадия 1)"/>
       <Button Content="Отмена" Command="{Binding CancelCommand}" Height="35" Width="100" Cursor="Hand"/>
     </StackPanel>
   </Grid>
