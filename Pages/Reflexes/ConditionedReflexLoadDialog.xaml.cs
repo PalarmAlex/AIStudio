@@ -7,6 +7,7 @@ using System.Windows;
 using System.Windows.Input;
 using AIStudio.ViewModels;
 using ISIDA.Common;
+using ISIDA.Gomeostas;
 using ISIDA.Reflexes;
 
 namespace AIStudio.Dialogs
@@ -26,6 +27,11 @@ namespace AIStudio.Dialogs
         DialogResult = result;
         Close();
       };
+      ViewModel.SwitchToPromptTabAction = () =>
+      {
+        if (MainTabControl != null && MainTabControl.Items.Count > 1)
+          MainTabControl.SelectedIndex = 1;
+      };
     }
 
     private void Window_PreviewKeyDown(object sender, KeyEventArgs e)
@@ -41,6 +47,7 @@ namespace AIStudio.Dialogs
     {
       ViewModel.LoadCsvContent();
       ViewModel.LoadPromptContent();
+      ViewModel.LoadInsertTextContent();
     }
   }
 
@@ -53,6 +60,26 @@ namespace AIStudio.Dialogs
     private readonly ConditionedReflexFileLoader _loader;
 
     public Action<bool> CloseAction { get; set; }
+    public Action SwitchToPromptTabAction { get; set; }
+
+    private const string InsertTextFileName = "conditioned_reflex_prompt_insert.txt";
+    private static readonly string DefaultInsertTextTemplate = @"Сгенерируй строки условных рефлексов в формате (строго одна строка — одна запись, поля разделены только одним символом |, внутри ячеек символ | не используй):
+Состояние|Стили|Триггер безусловного рефлекса|Новый триггер условного рефлекса|Тон|Настроение
+
+Правила:
+- Разделитель полей — только вертикальная черта |. В тексте ячеек (состояние, стили, триггер, фраза, тон, настроение) символ | запрещён.
+- Состояние: строго одно из трёх — Плохо, Норма, Хорошо
+- Стили: комбинации из [stileCombination], через + (например: Расслабление+Игра)
+- Триггер безусловного рефлекса: строго одно воздействие из списка [InfluenceActionList]
+- Новый триггер: короткая фраза с пульта без символа | (поощрение, команда и т.п.)
+- Тон: строго одно из списка — Вялый, Нормальный, Повышенный (без изменений и синонимов)
+- Настроение: строго одно из списка — Нормальное, Хорошее, Плохое, Игривое, Учитель, Агрессивное, Защитное, Протест (без изменений и синонимов)
+
+Примеры (копируй формат точно):
+Норма|Расслабление+Игра|Поощрить|молодец|Нормальный|Хорошее
+Хорошо|Расслабление|Погладить|хороший мальчик|Нормальный|Игривое
+
+Сгенерируй примерно [ReflexGenLinesStage1PerState] строк на каждое состояние.";
 
     private bool _isBusy;
     public bool IsBusy
@@ -64,6 +91,8 @@ namespace AIStudio.Dialogs
     public RelayCommand SaveCsvCommand { get; }
     public RelayCommand ValidateCsvCommand { get; }
     public RelayCommand SavePromptCommand { get; }
+    public RelayCommand SaveInsertTextCommand { get; }
+    public RelayCommand CreatePromptCommand { get; }
     public RelayCommand ApplyCommand { get; }
     public RelayCommand CancelCommand { get; }
 
@@ -75,6 +104,8 @@ namespace AIStudio.Dialogs
       SaveCsvCommand = new RelayCommand(ExecuteSaveCsv, CanExecuteSaveCsv);
       ValidateCsvCommand = new RelayCommand(ExecuteValidateCsv);
       SavePromptCommand = new RelayCommand(ExecuteSavePrompt, CanExecuteSavePrompt);
+      SaveInsertTextCommand = new RelayCommand(ExecuteSaveInsertText, CanExecuteSaveInsertText);
+      CreatePromptCommand = new RelayCommand(ExecuteCreatePrompt);
       ApplyCommand = new RelayCommand(ExecuteApply, _ => CanApply);
       CancelCommand = new RelayCommand(_ => CloseAction?.Invoke(false));
     }
@@ -96,6 +127,18 @@ namespace AIStudio.Dialogs
     private string _promptFilePath;
     public string PromptFilePath => _promptFilePath ?? (_promptFilePath = _loader.GetPromptFilePath());
 
+    private string _promptInsertText;
+    public string PromptInsertText
+    {
+      get => _promptInsertText;
+      set
+      {
+        _promptInsertText = value;
+        OnPropertyChanged(nameof(PromptInsertText));
+        SaveInsertTextCommand?.RaiseCanExecuteChanged();
+      }
+    }
+
     private string _promptContent;
     public string PromptContent
     {
@@ -108,7 +151,7 @@ namespace AIStudio.Dialogs
       }
     }
 
-    public bool IsPromptEditingEnabled => !string.IsNullOrEmpty(PromptFilePath) && File.Exists(PromptFilePath);
+    public bool IsPromptEditingEnabled => !string.IsNullOrEmpty(PromptFilePath);
 
     public bool CanApply => !string.IsNullOrWhiteSpace(CsvContent);
 
@@ -138,7 +181,63 @@ namespace AIStudio.Dialogs
       }
     }
 
+    public void LoadInsertTextContent()
+    {
+      try
+      {
+        string path = Path.Combine(_bootDataFolder, InsertTextFileName);
+        PromptInsertText = File.Exists(path) ? File.ReadAllText(path, Encoding.UTF8) : DefaultInsertTextTemplate;
+      }
+      catch (Exception ex)
+      {
+        PromptInsertText = DefaultInsertTextTemplate + "\n\n# Ошибка загрузки: " + ex.Message;
+      }
+    }
+
     private bool CanExecuteSaveCsv(object _) => !string.IsNullOrWhiteSpace(CsvContent);
+
+    private bool CanExecuteSaveInsertText(object _) => !string.IsNullOrWhiteSpace(PromptInsertText);
+
+    private void ExecuteSaveInsertText(object _)
+    {
+      try
+      {
+        Directory.CreateDirectory(_bootDataFolder);
+        string path = Path.Combine(_bootDataFolder, InsertTextFileName);
+        File.WriteAllText(path, PromptInsertText, Encoding.UTF8);
+        MessageBox.Show("Текст сохранён.", "Сохранение", MessageBoxButton.OK, MessageBoxImage.Information);
+      }
+      catch (Exception ex)
+      {
+        MessageBox.Show("Ошибка сохранения: " + ex.Message, "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
+      }
+    }
+
+    private void ExecuteCreatePrompt(object _)
+    {
+      try
+      {
+        var gomeostas = GomeostasSystem.Instance;
+        if (gomeostas == null)
+        {
+          MessageBox.Show("Система гомеостаза не инициализирована.", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Warning);
+          return;
+        }
+        gomeostas.UpdateAgentPropertiesPromptContent();
+        string part1 = AppGlobalState.AgentPropertiesPromptContent ?? string.Empty;
+        string insertTemplate = PromptInsertText ?? string.Empty;
+        string part2 = gomeostas.ReplacePromptTemplatePlaceholders(insertTemplate);
+        string fullPrompt = string.IsNullOrWhiteSpace(part1)
+          ? part2.Trim()
+          : (part1.TrimEnd() + "\r\n\r\n" + part2.Trim()).Trim();
+        PromptContent = fullPrompt;
+        SwitchToPromptTabAction?.Invoke();
+      }
+      catch (Exception ex)
+      {
+        MessageBox.Show("Ошибка создания промпта: " + ex.Message, "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
+      }
+    }
 
     private void ExecuteSaveCsv(object _)
     {
@@ -168,15 +267,16 @@ namespace AIStudio.Dialogs
         var t = line.Trim();
         if (string.IsNullOrWhiteSpace(t) || t.StartsWith("#")) continue;
         var parts = t.Split('|');
+        // Допускается 4 поля (без тона и настроения) или 6 полей (с тоном и настроением)
         if (parts.Length >= 4) valid++; else invalid++;
       }
       string msg = valid > 0
           ? $"Корректных строк: {valid}. Некорректных: {invalid}."
-          : "Нет корректных строк. Ожидается формат: Состояние|Стили|Триггер безусловного рефлекса|Новый триггер (фраза)";
+          : "Нет корректных строк. Ожидается формат: Состояние|Стили|Триггер безусловного рефлекса|Новый триггер [|Тон|Настроение]";
       MessageBox.Show(msg, "Проверка формата", MessageBoxButton.OK, invalid > 0 ? MessageBoxImage.Warning : MessageBoxImage.Information);
     }
 
-    private bool CanExecuteSavePrompt(object _) => !string.IsNullOrWhiteSpace(PromptContent) && File.Exists(PromptFilePath);
+    private bool CanExecuteSavePrompt(object _) => !string.IsNullOrWhiteSpace(PromptContent);
 
     private void ExecuteSavePrompt(object _)
     {

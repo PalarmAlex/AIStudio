@@ -72,11 +72,11 @@
             <StackPanel>
               <TextBlock Text="Формат текста" FontWeight="SemiBold" Margin="0,0,0,5"/>
               <TextBlock TextWrapping="Wrap" Style="{StaticResource InfoTextStyle}">
-                <Run Text="Строка: Состояние|Стили|Триггер безусловного рефлекса|Новый триггер условного рефлекса"/><LineBreak/>
+                <Run Text="Строка: Состояние|Стили|Триггер безусловного рефлекса|Новый триггер условного рефлекса|Тон|Настроение"/><LineBreak/>
                 <Run Text="Стили: имена через + (например: Расслабление+Игра)"/><LineBreak/>
                 <Run Text="Триггер безусловного рефлекса: одиночное действие с пульта (внешнее воздействие)"/><LineBreak/>
-                <Run Text="Новый триггер: фраза с пульта. Крепость созданных рефлексов 0,95. Генерация только в стадии 1."/><LineBreak/>
-                <Run Text="Пример: Норма|Расслабление+Игра|Поощрить|молодец" FontFamily="Consolas"/>
+                <Run Text="Новый триггер: фраза с пульта. Тон и Настроение — по текстовому обозначению (опционально). Крепость 0,95. Стадия 1."/><LineBreak/>
+                <Run Text="Пример: Норма|Расслабление+Игра|Поощрить|молодец|Нормальный|Хорошее" FontFamily="Consolas"/>
               </TextBlock>
             </StackPanel>
           </Border>
@@ -132,6 +132,45 @@
                    IsEnabled="{Binding IsPromptEditingEnabled}"/>
           <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,10,0,0">
             <Button Content="Сохранить промпт" Command="{Binding SavePromptCommand}" Height="35" Width="150" Cursor="Hand"/>
+          </StackPanel>
+        </Grid>
+      </TabItem>
+      <TabItem Header="Текст для вставки в промпт" x:Name="TabPromptInsert" Style="{StaticResource TabHeaderStyle}">
+        <Grid Margin="0,10,0,0">
+          <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+          </Grid.RowDefinitions>
+          <Border Grid.Row="0"
+                  BorderBrush="#FFE0E0E0"
+                  BorderThickness="1"
+                  CornerRadius="4"
+                  Padding="8"
+                  Background="#FFF9F9F9"
+                  Margin="0,0,0,8">
+            <StackPanel>
+              <TextBlock Text="Текст вставки для промпта генерации условных рефлексов" FontWeight="SemiBold" Margin="0,0,0,5"/>
+              <TextBlock TextWrapping="Wrap" Style="{StaticResource InfoTextStyle}">
+                <Run Text="Поддерживаются плейсхолдеры: [stileCombination], [InfluenceActionList], [ReflexGenStyleCount], [ReflexGenTriggerCount], [ReflexGenLinesStage1PerState], [ReflexGenLinesStage1ThreeStates]"/>
+              </TextBlock>
+            </StackPanel>
+          </Border>
+          <TextBox Grid.Row="1"
+                   x:Name="PromptInsertTextBox"
+                   Text="{Binding PromptInsertText, UpdateSourceTrigger=PropertyChanged}"
+                   AcceptsReturn="True"
+                   AcceptsTab="True"
+                   FontFamily="Segoe UI"
+                   FontSize="12"
+                   VerticalScrollBarVisibility="Auto"
+                   HorizontalScrollBarVisibility="Auto"
+                   Padding="4"
+                   BorderBrush="#FFE0E0E0"
+                   BorderThickness="1"/>
+          <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,10,0,0">
+            <Button Content="Создать промпт" Command="{Binding CreatePromptCommand}" Height="35" Width="140" Margin="0,0,10,0" Cursor="Hand"/>
+            <Button Content="Сохранить текст" Command="{Binding SaveInsertTextCommand}" Height="35" Width="130" Cursor="Hand"/>
           </StackPanel>
         </Grid>
       </TabItem>

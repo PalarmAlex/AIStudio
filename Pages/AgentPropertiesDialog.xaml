@@ -106,7 +106,7 @@
         <TextBox x:Name="TextStressBehavior" Grid.Column="0" IsReadOnly="True" Padding="4,3"
                  ToolTip="Набор возможных реакций на стрессовые ситуации. Может быть выбрано несколько вариантов."
                  Background="#FFF0F0F0"/>
-        <Button Grid.Column="1" Content="Выбрать..." Margin="8,0,0,0" Padding="8,4" Click="ButtonSelectStressBehavior_Click"/>
+        <Button x:Name="SetStressBehaviorButton" Grid.Column="1" Content="Выбрать..." Margin="8,0,0,0" Padding="8,4" Click="ButtonSelectStressBehavior_Click"/>
       </Grid>
     </StackPanel>
 
@@ -121,7 +121,7 @@
         <TextBox x:Name="TextThreatResponse" Grid.Column="0" IsReadOnly="True" Padding="4,3"
                  ToolTip="Первичная, инстинктивная реакция при обнаружении угрозы."
                  Background="#FFF0F0F0"/>
-        <Button Grid.Column="1" Content="Выбрать..." Margin="8,0,0,0" Padding="8,4" Click="ButtonSelectThreatResponse_Click"/>
+        <Button x:Name="SetThreatResponseButton" Grid.Column="1" Content="Выбрать..." Margin="8,0,0,0" Padding="8,4" Click="ButtonSelectThreatResponse_Click"/>
       </Grid>
     </StackPanel>
     <StackPanel Grid.Row="6" Grid.Column="1" Margin="6,0,6,8">
@@ -134,7 +134,7 @@
         <TextBox x:Name="TextRewardResponse" Grid.Column="0" IsReadOnly="True" Padding="4,3"
                  ToolTip="Типичная реакция на получение поощрения, ресурса или положительной обратной связи."
                  Background="#FFF0F0F0"/>
-        <Button Grid.Column="1" Content="Выбрать..." Margin="8,0,0,0" Padding="8,4" Click="ButtonSelectRewardResponse_Click"/>
+        <Button x:Name="SetRewardResponseButton" Grid.Column="1" Content="Выбрать..." Margin="8,0,0,0" Padding="8,4" Click="ButtonSelectRewardResponse_Click"/>
       </Grid>
     </StackPanel>
     <StackPanel Grid.Row="6" Grid.Column="2" Margin="6,0,0,8">
@@ -147,23 +147,47 @@
         <TextBox x:Name="TextPunishmentResponse" Grid.Column="0" IsReadOnly="True" Padding="4,3"
                  ToolTip="Типичная реакция на наказание, порицание или лишение ресурса."
                  Background="#FFF0F0F0"/>
-        <Button Grid.Column="1" Content="Выбрать..." Margin="8,0,0,0" Padding="8,4" Click="ButtonSelectPunishmentResponse_Click"/>
+        <Button x:Name="SetPunishmentResponseButton" Grid.Column="1" Content="Выбрать..." Margin="8,0,0,0" Padding="8,4" Click="ButtonSelectPunishmentResponse_Click"/>
       </Grid>
     </StackPanel>
 
-    <!-- Текст вставки для промпта -->
-    <StackPanel Grid.Row="7" Grid.Column="0" Grid.ColumnSpan="3" Margin="0,0,0,8">
-      <TextBlock Text="Текст вставки для промпта:" Margin="0,4,0,2"/>
-      <TextBox x:Name="TextBoxPromptSuffix" Padding="4,3" Height="220"
-               AcceptsReturn="True" TextWrapping="Wrap"
-               VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto"
-               ToolTip="Текст, добавляемый в конец сохраняемого промпта. Поддерживаются плейсхолдеры: [stileCombination] — комбинации стилей реагирования; [AdaptiveActionList] — список адаптивных действий; [InfluenceActionList] — список воздействий с пульта."/>
-    </StackPanel>
+    <!-- Текст вставки для промпта + блок описания параметров -->
+    <Grid Grid.Row="7" Grid.Column="0" Grid.ColumnSpan="3" Margin="0,0,0,8">
+      <Grid.ColumnDefinitions>
+        <ColumnDefinition Width="Auto" MinWidth="220"/>
+        <ColumnDefinition Width="*"/>
+      </Grid.ColumnDefinitions>
+      <!-- Блок описания параметров (левый нижний угол) -->
+      <Border Grid.Column="0" Margin="0,0,8,0" Padding="8,6" Background="#FFF8F8F8"
+              BorderBrush="#FFE0E0E0" BorderThickness="1" CornerRadius="3">
+        <StackPanel>
+          <TextBlock Text="Параметры для вставки в промпт:" FontWeight="SemiBold" Margin="0,0,0,6"/>
+          <TextBlock TextWrapping="Wrap" FontSize="12" Foreground="#FF404040">
+            <Run Text="stileCombination" FontWeight="SemiBold"/> — комбинации стилей реагирования<LineBreak/>
+            <Run Text="InfluenceActionList" FontWeight="SemiBold"/> — список воздействий с пульта<LineBreak/>
+            <Run Text="AdaptiveActionList" FontWeight="SemiBold"/> — список адаптивных действий<LineBreak/>
+            <Run Text="ReflexGenStyleCount" FontWeight="SemiBold"/> — количество комбинаций стилей<LineBreak/>
+            <Run Text="ReflexGenTriggerCount" FontWeight="SemiBold"/> — количество воздействий<LineBreak/>
+            <Run Text="ReflexGenLinesPerState" FontWeight="SemiBold"/> — строк на состояние (этап 2)<LineBreak/>
+            <Run Text="ReflexGenLinesThreeStates" FontWeight="SemiBold"/> — строк на три состояния (этап 2)<LineBreak/>
+            <Run Text="ReflexGenLinesStage1PerState" FontWeight="SemiBold"/> — строк на состояние (этап 1)<LineBreak/>
+            <Run Text="ReflexGenLinesStage1ThreeStates" FontWeight="SemiBold"/> — строк на три состояния (этап 1)
+          </TextBlock>
+        </StackPanel>
+      </Border>
+      <StackPanel Grid.Column="1">
+        <TextBlock Text="Текст вставки для промпта:" Margin="0,4,0,2"/>
+        <TextBox x:Name="TextBoxPromptSuffix" Padding="4,3" Height="220"
+                 AcceptsReturn="True" TextWrapping="Wrap"
+                 VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto"
+                 ToolTip="Текст, добавляемый в конец сохраняемого промпта. Поддерживаются плейсхолдеры в квадратных скобках — см. блок слева."/>
+      </StackPanel>
+    </Grid>
 
     <!-- Кнопки -->
     <StackPanel Grid.Row="8" Grid.Column="0" Grid.ColumnSpan="3" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,12,0,0">
-      <Button Content="Создать промпт для ИИ" Margin="0,0,10,0" Padding="12,6" Click="ButtonCreatePrompt_Click"/>
-      <Button Content="Сохранить" Margin="0,0,10,0" Padding="12,6" IsDefault="True" Click="ButtonSave_Click"/>
+      <Button x:Name="ButtonCreatePrompt" Content="Создать промпт для ИИ" Margin="0,0,10,0" Padding="12,6" Click="ButtonCreatePrompt_Click"/>
+      <Button x:Name="ButtonSave" Content="Сохранить" Margin="0,0,10,0" Padding="12,6" IsDefault="True" Click="ButtonSave_Click"/>
       <Button Content="Закрыть" Padding="12,6" IsCancel="True" Click="ButtonClose_Click"/>
     </StackPanel>
   </Grid>

@@ -110,6 +110,7 @@
     <Compile Include="Converters\ParameterStateToLightBackgroundConverter.cs" />
     <Compile Include="Converters\ParameterValueToGradientConverter.cs" />
     <Compile Include="Converters\ParameterValueToIndicatorPositionConverter.cs" />
+    <Compile Include="Converters\ConditionedReflexPerceptionTooltipConverter.cs" />
     <Compile Include="Converters\PerceptionImageIdToTooltipConverter.cs" />
     <Compile Include="Converters\PerceptionImageIdToTextConverter.cs" />
     <Compile Include="Converters\StyleBackgroundConverter.cs" />

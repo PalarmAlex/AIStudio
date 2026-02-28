@@ -18,6 +18,7 @@
     <converters:IdListToNamesConverter x:Key="IdListToNamesConverter"/>
     <converters:PerceptionImageIdToTextConverter x:Key="PerceptionImageIdToTextConverter"/>
     <converters:PerceptionImageIdToTooltipConverter x:Key="PerceptionImageIdToTooltipConverter"/>
+    <converters:ConditionedReflexPerceptionTooltipConverter x:Key="ConditionedReflexPerceptionTooltipConverter"/>
 
     <Style x:Key="BaseTextBlockStyle" TargetType="TextBlock">
       <Setter Property="Background" Value="White"/>
@@ -69,7 +70,7 @@
     </Hyperlink>
     </TextBlock>
 
-    <!-- Панель фильтров -->
+    <!-- Панель фильтров: 2 строки, кнопка Применить по примеру AutomatizmsView -->
     <Border Grid.Row="2" 
                 BorderBrush="#FFE0E0E0" 
                 BorderThickness="1"
@@ -77,65 +78,124 @@
                 Margin="0,0,0,10"
                 Padding="5"
                 Background="#FFF5F5F5">
-      <StackPanel Orientation="Horizontal">
-        <TextBlock Text="Фильтры:" 
-                           VerticalAlignment="Center" 
-                           Margin="0,0,10,0"
-                           FontWeight="Bold"/>
+      <Grid>
+        <Grid.ColumnDefinitions>
+          <ColumnDefinition Width="Auto"/>
+          <ColumnDefinition Width="*"/>
+          <ColumnDefinition Width="Auto"/>
+        </Grid.ColumnDefinitions>
 
-        <!-- Фильтр по интегральному состоянию -->
-        <StackPanel Orientation="Vertical" Margin="0,0,15,0" Width="140">
-          <TextBlock Text="Интегральное состояние" FontSize="12" Margin="0,0,0,2"/>
-          <ComboBox Style="{StaticResource AgentComboBoxStyle}"
-                              ItemsSource="{Binding Level1FilterOptions}"
-                              SelectedValue="{Binding SelectedLevel1Filter}"                   
-                              DisplayMemberPath="Value"
-                              SelectedValuePath="Key"
-                              Height="25" Cursor="Hand"/>
+        <TextBlock Grid.Column="0" 
+                   Text="Фильтры:" 
+                   VerticalAlignment="Top"
+                   Margin="0,6,12,0"
+                   FontWeight="Bold"/>
+
+        <StackPanel Grid.Column="1" Orientation="Vertical" HorizontalAlignment="Left">
+          <!-- Строка 1 -->
+          <StackPanel Orientation="Horizontal" Margin="0,0,0,6">
+            <StackPanel Orientation="Vertical" Margin="0,0,10,0" Width="140">
+              <TextBlock Text="Интегральное состояние" FontSize="12" Margin="0,0,0,2"/>
+              <ComboBox Style="{StaticResource AgentComboBoxStyle}"
+                        ItemsSource="{Binding Level1FilterOptions}"
+                        SelectedValue="{Binding SelectedLevel1Filter}"
+                        DisplayMemberPath="Value"
+                        SelectedValuePath="Key"
+                        Height="25" Cursor="Hand"/>
+            </StackPanel>
+            <StackPanel Orientation="Vertical" Margin="0,0,10,0" Width="150">
+              <TextBlock Text="Контексты реагирования" FontSize="12" Margin="0,0,0,2"/>
+              <ComboBox Style="{StaticResource AgentComboBoxStyle}"
+                        ItemsSource="{Binding Level2FilterOptions}"
+                        SelectedValue="{Binding SelectedLevel2Filter}"
+                        DisplayMemberPath="Value"
+                        SelectedValuePath="Key"
+                        Height="25"/>
+            </StackPanel>
+            <StackPanel Orientation="Vertical" Margin="0,0,10,0" Width="150">
+              <TextBlock Text="Образы восприятия" FontSize="12" Margin="0,0,0,2"/>
+              <ComboBox Style="{StaticResource AgentComboBoxStyle}"
+                        ItemsSource="{Binding Level3FilterOptions}"
+                        SelectedValue="{Binding SelectedLevel3Filter}"
+                        DisplayMemberPath="Value"
+                        SelectedValuePath="Key"
+                        Height="25"/>
+            </StackPanel>
+            <StackPanel Orientation="Vertical" Margin="0,0,10,0" Width="150">
+              <TextBlock Text="Адаптивные действия" FontSize="12" Margin="0,0,0,2"/>
+              <ComboBox Style="{StaticResource AgentComboBoxStyle}"
+                        ItemsSource="{Binding AdaptiveActionsFilterOptions}"
+                        SelectedValue="{Binding SelectedAdaptiveActionsFilter}"
+                        DisplayMemberPath="Value"
+                        SelectedValuePath="Key"
+                        Height="25"/>
+            </StackPanel>
+            <StackPanel Orientation="Vertical" Margin="0,0,10,0" Width="130">
+              <TextBlock Text="Записей на страницу" FontSize="12" Margin="0,0,0,2"/>
+              <ComboBox Style="{StaticResource AgentComboBoxStyle}"
+                        ItemsSource="{Binding PageSizeOptions}"
+                        SelectedValue="{Binding SelectedPageSize}"
+                        DisplayMemberPath="Value"
+                        SelectedValuePath="Key"
+                        Height="25"
+                        ToolTip="Ограничить количество отображаемых записей"/>
+            </StackPanel>
+          </StackPanel>
+          <!-- Строка 2: Тон, Настроение, Фраза триггера -->
+          <StackPanel Orientation="Horizontal">
+            <StackPanel Orientation="Vertical" Margin="0,0,10,0" Width="150">
+              <TextBlock Text="Тон" FontSize="12" Margin="0,0,0,2"/>
+              <ComboBox Style="{StaticResource AgentComboBoxStyle}"
+                        ItemsSource="{Binding ToneFilterOptions}"
+                        SelectedValue="{Binding SelectedToneFilter}"
+                        DisplayMemberPath="Value"
+                        SelectedValuePath="Key"
+                        Height="25"/>
+            </StackPanel>
+            <StackPanel Orientation="Vertical" Margin="0,0,10,0" Width="150">
+              <TextBlock Text="Настроение" FontSize="12" Margin="0,0,0,2"/>
+              <ComboBox Style="{StaticResource AgentComboBoxStyle}"
+                        ItemsSource="{Binding MoodFilterOptions}"
+                        SelectedValue="{Binding SelectedMoodFilter}"
+                        DisplayMemberPath="Value"
+                        SelectedValuePath="Key"
+                        Height="25"/>
+            </StackPanel>
+            <StackPanel Orientation="Vertical" Margin="0,0,10,0" Width="150">
+              <TextBlock Text="Фраза триггера" FontSize="12" Margin="0,0,0,2"/>
+              <TextBox Style="{StaticResource AgentFilterTextBoxStyle}"
+                      Text="{Binding FilterTriggerPhraseInput, UpdateSourceTrigger=PropertyChanged}"
+                      Height="25" Width="150"
+                      ToolTip="Поиск по вхождению текста в фразу образа восприятия. Нажмите «Применить» для фильтрации."/>
+            </StackPanel>
+          </StackPanel>
         </StackPanel>
 
-        <!-- Фильтр по контекстам реагирования -->
-        <StackPanel Orientation="Vertical" Margin="0,0,15,0" Width="150">
-          <TextBlock Text="Контексты реагирования" FontSize="12" Margin="0,0,0,2"/>
-          <ComboBox Style="{StaticResource AgentComboBoxStyle}"
-                              ItemsSource="{Binding Level2FilterOptions}"
-                              SelectedValue="{Binding SelectedLevel2Filter}"
-                              DisplayMemberPath="Value"
-                              SelectedValuePath="Key"
-                              Height="25"/>
-        </StackPanel>
-
-        <!-- Фильтр по образам восприятия -->
-        <StackPanel Orientation="Vertical" Margin="0,0,15,0" Width="150">
-          <TextBlock Text="Образы восприятия" FontSize="12" Margin="0,0,0,2"/>
-          <ComboBox Style="{StaticResource AgentComboBoxStyle}"
-                              ItemsSource="{Binding Level3FilterOptions}"
-                              SelectedValue="{Binding SelectedLevel3Filter}"
-                              DisplayMemberPath="Value"
-                              SelectedValuePath="Key"
-                              Height="25"/>
-        </StackPanel>
-
-        <!-- Фильтр по адаптивным действиям -->
-        <StackPanel Orientation="Vertical" Margin="0,0,15,0" Width="150">
-          <TextBlock Text="Адаптивные действия" FontSize="12" Margin="0,0,0,2"/>
-          <ComboBox Style="{StaticResource AgentComboBoxStyle}"
-                              ItemsSource="{Binding AdaptiveActionsFilterOptions}"
-                              SelectedValue="{Binding SelectedAdaptiveActionsFilter}"
-                              DisplayMemberPath="Value"
-                              SelectedValuePath="Key"
-                              Height="25"/>
-        </StackPanel>
-
-        <!-- Кнопка сброса фильтров -->
-        <Button Content="Сбросить фильтры" 
-                        Command="{Binding ClearFiltersCommand}"
-                        Style="{StaticResource AgentButtonStyle}"
-                        Margin="10,15,0,0"
-                        Height="30"
-                        Width="150" Cursor="Hand"
-                        HorizontalAlignment="Right"/>
-      </StackPanel>
+        <Grid Grid.Column="2" VerticalAlignment="Stretch" Margin="12,0,0,0" Width="150">
+          <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+          </Grid.RowDefinitions>
+          <Button Grid.Row="0" Content="Применить"
+                  Command="{Binding ApplyFiltersCommand}"
+                  Style="{StaticResource AgentButtonStyle}"
+                  Margin="0,15,0,6"
+                  Height="30"
+                  Width="150"
+                  Cursor="Hand"
+                  HorizontalAlignment="Left"
+                  ToolTip="Применить фильтры по фразе триггера, тону и настроению"/>
+          <TextBlock Grid.Row="1" Text=" " FontSize="1" VerticalAlignment="Center"/>
+          <Button Grid.Row="2" Content="Сбросить фильтры" 
+                  Command="{Binding ClearFiltersCommand}"
+                  Style="{StaticResource AgentButtonStyle}"
+                  Height="30"
+                  Width="150"
+                  Cursor="Hand"
+                  HorizontalAlignment="Left" Margin="0,0,0,0"/>
+        </Grid>
+      </Grid>
     </Border>
 
     <Border Grid.Row="3" 
@@ -204,8 +264,15 @@
 
             <DataGridTemplateColumn.CellTemplate>
               <DataTemplate>
-                <TextBlock Text="{Binding Level3, Converter={StaticResource PerceptionImageIdToTextConverter}}"
-                 ToolTip="{Binding Level3, Converter={StaticResource PerceptionImageIdToTooltipConverter}}"/>
+                <TextBlock Text="{Binding Level3, Converter={StaticResource PerceptionImageIdToTextConverter}}">
+                  <TextBlock.ToolTip>
+                    <MultiBinding Converter="{StaticResource ConditionedReflexPerceptionTooltipConverter}">
+                      <Binding Path="Level3"/>
+                      <Binding Path="ToneId"/>
+                      <Binding Path="MoodId"/>
+                    </MultiBinding>
+                  </TextBlock.ToolTip>
+                </TextBlock>
               </DataTemplate>
             </DataGridTemplateColumn.CellTemplate>
           </DataGridTemplateColumn>
@@ -277,6 +344,10 @@
       </Grid.ColumnDefinitions>
 
       <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
+        <TextBlock Text="{Binding DisplayCountText}"
+                   Margin="0,0,15,0"
+                   VerticalAlignment="Center"
+                   FontWeight="SemiBold"/>
         <Button Content="Настройки"
                     Command="{Binding OpenSettingsCommand}"
                     IsEnabled="{Binding IsDeletionEnabled}"
@@ -284,6 +355,13 @@
                     ToolTip="Настройки условных рефлексов"
                     Margin="8,0,15,0"
                     Cursor="Hand"/>
+        <Button Content="Создать по шаблону"
+                        Command="{Binding OpenTemplateCommand}"
+                        IsEnabled="{Binding IsTemplateCreationEnabled}"
+                        Style="{StaticResource ActionButtonStyle}"
+                        ToolTip="Создать условные рефлексы по шаблону (только стадия 1)"
+                        Margin="0,0,10,0"
+                        Cursor="Hand" HorizontalAlignment="Left"/>
 
         <!-- Текст предупреждения -->
         <TextBlock Grid.Column="0"
@@ -299,13 +377,6 @@
       <StackPanel Grid.Column="1" 
                         Orientation="Horizontal" 
                         HorizontalAlignment="Right">
-        <Button Content="Создать по шаблону"
-                        Command="{Binding OpenTemplateCommand}"
-                        IsEnabled="{Binding IsTemplateCreationEnabled}"
-                        Style="{StaticResource ActionButtonStyle}"
-                        ToolTip="Создать условные рефлексы по шаблону (только стадия 1)"
-                        Margin="0,0,10,0"
-                        Cursor="Hand"/>
         <Button Content="Очистить"
                         Command="{Binding RemoveAllCommand}"
                         IsEnabled="{Binding IsDeletionEnabled}"

@@ -1,5 +1,6 @@
-﻿using ISIDA.Actions;
+using ISIDA.Actions;
 using ISIDA.Common;
+using ISIDA.Psychic.Automatism;
 using ISIDA.Reflexes;
 using ISIDA.Sensors;
 using System;
@@ -103,6 +104,19 @@ namespace AIStudio.Converters
               {
                 tooltip.Append("нет фраз");
               }
+
+              tooltip.AppendLine();
+              // Тон и настроение: в образе восприятия рефлексов не хранятся, по умолчанию — нормальные
+              string toneText = "Нормальный";
+              string moodText = "Нормальное";
+              if (ActionsImagesSystem.IsInitialized)
+              {
+                var t = ActionsImagesSystem.GetToneText(0);
+                var m = ActionsImagesSystem.GetMoodText(0);
+                if (!string.IsNullOrEmpty(t)) toneText = t;
+                if (!string.IsNullOrEmpty(m)) moodText = m;
+              }
+              tooltip.Append($"Тон/Настроение: {toneText} - {moodText}.");
 
               return tooltip.ToString();
             }

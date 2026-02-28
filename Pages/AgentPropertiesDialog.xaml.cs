@@ -1,6 +1,7 @@
 using AIStudio.ViewModels;
 using AIStudio.Dialogs;
 using ISIDA.Actions;
+using ISIDA.Common;
 using ISIDA.Gomeostas;
 using System;
 using System.Collections.Generic;
@@ -33,6 +34,38 @@ namespace AIStudio.Pages
 
       LoadStages();
       LoadData();
+      ApplyStageEditMode();
+    }
+
+    /// <summary>
+    /// В стадии 0 — разрешено редактирование; в остальных стадиях — только чтение, все кнопки кроме «Закрыть» заблокированы.
+    /// </summary>
+    private void ApplyStageEditMode()
+    {
+      int stage = GetStage();
+      bool canEdit = (stage == 0);
+
+      TextBoxAgentName.IsReadOnly = !canEdit;
+      TextBoxDescription.IsReadOnly = !canEdit;
+      TextBoxAdditionalWishes.IsReadOnly = !canEdit;
+      TextBoxPromptSuffix.IsReadOnly = !canEdit;
+
+      // Список смены стадии всегда доступен, чтобы можно было перейти на другие стадии
+      ComboSpecialTriggers.IsEnabled = canEdit;
+      ComboSpecialTaboos.IsEnabled = canEdit;
+      ComboBaseArchetype.IsEnabled = canEdit;
+      ComboKeyMotivation.IsEnabled = canEdit;
+      ComboSociality.IsEnabled = canEdit;
+      ComboTemperamentActivity.IsEnabled = canEdit;
+      ComboTemperamentReactivity.IsEnabled = canEdit;
+
+      SetStressBehaviorButton.IsEnabled = canEdit;
+      SetThreatResponseButton.IsEnabled = canEdit;
+      SetRewardResponseButton.IsEnabled = canEdit;
+      SetPunishmentResponseButton.IsEnabled = canEdit;
+
+      ButtonCreatePrompt.IsEnabled = canEdit;
+      ButtonSave.IsEnabled = canEdit;
     }
 
     private void LoadStages()
@@ -86,6 +119,7 @@ namespace AIStudio.Pages
       if (stageResult.Success)
       {
         LoadData();
+        ApplyStageEditMode();
 
         var (saveSuccess, error) = _gomeostas.SaveAgentProperties();
         if (!saveSuccess)
@@ -273,7 +307,10 @@ namespace AIStudio.Pages
 
         var (success, error) = _gomeostas.SaveAgentProperties();
         if (success)
+        {
+          _gomeostas.UpdateAgentPropertiesPromptContent();
           MessageBox.Show("Свойства агента сохранены.", "Сохранение", MessageBoxButton.OK, MessageBoxImage.Information);
+        }
         else
           MessageBox.Show($"Ошибка сохранения: {error}", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
       }
@@ -287,48 +324,39 @@ namespace AIStudio.Pages
     {
       try
       {
+        // Сначала сохраняем текущие значения формы в AgentProperties.dat и обновляем глобальную переменную
+        var name = (TextBoxAgentName.Text ?? string.Empty).Trim();
+        var description = TextBoxDescription?.Text ?? string.Empty;
+        var stage = GetStage();
         var baseArchetype = (ComboBaseArchetype.Text ?? string.Empty).Trim();
         var keyMotivation = (ComboKeyMotivation.Text ?? string.Empty).Trim();
         var temperamentActivity = ComboTemperamentActivity.SelectedItem as string ?? string.Empty;
         var temperamentReactivity = ComboTemperamentReactivity.SelectedItem as string ?? string.Empty;
-        var stressBehavior = GetActionNames(_stressBehaviorIds);
         var sociality = (ComboSociality.Text ?? string.Empty).Trim();
-        var threatResponse = GetActionNames(_threatResponseIds);
-        var rewardResponse = GetActionNames(_rewardResponseIds);
-        var punishmentResponse = GetActionNames(_punishmentResponseIds);
         var specialTriggers = (ComboSpecialTriggers.Text ?? string.Empty).Trim();
         var specialTaboos = (ComboSpecialTaboos.Text ?? string.Empty).Trim();
         var additionalWishes = TextBoxAdditionalWishes?.Text ?? string.Empty;
-        var promptSuffixTemplate = TextBoxPromptSuffix?.Text ?? string.Empty;
+        var promptSuffix = TextBoxPromptSuffix?.Text ?? string.Empty;
 
-        var content = $@"БАЗОВЫЕ ПАРАМЕТРЫ:
-Базовый архетип (Базовый психологический архетип, определяющий фундаментальные паттерны поведения): [{baseArchetype}]
-Ключевая мотивация (Главный движущий мотив агента, определяет приоритеты в принятии решений): [{keyMotivation}]
+        _gomeostas.SetExtendedAgentProperties(
+          name, description, stage,
+          baseArchetype, GetComboValues(ComboBaseArchetype),
+          keyMotivation, GetComboValues(ComboKeyMotivation),
+          temperamentActivity, temperamentReactivity,
+          _stressBehaviorIds, sociality, GetComboValues(ComboSociality),
+          _threatResponseIds, _rewardResponseIds, _punishmentResponseIds,
+          specialTriggers, GetComboValues(ComboSpecialTriggers),
+          specialTaboos, GetComboValues(ComboSpecialTaboos),
+          additionalWishes, promptSuffix);
 
-ТЕМПЕРАМЕНТ:
-Активность (Уровень общей активности: Низкая - флегматичность, экономия энергии; Средняя - сбалансированность; Высокая - гиперактивность, постоянное движение): [{temperamentActivity}]
-Реактивность (Скорость и интенсивность реакции на внешние стимулы: Низкая - замедленные реакции; Средняя - адекватные; Высокая - мгновенные, импульсивные): [{temperamentReactivity}]
-
-ПОВЕДЕНЧЕСКИЕ ХАРАКТЕРИСТИКИ:
-Поведение в стрессе (Набор возможных реакций на стрессовые ситуации. Может быть выбрано несколько вариантов): [{stressBehavior}]
-Социальность (Стиль социального взаимодействия: Одиночка - избегает контактов; Избирательный - выбирает узкий круг; Стайный - комфортно в группе; Зависимый - нуждается в постоянном общении): [{sociality}]
-Реакция на угрозу (Первичная, инстинктивная реакция при обнаружении угрозы): [{threatResponse}]
-Реакция на поощрение (Типичная реакция на получение поощрения, ресурса или положительной обратной связи): [{rewardResponse}]
-Реакция на наказание (Типичная реакция на наказание, порицание или лишение ресурса): [{punishmentResponse}]
-
-ОСОБЕННОСТИ:
-Особые триггеры (Факторы, которые могут вызвать нестабильность или неадекватную реакцию. Важно для ИИ при моделировании поведения): [{specialTriggers}]
-Особые табу (Действия или ситуации, которых агент избегает даже в хорошем состоянии. Критически важно для избегания неконсистентного поведения): [{specialTaboos}]
-
-ДОПОЛНИТЕЛЬНЫЕ ПОЖЕЛАНИЯ (Дополнительные замечания, особенности или пожелания по поведению агента, которые нужно учесть при генерации):
-[{additionalWishes}]
-";
-
-        if (!string.IsNullOrWhiteSpace(promptSuffixTemplate))
+        var (saveSuccess, error) = _gomeostas.SaveAgentProperties();
+        if (!saveSuccess)
         {
-          var suffix = ReplacePromptSuffixPlaceholders(promptSuffixTemplate);
-          content = content.TrimEnd() + "\r\n\r\n" + suffix;
+          MessageBox.Show($"Ошибка сохранения: {error}", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
+          return;
         }
+
+        _gomeostas.UpdateAgentPropertiesPromptContent();
 
         var bootDataPath = System.IO.Path.Combine(
           Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData),
@@ -336,7 +364,8 @@ namespace AIStudio.Pages
         if (!System.IO.Directory.Exists(bootDataPath))
           System.IO.Directory.CreateDirectory(bootDataPath);
         var filePath = System.IO.Path.Combine(bootDataPath, "prompt_genetic_reflex_generate.txt");
-        System.IO.File.WriteAllText(filePath, content, System.Text.Encoding.UTF8);
+        var fullPrompt = _gomeostas.GetGeneticReflexFullPromptContent();
+        System.IO.File.WriteAllText(filePath, fullPrompt, System.Text.Encoding.UTF8);
         MessageBox.Show($"Файл промпта сохранён:\n{filePath}", "Промпт для ИИ", MessageBoxButton.OK, MessageBoxImage.Information);
       }
       catch (Exception ex)
@@ -348,73 +377,6 @@ namespace AIStudio.Pages
     private void ButtonClose_Click(object sender, RoutedEventArgs e)
     {
       Close();
-    }
-
-    /// <summary>
-    /// Подставляет в шаблон текста вставки промпта плейсхолдеры:
-    /// [stileCombination] — комбинации стилей реагирования;
-    /// [AdaptiveActionList] — список адаптивных действий;
-    /// [InfluenceActionList] — список воздействий с пульта;
-    /// [ReflexGenStyleCount], [ReflexGenTriggerCount], [ReflexGenLinesPerState], [ReflexGenLinesThreeStates], [ReflexGenLinesStage1PerState], [ReflexGenLinesStage1ThreeStates] — числа для нейросети.
-    /// </summary>
-    private string ReplacePromptSuffixPlaceholders(string template)
-    {
-      if (string.IsNullOrEmpty(template)) return string.Empty;
-
-      var text = template;
-
-      // [stileCombination] — перечень комбинаций из StyleCombinations.comb (все сочетания стилей, не более 3 в группе)
-      var styleCombinationStrings = new List<string>();
-      try
-      {
-        var combinations = _gomeostas.LoadStyleCombinations();
-        foreach (var combo in combinations)
-        {
-          var names = combo
-            .Where(s => !string.IsNullOrWhiteSpace(s.Name))
-            .Select(s => s.Name.Trim())
-            .ToList();
-          if (names.Count > 0)
-            styleCombinationStrings.Add(string.Join("+", names));
-        }
-      }
-      catch { /* игнорируем ошибки загрузки */ }
-      text = text.Replace("[stileCombination]", string.Join(", ", styleCombinationStrings));
-
-      // [AdaptiveActionList] — названия адаптивных действий через запятую
-      var adaptiveNames = new List<string>();
-      if (AdaptiveActionsSystem.IsInitialized)
-      {
-        var actions = AdaptiveActionsSystem.Instance.GetAllAdaptiveActions();
-        adaptiveNames = actions.OrderBy(x => x.Id).Select(a => a.Name).Where(n => !string.IsNullOrWhiteSpace(n)).ToList();
-      }
-      text = text.Replace("[AdaptiveActionList]", string.Join(", ", adaptiveNames));
-
-      // [InfluenceActionList] — названия воздействий с пульта через запятую
-      var influenceNames = new List<string>();
-      if (InfluenceActionSystem.IsInitialized)
-      {
-        var influences = InfluenceActionSystem.Instance.GetAllInfluenceActions();
-        influenceNames = influences.OrderBy(x => x.Id).Select(i => i.Name).Where(n => !string.IsNullOrWhiteSpace(n)).ToList();
-      }
-      text = text.Replace("[InfluenceActionList]", string.Join(", ", influenceNames));
-
-      // Количество комбинаций стилей и воздействий для подсказки нейросети по числу строк
-      int styleCount = styleCombinationStrings.Count;
-      int triggerCount = influenceNames.Count;
-      int linesPerState = styleCount * triggerCount;
-      int linesThreeStates = 3 * linesPerState;
-      int stage1PerState = styleCount;
-      int stage1ThreeStates = 3 * styleCount;
-
-      text = text.Replace("[ReflexGenStyleCount]", styleCount.ToString());
-      text = text.Replace("[ReflexGenTriggerCount]", triggerCount.ToString());
-      text = text.Replace("[ReflexGenLinesPerState]", linesPerState.ToString());
-      text = text.Replace("[ReflexGenLinesThreeStates]", linesThreeStates.ToString());
-      text = text.Replace("[ReflexGenLinesStage1PerState]", stage1PerState.ToString());
-      text = text.Replace("[ReflexGenLinesStage1ThreeStates]", stage1ThreeStates.ToString());
-
-      return text;
     }
   }
 }

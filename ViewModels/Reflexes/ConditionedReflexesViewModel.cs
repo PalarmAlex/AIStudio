@@ -3,7 +3,9 @@ using AIStudio.Dialogs;
 using ISIDA.Actions;
 using ISIDA.Common;
 using ISIDA.Gomeostas;
+using ISIDA.Psychic.Automatism;
 using ISIDA.Reflexes;
+using ISIDA.Sensors;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -26,11 +28,13 @@ namespace AIStudio.ViewModels
       PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
     }
 
+    private const int FilterAllToneMood = -999; // Значение «Все» для фильтров Тон/Настроение (0 = Нормальный/Нормальное)
     private readonly ConditionedReflexesSystem _conditionedReflexesSystem;
     private readonly AdaptiveActionsSystem _actionsSystem;
     private readonly GomeostasSystem _gomeostas;
     private readonly PerceptionImagesSystem _perceptionImagesSystem;
     private readonly GeneticReflexesSystem _geneticReflexesSystem;
+    private readonly SensorySystem _sensorySystem;
     private string _currentAgentName;
     private int _currentAgentStage;
     private readonly string _bootDataFolder;
@@ -39,6 +43,10 @@ namespace AIStudio.ViewModels
     private int? _selectedLevel2Filter;
     private int? _selectedLevel3Filter;
     private int? _selectedAdaptiveActionsFilter;
+    private int _selectedToneFilter = FilterAllToneMood;
+    private int _selectedMoodFilter = FilterAllToneMood;
+    private string _filterTriggerPhrase = string.Empty;
+    private string _filterTriggerPhraseInput = string.Empty;
 
     private Dictionary<int, List<int>> _sourceGeneticReflexActionsCache = new Dictionary<int, List<int>>();
 
@@ -48,12 +56,46 @@ namespace AIStudio.ViewModels
     public string CurrentAgentTitle => $"Условные рефлексы Агента: {_currentAgentName ?? "Не определен"}";
 
     private ObservableCollection<ConditionedReflexWithSourceActions> _allConditionedReflexes = new ObservableCollection<ConditionedReflexWithSourceActions>();
+    private HashSet<ConditionedReflexWithSourceActions> _visibleSet = new HashSet<ConditionedReflexWithSourceActions>();
     private ICollectionView _conditionedReflexesView;
     public ICollectionView ConditionedReflexesView => _conditionedReflexesView;
+
+    public List<KeyValuePair<int?, string>> PageSizeOptions { get; } = new List<KeyValuePair<int?, string>>
+    {
+      new KeyValuePair<int?, string>(100, "100"),
+      new KeyValuePair<int?, string>(500, "500"),
+      new KeyValuePair<int?, string>(1000, "1000"),
+      new KeyValuePair<int?, string>(5000, "5000"),
+      new KeyValuePair<int?, string>(10000, "10000"),
+      new KeyValuePair<int?, string>(null, "Все")
+    };
+
+    private int? _selectedPageSize = 100;
+    public int? SelectedPageSize
+    {
+      get => _selectedPageSize;
+      set
+      {
+        _selectedPageSize = value;
+        OnPropertyChanged(nameof(SelectedPageSize));
+        RefreshDisplay();
+      }
+    }
+
+    public string DisplayCountText
+    {
+      get
+      {
+        int filtered = _allConditionedReflexes.Count(FilterConditionedReflexes);
+        int shown = Math.Min(filtered, SelectedPageSize ?? int.MaxValue);
+        return filtered == shown ? $"Показано: {shown}" : $"Показано: {shown} из {filtered}";
+      }
+    }
 
     public ICommand SaveCommand { get; }
     public ICommand RemoveCommand { get; }
     public ICommand ClearFiltersCommand { get; }
+    public ICommand ApplyFiltersCommand { get; }
     public ICommand RemoveAllCommand { get; }
     public ICommand OpenSettingsCommand { get; }
     public ICommand OpenTemplateCommand { get; }
@@ -66,6 +108,7 @@ namespace AIStudio.ViewModels
         AdaptiveActionsSystem actionsSystem,
         PerceptionImagesSystem perceptionImagesSystem,
         GeneticReflexesSystem geneticReflexesSystem,
+        SensorySystem sensorySystem = null,
         string bootDataFolder = null)
     {
       _gomeostas = gomeostasSystem ?? throw new ArgumentNullException(nameof(gomeostasSystem));
@@ -73,17 +116,36 @@ namespace AIStudio.ViewModels
       _actionsSystem = actionsSystem ?? throw new ArgumentNullException(nameof(actionsSystem));
       _perceptionImagesSystem = perceptionImagesSystem ?? throw new ArgumentNullException(nameof(perceptionImagesSystem));
       _geneticReflexesSystem = geneticReflexesSystem ?? throw new ArgumentNullException(nameof(geneticReflexesSystem));
+      _sensorySystem = sensorySystem;
       _bootDataFolder = bootDataFolder;
 
       _conditionedReflexesView = CollectionViewSource.GetDefaultView(_allConditionedReflexes);
-      _conditionedReflexesView.Filter = FilterConditionedReflexes;
+      _conditionedReflexesView.Filter = item => _visibleSet != null && item is ConditionedReflexWithSourceActions r && _visibleSet.Contains(r);
 
       SaveCommand = new RelayCommand(SaveData);
       RemoveCommand = new RelayCommand(RemoveSelectedReflexes);
       ClearFiltersCommand = new RelayCommand(ClearFilters);
+      ApplyFiltersCommand = new RelayCommand(ApplyFiltersFromButton);
       RemoveAllCommand = new RelayCommand(RemoveAllReflexes);
       OpenSettingsCommand = new RelayCommand(OpenSettings);
       OpenTemplateCommand = new RelayCommand(OpenTemplate, _ => IsTemplateCreationEnabled);
+
+      ToneFilterOptions.Add(new KeyValuePair<int, string>(FilterAllToneMood, "Все"));
+      if (ActionsImagesSystem.IsInitialized)
+      {
+        var tones = ActionsImagesSystem.GetToneList();
+        if (tones != null)
+          foreach (var kvp in tones.OrderBy(k => k.Key))
+            ToneFilterOptions.Add(new KeyValuePair<int, string>(kvp.Key, kvp.Value));
+      }
+      MoodFilterOptions.Add(new KeyValuePair<int, string>(FilterAllToneMood, "Все"));
+      if (ActionsImagesSystem.IsInitialized)
+      {
+        var moods = ActionsImagesSystem.GetMoodList();
+        if (moods != null)
+          foreach (var kvp in moods.OrderBy(k => k.Key))
+            MoodFilterOptions.Add(new KeyValuePair<int, string>(kvp.Key, kvp.Value));
+      }
 
       GlobalTimer.PulsationStateChanged += OnPulsationStateChanged;
       LoadAgentData();
@@ -105,7 +167,46 @@ namespace AIStudio.ViewModels
         adaptiveActionsMatch = sourceActions != null && sourceActions.Contains(SelectedAdaptiveActionsFilter.Value);
       }
 
-      return level1Match && level2Match && level3Match && adaptiveActionsMatch;
+      // Тон и настроение хранятся в условном рефлексе (ToneId, MoodId). Фильтр: FilterAllToneMood = все, иначе совпадение с reflex.ToneId/MoodId.
+      bool toneMatch = SelectedToneFilter == FilterAllToneMood || reflex.ToneId == SelectedToneFilter;
+      bool moodMatch = SelectedMoodFilter == FilterAllToneMood || reflex.MoodId == SelectedMoodFilter;
+
+      bool phraseMatch = true;
+      if (!string.IsNullOrWhiteSpace(FilterTriggerPhrase))
+      {
+        var triggerPhraseText = GetTriggerPhraseText(reflex.Level3);
+        phraseMatch = !string.IsNullOrEmpty(triggerPhraseText) &&
+            triggerPhraseText.IndexOf(FilterTriggerPhrase.Trim(), StringComparison.OrdinalIgnoreCase) >= 0;
+      }
+
+      return level1Match && level2Match && level3Match && adaptiveActionsMatch && toneMatch && moodMatch && phraseMatch;
+    }
+
+    private string GetTriggerPhraseText(int perceptionImageId)
+    {
+      if (perceptionImageId <= 0 || _perceptionImagesSystem == null || _sensorySystem == null)
+        return string.Empty;
+      var images = _perceptionImagesSystem.GetAllPerceptionImagesList();
+      var image = images?.FirstOrDefault(img => img.Id == perceptionImageId);
+      if (image?.PhraseIdList == null || !image.PhraseIdList.Any())
+        return string.Empty;
+      var parts = new List<string>();
+      foreach (var phraseId in image.PhraseIdList)
+      {
+        var text = _sensorySystem.VerbalChannel?.GetPhraseFromPhraseId(phraseId);
+        if (!string.IsNullOrEmpty(text))
+          parts.Add(text);
+      }
+      return string.Join(" ", parts);
+    }
+
+    private void RefreshDisplay()
+    {
+      var filtered = _allConditionedReflexes.Where(FilterConditionedReflexes).ToList();
+      int take = SelectedPageSize ?? int.MaxValue;
+      _visibleSet = new HashSet<ConditionedReflexWithSourceActions>(filtered.Take(take));
+      _conditionedReflexesView.Refresh();
+      OnPropertyChanged(nameof(DisplayCountText));
     }
 
     private List<int> GetSourceGeneticReflexActions(int sourceGeneticReflexId)
@@ -188,7 +289,7 @@ namespace AIStudio.ViewModels
       {
         _selectedLevel1Filter = value;
         OnPropertyChanged(nameof(SelectedLevel1Filter));
-        ApplyFilters();
+        RefreshDisplay();
       }
     }
 
@@ -199,7 +300,7 @@ namespace AIStudio.ViewModels
       {
         _selectedLevel2Filter = value;
         OnPropertyChanged(nameof(SelectedLevel2Filter));
-        ApplyFilters();
+        RefreshDisplay();
       }
     }
 
@@ -210,7 +311,7 @@ namespace AIStudio.ViewModels
       {
         _selectedLevel3Filter = value;
         OnPropertyChanged(nameof(SelectedLevel3Filter));
-        ApplyFilters();
+        RefreshDisplay();
       }
     }
 
@@ -221,13 +322,51 @@ namespace AIStudio.ViewModels
       {
         _selectedAdaptiveActionsFilter = value;
         OnPropertyChanged(nameof(SelectedAdaptiveActionsFilter));
-        ApplyFilters();
+        RefreshDisplay();
       }
     }
 
-    private void ApplyFilters()
+    public List<KeyValuePair<int, string>> ToneFilterOptions { get; } = new List<KeyValuePair<int, string>>();
+    public List<KeyValuePair<int, string>> MoodFilterOptions { get; } = new List<KeyValuePair<int, string>>();
+
+    public int SelectedToneFilter
     {
-      _conditionedReflexesView.Refresh();
+      get => _selectedToneFilter;
+      set
+      {
+        _selectedToneFilter = value;
+        OnPropertyChanged(nameof(SelectedToneFilter));
+        RefreshDisplay();
+      }
+    }
+
+    public int SelectedMoodFilter
+    {
+      get => _selectedMoodFilter;
+      set
+      {
+        _selectedMoodFilter = value;
+        OnPropertyChanged(nameof(SelectedMoodFilter));
+        RefreshDisplay();
+      }
+    }
+
+    public string FilterTriggerPhrase
+    {
+      get => _filterTriggerPhrase;
+      set { _filterTriggerPhrase = value ?? string.Empty; OnPropertyChanged(nameof(FilterTriggerPhrase)); }
+    }
+
+    public string FilterTriggerPhraseInput
+    {
+      get => _filterTriggerPhraseInput;
+      set { _filterTriggerPhraseInput = value ?? string.Empty; OnPropertyChanged(nameof(FilterTriggerPhraseInput)); }
+    }
+
+    private void ApplyFiltersFromButton(object parameter = null)
+    {
+      FilterTriggerPhrase = FilterTriggerPhraseInput;
+      RefreshDisplay();
     }
 
     private void ClearFilters(object parameter = null)
@@ -236,6 +375,11 @@ namespace AIStudio.ViewModels
       SelectedLevel2Filter = null;
       SelectedLevel3Filter = null;
       SelectedAdaptiveActionsFilter = null;
+      SelectedToneFilter = FilterAllToneMood;
+      SelectedMoodFilter = FilterAllToneMood;
+      FilterTriggerPhraseInput = string.Empty;
+      FilterTriggerPhrase = string.Empty;
+      RefreshDisplay();
     }
 
     private void LoadFilterOptions()
@@ -332,12 +476,15 @@ namespace AIStudio.ViewModels
           AssociationStrength = reflex.AssociationStrength,
           LastActivation = reflex.LastActivation,
           BirthTime = reflex.BirthTime,
-          SourceGeneticReflexId = reflex.SourceGeneticReflexId
+          SourceGeneticReflexId = reflex.SourceGeneticReflexId,
+          ToneId = reflex.ToneId,
+          MoodId = reflex.MoodId
         };
 
         _allConditionedReflexes.Add(reflexCopy);
       }
       LoadFilterOptions();
+      RefreshDisplay();
 
       OnPropertyChanged(nameof(IsStageOneOrHigher));
       OnPropertyChanged(nameof(IsEditingEnabled));
@@ -600,6 +747,8 @@ namespace AIStudio.ViewModels
       public int LastActivation { get; set; }
       public int BirthTime { get; set; }
       public int SourceGeneticReflexId { get; set; }
+      public int ToneId { get; set; }
+      public int MoodId { get; set; }
     }
 
     public class DescriptionWithLink

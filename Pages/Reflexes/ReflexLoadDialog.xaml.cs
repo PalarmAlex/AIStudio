@@ -6,6 +6,7 @@ using System.Text;
 using System.Windows;
 using System.Windows.Input;
 using AIStudio.ViewModels;
+using ISIDA.Common;
 using ISIDA.Reflexes;
 
 namespace AIStudio.Dialogs
@@ -106,7 +107,7 @@ namespace AIStudio.Dialogs
       }
     }
 
-    public bool IsPromptEditingEnabled => !string.IsNullOrEmpty(PromptFilePath) && File.Exists(PromptFilePath);
+    public bool IsPromptEditingEnabled => !string.IsNullOrEmpty(PromptFilePath);
 
     public bool CanApply => !string.IsNullOrWhiteSpace(CsvContent);
 
@@ -128,7 +129,18 @@ namespace AIStudio.Dialogs
       try
       {
         string path = _loader.GetPromptFilePath();
-        PromptContent = File.Exists(path) ? File.ReadAllText(path, Encoding.UTF8) : string.Empty;
+        if (File.Exists(path))
+        {
+          var fromFile = File.ReadAllText(path, Encoding.UTF8);
+          if (!string.IsNullOrWhiteSpace(fromFile))
+          {
+            PromptContent = fromFile;
+            return;
+          }
+        }
+        // Файл отсутствует или пуст — собираем промпт: база + вставка из AgentProperties.PromptSuffix
+        var gomeostas = ISIDA.Gomeostas.GomeostasSystem.Instance;
+        PromptContent = gomeostas != null ? gomeostas.GetGeneticReflexFullPromptContent() : string.Empty;
       }
       catch (Exception ex)
       {
@@ -174,7 +186,7 @@ namespace AIStudio.Dialogs
       MessageBox.Show(msg, "Проверка формата", MessageBoxButton.OK, invalid > 0 ? MessageBoxImage.Warning : MessageBoxImage.Information);
     }
 
-    private bool CanExecuteSavePrompt(object _) => !string.IsNullOrWhiteSpace(PromptContent) && File.Exists(PromptFilePath);
+    private bool CanExecuteSavePrompt(object _) => !string.IsNullOrWhiteSpace(PromptContent);
 
     private void ExecuteSavePrompt(object _)
     {

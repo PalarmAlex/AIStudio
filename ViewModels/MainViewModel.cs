@@ -964,6 +964,7 @@ namespace AIStudio
           _actionsSystem,
           _perceptionImagesSystem,
           _geneticReflexesSystem,
+          _sensorySystem,
           bootDataFolder);
       conditionedReflexesView.DataContext = viewModel;
       CurrentContent = conditionedReflexesView;
