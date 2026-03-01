@@ -74,7 +74,7 @@ namespace AIStudio.ViewModels
     }
 
     public string AgentBaseSost => IsAgentDead
-        ? "АГЕНТ МЕРТВ"
+        ? "АГЕНТ МЕРТВ, все операции заблокированы"
         : $"Жизненные параметры агента. Состояние: {HomeostasisStatus}";
 
     private Brush _headerBackground;
@@ -490,20 +490,9 @@ namespace AIStudio.ViewModels
     private void UpdateWarningMessage()
     {
       if (IsAgentDead)
-      {
-        PulseWarningMessage = "АГЕНТ МЕРТВ - все операции заблокированы";
         WarningMessageColor = Brushes.DarkRed;
-      }
-      else if (GlobalTimer.IsPulsationRunning)
-      {
-        PulseWarningMessage = "Редактирование свойств недоступно во время пульсации";
-        WarningMessageColor = Brushes.Gray;
-      }
       else
-      {
-        PulseWarningMessage = string.Empty;
         WarningMessageColor = Brushes.Transparent;
-      }
     }
 
     private void OnPulseStateChanged(bool isPulseActive)

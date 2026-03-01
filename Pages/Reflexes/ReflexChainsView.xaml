@@ -46,15 +46,15 @@
         <StackPanel Orientation="Vertical" Margin="0,0,15,0">
           <TextBlock Text="ID рефлекса" FontSize="12" Margin="0,0,0,2"/>
           <TextBox Style="{StaticResource FilterTextBoxStyle}"
-                   Text="{Binding FilterReflexId, UpdateSourceTrigger=PropertyChanged}"
-                   ToolTip="Показать цепочки, привязанные к конкретному безусловному рефлексу" Width="100"/>
+                   Text="{Binding FilterReflexId, UpdateSourceTrigger=LostFocus}"
+                   ToolTip="Поиск по вхождению символов в список ID рефлексов" Width="100" Margin="0,0,5,0"/>
         </StackPanel>
 
         <StackPanel Orientation="Vertical" Margin="0,0,15,0">
           <TextBlock Text="ID цепочки" FontSize="12" Margin="0,0,0,2"/>
           <TextBox Style="{StaticResource FilterTextBoxStyle}"
-                   Text="{Binding FilterChainId, UpdateSourceTrigger=PropertyChanged}"
-                   ToolTip="Фильтр по ID цепочки" Width="100"/>
+                   Text="{Binding FilterChainId, UpdateSourceTrigger=LostFocus}"
+                   ToolTip="Поиск по вхождению символов в ID цепочки" Width="100" Margin="0,0,5,0"/>
         </StackPanel>
 
         <StackPanel Orientation="Vertical" Margin="0,0,15,0">
@@ -66,15 +66,15 @@
                     SelectedValue="{Binding SelectedActionFilterId}"
                     DisplayMemberPath="Value"
                     SelectedValuePath="Key"
-                    ToolTip="Фильтр по действию звена"/>
+                    ToolTip="Фильтр по действию звена" Margin="0,0,5,0"/>
         </StackPanel>
 
         <StackPanel Orientation="Vertical" Margin="0,0,15,0">
           <TextBlock Text="Название" FontSize="12" Margin="0,0,0,2"/>
           <TextBox Style="{StaticResource FilterTextBoxStyle}"
                    Width="100"
-                   Text="{Binding FilterChainName, UpdateSourceTrigger=PropertyChanged}"
-                   ToolTip="Фильтр по названию цепочки"/>
+                   Text="{Binding FilterChainName, UpdateSourceTrigger=LostFocus}"
+                   ToolTip="Поиск по вхождению символов в названии цепочки" Margin="0,0,5,0"/>
         </StackPanel>
 
         <StackPanel Orientation="Vertical" Margin="0,0,15,0">
@@ -86,8 +86,17 @@
                     SelectedValue="{Binding SelectedPageSize}"
                     DisplayMemberPath="Value"
                     SelectedValuePath="Key"
-                    ToolTip="Ограничить количество отображаемых записей"/>
+                    ToolTip="Ограничить количество отображаемых записей" Margin="0,0,0,0"/>
         </StackPanel>
+
+        <Button Content="Применить"
+                Command="{Binding ApplyFiltersCommand}"
+                Style="{StaticResource AgentButtonStyle}"
+                Margin="5,15,0,0"
+                Height="30"
+                Width="100"
+                Cursor="Hand"
+                HorizontalAlignment="Right"/>
 
         <Button Content="Сбросить фильтры"
                 Command="{Binding ClearFiltersCommand}"

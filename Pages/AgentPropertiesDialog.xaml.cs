@@ -7,6 +7,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
@@ -76,7 +77,7 @@ namespace AIStudio.Pages
       ComboStage.ItemsSource = stages;
     }
 
-    private void ComboStage_SelectionChanged(object sender, SelectionChangedEventArgs e)
+    private async void ComboStage_SelectionChanged(object sender, SelectionChangedEventArgs e)
     {
       if (e.AddedItems.Count == 0) return;
 
@@ -94,7 +95,7 @@ namespace AIStudio.Pages
           "Ошибка",
           MessageBoxButton.OK,
           MessageBoxImage.Warning);
-        ComboStage.Dispatcher.InvokeAsync(() => { ComboStage.SelectedValue = currentStage; });
+        _ = ComboStage.Dispatcher.InvokeAsync(() => { ComboStage.SelectedValue = currentStage; });
         return;
       }
 
@@ -110,36 +111,74 @@ namespace AIStudio.Pages
 
       if (result != MessageBoxResult.Yes)
       {
-        ComboStage.Dispatcher.InvokeAsync(() => { ComboStage.SelectedValue = currentStage; });
+        _ = ComboStage.Dispatcher.InvokeAsync(() => { ComboStage.SelectedValue = currentStage; });
         return;
       }
 
-      var stageResult = _gomeostas.SetEvolutionStage(newStage, isBackward, false);
-
-      if (stageResult.Success)
+      if (isBackward)
       {
-        LoadData();
-        ApplyStageEditMode();
-
-        var (saveSuccess, error) = _gomeostas.SaveAgentProperties();
-        if (!saveSuccess)
+        ClearingOverlay.Visibility = Visibility.Visible;
+        try
         {
-          MessageBox.Show($"Ошибка сохранения: {error}",
-            "Предупреждение",
-            MessageBoxButton.OK,
-            MessageBoxImage.Warning);
+          await Dispatcher.InvokeAsync(() => { }, System.Windows.Threading.DispatcherPriority.Loaded);
+          var stageResult = await Task.Run(() => _gomeostas.SetEvolutionStage(newStage, true, false));
+          if (stageResult.Success)
+          {
+            LoadData();
+            ApplyStageEditMode();
+            var (saveSuccess, error) = _gomeostas.SaveAgentProperties();
+            if (!saveSuccess)
+            {
+              MessageBox.Show($"Ошибка сохранения: {error}",
+                "Предупреждение",
+                MessageBoxButton.OK,
+                MessageBoxImage.Warning);
+            }
+            if (stageResult.Success && saveSuccess)
+              MessageBox.Show(stageResult.Message,
+                "Изменение стадии развития агента",
+                MessageBoxButton.OK,
+                MessageBoxImage.Information);
+          }
+          else
+          {
+            MessageBox.Show(stageResult.Message, "Ошибка",
+              MessageBoxButton.OK, MessageBoxImage.Error);
+            _ = ComboStage.Dispatcher.InvokeAsync(() => { ComboStage.SelectedValue = currentStage; });
+          }
         }
-        if (stageResult.Success && saveSuccess)
-          MessageBox.Show(stageResult.Message,
-            "Изменение стадии развития агента",
-            MessageBoxButton.OK,
-            MessageBoxImage.Information);
+        finally
+        {
+          ClearingOverlay.Visibility = Visibility.Collapsed;
+        }
       }
       else
       {
-        MessageBox.Show(stageResult.Message, "Ошибка",
-          MessageBoxButton.OK, MessageBoxImage.Error);
-        ComboStage.Dispatcher.InvokeAsync(() => { ComboStage.SelectedValue = currentStage; });
+        var stageResult = _gomeostas.SetEvolutionStage(newStage, false, false);
+        if (stageResult.Success)
+        {
+          LoadData();
+          ApplyStageEditMode();
+          var (saveSuccess, error) = _gomeostas.SaveAgentProperties();
+          if (!saveSuccess)
+          {
+            MessageBox.Show($"Ошибка сохранения: {error}",
+              "Предупреждение",
+              MessageBoxButton.OK,
+              MessageBoxImage.Warning);
+          }
+          if (stageResult.Success && saveSuccess)
+            MessageBox.Show(stageResult.Message,
+              "Изменение стадии развития агента",
+              MessageBoxButton.OK,
+              MessageBoxImage.Information);
+        }
+        else
+        {
+          MessageBox.Show(stageResult.Message, "Ошибка",
+            MessageBoxButton.OK, MessageBoxImage.Error);
+          _ = ComboStage.Dispatcher.InvokeAsync(() => { ComboStage.SelectedValue = currentStage; });
+        }
       }
     }
 

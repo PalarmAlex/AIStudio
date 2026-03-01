@@ -56,15 +56,6 @@
                            HorizontalAlignment="Center"
                            Margin="0,2,0,2"/>
 
-      <!-- 2. Предупреждение о пульсации/стадии -->
-      <TextBlock Text="{Binding PulseWarningMessage}"
-           Foreground="{Binding WarningMessageColor}"
-           FontStyle="Italic"
-           VerticalAlignment="Center"
-           Margin="2,0,0,0"
-           TextWrapping="Wrap"
-           Visibility="{Binding IsEditingEnabled, Converter={StaticResource InverseBooleanToVisibilityConverter}}"/>
-
       <!--Заголовок параметров -->
       <TextBlock Text="{Binding AgentBaseSost}"
                Foreground="{Binding HomeostasisStatusColor}"

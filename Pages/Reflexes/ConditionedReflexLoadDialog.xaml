@@ -2,7 +2,7 @@
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         Title="Создание условных рефлексов по шаблону"
-        Height="560" Width="780"
+        Height="640" Width="920"
         WindowStartupLocation="CenterOwner"
         ResizeMode="NoResize"
         ShowInTaskbar="False"
@@ -141,21 +141,9 @@
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
             <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
           </Grid.RowDefinitions>
-          <Border Grid.Row="0"
-                  BorderBrush="#FFE0E0E0"
-                  BorderThickness="1"
-                  CornerRadius="4"
-                  Padding="8"
-                  Background="#FFF9F9F9"
-                  Margin="0,0,0,8">
-            <StackPanel>
-              <TextBlock Text="Текст вставки для промпта генерации условных рефлексов" FontWeight="SemiBold" Margin="0,0,0,5"/>
-              <TextBlock TextWrapping="Wrap" Style="{StaticResource InfoTextStyle}">
-                <Run Text="Поддерживаются плейсхолдеры: [stileCombination], [InfluenceActionList], [ReflexGenStyleCount], [ReflexGenTriggerCount], [ReflexGenLinesStage1PerState], [ReflexGenLinesStage1ThreeStates]"/>
-              </TextBlock>
-            </StackPanel>
-          </Border>
+          <TextBlock Grid.Row="0" Text="Текст вставки для промпта генерации условных рефлексов" FontWeight="SemiBold" Margin="0,0,0,6"/>
           <TextBox Grid.Row="1"
                    x:Name="PromptInsertTextBox"
                    Text="{Binding PromptInsertText, UpdateSourceTrigger=PropertyChanged}"
@@ -167,8 +155,38 @@
                    HorizontalScrollBarVisibility="Auto"
                    Padding="4"
                    BorderBrush="#FFE0E0E0"
-                   BorderThickness="1"/>
-          <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,10,0,0">
+                   BorderThickness="1"
+                   Margin="0,0,0,8"
+                   ToolTip="Текст, добавляемый в промпт. Поддерживаются плейсхолдеры в квадратных скобках — см. блок ниже."/>
+          <!-- Блок описания параметров (под окном ввода, в 2 колонки) -->
+          <Border Grid.Row="2" Padding="8,6" Background="#FFF8F8F8"
+                  BorderBrush="#FFE0E0E0" BorderThickness="1" CornerRadius="3" Margin="0,0,0,8">
+            <StackPanel>
+              <TextBlock Text="Параметры для вставки в промпт:" FontWeight="SemiBold" Margin="0,0,0,6"/>
+              <Grid>
+                <Grid.ColumnDefinitions>
+                  <ColumnDefinition Width="*"/>
+                  <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+                <StackPanel Grid.Column="0">
+                  <TextBlock TextWrapping="Wrap" FontSize="12" Foreground="#FF404040">
+                    <Run Text="stileCombination" FontWeight="SemiBold"/> — комбинации стилей реагирования<LineBreak/>
+                    <Run Text="InfluenceActionList" FontWeight="SemiBold"/> — список воздействий с пульта<LineBreak/>
+                    <Run Text="ReflexGenStyleCount" FontWeight="SemiBold"/> — количество комбинаций стилей<LineBreak/>
+                    <Run Text="ReflexGenTriggerCount" FontWeight="SemiBold"/> — количество воздействий
+                  </TextBlock>
+                </StackPanel>
+                <StackPanel Grid.Column="1" Margin="12,0,0,0">
+                  <TextBlock TextWrapping="Wrap" FontSize="12" Foreground="#FF404040">
+                    <Run Text="AdaptiveActionList" FontWeight="SemiBold"/> — список адаптивных действий<LineBreak/>
+                    <Run Text="ReflexGenLinesPerState" FontWeight="SemiBold"/> — строк на состояние<LineBreak/>
+                    <Run Text="ReflexGenLinesThreeStates" FontWeight="SemiBold"/> — строк на три состояния<LineBreak/>
+                  </TextBlock>
+                </StackPanel>
+              </Grid>
+            </StackPanel>
+          </Border>
+          <StackPanel Grid.Row="3" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,0,0,0">
             <Button Content="Создать промпт" Command="{Binding CreatePromptCommand}" Height="35" Width="140" Margin="0,0,10,0" Cursor="Hand"/>
             <Button Content="Сохранить текст" Command="{Binding SaveInsertTextCommand}" Height="35" Width="130" Cursor="Hand"/>
           </StackPanel>

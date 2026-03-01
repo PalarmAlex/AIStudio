@@ -23,6 +23,17 @@
       <ColumnDefinition Width="*"/>
     </Grid.ColumnDefinitions>
 
+    <Grid x:Name="ClearingOverlay"
+          Grid.RowSpan="9"
+          Background="#80FFFFFF"
+          Visibility="Collapsed"
+          Panel.ZIndex="1000">
+      <StackPanel VerticalAlignment="Bottom" HorizontalAlignment="Left" Margin="15,0,0,15">
+        <ProgressBar IsIndeterminate="True" Width="200" Height="20" Margin="0,0,0,10"/>
+        <TextBlock Text="Очистка данных при переходе на нижестоящую стадию..." HorizontalAlignment="Center" FontSize="14"/>
+      </StackPanel>
+    </Grid>
+
     <!-- Блок 1: Колонка 0 — 4 поля по строкам; Колонки 1–2 — Описание и Доп. пожелания на 4 строки -->
     <StackPanel Grid.Row="0" Grid.Column="0" Margin="0,0,6,8">
       <TextBlock Text="Имя агента:" Margin="0,4,0,2"/>

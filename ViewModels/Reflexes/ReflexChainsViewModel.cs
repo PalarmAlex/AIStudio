@@ -67,6 +67,7 @@ namespace AIStudio.ViewModels
 
     public ICollectionView ChainsView { get; }
     public ICommand ClearFiltersCommand { get; }
+    public ICommand ApplyFiltersCommand { get; }
     public List<KeyValuePair<int, string>> ActionFilterOptions { get; } = new List<KeyValuePair<int, string>>();
 
     public string FilterReflexId
@@ -76,7 +77,6 @@ namespace AIStudio.ViewModels
       {
         _filterReflexId = value;
         OnPropertyChanged(nameof(FilterReflexId));
-        ApplyFilters();
       }
     }
 
@@ -87,7 +87,6 @@ namespace AIStudio.ViewModels
       {
         _filterChainId = value;
         OnPropertyChanged(nameof(FilterChainId));
-        ApplyFilters();
       }
     }
 
@@ -98,7 +97,6 @@ namespace AIStudio.ViewModels
       {
         _selectedActionFilterId = value;
         OnPropertyChanged(nameof(SelectedActionFilterId));
-        ApplyFilters();
       }
     }
 
@@ -109,7 +107,6 @@ namespace AIStudio.ViewModels
       {
         _filterChainName = value;
         OnPropertyChanged(nameof(FilterChainName));
-        ApplyFilters();
       }
     }
 
@@ -125,6 +122,7 @@ namespace AIStudio.ViewModels
       ChainsView = CollectionViewSource.GetDefaultView(_displayChains);
 
       ClearFiltersCommand = new RelayCommand(ClearFilters);
+      ApplyFiltersCommand = new RelayCommand(_ => ApplyFilters());
 
       LoadActionNames();
       InitializeActionFilterOptions();
@@ -251,13 +249,15 @@ namespace AIStudio.ViewModels
 
       if (!string.IsNullOrWhiteSpace(FilterReflexId))
       {
-        if (!int.TryParse(FilterReflexId, out var reflexId) || !chainItem.ReflexIds.Contains(reflexId))
+        var reflexIdsStr = chainItem.ReflexIdsText ?? string.Empty;
+        if (reflexIdsStr.IndexOf(FilterReflexId.Trim(), StringComparison.OrdinalIgnoreCase) < 0)
           return false;
       }
 
       if (!string.IsNullOrWhiteSpace(FilterChainId))
       {
-        if (!int.TryParse(FilterChainId, out var chainId) || chainItem.ChainId != chainId)
+        var chainIdStr = chainItem.ChainId.ToString();
+        if (chainIdStr.IndexOf(FilterChainId.Trim(), StringComparison.OrdinalIgnoreCase) < 0)
           return false;
       }
 
@@ -269,10 +269,8 @@ namespace AIStudio.ViewModels
 
       if (!string.IsNullOrWhiteSpace(FilterChainName))
       {
-        var hasMatchInChainName = !string.IsNullOrEmpty(chainItem.ChainName) &&
-            chainItem.ChainName.IndexOf(FilterChainName, StringComparison.OrdinalIgnoreCase) >= 0;
-
-        if (!hasMatchInChainName)
+        var chainName = chainItem.ChainName ?? string.Empty;
+        if (chainName.IndexOf(FilterChainName.Trim(), StringComparison.OrdinalIgnoreCase) < 0)
           return false;
       }
 

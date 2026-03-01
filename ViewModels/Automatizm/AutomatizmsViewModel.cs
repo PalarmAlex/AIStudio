@@ -49,6 +49,7 @@ namespace AIStudio.ViewModels
     private string _currentAgentName;
     private int _currentAgentStage;
     private bool _isCloningInProgress;
+    private bool _isClearingInProgress;
 
     private int? _selectedBaseConditionFilter;
     private string _selectedUsefulnessFilter;
@@ -269,7 +270,9 @@ namespace AIStudio.ViewModels
     public bool IsDeletionEnabled =>
         IsStageTwoOrHigher &&
         (_currentAgentStage == 2 || _currentAgentStage == 3) &&
-        !GlobalTimer.IsPulsationRunning;
+        !GlobalTimer.IsPulsationRunning &&
+        !_isCloningInProgress &&
+        !_isClearingInProgress;
 
     public string PulseWarningMessage =>
         !IsStageTwoOrHigher
@@ -415,10 +418,32 @@ namespace AIStudio.ViewModels
       set
       {
         _isCloningInProgress = value;
+        OperationStatusMessage = value ? "Клонирование условных рефлексов в автоматизмы..." : (_isClearingInProgress ? "Очистка автоматизмов..." : string.Empty);
         OnPropertyChanged(nameof(IsCloningInProgress));
+        OnPropertyChanged(nameof(IsOperationInProgress));
+        OnPropertyChanged(nameof(OperationStatusMessage));
+        OnPropertyChanged(nameof(IsDeletionEnabled));
         ((RelayCommand)CloneReflexesCommand).RaiseCanExecuteChanged();
       }
     }
+
+    public bool IsClearingInProgress
+    {
+      get => _isClearingInProgress;
+      set
+      {
+        _isClearingInProgress = value;
+        OperationStatusMessage = value ? "Очистка автоматизмов..." : (_isCloningInProgress ? "Клонирование условных рефлексов в автоматизмы..." : string.Empty);
+        OnPropertyChanged(nameof(IsClearingInProgress));
+        OnPropertyChanged(nameof(IsOperationInProgress));
+        OnPropertyChanged(nameof(OperationStatusMessage));
+        OnPropertyChanged(nameof(IsDeletionEnabled));
+      }
+    }
+
+    public bool IsOperationInProgress => _isCloningInProgress || _isClearingInProgress;
+
+    public string OperationStatusMessage { get; private set; } = string.Empty;
 
     private void RefreshDisplay()
     {
@@ -889,41 +914,60 @@ namespace AIStudio.ViewModels
 
       if (result == MessageBoxResult.Yes)
       {
+        IsClearingInProgress = true;
         try
         {
-          var success = _automatizmSystem.DeleteAllAutomatizm();
-
-          if (success)
+          System.Threading.Tasks.Task.Run(() =>
           {
-            _allAutomatizms.Clear();
-            RefreshDisplay();
+            var success = _automatizmSystem.DeleteAllAutomatizm();
 
-            var (saveSuccess, error) = _automatizmSystem.SaveAutomatizm();
-            if (saveSuccess)
+            Application.Current.Dispatcher.Invoke(() =>
             {
-              MessageBox.Show("Все автоматизмы агента успешно удалены",
-                  "Удаление завершено",
-                  MessageBoxButton.OK,
-                  MessageBoxImage.Information);
-            }
-            else
-            {
-              MessageBox.Show($"Не удалось сохранить изменения после удаления:\n{error}",
-                  "Ошибка сохранения",
-                  MessageBoxButton.OK,
-                  MessageBoxImage.Error);
-            }
-          }
-          else
-          {
-            MessageBox.Show($"Не удалось удалить все автоматизмы.",
-                "Ошибка удаления",
-                MessageBoxButton.OK,
-                MessageBoxImage.Error);
-          }
+              IsClearingInProgress = false;
+              try
+              {
+                if (success)
+                {
+                  _allAutomatizms.Clear();
+                  RefreshDisplay();
+
+                  var (saveSuccess, error) = _automatizmSystem.SaveAutomatizm();
+                  if (saveSuccess)
+                  {
+                    MessageBox.Show("Все автоматизмы агента успешно удалены",
+                        "Удаление завершено",
+                        MessageBoxButton.OK,
+                        MessageBoxImage.Information);
+                  }
+                  else
+                  {
+                    MessageBox.Show($"Не удалось сохранить изменения после удаления:\n{error}",
+                        "Ошибка сохранения",
+                        MessageBoxButton.OK,
+                        MessageBoxImage.Error);
+                  }
+                }
+                else
+                {
+                  MessageBox.Show("Не удалось удалить все автоматизмы.",
+                      "Ошибка удаления",
+                      MessageBoxButton.OK,
+                      MessageBoxImage.Error);
+                }
+              }
+              catch (Exception ex)
+              {
+                MessageBox.Show($"Ошибка удаления автоматизмов агента: {ex.Message}",
+                    "Ошибка",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Error);
+              }
+            });
+          });
         }
         catch (Exception ex)
         {
+          IsClearingInProgress = false;
           MessageBox.Show($"Ошибка удаления автоматизмов агента: {ex.Message}",
               "Ошибка",
               MessageBoxButton.OK,
