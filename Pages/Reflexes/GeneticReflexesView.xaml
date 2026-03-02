@@ -19,6 +19,7 @@
     <converters:WordIdToTextConverter x:Key="WordIdToTextConverter"/>
     <converters:IdListToNamesConverter x:Key="IdListToNamesConverter"/>
     <converters:ReflexChainDetailTooltipConverter x:Key="ReflexChainDetailTooltipConverter"/>
+    <BooleanToVisibilityConverter x:Key="BoolToVis"/>
 
     <Style x:Key="BaseTextBlockStyle" TargetType="TextBlock">
       <Setter Property="Background" Value="White"/>
@@ -369,6 +370,7 @@
         <Button Content="Создать по шаблону"
             Command="{Binding LoadFromFileCommand}"
             IsEnabled="{Binding IsLoadFromFileEnabled}"
+            Visibility="{Binding IsEditingEnabled, Converter={StaticResource BoolToVis}}"
             Style="{StaticResource AgentButtonStyle}"
             ToolTip="Создать рефлексы и цепочки из файла (формат: Состояние|Стили|Триггер|Действие|Цепочка)"
             Margin="8,0,15,0"
@@ -390,12 +392,14 @@
         <Button Content="Очистить"
             Command="{Binding RemoveAllCommand}"
             IsEnabled="{Binding IsEditingEnabled}"
+            Visibility="{Binding IsEditingEnabled, Converter={StaticResource BoolToVis}}"
             Style="{StaticResource RedButtonStyle}"
             ToolTip="Удалить все данные из таблицы, дерево рефлексов и цепочки"
             Margin="0,0,8,0"/>
         <Button Content="Сохранить" 
             Command="{Binding SaveCommand}"
             IsEnabled="{Binding IsEditingEnabled}"
+            Visibility="{Binding IsEditingEnabled, Converter={StaticResource BoolToVis}}"
             Style="{StaticResource ActionButtonStyle}"
             ToolTip="Сохранить данные" Cursor="Hand"/>
       </StackPanel>

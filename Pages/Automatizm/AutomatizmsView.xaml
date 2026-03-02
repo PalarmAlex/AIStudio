@@ -19,6 +19,7 @@
     <converters:UsefulnessToColorConverter x:Key="UsefulnessToColorConverter"/>
     <converters:IdListToNamesConverter x:Key="IdListToNamesConverter"/>
     <converters:AutomatizmActionsToTooltipConverter x:Key="AutomatizmActionsToTooltipConverter"/>
+    <BooleanToVisibilityConverter x:Key="BoolToVis"/>
 
     <Style x:Key="BaseTextBlockStyle" TargetType="TextBlock">
       <Setter Property="Background" Value="White"/>
@@ -445,7 +446,8 @@
                    FontWeight="SemiBold"/>
         <Button Content="Клонировать рефлексы"
       Command="{Binding CloneReflexesCommand}"
-      IsEnabled="{Binding IsDeletionEnabled}"
+      IsEnabled="{Binding IsCloneReflexesAvailable}"
+      Visibility="{Binding IsCloneReflexesAvailable, Converter={StaticResource BoolToVis}}"
       Style="{StaticResource AgentButtonStyle}"
       Margin="5,0,5,0"
       Cursor="Hand"
@@ -455,6 +457,7 @@
         <Button Content="Создать по шаблону"
         Command="{Binding LoadFromFileCommand}"
         IsEnabled="{Binding IsLoadFromFileEnabled}"
+        Visibility="{Binding IsLoadFromFileEnabled, Converter={StaticResource BoolToVis}}"
         Style="{StaticResource AgentButtonStyle}"
         ToolTip="Открыть окно создания автоматизмов по шаблону"
         Margin="0,0,5,0"/>
@@ -476,6 +479,7 @@
         <Button Content="Очистить таблицу"
         Command="{Binding RemoveAllCommand}"
         IsEnabled="{Binding IsDeletionEnabled}"
+        Visibility="{Binding IsDeletionEnabled, Converter={StaticResource BoolToVis}}"
         Style="{StaticResource RedButtonStyle}"
         ToolTip="Удалить все автоматизмы агента"
         Margin="0,0,5,0"/>

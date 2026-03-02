@@ -324,6 +324,33 @@ namespace AIStudio.ViewModels
     }
 
     private string _currentChainType = "";
+    private int _currentAutomatizmChainLinkId;
+
+    /// <summary>
+    /// Текст для цепочки автоматизмов: «Выполняется звено цепочки №N» (плашка с оценкой не используется).
+    /// </summary>
+    public string AutomatizmChainStatusText
+    {
+      get
+      {
+        if (!_isChainActive || _currentChainType != "автоматизмов" || _activeChainId <= 0)
+          return "";
+        return $"Выполняется звено цепочки №{_currentAutomatizmChainLinkId}…";
+      }
+    }
+
+    /// <summary>
+    /// Видимость надписи о текущем звене цепочки автоматизмов (вместо плашки с оценкой).
+    /// </summary>
+    public System.Windows.Visibility AutomatizmChainStatusVisibility
+    {
+      get
+      {
+        return _isChainActive && _currentChainType == "автоматизмов" && _activeChainId > 0
+            ? System.Windows.Visibility.Visible
+            : System.Windows.Visibility.Collapsed;
+      }
+    }
 
     /// <summary>
     /// Текст, указывающий тип активной цепочки
@@ -435,11 +462,13 @@ namespace AIStudio.ViewModels
         }
         else if (isAutomatizmChainActive)
         {
-          // Для цепочек автоматизмов получаем ID из AutomatismExecutionService
+          // Для цепочек автоматизмов получаем ID и номер текущего звена из AutomatismExecutionService
           if (AutomatismExecutionService.IsInitialized)
           {
             newChainId = AutomatismExecutionService.Instance.GetActiveAutomatizmChainId();
             chainType = "автоматизмов";
+            if (newChainId > 0)
+              _currentAutomatizmChainLinkId = AutomatismExecutionService.Instance.GetCurrentAutomatizmChainLink(newChainId);
           }
         }
 
@@ -449,7 +478,8 @@ namespace AIStudio.ViewModels
           ActiveChainId = newChainId;
           _currentChainType = chainType;
 
-          ChainControlVisibility = _isChainActive && _activeChainId > 0 ?
+          // Плашка с переключателем — только для цепочек рефлексов
+          ChainControlVisibility = isReflexChainActive && _activeChainId > 0 ?
               System.Windows.Visibility.Visible :
               System.Windows.Visibility.Collapsed;
 
@@ -459,27 +489,22 @@ namespace AIStudio.ViewModels
           OnPropertyChanged(nameof(ChainActiveBackground));
           OnPropertyChanged(nameof(ChainActiveTextColor));
           OnPropertyChanged(nameof(ChainTypeText));
+          OnPropertyChanged(nameof(AutomatizmChainStatusText));
+          OnPropertyChanged(nameof(AutomatizmChainStatusVisibility));
 
-          if (_isChainActive)
+          if (_isChainActive && isReflexChainActive)
             ChainStepSuccess = true; // Сбрасываем на значение по умолчанию
-          else
+          else if (!_isChainActive)
             ChainControlVisibility = System.Windows.Visibility.Collapsed;
         }
 
-        if (_isChainActive)
+        if (_isChainActive && isReflexChainActive)
+          UpdateChainStepResult();
+
+        if (_isChainActive && isAutomatizmChainActive && _activeChainId > 0 && AutomatismExecutionService.IsInitialized)
         {
-          // Для цепочек автоматизмов проверяем, ожидают ли они результата
-          if (isAutomatizmChainActive && AutomatismExecutionService.IsInitialized)
-          {
-            bool isWaiting = AutomatismExecutionService.Instance.IsChainWaitingForResult(newChainId);
-            if (isWaiting)
-              UpdateChainStepResult();
-          }
-          // Для цепочек рефлексов обновляем всегда, когда активны
-          else if (isReflexChainActive)
-          {
-            UpdateChainStepResult();
-          }
+          _currentAutomatizmChainLinkId = AutomatismExecutionService.Instance.GetCurrentAutomatizmChainLink(_activeChainId);
+          OnPropertyChanged(nameof(AutomatizmChainStatusText));
         }
       }
       catch (Exception ex)
@@ -725,6 +750,9 @@ namespace AIStudio.ViewModels
                 MessageBoxImage.Error);
             return;
           }
+          // Оценка активного звена цепочки автоматизмов по эффекту стимула (в период ожидания)
+          if (AppGlobalState.IsAutomatizmChainActive && AutomatismExecutionService.IsInitialized)
+            AutomatismExecutionService.Instance.ApplyStimulusEffectAndAdvanceChain();
           // Обновляем состояние агента после воздействий
           UpdateAgentState();
         }

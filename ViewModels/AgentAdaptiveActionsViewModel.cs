@@ -1,5 +1,6 @@
 using ISIDA.Actions;
 using ISIDA.Common;
+using ISIDA.Psychic.Automatism;
 using ISIDA.Sensors;
 using System;
 using System.Collections.Generic;
@@ -110,18 +111,23 @@ namespace AIStudio.ViewModels
     {
       try
       {
-        var reflexPhrases = new List<string>();
+        var blocks = new List<string>();
         foreach (var action in CurrentActiveActions.Where(a => a.ActivationSource == ActionActivationSource.AutomatizmVerbalResponse))
         {
           int phraseId = _adaptiveActionsSystem.GetPhraseIdForAction(action.Id);
           string phraseText = GetPhraseText(phraseId);
+          if (string.IsNullOrEmpty(phraseText))
+            continue;
 
-          if (!string.IsNullOrEmpty(phraseText) && !reflexPhrases.Contains(phraseText))
-            reflexPhrases.Add(phraseText);
+          int displayImageId = _adaptiveActionsSystem.GetActionImageIdForPhraseDisplay(action.Id);
+          if (displayImageId <= 0)
+            displayImageId = action.Id;
+          var (toneText, moodText) = GetToneAndMoodForActionImage(displayImageId);
+          blocks.Add($"Тон: {toneText}\nНастроение: {moodText}\nФраза: {phraseText}");
         }
 
-        if (reflexPhrases.Any())
-          ReflexPhrasesText = $"{string.Join(", ", reflexPhrases)}";
+        if (blocks.Any())
+          ReflexPhrasesText = string.Join("\n\n", blocks);
         else
           ReflexPhrasesText = "";
       }
@@ -129,6 +135,25 @@ namespace AIStudio.ViewModels
       {
         ReflexPhrasesText = $"Ошибка получения рефлексов: {ex.Message}";
       }
+    }
+
+    /// <summary>
+    /// Возвращает тон и настроение из образа действий автоматизма (action image id).
+    /// </summary>
+    private static (string tone, string mood) GetToneAndMoodForActionImage(int actionImageId)
+    {
+      if (!ActionsImagesSystem.IsInitialized || actionImageId <= 0)
+        return ("Нормальный", "Нормальное");
+
+      var image = ActionsImagesSystem.Instance.GetActionsImage(actionImageId);
+      if (image == null)
+        return ("Нормальный", "Нормальное");
+
+      string toneText = ActionsImagesSystem.GetToneText(image.ToneId);
+      string moodText = ActionsImagesSystem.GetMoodText(image.MoodId);
+      if (string.IsNullOrEmpty(toneText)) toneText = "Нормальный";
+      if (string.IsNullOrEmpty(moodText)) moodText = "Нормальное";
+      return (toneText, moodText);
     }
 
     private string GetPhraseText(int phraseId)

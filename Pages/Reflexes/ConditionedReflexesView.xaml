@@ -19,6 +19,7 @@
     <converters:PerceptionImageIdToTextConverter x:Key="PerceptionImageIdToTextConverter"/>
     <converters:PerceptionImageIdToTooltipConverter x:Key="PerceptionImageIdToTooltipConverter"/>
     <converters:ConditionedReflexPerceptionTooltipConverter x:Key="ConditionedReflexPerceptionTooltipConverter"/>
+    <BooleanToVisibilityConverter x:Key="BoolToVis"/>
 
     <Style x:Key="BaseTextBlockStyle" TargetType="TextBlock">
       <Setter Property="Background" Value="White"/>
@@ -351,6 +352,7 @@
         <Button Content="Настройки"
                     Command="{Binding OpenSettingsCommand}"
                     IsEnabled="{Binding IsDeletionEnabled}"
+                    Visibility="{Binding IsTemplateCreationEnabled, Converter={StaticResource BoolToVis}}"
                     Style="{StaticResource ActionButtonStyle}"
                     ToolTip="Настройки условных рефлексов"
                     Margin="8,0,15,0"
@@ -358,6 +360,7 @@
         <Button Content="Создать по шаблону"
                         Command="{Binding OpenTemplateCommand}"
                         IsEnabled="{Binding IsTemplateCreationEnabled}"
+                        Visibility="{Binding IsTemplateCreationEnabled, Converter={StaticResource BoolToVis}}"
                         Style="{StaticResource ActionButtonStyle}"
                         ToolTip="Создать условные рефлексы по шаблону (только стадия 1)"
                         Margin="0,0,10,0"
@@ -380,6 +383,7 @@
         <Button Content="Очистить"
                         Command="{Binding RemoveAllCommand}"
                         IsEnabled="{Binding IsDeletionEnabled}"
+                        Visibility="{Binding IsTemplateCreationEnabled, Converter={StaticResource BoolToVis}}"
                         Style="{StaticResource RedButtonStyle}"
                         ToolTip="Удалить все условные рефлексы агента"/>
       </StackPanel>

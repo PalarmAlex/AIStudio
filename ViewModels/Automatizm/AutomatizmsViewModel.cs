@@ -256,6 +256,7 @@ namespace AIStudio.ViewModels
       {
         OnPropertyChanged(nameof(IsStageTwoOrHigher));
         OnPropertyChanged(nameof(IsDeletionEnabled));
+        OnPropertyChanged(nameof(IsCloneReflexesAvailable));
         OnPropertyChanged(nameof(IsLoadFromFileEnabled));
         ((RelayCommand)LoadFromFileCommand)?.RaiseCanExecuteChanged();
         OnPropertyChanged(nameof(PulseWarningMessage));
@@ -274,6 +275,13 @@ namespace AIStudio.ViewModels
         !_isCloningInProgress &&
         !_isClearingInProgress;
 
+    /// <summary>Кнопка «Клонировать рефлексы» отображается и доступна только на стадии 2.</summary>
+    public bool IsCloneReflexesAvailable =>
+        !_isCloningInProgress &&
+        _currentAgentStage == 2 &&
+        !GlobalTimer.IsPulsationRunning &&
+        _reflexConverter != null;
+
     public string PulseWarningMessage =>
         !IsStageTwoOrHigher
             ? "[КРИТИЧНО] Управление автоматизмами доступно только в стадии 2"
@@ -282,7 +290,7 @@ namespace AIStudio.ViewModels
                 : GlobalTimer.IsPulsationRunning
                     ? "Управление автоматизмами доступно только при выключенной пульсации"
                     : _currentAgentStage == 3
-                        ? "Редактирование только на стадии 2; удаление доступно на стадии 2 и 3."
+                        ? "Клонирование только на стадии 2; удаление доступно на стадии 2 и 3."
                         : string.Empty;
 
     public Brush WarningMessageColor =>
@@ -423,6 +431,7 @@ namespace AIStudio.ViewModels
         OnPropertyChanged(nameof(IsOperationInProgress));
         OnPropertyChanged(nameof(OperationStatusMessage));
         OnPropertyChanged(nameof(IsDeletionEnabled));
+        OnPropertyChanged(nameof(IsCloneReflexesAvailable));
         ((RelayCommand)CloneReflexesCommand).RaiseCanExecuteChanged();
       }
     }
@@ -438,6 +447,7 @@ namespace AIStudio.ViewModels
         OnPropertyChanged(nameof(IsOperationInProgress));
         OnPropertyChanged(nameof(OperationStatusMessage));
         OnPropertyChanged(nameof(IsDeletionEnabled));
+        OnPropertyChanged(nameof(IsCloneReflexesAvailable));
       }
     }
 
@@ -682,6 +692,7 @@ namespace AIStudio.ViewModels
 
         OnPropertyChanged(nameof(IsStageTwoOrHigher));
         OnPropertyChanged(nameof(IsDeletionEnabled));
+        OnPropertyChanged(nameof(IsCloneReflexesAvailable));
         OnPropertyChanged(nameof(IsLoadFromFileEnabled));
         ((RelayCommand)LoadFromFileCommand)?.RaiseCanExecuteChanged();
         OnPropertyChanged(nameof(PulseWarningMessage));
@@ -1092,10 +1103,23 @@ namespace AIStudio.ViewModels
         {
           sb.AppendLine($"Звено {link.ID}:");
 
-          // Получаем информацию об образе действий
           var actionsImage = _actionsImagesSystem.GetActionsImage(link.ActionsImageId);
           if (actionsImage != null)
           {
+            if (actionsImage.PhraseIdList == null || !actionsImage.PhraseIdList.Any())
+              sb.AppendLine("  Фраза: Нет");
+            else
+            {
+              var phraseTexts = actionsImage.PhraseIdList
+                  .Select(pid => _sensorySystem?.VerbalChannel?.GetPhraseFromPhraseId(pid) ?? "")
+                  .Where(s => !string.IsNullOrEmpty(s))
+                  .ToList();
+              sb.AppendLine($"  Фраза: {(phraseTexts.Any() ? string.Join(" ", phraseTexts) : "—")}");
+            }
+            string toneStr = ActionsImagesSystem.IsInitialized ? ActionsImagesSystem.GetToneText(actionsImage.ToneId) : "";
+            string moodStr = ActionsImagesSystem.IsInitialized ? ActionsImagesSystem.GetMoodText(actionsImage.MoodId) : "";
+            sb.AppendLine($"  Тон-Настроение: {toneStr}-{moodStr}");
+
             if (actionsImage.ActIdList?.Any() == true)
             {
               var allActions = _adaptiveActionsSystem.GetAllAdaptiveActions();

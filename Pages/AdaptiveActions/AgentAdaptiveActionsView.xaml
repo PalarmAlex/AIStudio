@@ -86,22 +86,22 @@
 
         <!-- Колонка 1: Безусловные рефлексы -->
         <StackPanel Grid.Column="0" Grid.Row="0">
-          <TextBlock Text="Безусловные рефлексы [Энергия]" Style="{StaticResource SectionHeaderStyle}"/>
+          <TextBlock Text="Безусловные рефлексы" Style="{StaticResource SectionHeaderStyle}"/>
         </StackPanel>
 
         <!-- Колонка 2: Условные рефлексы -->
         <StackPanel Grid.Column="1" Grid.Row="0">
-          <TextBlock Text="Условные рефлексы [Энергия]" Style="{StaticResource SectionHeaderStyle}"/>
+          <TextBlock Text="Условные рефлексы" Style="{StaticResource SectionHeaderStyle}"/>
         </StackPanel>
 
         <!-- Колонка 3: Автоматизмы -->
         <StackPanel Grid.Column="2" Grid.Row="0">
-          <TextBlock Text="Автоматизмы [Энергия]" Style="{StaticResource SectionHeaderStyle}"/>
+          <TextBlock Text="Автоматизмы" Style="{StaticResource SectionHeaderStyle}"/>
         </StackPanel>
 
         <!-- Колонка 4: Ответные фразы -->
         <StackPanel Grid.Column="3" Grid.Row="0">
-          <TextBlock Text="Ответные фразы (Тон - Настроение)" Style="{StaticResource SectionHeaderStyle}"/>
+          <TextBlock Text="Ответные фразы" Style="{StaticResource SectionHeaderStyle}"/>
         </StackPanel>
 
         <!-- Колонка 1: Безусловные рефлексы -->
