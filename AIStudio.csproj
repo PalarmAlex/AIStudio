@@ -160,6 +160,9 @@
     <Compile Include="Pages\Automatizm\AutomatizmLoadDialog.xaml.cs">
       <DependentUpon>AutomatizmLoadDialog.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Pages\Automatizm\PrimitivesLoadDialog.xaml.cs">
+      <DependentUpon>PrimitivesLoadDialog.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Pages\Automatizm\AutomatizmsView.xaml.cs">
       <DependentUpon>AutomatizmsView.xaml</DependentUpon>
     </Compile>
@@ -345,6 +348,10 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="Pages\Automatizm\AutomatizmLoadDialog.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Pages\Automatizm\PrimitivesLoadDialog.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

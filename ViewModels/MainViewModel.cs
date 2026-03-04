@@ -51,6 +51,7 @@ namespace AIStudio
     private readonly ConditionedReflexToAutomatizmConverter _conditionedReflexToAutomatizm;
     private readonly AutomatizmChainsSystem _automatizmChains;
     private readonly AutomatizmFileLoader _automatizmFileLoader;
+    private readonly Stage2PrimitivesLoader _stage2PrimitivesLoader;
 
     public event PropertyChangedEventHandler PropertyChanged;
     private AgentViewModel _agentViewModel;
@@ -170,6 +171,7 @@ namespace AIStudio
         _conditionedReflexToAutomatizm = _isidaContext.ConditionedReflexToAutomatizm;
         _automatizmChains = _isidaContext.AutomatizmChainsSystem;
         _automatizmFileLoader = _isidaContext.AutomatizmFileLoader;
+        _stage2PrimitivesLoader = _isidaContext.Stage2PrimitivesLoader;
 
         _stepInzialized = 4;
       }
@@ -426,7 +428,8 @@ namespace AIStudio
           _actionsSystem,
           _verbalBrocaImages,
           _conditionedReflexToAutomatizm,
-          _automatizmFileLoader);
+          _automatizmFileLoader,
+          _stage2PrimitivesLoader);
       automatizmsView.DataContext = viewModel;
       CurrentContent = automatizmsView;
     }

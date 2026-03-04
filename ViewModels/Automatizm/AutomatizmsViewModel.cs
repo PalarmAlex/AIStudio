@@ -45,6 +45,7 @@ namespace AIStudio.ViewModels
     private readonly VerbalBrocaImagesSystem _verbalBrocaImages;
     private readonly ConditionedReflexToAutomatizmConverter _reflexConverter;
     private readonly AutomatizmFileLoader _automatizmFileLoader;
+    private readonly Stage2PrimitivesLoader _stage2PrimitivesLoader;
 
     private string _currentAgentName;
     private int _currentAgentStage;
@@ -127,7 +128,8 @@ namespace AIStudio.ViewModels
         AdaptiveActionsSystem adaptiveActionsSystem,
         VerbalBrocaImagesSystem verbalBrocaImages,
         ConditionedReflexToAutomatizmConverter reflexConverter,
-        AutomatizmFileLoader automatizmFileLoader)
+        AutomatizmFileLoader automatizmFileLoader,
+        Stage2PrimitivesLoader stage2PrimitivesLoader = null)
     {
       _gomeostas = gomeostasSystem ?? throw new ArgumentNullException(nameof(gomeostasSystem));
       _automatizmSystem = automatizmSystem ?? throw new ArgumentNullException(nameof(automatizmSystem));
@@ -141,6 +143,7 @@ namespace AIStudio.ViewModels
       _verbalBrocaImages = verbalBrocaImages ?? throw new ArgumentNullException(nameof(verbalBrocaImages));
       _reflexConverter = reflexConverter ?? throw new ArgumentNullException(nameof(reflexConverter));
       _automatizmFileLoader = automatizmFileLoader ?? throw new ArgumentNullException(nameof(automatizmFileLoader));
+      _stage2PrimitivesLoader = stage2PrimitivesLoader;
 
       _automatizmsView = CollectionViewSource.GetDefaultView(_displayAutomatizms);
 
@@ -178,13 +181,13 @@ namespace AIStudio.ViewModels
       }
     }
 
-    /// <summary>Загрузка из файла доступна только на третьей стадии развития (EvolutionStage == 3).</summary>
+    /// <summary>Загрузка по шаблону доступна на стадиях 2 и 3 (на 2 — базовые примитивы, на 3 — форма по шаблону).</summary>
     public bool IsLoadFromFileEnabled
     {
       get
       {
         return !IsLoadingInProgress &&
-               _currentAgentStage == 3 &&
+               (_currentAgentStage == 2 || _currentAgentStage == 3) &&
                !GlobalTimer.IsPulsationRunning &&
                PsychicSystem.IsInitialized;
       }
@@ -497,15 +500,27 @@ namespace AIStudio.ViewModels
             Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData),
             "ISIDA", "BootData");
 
-        var dialog = new AutomatizmLoadDialog(_gomeostas, bootDataFolder, _automatizmFileLoader)
+        if (_currentAgentStage == 3)
         {
-          Owner = Application.Current.MainWindow
-        };
+          var dialog = new AutomatizmLoadDialog(_gomeostas, bootDataFolder, _automatizmFileLoader)
+          {
+            Owner = Application.Current.MainWindow
+          };
+          if (dialog.ShowDialog() == true && dialog.SelectedBaseState.HasValue)
+          {
+            RefreshAllCollections();
+          }
+          return;
+        }
 
-        if (dialog.ShowDialog() == true && dialog.SelectedBaseState.HasValue)
+        if (_currentAgentStage == 2 && _stage2PrimitivesLoader != null)
         {
-          // Загрузка выполнена в диалоге с индикацией
-          RefreshAllCollections();
+          var primitivesDialog = new PrimitivesLoadDialog(bootDataFolder, _stage2PrimitivesLoader)
+          {
+            Owner = Application.Current.MainWindow
+          };
+          if (primitivesDialog.ShowDialog() == true)
+            RefreshAllCollections();
         }
       }
       catch (ObjectDisposedException)

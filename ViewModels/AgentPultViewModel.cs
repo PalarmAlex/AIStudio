@@ -691,6 +691,15 @@ namespace AIStudio.ViewModels
         return;
       }
 
+      if (!GlobalTimer.IsPulsationRunning)
+      {
+        MessageBox.Show("Пульсация выключена — воздействия не применяются",
+            "Внимание",
+            MessageBoxButton.OK,
+            MessageBoxImage.Warning);
+        return;
+      }
+
       var selectedActions = GetSelectedInfluenceActions();
       if (selectedActions.Count == 0 && string.IsNullOrWhiteSpace(MessageText))
       {

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Globalization;
 using System.Windows;
 using System.Windows.Data;
@@ -11,7 +11,9 @@ namespace AIStudio.Converters
     {
       if (value is int count)
       {
-        return count == 0 ? Visibility.Visible : Visibility.Collapsed;
+        bool showWhenEmpty = !string.Equals(parameter?.ToString(), "Invert", StringComparison.OrdinalIgnoreCase);
+        return showWhenEmpty ? (count == 0 ? Visibility.Visible : Visibility.Collapsed)
+                            : (count > 0 ? Visibility.Visible : Visibility.Collapsed);
       }
       return Visibility.Collapsed;
     }

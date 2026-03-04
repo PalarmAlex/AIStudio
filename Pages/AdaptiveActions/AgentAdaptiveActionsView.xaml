@@ -43,6 +43,46 @@
       <Setter Property="Padding" Value="5,5"/>
     </Style>
 
+    <!-- Стиль для подписей «Тон», «Настроение», «Фраза» — серый, шрифт на 2 пункта меньше -->
+    <Style x:Key="ReflexPhraseMetaStyle" TargetType="TextBlock">
+      <Setter Property="FontSize" Value="14"/>
+      <Setter Property="Foreground" Value="#FF808080"/>
+      <Setter Property="TextWrapping" Value="Wrap"/>
+      <Setter Property="VerticalAlignment" Value="Center"/>
+    </Style>
+
+    <DataTemplate x:Key="ReflexPhraseBlockTemplate">
+      <StackPanel Margin="0,4,0,0">
+        <TextBlock Style="{StaticResource ReflexPhraseMetaStyle}">
+          <Run Text="Тон: "/>
+          <Run Text="{Binding ToneText}"/>
+        </TextBlock>
+        <TextBlock Style="{StaticResource ReflexPhraseMetaStyle}">
+          <Run Text="Настроение: "/>
+          <Run Text="{Binding MoodText}"/>
+        </TextBlock>
+        <StackPanel Orientation="Horizontal" Margin="0,2,0,0" VerticalAlignment="Center">
+          <TextBlock Foreground="#FF808080" FontSize="14" Text="Фраза: " VerticalAlignment="Center"/>
+          <TextBlock Text="{Binding PhraseText}"
+                     FontSize="{Binding PhraseFontSize}"
+                     FontWeight="SemiBold"
+                     TextWrapping="Wrap"
+                     VerticalAlignment="Center">
+            <TextBlock.Style>
+              <Style TargetType="TextBlock">
+                <Setter Property="Foreground" Value="DarkBlue"/>
+                <Style.Triggers>
+                  <DataTrigger Binding="{Binding UseGreenColor}" Value="True">
+                    <Setter Property="Foreground" Value="Green"/>
+                  </DataTrigger>
+                </Style.Triggers>
+              </Style>
+            </TextBlock.Style>
+          </TextBlock>
+        </StackPanel>
+      </StackPanel>
+    </DataTemplate>
+
     <!-- Общий шаблон для отображения действий -->
     <DataTemplate x:Key="ActionItemTemplate">
       <Grid>
@@ -174,33 +214,15 @@
                 Padding="5"
                 Height="80">
           <Grid>
-            <TextBlock Text="Нет ответных фраз">
-              <TextBlock.Style>
-                <Style TargetType="TextBlock" BasedOn="{StaticResource NoAdaptationTextStyle}">
-                  <Setter Property="Visibility" Value="Collapsed"/>
-                  <Style.Triggers>
-                    <DataTrigger Binding="{Binding ReflexPhrasesText}" Value="">
-                      <Setter Property="Visibility" Value="Visible"/>
-                    </DataTrigger>
-                  </Style.Triggers>
-                </Style>
-              </TextBlock.Style>
-            </TextBlock>
+            <TextBlock Text="Нет ответных фраз"
+                       Style="{StaticResource NoAdaptationTextStyle}"
+                       Visibility="{Binding ReflexPhraseBlocksCount, Converter={StaticResource IntToVisibilityConverter}, ConverterParameter=true}"/>
 
-            <TextBlock Text="{Binding ReflexPhrasesText}"
-                     TextWrapping="Wrap"
-                     VerticalAlignment="Center">
-              <TextBlock.Style>
-                <Style TargetType="TextBlock" BasedOn="{StaticResource ReflexWordsTextStyle}">
-                  <Setter Property="Visibility" Value="Visible"/>
-                  <Style.Triggers>
-                    <DataTrigger Binding="{Binding ReflexPhrasesText}" Value="">
-                      <Setter Property="Visibility" Value="Collapsed"/>
-                    </DataTrigger>
-                  </Style.Triggers>
-                </Style>
-              </TextBlock.Style>
-            </TextBlock>
+            <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+              <ItemsControl ItemsSource="{Binding ReflexPhraseBlocks}"
+                            ItemTemplate="{StaticResource ReflexPhraseBlockTemplate}"
+                            Visibility="{Binding ReflexPhraseBlocksCount, Converter={StaticResource IntToVisibilityConverter}, ConverterParameter=Invert}"/>
+            </ScrollViewer>
           </Grid>
         </Border>
 

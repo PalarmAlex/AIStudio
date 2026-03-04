@@ -1,0 +1,217 @@
+<Window x:Class="AIStudio.Dialogs.PrimitivesLoadDialog"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Создание базовых примитивов по шаблону"
+        Height="640" Width="920"
+        WindowStartupLocation="CenterOwner"
+        ResizeMode="NoResize"
+        ShowInTaskbar="False"
+        PreviewKeyDown="Window_PreviewKeyDown"
+        Loaded="Window_Loaded">
+
+  <Window.Resources>
+    <Style x:Key="DialogHeaderStyle" TargetType="TextBlock">
+      <Setter Property="FontSize" Value="16"/>
+      <Setter Property="FontWeight" Value="SemiBold"/>
+      <Setter Property="Margin" Value="0,0,0,10"/>
+    </Style>
+    <Style x:Key="SectionHeaderStyle" TargetType="TextBlock">
+      <Setter Property="FontSize" Value="13"/>
+      <Setter Property="FontWeight" Value="SemiBold"/>
+      <Setter Property="Margin" Value="0,6,0,4"/>
+    </Style>
+    <Style x:Key="InfoTextStyle" TargetType="TextBlock">
+      <Setter Property="Foreground" Value="#FF666666"/>
+      <Setter Property="FontStyle" Value="Italic"/>
+      <Setter Property="Margin" Value="0,0,0,6"/>
+    </Style>
+    <Style x:Key="TabHeaderStyle" TargetType="TabItem">
+      <Setter Property="FontSize" Value="12"/>
+      <Setter Property="Padding" Value="10,3"/>
+    </Style>
+    <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter"/>
+  </Window.Resources>
+
+  <Grid Margin="12">
+    <Grid.RowDefinitions>
+      <RowDefinition Height="Auto"/>
+      <RowDefinition Height="*"/>
+      <RowDefinition Height="Auto"/>
+    </Grid.RowDefinitions>
+
+    <Grid x:Name="BusyOverlay"
+          Grid.RowSpan="3"
+          Background="#80FFFFFF"
+          Visibility="{Binding IsBusy, Converter={StaticResource BooleanToVisibilityConverter}}"
+          Panel.ZIndex="1000">
+      <StackPanel VerticalAlignment="Bottom" HorizontalAlignment="Left" Margin="15,0,0,15">
+        <ProgressBar IsIndeterminate="True" Width="200" Height="20" Margin="0,0,0,10"/>
+        <TextBlock Text="Создание базовых примитивов..." HorizontalAlignment="Center" FontSize="14"/>
+      </StackPanel>
+    </Grid>
+
+    <TextBlock Grid.Row="0"
+               Text="Создание базовых примитивов по шаблону"
+               Style="{StaticResource DialogHeaderStyle}"/>
+
+    <TabControl Grid.Row="1" Margin="0,6,0,6" x:Name="MainTabControl">
+      <TabItem Header="Текст примитивов" Style="{StaticResource TabHeaderStyle}">
+        <Grid Margin="0,10,0,0">
+          <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+          </Grid.RowDefinitions>
+          <Border Grid.Row="0"
+                  BorderBrush="#FFE0E0E0"
+                  BorderThickness="1"
+                  CornerRadius="4"
+                  Padding="8"
+                  Background="#FFF9F9F9"
+                  Margin="0,0,0,8">
+            <StackPanel>
+              <TextBlock Text="Формат текста" FontWeight="SemiBold" Margin="0,0,0,5"/>
+              <TextBlock TextWrapping="Wrap" Style="{StaticResource InfoTextStyle}">
+                <Run Text="Строка: Состояние|Стили|Трехсложный паттерн|Тон|Настроение"/><LineBreak/>
+                <Run Text="Состояние: Плохо, Норма, Хорошо"/><LineBreak/>
+                <Run Text="Стили: имена через + (например: Расслабление+Игра)"/><LineBreak/>
+                <Run Text="Трехсложный паттерн: вербальный триггер из слогов через пробел или дефис, например со ба ка или тик-так (при пробелах вербальная часть станет без пробелов: «собака»)"/><LineBreak/>
+                <Run Text="Тон и Настроение: только кириллица, точно как в списке. Тон: Вялый, Нормальный, Повышенный. Настроение: Нормальное, Хорошее, Плохое, Игривое, Учитель, Агрессивное, Защитное, Протест"/><LineBreak/>
+                <Run Text="Пример: Норма|Расслабление+Игра|со ба ка|Нормальный|Хорошее" FontFamily="Consolas"/>
+              </TextBlock>
+            </StackPanel>
+          </Border>
+          <TextBox Grid.Row="1"
+                   x:Name="ContentTextBox"
+                   Text="{Binding CsvContent, UpdateSourceTrigger=PropertyChanged}"
+                   AcceptsReturn="True"
+                   AcceptsTab="True"
+                   FontFamily="Consolas"
+                   FontSize="12"
+                   VerticalScrollBarVisibility="Auto"
+                   HorizontalScrollBarVisibility="Auto"
+                   Padding="4"
+                   BorderBrush="#FFE0E0E0"
+                   BorderThickness="1"/>
+          <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,10,0,0">
+            <Button Content="Сохранить в файл" Command="{Binding SaveCsvCommand}" Height="35" Width="130" Margin="0,0,10,0" Cursor="Hand"/>
+            <Button Content="Проверить формат" Command="{Binding ValidateCsvCommand}" Height="35" Width="130" Cursor="Hand"/>
+          </StackPanel>
+        </Grid>
+      </TabItem>
+      <TabItem Header="Промпт для ИИ" Style="{StaticResource TabHeaderStyle}">
+        <Grid Margin="0,10,0,0">
+          <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+          </Grid.RowDefinitions>
+          <Border Grid.Row="0"
+                  BorderBrush="#FFE0E0E0"
+                  BorderThickness="1"
+                  CornerRadius="4"
+                  Padding="8"
+                  Background="#FFF9F9F9"
+                  Margin="0,0,0,8">
+            <StackPanel>
+              <TextBlock Text="Редактирование промпта для генерации шаблона базовых примитивов" FontWeight="SemiBold" Margin="0,0,0,5"/>
+              <TextBlock Text="{Binding PromptFilePath, Mode=OneWay}" TextWrapping="Wrap" Style="{StaticResource InfoTextStyle}"/>
+            </StackPanel>
+          </Border>
+          <TextBox Grid.Row="1"
+                   x:Name="PromptEditorTextBox"
+                   Text="{Binding PromptContent, UpdateSourceTrigger=PropertyChanged}"
+                   AcceptsReturn="True"
+                   AcceptsTab="True"
+                   FontFamily="Segoe UI"
+                   FontSize="12"
+                   VerticalScrollBarVisibility="Auto"
+                   HorizontalScrollBarVisibility="Auto"
+                   Padding="4"
+                   BorderBrush="#FFE0E0E0"
+                   BorderThickness="1"
+                   IsEnabled="{Binding IsPromptEditingEnabled}"/>
+          <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,10,0,0">
+            <Button Content="Сохранить промпт" Command="{Binding SavePromptCommand}" Height="35" Width="150" Cursor="Hand"/>
+          </StackPanel>
+        </Grid>
+      </TabItem>
+      <TabItem Header="Текст для вставки в промпт" x:Name="TabPromptInsert" Style="{StaticResource TabHeaderStyle}">
+        <Grid Margin="0,10,0,0">
+          <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+          </Grid.RowDefinitions>
+          <TextBlock Grid.Row="0" Text="Текст вставки для промпта генерации базовых примитивов" FontWeight="SemiBold" Margin="0,0,0,6"/>
+          <TextBox Grid.Row="1"
+                   x:Name="PromptInsertTextBox"
+                   Text="{Binding PromptInsertText, UpdateSourceTrigger=PropertyChanged}"
+                   AcceptsReturn="True"
+                   AcceptsTab="True"
+                   FontFamily="Segoe UI"
+                   FontSize="12"
+                   VerticalScrollBarVisibility="Auto"
+                   HorizontalScrollBarVisibility="Auto"
+                   Padding="4"
+                   BorderBrush="#FFE0E0E0"
+                   BorderThickness="1"
+                   Margin="0,0,0,8"
+                   ToolTip="Текст, добавляемый в промпт. Поддерживаются плейсхолдеры в квадратных скобках — см. блок ниже."/>
+          <Border Grid.Row="2" Padding="8,6" Background="#FFF8F8F8"
+                  BorderBrush="#FFE0E0E0" BorderThickness="1" CornerRadius="3" Margin="0,0,0,8">
+            <StackPanel>
+              <TextBlock Text="Формат строки: Состояние|Стили|Трехсложный паттерн|Тон|Настроение" TextWrapping="Wrap" FontSize="12" Foreground="#FF404040"/>
+            </StackPanel>
+          </Border>
+          <!-- Блок описания параметров (под окном ввода, в 2 колонки) -->
+          <Border Grid.Row="3" Padding="8,6" Background="#FFF8F8F8"
+                  BorderBrush="#FFE0E0E0" BorderThickness="1" CornerRadius="3" Margin="0,0,0,8">
+            <StackPanel>
+              <TextBlock Text="Параметры для вставки в промпт:" FontWeight="SemiBold" Margin="0,0,0,6"/>
+              <Grid>
+                <Grid.ColumnDefinitions>
+                  <ColumnDefinition Width="*"/>
+                  <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+                <StackPanel Grid.Column="0">
+                  <TextBlock TextWrapping="Wrap" FontSize="12" Foreground="#FF404040">
+                    <Run Text="stileCombination" FontWeight="SemiBold"/> — комбинации стилей реагирования<LineBreak/>
+                    <Run Text="InfluenceActionList" FontWeight="SemiBold"/> — список воздействий с пульта<LineBreak/>
+                    <Run Text="ReflexGenStyleCount" FontWeight="SemiBold"/> — количество комбинаций стилей<LineBreak/>
+                    <Run Text="ReflexGenTriggerCount" FontWeight="SemiBold"/> — количество воздействий
+                  </TextBlock>
+                </StackPanel>
+                <StackPanel Grid.Column="1" Margin="12,0,0,0">
+                  <TextBlock TextWrapping="Wrap" FontSize="12" Foreground="#FF404040">
+                    <Run Text="AdaptiveActionList" FontWeight="SemiBold"/> — список адаптивных действий<LineBreak/>
+                    <Run Text="ReflexGenLinesPerState" FontWeight="SemiBold"/> — строк на состояние<LineBreak/>
+                    <Run Text="ReflexGenLinesThreeStates" FontWeight="SemiBold"/> — строк на три состояния<LineBreak/>
+                  </TextBlock>
+                </StackPanel>
+              </Grid>
+            </StackPanel>
+          </Border>
+          <StackPanel Grid.Row="4" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,0,0,0">
+            <Button Content="Создать промпт" Command="{Binding CreatePromptCommand}" Height="35" Width="140" Margin="0,0,10,0" Cursor="Hand"/>
+            <Button Content="Сохранить текст" Command="{Binding SaveInsertTextCommand}" Height="35" Width="130" Cursor="Hand"/>
+          </StackPanel>
+        </Grid>
+      </TabItem>
+    </TabControl>
+
+    <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,10,0,0">
+      <Button Content="Создать"
+              Command="{Binding ApplyCommand}"
+              IsEnabled="{Binding CanApply}"
+              Height="35"
+              Width="120"
+              Margin="0,0,10,0"
+              Cursor="Hand"
+              ToolTip="Создать базовые примитивы (эхо+цепочка) по шаблону (только стадия 2)"/>
+      <Button Content="Отмена" Command="{Binding CancelCommand}" Height="35" Width="100" Cursor="Hand"/>
+    </StackPanel>
+  </Grid>
+</Window>

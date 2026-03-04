@@ -13,6 +13,18 @@ using static ISIDA.Actions.AdaptiveActionsSystem;
 
 namespace AIStudio.ViewModels
 {
+  /// <summary>Элемент для отображения вербальной части автоматизма (тон, настроение, фраза).</summary>
+  public sealed class ReflexPhraseBlock
+  {
+    public string ToneText { get; set; } = "";
+    public string MoodText { get; set; } = "";
+    public string PhraseText { get; set; } = "";
+    /// <summary>Синий (false) или зелёный (true) — для различия одинаковых слогов.</summary>
+    public bool UseGreenColor { get; set; }
+    /// <summary>Размер шрифта фразы: 16 или 18 — чередуется при одинаковых фразах.</summary>
+    public double PhraseFontSize { get; set; } = 16;
+  }
+
   public class AgentAdaptiveActionsViewModel : INotifyPropertyChanged
   {
     private ObservableCollection<AdaptiveAction> _currentActiveActions = new ObservableCollection<AdaptiveAction>();
@@ -46,6 +58,18 @@ namespace AIStudio.ViewModels
       get => _reflexPhrasesText;
       private set => SetProperty(ref _reflexPhrasesText, value);
     }
+
+    public ObservableCollection<ReflexPhraseBlock> ReflexPhraseBlocks { get; } = new ObservableCollection<ReflexPhraseBlock>();
+
+    /// <summary>Количество блоков фраз (для привязки видимости в UI).</summary>
+    public int ReflexPhraseBlocksCount => ReflexPhraseBlocks.Count;
+
+    /// <summary>Фразы на предыдущем пульсе (для сравнения с текущими).</summary>
+    private List<string> _lastPhraseList = new List<string>();
+    /// <summary>Число пульсов подряд, когда текущая фраза совпадает с фразой на предыдущем пульсе.</summary>
+    private int _pulseCount;
+    /// <summary>Сейчас показываем выделение (зелёный, +2px): true = зелёный/18, false = синий/16.</summary>
+    private bool _useHighlightStyle;
 
     private int _minSignificance = 1;
     private int _maxSignificance = 1;
@@ -111,7 +135,49 @@ namespace AIStudio.ViewModels
     {
       try
       {
-        var blocks = new List<string>();
+        var textBlocks = new List<string>();
+        var currentPhraseTexts = new List<string>();
+
+        foreach (var action in CurrentActiveActions.Where(a => a.ActivationSource == ActionActivationSource.AutomatizmVerbalResponse))
+        {
+          int phraseId = _adaptiveActionsSystem.GetPhraseIdForAction(action.Id);
+          string phraseText = GetPhraseText(phraseId);
+          if (string.IsNullOrEmpty(phraseText))
+            continue;
+
+          currentPhraseTexts.Add(phraseText);
+        }
+
+        if (currentPhraseTexts.Count == 0)
+        {
+          _pulseCount = 0;
+          _useHighlightStyle = false;
+          _lastPhraseList.Clear();
+          ReflexPhraseBlocks.Clear();
+          ReflexPhrasesText = "";
+          OnPropertyChanged(nameof(ReflexPhraseBlocksCount));
+          return;
+        }
+
+        bool sameAsPrevious = _lastPhraseList.Count == currentPhraseTexts.Count
+          && _lastPhraseList.Zip(currentPhraseTexts, (a, b) => a == b).All(x => x);
+
+        if (sameAsPrevious)
+        {
+          _pulseCount++;
+          if (_pulseCount >= AppConfig.ReflexActionDisplayDuration)
+          {
+            _useHighlightStyle = !_useHighlightStyle;
+            _pulseCount = 0;
+          }
+        }
+        else
+          _pulseCount = 0;
+
+        _lastPhraseList = new List<string>(currentPhraseTexts);
+
+        double phraseFontSize = _useHighlightStyle ? 18 : 16;
+        ReflexPhraseBlocks.Clear();
         foreach (var action in CurrentActiveActions.Where(a => a.ActivationSource == ActionActivationSource.AutomatizmVerbalResponse))
         {
           int phraseId = _adaptiveActionsSystem.GetPhraseIdForAction(action.Id);
@@ -123,17 +189,24 @@ namespace AIStudio.ViewModels
           if (displayImageId <= 0)
             displayImageId = action.Id;
           var (toneText, moodText) = GetToneAndMoodForActionImage(displayImageId);
-          blocks.Add($"Тон: {toneText}\nНастроение: {moodText}\nФраза: {phraseText}");
+          ReflexPhraseBlocks.Add(new ReflexPhraseBlock
+          {
+            ToneText = toneText,
+            MoodText = moodText,
+            PhraseText = phraseText,
+            UseGreenColor = _useHighlightStyle,
+            PhraseFontSize = phraseFontSize
+          });
+          textBlocks.Add($"Тон: {toneText}\nНастроение: {moodText}\nФраза: {phraseText}");
         }
 
-        if (blocks.Any())
-          ReflexPhrasesText = string.Join("\n\n", blocks);
-        else
-          ReflexPhrasesText = "";
+        ReflexPhrasesText = textBlocks.Any() ? string.Join("\n\n", textBlocks) : "";
+        OnPropertyChanged(nameof(ReflexPhraseBlocksCount));
       }
       catch (Exception ex)
       {
         ReflexPhrasesText = $"Ошибка получения рефлексов: {ex.Message}";
+        OnPropertyChanged(nameof(ReflexPhraseBlocksCount));
       }
     }
 
