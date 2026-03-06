@@ -354,9 +354,6 @@ namespace AIStudio.ViewModels
 
     private string GetToneMoodText(int toneId, int moodId)
     {
-      if (toneId == 0 && moodId == 0)
-        return string.Empty;
-
       var toneText = ActionsImagesSystem.GetToneText(toneId);
       var moodText = ActionsImagesSystem.GetMoodText(moodId);
 

@@ -278,7 +278,7 @@
           </DataGridTemplateColumn>
 
           <!-- Фразы -->
-          <DataGridTemplateColumn Header="Фразы" Width="200">
+          <DataGridTemplateColumn Header="Фразы" Width="180">
             <DataGridTemplateColumn.CellTemplate>
               <DataTemplate>
                 <TextBlock Text="{Binding PhrasesText}"
@@ -307,11 +307,11 @@
           </DataGridTemplateColumn>
 
           <!-- Тон/Настроение -->
-          <DataGridTemplateColumn Header="Тон/Настроение" Width="120">
+          <DataGridTemplateColumn Header="Тон/Настроение" Width="160">
             <DataGridTemplateColumn.CellTemplate>
               <DataTemplate>
                 <TextBlock Text="{Binding ToneMoodText}"
-                           HorizontalAlignment="Center"
+                           HorizontalAlignment="Left"
                            ToolTip="{Binding ToneMoodText}">
                   <TextBlock.Style>
                     <Style TargetType="TextBlock">
