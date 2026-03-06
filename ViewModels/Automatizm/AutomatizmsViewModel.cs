@@ -502,11 +502,11 @@ namespace AIStudio.ViewModels
 
         if (_currentAgentStage == 3)
         {
-          var dialog = new AutomatizmLoadDialog(_gomeostas, bootDataFolder, _automatizmFileLoader)
+          var dialog = new AutomatizmLoadDialog(bootDataFolder, _automatizmFileLoader)
           {
             Owner = Application.Current.MainWindow
           };
-          if (dialog.ShowDialog() == true && dialog.SelectedBaseState.HasValue)
+          if (dialog.ShowDialog() == true)
           {
             RefreshAllCollections();
           }
