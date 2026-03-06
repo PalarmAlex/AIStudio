@@ -87,22 +87,6 @@ namespace AIStudio.Dialogs
     private const string PromptFileName = "prompt_automatizm_chains.txt";
     private const string PromptInsertFileName = "automatizm_prompt_insert.txt";
 
-    private static readonly string DefaultInsertTextTemplate = @"Сгенерируй строки автоматизмов (цепочек диалога) в формате (строка — одна запись, поля разделены только символом |):
-Состояние|Комбинации стилей|Фразы через дефис с пробелами|Тон|Настроение
-
-Правила:
-- Состояние: строго одно из — Плохо, Норма, Хорошо
-- Комбинации стилей: имена через + (например: Поиск+Игра)
-- Фразы: цепочка фраз, разделённых « - » или «;» (например: привет - как дела - все ок)
-- Тон: строго одно из списка, только кириллица — Вялый, Нормальный, Повышенный
-- Настроение: строго одно из списка, только кириллица — Нормальное, Хорошее, Плохое, Игривое, Учитель, Агрессивное, Защитное, Протест
-
-Примеры:
-Норма|Поиск+Игра|привет - как дела - все ок|Нормальный|Хорошее
-Хорошо|Расслабление|здравствуй - отлично|Нормальный|Нормальное
-
-Сгенерируй примерно 10–15 строк на каждое состояние.";
-
     // Команды
     public RelayCommand ApplyCommand { get; }
     public RelayCommand CancelCommand { get; }
@@ -288,11 +272,11 @@ namespace AIStudio.Dialogs
       try
       {
         string path = Path.Combine(_bootDataFolder, PromptInsertFileName);
-        PromptInsertText = File.Exists(path) ? File.ReadAllText(path, Encoding.UTF8) : DefaultInsertTextTemplate;
+        PromptInsertText = File.Exists(path) ? File.ReadAllText(path, Encoding.UTF8) : string.Empty;
       }
-      catch (Exception ex)
+      catch (Exception)
       {
-        PromptInsertText = DefaultInsertTextTemplate + "\n\n# Ошибка загрузки: " + ex.Message;
+        PromptInsertText = string.Empty;
       }
     }
 

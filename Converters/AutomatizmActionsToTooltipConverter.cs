@@ -1,5 +1,6 @@
-﻿using AIStudio.ViewModels;
+using AIStudio.ViewModels;
 using ISIDA.Actions;
+using ISIDA.Psychic.Automatism;
 using ISIDA.Sensors;
 using System;
 using System.Collections.Generic;
@@ -67,15 +68,11 @@ namespace AIStudio.Converters
         else
           sb.AppendLine("Фразы: нет");
 
-        if (actionsImage.ToneId != 0)
-          sb.AppendLine($"Тон: {actionsImage.ToneId}");
-        else
-          sb.AppendLine("Тон: 0 (нормальный)");
+        string toneText = ActionsImagesSystem.IsInitialized ? ActionsImagesSystem.GetToneText(actionsImage.ToneId) : actionsImage.ToneId.ToString();
+        sb.AppendLine(string.IsNullOrEmpty(toneText) ? "Тон: —" : $"Тон: {toneText}");
 
-        if (actionsImage.MoodId != 0)
-          sb.AppendLine($"Настроение: {actionsImage.MoodId}");
-        else
-          sb.AppendLine("Настроение: 0 (нормальное)");
+        string moodText = ActionsImagesSystem.IsInitialized ? ActionsImagesSystem.GetMoodText(actionsImage.MoodId) : actionsImage.MoodId.ToString();
+        sb.AppendLine(string.IsNullOrEmpty(moodText) ? "Настроение: —" : $"Настроение: {moodText}");
 
         return sb.ToString();
       }
