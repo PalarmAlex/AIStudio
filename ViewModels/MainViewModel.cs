@@ -1,8 +1,10 @@
 using AIStudio.Common;
 using AIStudio.Pages;
 using AIStudio.Pages.Automatizm;
+using AIStudio.Pages.Episodic;
 using AIStudio.Pages.Reflexes;
 using AIStudio.ViewModels;
+using AIStudio.ViewModels.Episodic;
 using ISIDA.Actions;
 using ISIDA.Common;
 using ISIDA.Gomeostas;
@@ -320,7 +322,7 @@ namespace AIStudio
             OpenAutomatizmChains();
             break;
           case "11": // Дерево эпизодической памяти
-            ShowStub("Дерево эпизодической памяти");
+            ShowEpisodicMemoryTree();
             break;
           case "12": // Дерево ситуации
             ShowStub("Дерево ситуации");
@@ -411,6 +413,23 @@ namespace AIStudio
             break;
         }
       }
+    }
+
+    private void ShowEpisodicMemoryTree()
+    {
+      var view = new EpisodicMemoryTreeView();
+      var viewModel = new EpisodicMemoryTreeViewModel(
+          _isidaContext?.EpisodicMemory,
+          _gomeostas,
+          _emotionsImageSystem,
+          _influenceActionSystem,
+          _actionsSystem,
+          _isidaContext?.ProblemTree,
+          _influenceActionsImagesSystem,
+          _actionsImagesSystem,
+          _sensorySystem);
+      view.DataContext = viewModel;
+      CurrentContent = view;
     }
 
     private void ShowAutomatizms()

@@ -67,6 +67,8 @@ namespace AIStudio.Pages
 
       ButtonCreatePrompt.IsEnabled = canEdit;
       ButtonSave.IsEnabled = canEdit;
+
+      StageWarningText.Visibility = canEdit ? Visibility.Collapsed : Visibility.Visible;
     }
 
     private void LoadStages()

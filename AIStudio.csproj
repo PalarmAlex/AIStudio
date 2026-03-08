@@ -90,6 +90,7 @@
     <Compile Include="Converters\BeliefToTooltipConverter.cs" />
     <Compile Include="Converters\CollectionCountToVisibilityConverter.cs" />
     <Compile Include="Converters\DictionaryToStringConverter.cs" />
+    <Compile Include="Converters\EpisodicImageTooltipConverter.cs" />
     <Compile Include="Converters\IdListToNamesConverter.cs" />
     <Compile Include="Converters\InfluenceValidationRule.cs" />
     <Compile Include="Converters\IntDictionaryToStringConverter.cs" />
@@ -242,6 +243,9 @@
     <Compile Include="Pages\AgentPropertiesDialog.xaml.cs">
       <DependentUpon>AgentPropertiesDialog.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Pages\Episodic\EpisodicMemoryTreeView.xaml.cs">
+      <DependentUpon>EpisodicMemoryTreeView.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Pages\TextInputDialog.xaml.cs">
       <DependentUpon>TextInputDialog.xaml</DependentUpon>
     </Compile>
@@ -265,6 +269,7 @@
     </Compile>
     <Compile Include="ViewModels\Automatizm\AutomatizmChainsViewModel.cs" />
     <Compile Include="ViewModels\Automatizm\AutomatizmsViewModel.cs" />
+    <Compile Include="ViewModels\Episodic\EpisodicMemoryTreeViewModel.cs" />
     <Compile Include="ViewModels\BehaviorStylesViewModel.cs" />
     <Compile Include="ViewModels\AgentInfo.cs" />
     <Compile Include="ViewModels\ExterInalInfluencesViewModel.cs" />
@@ -332,6 +337,10 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="Pages\AgentPropertiesDialog.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Pages\Episodic\EpisodicMemoryTreeView.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
