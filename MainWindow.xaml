@@ -181,16 +181,6 @@
               Command="{Binding VerticalMenuItemClickedCommand}"
               CommandParameter="13"/>
 
-            <Button Content="Моторные правила реагирования" Margin="20,2,5,2" 
-              Style="{StaticResource MenuButtonStyle}"
-              Command="{Binding VerticalMenuItemClickedCommand}"
-              CommandParameter="14"/>
-
-            <Button Content="Ментальные правила реагирования" Margin="20,2,5,2" 
-              Style="{StaticResource MenuButtonStyle}"
-              Command="{Binding VerticalMenuItemClickedCommand}"
-              CommandParameter="15"/>
-
             <Button Content="Циклы осмысления" Margin="20,2,5,2" 
               Style="{StaticResource MenuButtonStyle}"
               Command="{Binding VerticalMenuItemClickedCommand}"

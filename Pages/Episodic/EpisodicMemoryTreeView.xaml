@@ -326,30 +326,28 @@
       </Border>
     </Grid>
 
-    <!-- Историческая последовательность 100 кадров эпизодической памяти (на всю ширину) -->
+    <!-- Историческая последовательность до 100 кадров эпизодической памяти (перенос по строкам, авто-высота) -->
     <Border Grid.Row="4" BorderBrush="#FFE0E0E0" BorderThickness="1" CornerRadius="4"
             Margin="0,8,0,0" Padding="8,6" Background="#FFF9F9F9">
       <StackPanel>
         <TextBlock Text="Историческая последовательность 100 последних кадров эпизодической памяти:"
                    FontSize="13" FontWeight="SemiBold" Foreground="#FF333333" Margin="0,0,0,6"/>
-        <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Disabled">
-          <ItemsControl ItemsSource="{Binding HistoryFrames}">
-            <ItemsControl.ItemsPanel>
-              <ItemsPanelTemplate>
-                <StackPanel Orientation="Horizontal"/>
-              </ItemsPanelTemplate>
-            </ItemsControl.ItemsPanel>
-            <ItemsControl.ItemTemplate>
-              <DataTemplate>
-                <Border Background="{Binding BackgroundBrush}" CornerRadius="3" Padding="6,4"
-                        Margin="0,0,3,0" BorderBrush="#FFCCCCCC" BorderThickness="1"
-                        ToolTip="{Binding TooltipText}">
-                  <TextBlock Text="{Binding DisplayText}" FontSize="14" Foreground="#FF333333"/>
-                </Border>
-              </DataTemplate>
-            </ItemsControl.ItemTemplate>
-          </ItemsControl>
-        </ScrollViewer>
+        <ItemsControl ItemsSource="{Binding HistoryFrames}">
+          <ItemsControl.ItemsPanel>
+            <ItemsPanelTemplate>
+              <WrapPanel Orientation="Horizontal"/>
+            </ItemsPanelTemplate>
+          </ItemsControl.ItemsPanel>
+          <ItemsControl.ItemTemplate>
+            <DataTemplate>
+              <Border Background="{Binding BackgroundBrush}" CornerRadius="3" Padding="6,4"
+                      Margin="0,0,3,3" BorderBrush="#FFCCCCCC" BorderThickness="1"
+                      ToolTip="{Binding TooltipText}">
+                <TextBlock Text="{Binding DisplayText}" FontSize="14" Foreground="#FF333333"/>
+              </Border>
+            </DataTemplate>
+          </ItemsControl.ItemTemplate>
+        </ItemsControl>
       </StackPanel>
     </Border>
   </Grid>

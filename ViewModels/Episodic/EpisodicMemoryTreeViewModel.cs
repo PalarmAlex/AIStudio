@@ -362,6 +362,22 @@ namespace AIStudio.ViewModels.Episodic
       LoadHistoryFrames();
     }
 
+    /// <summary>Строит полное описание кадра для подсказки плашки — те же строки, что и в дереве (унификация с GetNodeDisplayAndTooltip).</summary>
+    private string BuildFullFrameTooltip(EpisodicMemoryNode node)
+    {
+      if (node == null) return "—";
+      var lines = new List<string>();
+      for (int depth = 0; depth <= 4; depth++)
+      {
+        var (text, _, _) = GetNodeDisplayAndTooltip(node, depth);
+        if (depth == 0)
+          lines.Add("Состояние: " + text);
+        else
+          lines.Add(text);
+      }
+      return string.Join("\n", lines);
+    }
+
     private void LoadHistoryFrames()
     {
       var list = new ObservableCollection<HistoryFrameItem>();
@@ -369,22 +385,65 @@ namespace AIStudio.ViewModels.Episodic
       if (history == null) { HistoryFrames = list; return; }
 
       var entries = history.GetLastEntries(100);
-      // Слева — самая последняя: выводим в обратном порядке (newest first)
-      for (int i = entries.Count - 1; i >= 0; i--)
+      // Разбиваем на цепочки (между пустыми кадрами -1). Цепочка показывается только если ВСЕ её кадры проходят фильтры.
+      var chains = SplitIntoChains(entries);
+      // Слева — самая последняя: выводим цепочки и кадры в обратном порядке (newest first)
+      for (int i = chains.Count - 1; i >= 0; i--)
       {
-        var e = entries[i];
-        if (e.NodeId == -1)
+        var chain = chains[i];
+        // Показывать цепочку, если хотя бы одна плашка в ней попадает под фильтры; если ни одна не попала — скрывать всю цепочку
+        bool chainVisible = chain.Any(entry =>
         {
-          list.Add(new HistoryFrameItem("—", Brushes.White, "Пустой кадр (разрыв цепочки правил)"));
-          continue;
+          if (entry.NodeId == -1) return false;
+          var n = _episodicMemory.GetNodeById(entry.NodeId);
+          if (n == null) return false;
+          if (SelectedBaseConditionFilter.HasValue && n.BaseID != SelectedBaseConditionFilter.Value)
+            return false;
+          return PassesFilters(n);
+        });
+        for (int j = chain.Count - 1; j >= 0; j--)
+        {
+          var e = chain[j];
+          if (e.NodeId == -1)
+          {
+            list.Add(new HistoryFrameItem("—", Brushes.White, "Пустой кадр (разрыв цепочки правил)"));
+            continue;
+          }
+          if (!chainVisible)
+            continue;
+          var node = _episodicMemory.GetNodeById(e.NodeId);
+          int effect = node?.Params?.Effect ?? 0;
+          Brush brush = effect < 0 ? Brushes.LightCoral : (effect > 0 ? Brushes.LightGreen : new SolidColorBrush(Color.FromRgb(0xE8, 0xC2, 0x00)));
+          string tooltip = BuildFullFrameTooltip(node);
+          list.Add(new HistoryFrameItem(e.NodeId.ToString(), brush, tooltip));
         }
-        var node = _episodicMemory.GetNodeById(e.NodeId);
-        int effect = node?.Params?.Effect ?? 0;
-        Brush brush = effect < 0 ? Brushes.LightCoral : (effect > 0 ? Brushes.LightGreen : new SolidColorBrush(Color.FromRgb(0xE8, 0xC2, 0x00))); // яркий жёлтый
-        string tooltip = $"Узел ID: {e.NodeId}, эффект: {effect}";
-        list.Add(new HistoryFrameItem(e.NodeId.ToString(), brush, tooltip));
       }
       HistoryFrames = list;
+    }
+
+    /// <summary>Разбивает последовательность записей на цепочки по пустым кадрам (NodeId == -1).</summary>
+    private static List<List<EpisodicHistoryEntry>> SplitIntoChains(List<EpisodicHistoryEntry> entries)
+    {
+      var chains = new List<List<EpisodicHistoryEntry>>();
+      if (entries == null || entries.Count == 0) return chains;
+      var current = new List<EpisodicHistoryEntry>();
+      foreach (var e in entries)
+      {
+        if (e.NodeId == -1)
+        {
+          if (current.Count > 0)
+          {
+            chains.Add(current);
+            current = new List<EpisodicHistoryEntry>();
+          }
+          chains.Add(new List<EpisodicHistoryEntry> { e });
+        }
+        else
+          current.Add(e);
+      }
+      if (current.Count > 0)
+        chains.Add(current);
+      return chains;
     }
 
     /// <summary>Ключ группировки узлов на уровне (чтобы один узел «Эмоция: X» не дублировался — ветки объединяются, как в BOT).</summary>
