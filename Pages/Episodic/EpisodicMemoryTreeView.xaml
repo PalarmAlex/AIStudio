@@ -16,7 +16,8 @@
                  ToolTip="{Binding TooltipText}"
                  TextTrimming="CharacterEllipsis"
                  Margin="0,1"
-                 Foreground="{Binding EffectBrush}"/>
+                 Foreground="{Binding EffectBrush}"
+                 FontWeight="{Binding RowFontWeight}"/>
     </HierarchicalDataTemplate>
   </UserControl.Resources>
 
@@ -170,7 +171,7 @@
                   Height="30"
                   Width="150"
                   Cursor="Hand"
-                  HorizontalAlignment="Left"/>
+                  HorizontalAlignment="Left" Margin="0,0,0,0"/>
         </Grid>
       </Grid>
     </Border>
@@ -189,7 +190,7 @@
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
           </Grid.RowDefinitions>
-          <TextBlock Grid.Row="0" Text="Плохо (BaseID=-1)"
+          <TextBlock Grid.Row="0" Text="Плохо"
                      FontWeight="SemiBold" FontSize="13"
                      Background="#FFFFEBEE" Padding="8,6"
                      Foreground="#FFC62828"/>
@@ -214,10 +215,10 @@
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
           </Grid.RowDefinitions>
-          <TextBlock Grid.Row="0" Text="Норма (BaseID=0)"
+          <TextBlock Grid.Row="0" Text="Норма"
                      FontWeight="SemiBold" FontSize="13"
-                     Background="#FFF5F5F5" Padding="8,6"
-                     Foreground="#FF424242"/>
+                     Background="#FFFFFFE0" Padding="8,6"
+                     Foreground="#FF8B6914"/>
           <TreeView Grid.Row="1"
                     ItemsSource="{Binding TreeNormal}"
                     VirtualizingStackPanel.IsVirtualizing="True"
@@ -239,7 +240,7 @@
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
           </Grid.RowDefinitions>
-          <TextBlock Grid.Row="0" Text="Хорошо (BaseID=1)"
+          <TextBlock Grid.Row="0" Text="Хорошо"
                      FontWeight="SemiBold" FontSize="13"
                      Background="#FFE8F5E9" Padding="8,6"
                      Foreground="#FF2E7D32"/>

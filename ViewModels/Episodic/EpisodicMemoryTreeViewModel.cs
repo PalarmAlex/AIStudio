@@ -13,6 +13,7 @@ using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Linq;
+using System.Windows;
 using System.Windows.Input;
 using System.Windows.Media;
 
@@ -21,24 +22,26 @@ namespace AIStudio.ViewModels.Episodic
   /// <summary>
   /// Элемент дерева для отображения (обёртка над EpisodicMemoryNode с текстовым обозначением)
   /// </summary>
-  public class EpisodicTreeNodeItem : INotifyPropertyChanged
+  public class EpisodicTreeNodeItem
   {
     public EpisodicMemoryNode Node { get; }
     public string TextDisplay { get; }
     public string TooltipText { get; }
-    /// <summary>Цвет для узла: зелёный для положительного эффекта, красный для отрицательного, иначе по умолчанию.</summary>
+    /// <summary>Цвет для узла: зелёный для положительного эффекта, красный для отрицательного, тёмно-жёлтый для нуля, иначе по умолчанию.</summary>
     public Brush EffectBrush { get; }
+    /// <summary>Строка узла «Акция» (с эффектом) — выделять жирным.</summary>
+    public bool IsActionRow { get; }
+    public FontWeight RowFontWeight => IsActionRow ? FontWeights.Bold : FontWeights.Normal;
     public ObservableCollection<EpisodicTreeNodeItem> Children { get; } = new ObservableCollection<EpisodicTreeNodeItem>();
 
-    public EpisodicTreeNodeItem(EpisodicMemoryNode node, string textDisplay, string tooltipText, Brush effectBrush = null)
+    public EpisodicTreeNodeItem(EpisodicMemoryNode node, string textDisplay, string tooltipText, Brush effectBrush = null, bool isActionRow = false)
     {
       Node = node;
       TextDisplay = textDisplay ?? $"ID:{node?.ID ?? 0}";
       TooltipText = tooltipText ?? TextDisplay;
       EffectBrush = effectBrush ?? Brushes.Black;
+      IsActionRow = isActionRow;
     }
-
-    public event PropertyChangedEventHandler PropertyChanged;
   }
 
   /// <summary>
@@ -264,6 +267,33 @@ namespace AIStudio.ViewModels.Episodic
 
       var root = _episodicMemory.Tree;
       int limit = _selectedMaxNodes <= 0 ? int.MaxValue : _selectedMaxNodes;
+      var empty = new ObservableCollection<EpisodicTreeNodeItem>();
+
+      // Интегральное состояние: при выборе конкретного состояния показываем только соответствующую колонку
+      if (_selectedBaseConditionFilter.HasValue)
+      {
+        int baseId = _selectedBaseConditionFilter.Value;
+        int limitSingle = limit;
+        if (baseId == -1)
+        {
+          TreeBad = BuildTreeFromChildren(root.Children, -1, ref limitSingle, 0, true);
+          TreeNormal = empty;
+          TreeGood = empty;
+        }
+        else if (baseId == 0)
+        {
+          TreeBad = empty;
+          TreeNormal = BuildTreeFromChildren(root.Children, 0, ref limitSingle, 0, true);
+          TreeGood = empty;
+        }
+        else
+        {
+          TreeBad = empty;
+          TreeNormal = empty;
+          TreeGood = BuildTreeFromChildren(root.Children, 1, ref limitSingle, 0, true);
+        }
+        return;
+      }
 
       int limitBad = limit;
       TreeBad = BuildTreeFromChildren(root.Children, -1, ref limitBad, 0, true);
@@ -287,18 +317,31 @@ namespace AIStudio.ViewModels.Episodic
       {
         if (remainingLimit <= 0) break;
         if (filterByBaseId && child.BaseID != targetBaseId) continue;
-        if (!PassesFilters(child)) continue;
+
+        // Сначала строим потомков — чтобы скрывать узлы, у которых нет подходящих по фильтру потомков
+        int limitBeforeSub = remainingLimit;
+        ObservableCollection<EpisodicTreeNodeItem> sub = null;
+        if (depth < 4 && child.Children != null && child.Children.Count > 0 && remainingLimit > 0)
+        {
+          sub = BuildTreeFromChildren(child.Children, targetBaseId, ref remainingLimit, depth + 1, false);
+        }
+
+        // Включаем узел только если он проходит фильтры ИЛИ есть хотя бы один подходящий потомок
+        bool nodePasses = PassesFilters(child);
+        bool hasPassingDescendants = sub != null && sub.Count > 0;
+        if (!nodePasses && !hasPassingDescendants)
+        {
+          remainingLimit = limitBeforeSub; // не добавляем ветку — восстанавливаем лимит
+          continue;
+        }
 
         var (text, tooltip, effectBrush) = GetNodeDisplayAndTooltip(child, depth);
-        var item = new EpisodicTreeNodeItem(child, text, tooltip, effectBrush);
+        var item = new EpisodicTreeNodeItem(child, text, tooltip, effectBrush, isActionRow: depth == 4);
         remainingLimit--;
 
-        if (child.Children != null && child.Children.Count > 0 && remainingLimit > 0)
-        {
-          var sub = BuildTreeFromChildren(child.Children, targetBaseId, ref remainingLimit, depth + 1, false);
+        if (sub != null)
           foreach (var c in sub)
             item.Children.Add(c);
-        }
 
         result.Add(item);
       }
@@ -308,6 +351,7 @@ namespace AIStudio.ViewModels.Episodic
 
     private bool PassesFilters(EpisodicMemoryNode node)
     {
+      // Контексты реагирования: при активном фильтре узлы без эмоции не считаются подходящими — попадут в дерево только как предки подходящих
       if (SelectedLevel2Filter.HasValue)
       {
         if (node.EmotionID == 0) return false;
@@ -316,10 +360,10 @@ namespace AIStudio.ViewModels.Episodic
           return false;
       }
 
-      if (!string.IsNullOrEmpty(SelectedUsefulnessFilter) && (node.Params == null))
-        return false;
-      if (!string.IsNullOrEmpty(SelectedUsefulnessFilter) && node.Params != null)
+      // Полезность (эффект): при активном фильтре узлы без Params не считаются подходящими — попадут в дерево только как предки подходящих
+      if (!string.IsNullOrEmpty(SelectedUsefulnessFilter))
       {
+        if (node.Params == null) return false;
         switch (SelectedUsefulnessFilter)
         {
           case "<0": if (node.Params.Effect >= 0) return false; break;
@@ -349,15 +393,19 @@ namespace AIStudio.ViewModels.Episodic
           return false;
       }
 
-      if (!string.IsNullOrWhiteSpace(_filterPhrasePerception) && node.TriggerId != 0)
+      // Фраза триггера: при активном фильтре узлы без триггера не считаются подходящими — попадут в дерево только как предки подходящих
+      if (!string.IsNullOrWhiteSpace(_filterPhrasePerception))
       {
+        if (node.TriggerId == 0) return false;
         string phrase = GetTriggerPhraseText(node.TriggerId);
         if (string.IsNullOrEmpty(phrase) || phrase.IndexOf(_filterPhrasePerception, StringComparison.OrdinalIgnoreCase) < 0)
           return false;
       }
 
-      if (!string.IsNullOrWhiteSpace(_filterPhrase) && node.ActionId != 0)
+      // Фраза акции: при активном фильтре узлы без акции не считаются подходящими — попадут в дерево только как предки подходящих
+      if (!string.IsNullOrWhiteSpace(_filterPhrase))
       {
+        if (node.ActionId == 0) return false;
         string phrase = GetActionPhraseText(node.ActionId);
         if (string.IsNullOrEmpty(phrase) || phrase.IndexOf(_filterPhrase, StringComparison.OrdinalIgnoreCase) < 0)
           return false;
@@ -403,8 +451,15 @@ namespace AIStudio.ViewModels.Episodic
           tooltip = $"BaseID: {node.BaseID}";
           break;
         case 1:
-          text = "Эмоция: " + GetEmotionText(node.EmotionID);
-          tooltip = GetEmotionText(node.EmotionID) + $"\nEmotionID: {node.EmotionID}";
+          string emotionText = GetEmotionText(node.EmotionID);
+          if (emotionText == "—" && node.Children != null && node.Children.Count > 0)
+          {
+            var firstWithEmotion = node.Children.FirstOrDefault(c => c.EmotionID > 0);
+            if (firstWithEmotion != null)
+              emotionText = GetEmotionText(firstWithEmotion.EmotionID);
+          }
+          text = "Эмоция: " + emotionText;
+          tooltip = emotionText + $"\nEmotionID: {node.EmotionID}";
           break;
         case 2:
           text = $"NodePID: {node.NodePID}";
@@ -422,7 +477,7 @@ namespace AIStudio.ViewModels.Episodic
           if (node.Params != null)
             tooltip += $"\nЭффект: {node.Params.Effect}, Count: {node.Params.Count}";
           if (node.Params != null)
-            effectBrush = node.Params.Effect > 0 ? Brushes.DarkGreen : (node.Params.Effect < 0 ? Brushes.DarkRed : null);
+            effectBrush = node.Params.Effect > 0 ? Brushes.DarkGreen : (node.Params.Effect < 0 ? Brushes.DarkRed : Brushes.DarkGoldenrod);
           break;
         default:
           text = BuildCompositeLabel(node);
