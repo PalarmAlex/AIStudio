@@ -170,6 +170,13 @@
                       Height="25" Width="150"
                       ToolTip="Поиск по вхождению текста в фразу образа действия. Нажмите «Применить» для фильтрации."/>
             </StackPanel>
+            <StackPanel Orientation="Vertical" Margin="0,0,10,0" Width="150">
+              <TextBlock Text="Id дерева условий" FontSize="12" Margin="0,0,0,2"/>
+              <TextBox Style="{StaticResource AgentFilterTextBoxStyle}"
+                      Text="{Binding FilterBranchIdInput, UpdateSourceTrigger=PropertyChanged}"
+                      Height="25" Width="150"
+                      ToolTip="Поиск по вхождению введённых символов в ID дерева условий. Нажмите «Применить» для фильтрации."/>
+            </StackPanel>
           </StackPanel>
         </StackPanel>
 

@@ -61,6 +61,8 @@ namespace AIStudio.ViewModels
     private string _filterPhrase = string.Empty;
     private string _filterPhrasePerceptionInput = string.Empty;
     private string _filterPhraseInput = string.Empty;
+    private string _filterBranchIdInput = string.Empty;
+    private string _filterBranchId = string.Empty;
     private bool _isLoadingInProgress;
 
     private Dictionary<int, ActionsImagesSystem.ActionsImage> _actionsImageCache = new Dictionary<int, ActionsImagesSystem.ActionsImage>();
@@ -243,6 +245,13 @@ namespace AIStudio.ViewModels
           return false;
       }
 
+      if (!string.IsNullOrWhiteSpace(FilterBranchId))
+      {
+        var branchIdStr = automatizm.BranchID.ToString();
+        if (branchIdStr.IndexOf(FilterBranchId.Trim(), StringComparison.OrdinalIgnoreCase) < 0)
+          return false;
+      }
+
       return baseConditionMatch && level2Match && usefulnessMatch && beliefMatch;
     }
 
@@ -250,6 +259,7 @@ namespace AIStudio.ViewModels
     {
       FilterPhrasePerception = FilterPhrasePerceptionInput;
       FilterPhrase = FilterPhraseInput;
+      FilterBranchId = FilterBranchIdInput;
       RefreshDisplay();
     }
 
@@ -421,6 +431,18 @@ namespace AIStudio.ViewModels
       set { _filterPhraseInput = value ?? string.Empty; OnPropertyChanged(nameof(FilterPhraseInput)); }
     }
 
+    public string FilterBranchId
+    {
+      get => _filterBranchId;
+      set { _filterBranchId = value ?? string.Empty; OnPropertyChanged(nameof(FilterBranchId)); }
+    }
+
+    public string FilterBranchIdInput
+    {
+      get => _filterBranchIdInput;
+      set { _filterBranchIdInput = value ?? string.Empty; OnPropertyChanged(nameof(FilterBranchIdInput)); }
+    }
+
     public ICommand ApplyFiltersCommand { get; }
 
     public bool IsCloningInProgress
@@ -485,6 +507,8 @@ namespace AIStudio.ViewModels
       FilterPhrase = string.Empty;
       FilterPhrasePerceptionInput = string.Empty;
       FilterPhraseInput = string.Empty;
+      FilterBranchIdInput = string.Empty;
+      FilterBranchId = string.Empty;
       RefreshDisplay();
     }
 
