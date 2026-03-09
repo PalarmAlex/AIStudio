@@ -5,11 +5,13 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:local="clr-namespace:AIStudio.Pages.Episodic"
              xmlns:viewmodels="clr-namespace:AIStudio.ViewModels.Episodic"
+             xmlns:converters="clr-namespace:AIStudio.Converters"
              mc:Ignorable="d"
              d:DesignHeight="500" d:DesignWidth="900">
 
   <UserControl.Resources>
     <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter"/>
+    <converters:EpisodicTreeExpandConverter x:Key="EpisodicTreeExpandConverter"/>
     <HierarchicalDataTemplate DataType="{x:Type viewmodels:EpisodicTreeNodeItem}"
                               ItemsSource="{Binding Children}">
       <TextBlock Text="{Binding TextDisplay}"
@@ -190,10 +192,22 @@
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
           </Grid.RowDefinitions>
-          <TextBlock Grid.Row="0" Text="Плохо"
-                     FontWeight="SemiBold" FontSize="13"
-                     Background="#FFFFEBEE" Padding="8,6"
-                     Foreground="#FFC62828"/>
+          <Border Grid.Row="0" Background="#FFFFEBEE" Padding="8,6">
+            <Grid>
+              <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+              </Grid.ColumnDefinitions>
+              <TextBlock Grid.Column="0" Text="Плохо"
+                         FontWeight="SemiBold" FontSize="13"
+                         Foreground="#FFC62828" VerticalAlignment="Center" HorizontalAlignment="Left"/>
+              <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center" HorizontalAlignment="Right">
+                <CheckBox Content="Эмоции" IsChecked="{Binding CollapseEmotionsBad}" Margin="0,0,12,0" FontSize="11" VerticalAlignment="Center"/>
+                <CheckBox Content="NodePID" IsChecked="{Binding CollapseNodePidBad}" Margin="0,0,12,0" FontSize="11" VerticalAlignment="Center"/>
+                <CheckBox Content="Триггер" IsChecked="{Binding CollapseTriggerBad}" FontSize="11" VerticalAlignment="Center"/>
+              </StackPanel>
+            </Grid>
+          </Border>
           <TreeView Grid.Row="1"
                     ItemsSource="{Binding TreeBad}"
                     VirtualizingStackPanel.IsVirtualizing="True"
@@ -202,7 +216,16 @@
                     BorderThickness="0">
             <TreeView.ItemContainerStyle>
               <Style TargetType="TreeViewItem">
-                <Setter Property="IsExpanded" Value="True"/>
+                <Setter Property="IsExpanded">
+                  <Setter.Value>
+                    <MultiBinding Converter="{StaticResource EpisodicTreeExpandConverter}">
+                      <Binding Path="Level"/>
+                      <Binding RelativeSource="{RelativeSource AncestorType=UserControl}" Path="DataContext.CollapseEmotionsBad"/>
+                      <Binding RelativeSource="{RelativeSource AncestorType=UserControl}" Path="DataContext.CollapseNodePidBad"/>
+                      <Binding RelativeSource="{RelativeSource AncestorType=UserControl}" Path="DataContext.CollapseTriggerBad"/>
+                    </MultiBinding>
+                  </Setter.Value>
+                </Setter>
               </Style>
             </TreeView.ItemContainerStyle>
           </TreeView>
@@ -215,10 +238,22 @@
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
           </Grid.RowDefinitions>
-          <TextBlock Grid.Row="0" Text="Норма"
-                     FontWeight="SemiBold" FontSize="13"
-                     Background="#FFFFFFE0" Padding="8,6"
-                     Foreground="#FF8B6914"/>
+          <Border Grid.Row="0" Background="#FFFFFFE0" Padding="8,6">
+            <Grid>
+              <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+              </Grid.ColumnDefinitions>
+              <TextBlock Grid.Column="0" Text="Норма"
+                         FontWeight="SemiBold" FontSize="13"
+                         Foreground="#FF8B6914" VerticalAlignment="Center" HorizontalAlignment="Left"/>
+              <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center" HorizontalAlignment="Right">
+                <CheckBox Content="Эмоции" IsChecked="{Binding CollapseEmotionsNormal}" Margin="0,0,12,0" FontSize="11" VerticalAlignment="Center"/>
+                <CheckBox Content="NodePID" IsChecked="{Binding CollapseNodePidNormal}" Margin="0,0,12,0" FontSize="11" VerticalAlignment="Center"/>
+                <CheckBox Content="Триггер" IsChecked="{Binding CollapseTriggerNormal}" FontSize="11" VerticalAlignment="Center"/>
+              </StackPanel>
+            </Grid>
+          </Border>
           <TreeView Grid.Row="1"
                     ItemsSource="{Binding TreeNormal}"
                     VirtualizingStackPanel.IsVirtualizing="True"
@@ -227,7 +262,16 @@
                     BorderThickness="0">
             <TreeView.ItemContainerStyle>
               <Style TargetType="TreeViewItem">
-                <Setter Property="IsExpanded" Value="True"/>
+                <Setter Property="IsExpanded">
+                  <Setter.Value>
+                    <MultiBinding Converter="{StaticResource EpisodicTreeExpandConverter}">
+                      <Binding Path="Level"/>
+                      <Binding RelativeSource="{RelativeSource AncestorType=UserControl}" Path="DataContext.CollapseEmotionsNormal"/>
+                      <Binding RelativeSource="{RelativeSource AncestorType=UserControl}" Path="DataContext.CollapseNodePidNormal"/>
+                      <Binding RelativeSource="{RelativeSource AncestorType=UserControl}" Path="DataContext.CollapseTriggerNormal"/>
+                    </MultiBinding>
+                  </Setter.Value>
+                </Setter>
               </Style>
             </TreeView.ItemContainerStyle>
           </TreeView>
@@ -240,10 +284,22 @@
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
           </Grid.RowDefinitions>
-          <TextBlock Grid.Row="0" Text="Хорошо"
-                     FontWeight="SemiBold" FontSize="13"
-                     Background="#FFE8F5E9" Padding="8,6"
-                     Foreground="#FF2E7D32"/>
+          <Border Grid.Row="0" Background="#FFE8F5E9" Padding="8,6">
+            <Grid>
+              <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+              </Grid.ColumnDefinitions>
+              <TextBlock Grid.Column="0" Text="Хорошо"
+                         FontWeight="SemiBold" FontSize="13"
+                         Foreground="#FF2E7D32" VerticalAlignment="Center" HorizontalAlignment="Left"/>
+              <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center" HorizontalAlignment="Right">
+                <CheckBox Content="Эмоции" IsChecked="{Binding CollapseEmotionsGood}" Margin="0,0,12,0" FontSize="11" VerticalAlignment="Center"/>
+                <CheckBox Content="NodePID" IsChecked="{Binding CollapseNodePidGood}" Margin="0,0,12,0" FontSize="11" VerticalAlignment="Center"/>
+                <CheckBox Content="Триггер" IsChecked="{Binding CollapseTriggerGood}" FontSize="11" VerticalAlignment="Center"/>
+              </StackPanel>
+            </Grid>
+          </Border>
           <TreeView Grid.Row="1"
                     ItemsSource="{Binding TreeGood}"
                     VirtualizingStackPanel.IsVirtualizing="True"
@@ -252,7 +308,16 @@
                     BorderThickness="0">
             <TreeView.ItemContainerStyle>
               <Style TargetType="TreeViewItem">
-                <Setter Property="IsExpanded" Value="True"/>
+                <Setter Property="IsExpanded">
+                  <Setter.Value>
+                    <MultiBinding Converter="{StaticResource EpisodicTreeExpandConverter}">
+                      <Binding Path="Level"/>
+                      <Binding RelativeSource="{RelativeSource AncestorType=UserControl}" Path="DataContext.CollapseEmotionsGood"/>
+                      <Binding RelativeSource="{RelativeSource AncestorType=UserControl}" Path="DataContext.CollapseNodePidGood"/>
+                      <Binding RelativeSource="{RelativeSource AncestorType=UserControl}" Path="DataContext.CollapseTriggerGood"/>
+                    </MultiBinding>
+                  </Setter.Value>
+                </Setter>
               </Style>
             </TreeView.ItemContainerStyle>
           </TreeView>

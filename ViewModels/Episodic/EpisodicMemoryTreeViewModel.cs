@@ -31,21 +31,24 @@ namespace AIStudio.ViewModels.Episodic
     public Brush EffectBrush { get; }
     /// <summary>Строка узла «Акция» (с эффектом) — выделять жирным.</summary>
     public bool IsActionRow { get; }
+    /// <summary>Уровень узла: 0=Base, 1=Эмоция, 2=NodePID, 3=Триггер, 4=Акция.</summary>
+    public int Level { get; }
     public FontWeight RowFontWeight => IsActionRow ? FontWeights.Bold : FontWeights.Normal;
     public ObservableCollection<EpisodicTreeNodeItem> Children { get; } = new ObservableCollection<EpisodicTreeNodeItem>();
 
-    public EpisodicTreeNodeItem(EpisodicMemoryNode node, string textDisplay, string tooltipText, Brush effectBrush = null, bool isActionRow = false)
+    public EpisodicTreeNodeItem(EpisodicMemoryNode node, string textDisplay, string tooltipText, Brush effectBrush = null, bool isActionRow = false, int level = 0)
     {
       Node = node;
       TextDisplay = textDisplay ?? $"ID:{node?.ID ?? 0}";
       TooltipText = tooltipText ?? TextDisplay;
       EffectBrush = effectBrush ?? Brushes.Black;
       IsActionRow = isActionRow;
+      Level = level;
     }
   }
 
   /// <summary>
-  /// Описание с ссылкой (как в AutomatizmsViewModel)
+  /// Описание с ссылкой
   /// </summary>
   public class DescriptionWithLink
   {
@@ -98,7 +101,7 @@ namespace AIStudio.ViewModels.Episodic
     public DescriptionWithLink CurrentAgentDescription =>
       new DescriptionWithLink
       {
-        Text = "Дерево только для чтения. Три дерева эпизодов по базовым состояниям: Плохо (-1), Норма (0), Хорошо (1). Узлы отображаются в формате NodePID → Эмоция → Тригггер → Акция → Эффект. "
+        Text = "Дерево только для чтения. Три дерева эпизодов по базовым состояниям: Плохо, Норма, Хорошо. Узлы отображаются в формате Эмоция → NodePID → Тригггер → Акция: Эффект. "
       };
 
     #region Деревья для трёх колонок
@@ -123,6 +126,30 @@ namespace AIStudio.ViewModels.Episodic
       get => _treeGood;
       set { _treeGood = value; OnPropertyChanged(nameof(TreeGood)); }
     }
+
+    #endregion
+
+    #region Сворачивание узлов по типу (Эмоции, NodePID, Триггер) — по умолчанию все отжаты
+
+    private bool _collapseEmotionsBad;
+    private bool _collapseNodePidBad;
+    private bool _collapseTriggerBad;
+    private bool _collapseEmotionsNormal;
+    private bool _collapseNodePidNormal;
+    private bool _collapseTriggerNormal;
+    private bool _collapseEmotionsGood;
+    private bool _collapseNodePidGood;
+    private bool _collapseTriggerGood;
+
+    public bool CollapseEmotionsBad { get => _collapseEmotionsBad; set { _collapseEmotionsBad = value; OnPropertyChanged(nameof(CollapseEmotionsBad)); } }
+    public bool CollapseNodePidBad { get => _collapseNodePidBad; set { _collapseNodePidBad = value; OnPropertyChanged(nameof(CollapseNodePidBad)); } }
+    public bool CollapseTriggerBad { get => _collapseTriggerBad; set { _collapseTriggerBad = value; OnPropertyChanged(nameof(CollapseTriggerBad)); } }
+    public bool CollapseEmotionsNormal { get => _collapseEmotionsNormal; set { _collapseEmotionsNormal = value; OnPropertyChanged(nameof(CollapseEmotionsNormal)); } }
+    public bool CollapseNodePidNormal { get => _collapseNodePidNormal; set { _collapseNodePidNormal = value; OnPropertyChanged(nameof(CollapseNodePidNormal)); } }
+    public bool CollapseTriggerNormal { get => _collapseTriggerNormal; set { _collapseTriggerNormal = value; OnPropertyChanged(nameof(CollapseTriggerNormal)); } }
+    public bool CollapseEmotionsGood { get => _collapseEmotionsGood; set { _collapseEmotionsGood = value; OnPropertyChanged(nameof(CollapseEmotionsGood)); } }
+    public bool CollapseNodePidGood { get => _collapseNodePidGood; set { _collapseNodePidGood = value; OnPropertyChanged(nameof(CollapseNodePidGood)); } }
+    public bool CollapseTriggerGood { get => _collapseTriggerGood; set { _collapseTriggerGood = value; OnPropertyChanged(nameof(CollapseTriggerGood)); } }
 
     #endregion
 
@@ -303,6 +330,20 @@ namespace AIStudio.ViewModels.Episodic
       TreeGood = BuildTreeFromChildren(root.Children, 1, ref limitGood, 0, true);
     }
 
+    /// <summary>Ключ группировки узлов на уровне (чтобы один узел «Эмоция: X» не дублировался — ветки объединяются, как в BOT).</summary>
+    private static int GetLevelGroupKey(EpisodicMemoryNode node, int depth)
+    {
+      switch (depth)
+      {
+        case 0: return node.BaseID;
+        case 1: return node.EmotionID;
+        case 2: return node.NodePID;
+        case 3: return node.TriggerId;
+        case 4: return node.ActionId;
+        default: return node?.ID ?? 0;
+      }
+    }
+
     private ObservableCollection<EpisodicTreeNodeItem> BuildTreeFromChildren(
       List<EpisodicMemoryNode> children,
       int targetBaseId,
@@ -313,10 +354,50 @@ namespace AIStudio.ViewModels.Episodic
       var result = new ObservableCollection<EpisodicTreeNodeItem>();
       if (children == null || remainingLimit <= 0) return result;
 
-      foreach (var child in children)
+      // На уровнях 1 (Эмоция) и 2 (NodePID) объединяем узлы с одинаковым ключом в один отображаемый узел (как в BOT: один узел — от него ветки).
+      var filtered = children.Where(c => !filterByBaseId || c.BaseID == targetBaseId).ToList();
+      var grouped = (depth >= 1 && depth <= 2)
+        ? filtered.GroupBy(c => GetLevelGroupKey(c, depth)).ToList()
+        : null;
+
+      if (grouped != null)
+      {
+        foreach (var grp in grouped)
+        {
+          if (remainingLimit <= 0) break;
+          var list = grp.ToList();
+          var first = list.First();
+          var mergedChildren = list.Count == 1
+            ? (first.Children ?? new List<EpisodicMemoryNode>())
+            : list.SelectMany(n => n.Children ?? new List<EpisodicMemoryNode>()).ToList();
+
+          int limitBeforeSub = remainingLimit;
+          ObservableCollection<EpisodicTreeNodeItem> sub = null;
+          if (depth < 4 && mergedChildren.Count > 0 && remainingLimit > 0)
+            sub = BuildTreeFromChildren(mergedChildren, targetBaseId, ref remainingLimit, depth + 1, false);
+
+          bool nodePasses = PassesFilters(first);
+          bool hasPassingDescendants = sub != null && sub.Count > 0;
+          if (!nodePasses && !hasPassingDescendants)
+          {
+            remainingLimit = limitBeforeSub;
+            continue;
+          }
+
+          var (text, tooltip, effectBrush) = GetNodeDisplayAndTooltip(first, depth);
+          var item = new EpisodicTreeNodeItem(first, text, tooltip, effectBrush, isActionRow: depth == 4, level: depth);
+          remainingLimit--;
+          if (sub != null)
+            foreach (var c in sub)
+              item.Children.Add(c);
+          result.Add(item);
+        }
+        return result;
+      }
+
+      foreach (var child in filtered)
       {
         if (remainingLimit <= 0) break;
-        if (filterByBaseId && child.BaseID != targetBaseId) continue;
 
         // Сначала строим потомков — чтобы скрывать узлы, у которых нет подходящих по фильтру потомков
         int limitBeforeSub = remainingLimit;
@@ -336,7 +417,7 @@ namespace AIStudio.ViewModels.Episodic
         }
 
         var (text, tooltip, effectBrush) = GetNodeDisplayAndTooltip(child, depth);
-        var item = new EpisodicTreeNodeItem(child, text, tooltip, effectBrush, isActionRow: depth == 4);
+        var item = new EpisodicTreeNodeItem(child, text, tooltip, effectBrush, isActionRow: depth == 4, level: depth);
         remainingLimit--;
 
         if (sub != null)

@@ -91,6 +91,7 @@
     <Compile Include="Converters\CollectionCountToVisibilityConverter.cs" />
     <Compile Include="Converters\DictionaryToStringConverter.cs" />
     <Compile Include="Converters\EpisodicImageTooltipConverter.cs" />
+    <Compile Include="Converters\EpisodicTreeExpandConverter.cs" />
     <Compile Include="Converters\IdListToNamesConverter.cs" />
     <Compile Include="Converters\InfluenceValidationRule.cs" />
     <Compile Include="Converters\IntDictionaryToStringConverter.cs" />
