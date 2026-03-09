@@ -48,6 +48,23 @@ namespace AIStudio.ViewModels.Episodic
   }
 
   /// <summary>
+  /// Элемент отображения одного кадра истории эпизодов (плашка в ленте 100 кадров)
+  /// </summary>
+  public class HistoryFrameItem
+  {
+    public string DisplayText { get; }
+    public Brush BackgroundBrush { get; }
+    public string TooltipText { get; }
+
+    public HistoryFrameItem(string displayText, Brush backgroundBrush, string tooltipText = null)
+    {
+      DisplayText = displayText ?? "";
+      BackgroundBrush = backgroundBrush ?? Brushes.White;
+      TooltipText = tooltipText ?? displayText ?? "";
+    }
+  }
+
+  /// <summary>
   /// Описание с ссылкой
   /// </summary>
   public class DescriptionWithLink
@@ -125,6 +142,17 @@ namespace AIStudio.ViewModels.Episodic
     {
       get => _treeGood;
       set { _treeGood = value; OnPropertyChanged(nameof(TreeGood)); }
+    }
+
+    #endregion
+
+    #region Историческая последовательность 100 кадров
+
+    private ObservableCollection<HistoryFrameItem> _historyFrames = new ObservableCollection<HistoryFrameItem>();
+    public ObservableCollection<HistoryFrameItem> HistoryFrames
+    {
+      get => _historyFrames;
+      set { _historyFrames = value; OnPropertyChanged(nameof(HistoryFrames)); }
     }
 
     #endregion
@@ -289,6 +317,7 @@ namespace AIStudio.ViewModels.Episodic
         TreeBad = new ObservableCollection<EpisodicTreeNodeItem>();
         TreeNormal = new ObservableCollection<EpisodicTreeNodeItem>();
         TreeGood = new ObservableCollection<EpisodicTreeNodeItem>();
+        HistoryFrames = new ObservableCollection<HistoryFrameItem>();
         return;
       }
 
@@ -319,6 +348,7 @@ namespace AIStudio.ViewModels.Episodic
           TreeNormal = empty;
           TreeGood = BuildTreeFromChildren(root.Children, 1, ref limitSingle, 0, true);
         }
+        LoadHistoryFrames();
         return;
       }
 
@@ -328,6 +358,33 @@ namespace AIStudio.ViewModels.Episodic
       TreeNormal = BuildTreeFromChildren(root.Children, 0, ref limitNorm, 0, true);
       int limitGood = limit;
       TreeGood = BuildTreeFromChildren(root.Children, 1, ref limitGood, 0, true);
+
+      LoadHistoryFrames();
+    }
+
+    private void LoadHistoryFrames()
+    {
+      var list = new ObservableCollection<HistoryFrameItem>();
+      var history = _episodicMemory?.History;
+      if (history == null) { HistoryFrames = list; return; }
+
+      var entries = history.GetLastEntries(100);
+      // Слева — самая последняя: выводим в обратном порядке (newest first)
+      for (int i = entries.Count - 1; i >= 0; i--)
+      {
+        var e = entries[i];
+        if (e.NodeId == -1)
+        {
+          list.Add(new HistoryFrameItem("—", Brushes.White, "Пустой кадр (разрыв цепочки правил)"));
+          continue;
+        }
+        var node = _episodicMemory.GetNodeById(e.NodeId);
+        int effect = node?.Params?.Effect ?? 0;
+        Brush brush = effect < 0 ? Brushes.LightCoral : (effect > 0 ? Brushes.LightGreen : new SolidColorBrush(Color.FromRgb(0xE8, 0xC2, 0x00))); // яркий жёлтый
+        string tooltip = $"Узел ID: {e.NodeId}, эффект: {effect}";
+        list.Add(new HistoryFrameItem(e.NodeId.ToString(), brush, tooltip));
+      }
+      HistoryFrames = list;
     }
 
     /// <summary>Ключ группировки узлов на уровне (чтобы один узел «Эмоция: X» не дублировался — ветки объединяются, как в BOT).</summary>

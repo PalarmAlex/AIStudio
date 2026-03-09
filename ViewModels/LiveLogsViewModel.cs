@@ -1,4 +1,4 @@
-﻿using AIStudio.Common;
+using AIStudio.Common;
 using ISIDA.Actions;
 using ISIDA.Common;
 using ISIDA.Gomeostas;
@@ -12,7 +12,6 @@ using System.ComponentModel;
 using System.Linq;
 using System.Windows;
 using System.Windows.Input;
-using System.Windows.Media;
 using System.Windows.Threading;
 using static AIStudio.Common.MemoryLogManager;
 using static ISIDA.Reflexes.ConditionedReflexesSystem;
@@ -31,7 +30,6 @@ namespace AIStudio.ViewModels
     public event PropertyChangedEventHandler PropertyChanged;
 
     private readonly DispatcherTimer _refreshTimer;
-    private bool _isAutoRefreshEnabled = true;
     private bool _disposed = false;
 
     // Зависимости
@@ -61,21 +59,6 @@ namespace AIStudio.ViewModels
     public ICommand ClearLogsCommand { get; }
 
     /// <summary>
-    /// Команда переключения автообновления
-    /// </summary>
-    public ICommand ToggleAutoRefreshCommand { get; }
-
-    /// <summary>
-    /// Статус автообновления
-    /// </summary>
-    public string AutoRefreshStatus => _isAutoRefreshEnabled ? "Автообновление: ВКЛ" : "Автообновление: ВЫКЛ";
-
-    /// <summary>
-    /// Цвет индикатора автообновления
-    /// </summary>
-    public Brush AutoRefreshColor => _isAutoRefreshEnabled ? Brushes.Green : Brushes.Red;
-
-    /// <summary>
     /// Конструктор модели представления живых логов
     /// </summary>
     public LiveLogsViewModel(
@@ -100,9 +83,8 @@ namespace AIStudio.ViewModels
       _actionsImagesSystem = actionsImagesSystem ?? throw new ArgumentNullException(nameof(actionsImagesSystem));
 
       ClearLogsCommand = new RelayCommand(_ => ClearLogs());
-      ToggleAutoRefreshCommand = new RelayCommand(_ => ToggleAutoRefresh());
 
-      // Таймер для обновления интерфейса
+      // Таймер для обновления интерфейса (автообновление всегда включено)
       _refreshTimer = new DispatcherTimer
       {
         Interval = TimeSpan.FromMilliseconds(100) // 10 FPS для плавной анимации
@@ -118,12 +100,9 @@ namespace AIStudio.ViewModels
     {
       if (_disposed) return;
 
-      if (_isAutoRefreshEnabled)
-      {
-        // Принудительно обновляем привязку
-        OnPropertyChanged(nameof(LogEntries));
-        OnPropertyChanged(nameof(ChainLogEntries));
-      }
+      // Принудительно обновляем привязку (автообновление всегда включено)
+      OnPropertyChanged(nameof(LogEntries));
+      OnPropertyChanged(nameof(ChainLogEntries));
     }
 
     /// <summary>
@@ -136,18 +115,6 @@ namespace AIStudio.ViewModels
       MemoryLogManager.Instance.Clear();
       OnPropertyChanged(nameof(LogEntries));
       OnPropertyChanged(nameof(ChainLogEntries));
-    }
-
-    /// <summary>
-    /// Переключает режим автообновления
-    /// </summary>
-    private void ToggleAutoRefresh()
-    {
-      if (_disposed) return;
-
-      _isAutoRefreshEnabled = !_isAutoRefreshEnabled;
-      OnPropertyChanged(nameof(AutoRefreshStatus));
-      OnPropertyChanged(nameof(AutoRefreshColor));
     }
 
     /// <summary>

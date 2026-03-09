@@ -1,4 +1,4 @@
-﻿<UserControl x:Class="AIStudio.Pages.LiveLogsView"
+<UserControl x:Class="AIStudio.Pages.LiveLogsView"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
@@ -287,16 +287,6 @@
                          FontSize="16"
                          FontWeight="Bold"
                          VerticalAlignment="Center"/>
-        <TextBlock Text=" | " 
-                         Foreground="#00FF00"
-                         FontFamily="Consolas, Courier New"
-                         FontSize="16"
-                         VerticalAlignment="Center"/>
-        <TextBlock Text="{Binding AutoRefreshStatus}" 
-                         Foreground="{Binding AutoRefreshColor}"
-                         FontFamily="Consolas, Courier New"
-                         FontSize="16"
-                         VerticalAlignment="Center"/>
       </StackPanel>
     </Border>
 
@@ -438,12 +428,6 @@
                         Command="{Binding ClearLogsCommand}"
                         Style="{StaticResource MatrixButtonStyle}"
                         ToolTip="Очистить все логи"/>
-
-        <Button Content="{Binding AutoRefreshStatus}" 
-                        Command="{Binding ToggleAutoRefreshCommand}"
-                        Style="{StaticResource MatrixButtonStyle}"
-                        ToolTip="Включить/выключить автообновление"
-                        Margin="10,0,0,0"/>
       </StackPanel>
     </Border>
   </Grid>

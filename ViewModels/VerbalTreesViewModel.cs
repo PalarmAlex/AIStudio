@@ -1,4 +1,4 @@
-﻿using AIStudio.Common;
+using AIStudio.Common;
 using ISIDA.Common;
 using ISIDA.Gomeostas;
 using ISIDA.Sensors;
@@ -38,6 +38,8 @@ namespace AIStudio.ViewModels
     private ObservableCollection<WordNode> _allWordNodes;
     private ObservableCollection<PhraseNode> _allPhraseNodes;
     private ObservableCollection<PhraseNode> _filteredPhraseNodes;
+    private int? _wordDisplayLimit = 1000;
+    private int? _phraseDisplayLimit = 1000;
 
     #region Блокировка страницы в зависимости от стажа
 
@@ -203,6 +205,45 @@ namespace AIStudio.ViewModels
         return result;
       }
     }
+    /// <summary>Варианты лимита отображаемых узлов (только для ускорения загрузки).</summary>
+    public static IReadOnlyList<NodeLimitOption> DisplayLimitOptionsStatic { get; } = new List<NodeLimitOption>
+    {
+      new NodeLimitOption(100),
+      new NodeLimitOption(500),
+      new NodeLimitOption(1000),
+      new NodeLimitOption(5000),
+      new NodeLimitOption(10000),
+      new NodeLimitOption(null) // Все
+    };
+
+    public IReadOnlyList<NodeLimitOption> DisplayLimitOptions => DisplayLimitOptionsStatic;
+
+    public NodeLimitOption WordDisplayLimit
+    {
+      get => DisplayLimitOptionsStatic.FirstOrDefault(o => o.Value == _wordDisplayLimit) ?? DisplayLimitOptionsStatic[DisplayLimitOptionsStatic.Count - 1];
+      set
+      {
+        if (value == null) return;
+        if (_wordDisplayLimit == value.Value) return;
+        _wordDisplayLimit = value.Value;
+        OnPropertyChanged(nameof(WordDisplayLimit));
+        ApplyWordDisplayLimit();
+      }
+    }
+
+    public NodeLimitOption PhraseDisplayLimit
+    {
+      get => DisplayLimitOptionsStatic.FirstOrDefault(o => o.Value == _phraseDisplayLimit) ?? DisplayLimitOptionsStatic[DisplayLimitOptionsStatic.Count - 1];
+      set
+      {
+        if (value == null) return;
+        if (_phraseDisplayLimit == value.Value) return;
+        _phraseDisplayLimit = value.Value;
+        OnPropertyChanged(nameof(PhraseDisplayLimit));
+        ApplyPhraseDisplayLimit();
+      }
+    }
+
     public int WordsCount => Words.Count;
     public int PhrasesCount
     {
@@ -262,8 +303,8 @@ namespace AIStudio.ViewModels
       _recognitionThreshold = _verbalChannel.RecognitionThreshold;
       _maxPhraseLength = _verbalChannel.MaxPhraseLength;
 
-      _allWordNodes = new ObservableCollection<WordNode>(LoadInitialWordNodes());
-      _allPhraseNodes = new ObservableCollection<PhraseNode>(LoadInitialPhraseNodes());
+      _allWordNodes = new ObservableCollection<WordNode>(LoadInitialWordNodes(_wordDisplayLimit));
+      _allPhraseNodes = new ObservableCollection<PhraseNode>(LoadInitialPhraseNodes(_phraseDisplayLimit));
       _filteredPhraseNodes = new ObservableCollection<PhraseNode>(_allPhraseNodes);
 
       VisibleWordNodes = _allWordNodes;
@@ -286,10 +327,33 @@ namespace AIStudio.ViewModels
 
     private void InitializeTrees()
     {
-      VisibleWordNodes = new ObservableCollection<WordNode>(LoadInitialWordNodes());
-      VisiblePhraseNodes = new ObservableCollection<PhraseNode>(LoadInitialPhraseNodes());
+      VisibleWordNodes = new ObservableCollection<WordNode>(LoadInitialWordNodes(_wordDisplayLimit));
+      VisiblePhraseNodes = new ObservableCollection<PhraseNode>(LoadInitialPhraseNodes(_phraseDisplayLimit));
 
       WordTreeStructure = GetFullWordTreeStructure();
+    }
+
+    private void ApplyWordDisplayLimit()
+    {
+      _allWordNodes = new ObservableCollection<WordNode>(LoadInitialWordNodes(_wordDisplayLimit));
+      if (string.IsNullOrWhiteSpace(WordSearchText))
+        VisibleWordNodes = _allWordNodes;
+      else
+        FilterWordNodes(WordSearchText);
+      CollapseAllWordNodes();
+      OnPropertyChanged(nameof(VisibleWordNodes));
+    }
+
+    private void ApplyPhraseDisplayLimit()
+    {
+      _allPhraseNodes = new ObservableCollection<PhraseNode>(LoadInitialPhraseNodes(_phraseDisplayLimit));
+      _filteredPhraseNodes = new ObservableCollection<PhraseNode>(_allPhraseNodes);
+      if (string.IsNullOrWhiteSpace(PhraseSearchText))
+        VisiblePhraseNodes = _filteredPhraseNodes;
+      else
+        FilterPhraseNodes(PhraseSearchText);
+      CollapseAllPhraseNodes();
+      OnPropertyChanged(nameof(VisiblePhraseNodes));
     }
 
     private void UpdateAgentStage()
@@ -315,7 +379,7 @@ namespace AIStudio.ViewModels
 
     #region Методы работы с деревьями
 
-    private IEnumerable<WordNode> LoadInitialWordNodes()
+    private IEnumerable<WordNode> LoadInitialWordNodes(int? maxNodes = null)
     {
       var words = _verbalChannel.GetAllWords();
 
@@ -325,19 +389,25 @@ namespace AIStudio.ViewModels
           .OrderBy(g => g.Key);
 
       var result = new ObservableCollection<WordNode>();
+      int totalAdded = 0;
 
       foreach (var group in grouped)
       {
+        if (maxNodes.HasValue && totalAdded >= maxNodes.Value)
+          break;
+
         var letterNode = new WordNode
         {
           Id = 0,
           Text = group.Key.ToString(),
           IsLetter = true,
-          HasChildren = group.Any()
+          HasChildren = false
         };
 
         foreach (var word in group)
         {
+          if (maxNodes.HasValue && totalAdded >= maxNodes.Value)
+            break;
           var wordId = words.FirstOrDefault(x => x.Value == word).Key;
           letterNode.Children.Add(new WordNode
           {
@@ -345,74 +415,84 @@ namespace AIStudio.ViewModels
             Text = word,
             HasChildren = false
           });
+          totalAdded++;
         }
 
-        result.Add(letterNode);
+        if (letterNode.Children.Count > 0)
+        {
+          letterNode.HasChildren = true;
+          result.Add(letterNode);
+        }
       }
 
       return result;
     }
 
-    private ObservableCollection<PhraseNode> LoadInitialPhraseNodes()
+    private ObservableCollection<PhraseNode> LoadInitialPhraseNodes(int? maxNodes = null)
     {
       var rootNodes = new ObservableCollection<PhraseNode>();
 
       try
       {
-        // Получаем все узлы дерева фраз через внутреннюю структуру
         var phraseNodes = _verbalChannel.PhraseTree.Nodes;
-
-        // Словарь для хранения узлов по ID
         var nodeDict = new Dictionary<int, PhraseNode>();
 
-        // Сначала создаем все узлы
-        foreach (var node in phraseNodes.Values)
-        {
-          if (node.Id == 0) continue; // Пропускаем корневой узел
-
-          // Получаем полный текст фразы для этого узла
-          string phraseText = _verbalChannel.GetPhraseFromPhraseId(node.Id);
-
-          var phraseNode = new PhraseNode
-          {
-            Id = node.Id,
-            Text = GetLastWordFromPhrase(phraseText), // Последнее слово для отображения
-            FullPath = phraseText,
-            HasChildren = node.Children.Count > 0
-          };
-
-          nodeDict[node.Id] = phraseNode;
-        }
-
-        // Строим иерархию
+        // Собираем узлы по ID (без построения иерархии)
         foreach (var node in phraseNodes.Values)
         {
           if (node.Id == 0) continue;
 
+          string phraseText = _verbalChannel.GetPhraseFromPhraseId(node.Id);
+          var phraseNode = new PhraseNode
+          {
+            Id = node.Id,
+            Text = GetLastWordFromPhrase(phraseText),
+            FullPath = phraseText,
+            HasChildren = node.Children.Count > 0
+          };
+          nodeDict[node.Id] = phraseNode;
+        }
+
+        // Ограничиваем количество узлов: берём первые maxNodes по ID (корневые и их потомки в обходе)
+        var idsToInclude = (HashSet<int>)null;
+        if (maxNodes.HasValue && nodeDict.Count > maxNodes.Value)
+        {
+          idsToInclude = new HashSet<int>();
+          var roots = phraseNodes.Values.Where(n => n.Id != 0 && (n.Parent == null || n.Parent.Id == 0)).OrderBy(n => n.Id).ToList();
+          int count = 0;
+          foreach (var r in roots)
+          {
+            if (count >= maxNodes.Value) break;
+            CountAndAddIds(r, idsToInclude, maxNodes.Value, ref count);
+          }
+        }
+
+        // Строим иерархию (только для включённых узлов при лимите)
+        foreach (var node in phraseNodes.Values)
+        {
+          if (node.Id == 0) continue;
+          if (idsToInclude != null && !idsToInclude.Contains(node.Id)) continue;
+
           var phraseNode = nodeDict[node.Id];
 
-          // Находим родителя
           if (node.Parent != null && node.Parent.Id != 0)
           {
-            if (nodeDict.TryGetValue(node.Parent.Id, out var parentNode))
+            if (nodeDict.TryGetValue(node.Parent.Id, out var parentNode) &&
+                (idsToInclude == null || idsToInclude.Contains(node.Parent.Id)))
             {
               parentNode.Children.Add(phraseNode);
             }
           }
           else
           {
-            // Это корневой узел (первое слово фразы)
             rootNodes.Add(phraseNode);
           }
         }
 
-        // Сортируем корневые узлы по алфавиту
         var sortedRoots = rootNodes.OrderBy(n => n.Text).ToList();
         rootNodes.Clear();
         foreach (var node in sortedRoots)
-        {
           rootNodes.Add(node);
-        }
       }
       catch (Exception ex)
       {
@@ -420,6 +500,23 @@ namespace AIStudio.ViewModels
       }
 
       return rootNodes;
+    }
+
+    private void CountAndAddIds(
+      SensorTree<int, int>.TreeNode<int> node,
+      HashSet<int> ids,
+      int max,
+      ref int count)
+    {
+      if (count >= max) return;
+      if (ids.Contains(node.Id)) return;
+      ids.Add(node.Id);
+      count++;
+      foreach (var c in node.Children)
+      {
+        if (count >= max) return;
+        CountAndAddIds(c, ids, max, ref count);
+      }
     }
 
     /// <summary>
@@ -560,9 +657,9 @@ namespace AIStudio.ViewModels
     {
       UpdateAgentStage();
 
-      // Полностью перезагружаем все коллекции
-      _allWordNodes = new ObservableCollection<WordNode>(LoadInitialWordNodes());
-      _allPhraseNodes = new ObservableCollection<PhraseNode>(LoadInitialPhraseNodes());
+      // Полностью перезагружаем все коллекции (с учётом лимита отображения)
+      _allWordNodes = new ObservableCollection<WordNode>(LoadInitialWordNodes(_wordDisplayLimit));
+      _allPhraseNodes = new ObservableCollection<PhraseNode>(LoadInitialPhraseNodes(_phraseDisplayLimit));
       _filteredPhraseNodes = new ObservableCollection<PhraseNode>(_allPhraseNodes);
 
       // Применяем текущий фильтр
@@ -870,6 +967,15 @@ namespace AIStudio.ViewModels
       {
         ItemId = itemId;
       }
+    }
+
+    /// <summary>Вариант лимита узлов для выпадающего списка (только ускорение загрузки).</summary>
+    public class NodeLimitOption
+    {
+      public int? Value { get; }
+      public string DisplayName => Value.HasValue ? Value.Value.ToString() : "Все";
+
+      public NodeLimitOption(int? value) => Value = value;
     }
 
     #endregion

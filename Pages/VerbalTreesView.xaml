@@ -181,10 +181,20 @@
           </TreeView.ItemContainerStyle>
         </TreeView>
 
-        <TextBlock Grid.Row="2" 
-                   Text="{Binding WordsCount, StringFormat='Всего слов: {0}'}"
-                   HorizontalAlignment="Right"
-                   Margin="0,5,0,0"/>
+        <!-- Нижняя строка: слева — фильтр кол-ва узлов, справа — счётчик -->
+        <DockPanel Grid.Row="2" Margin="0,5,0,0" LastChildFill="False">
+          <StackPanel Orientation="Horizontal" DockPanel.Dock="Left">
+            <TextBlock Text="Выводить узлов:" VerticalAlignment="Center" Margin="0,0,5,0"/>
+            <ComboBox ItemsSource="{Binding DisplayLimitOptions}"
+                      SelectedItem="{Binding WordDisplayLimit}"
+                      DisplayMemberPath="DisplayName"
+                      MinWidth="70"
+                      ToolTip="Лимит загружаемых узлов"/>
+          </StackPanel>
+          <TextBlock DockPanel.Dock="Right"
+                     Text="{Binding WordsCount, StringFormat='Всего слов: {0}'}"
+                     VerticalAlignment="Center"/>
+        </DockPanel>
       </Grid>
     </GroupBox>
 
@@ -239,10 +249,20 @@
           </TreeView.ItemContainerStyle>
         </TreeView>
 
-        <TextBlock Grid.Row="2" 
-                   Text="{Binding PhrasesCount, StringFormat='Всего фраз: {0}'}"
-                   HorizontalAlignment="Right"
-                   Margin="0,5,0,0"/>
+        <!-- Нижняя строка: слева — фильтр кол-ва узлов, справа — счётчик -->
+        <DockPanel Grid.Row="2" Margin="0,5,0,0" LastChildFill="False">
+          <StackPanel Orientation="Horizontal" DockPanel.Dock="Left">
+            <TextBlock Text="Выводить узлов:" VerticalAlignment="Center" Margin="0,0,5,0"/>
+            <ComboBox ItemsSource="{Binding DisplayLimitOptions}"
+                      SelectedItem="{Binding PhraseDisplayLimit}"
+                      DisplayMemberPath="DisplayName"
+                      MinWidth="70"
+                      ToolTip="Лимит загружаемых узлов"/>
+          </StackPanel>
+          <TextBlock DockPanel.Dock="Right"
+                     Text="{Binding PhrasesCount, StringFormat='Всего фраз: {0}'}"
+                     VerticalAlignment="Center"/>
+        </DockPanel>
       </Grid>
     </GroupBox>
 
