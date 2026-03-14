@@ -247,6 +247,9 @@
     <Compile Include="Pages\Episodic\EpisodicMemoryTreeView.xaml.cs">
       <DependentUpon>EpisodicMemoryTreeView.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Pages\Understanding\SituationTypesView.xaml.cs">
+      <DependentUpon>SituationTypesView.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Pages\TextInputDialog.xaml.cs">
       <DependentUpon>TextInputDialog.xaml</DependentUpon>
     </Compile>
@@ -282,6 +285,7 @@
     <Compile Include="ViewModels\Reflexes\ConditionedReflexesViewModel.cs" />
     <Compile Include="ViewModels\Reflexes\ConditionedReflexSettingsViewModel.cs" />
     <Compile Include="ViewModels\Reflexes\GeneticReflexesViewModel.cs" />
+    <Compile Include="ViewModels\SituationTypesViewModel.cs" />
     <Compile Include="ViewModels\Reflexes\ReflexChainBindingViewModel.cs" />
     <Compile Include="ViewModels\Reflexes\ReflexChainsViewModel.cs" />
     <Compile Include="ViewModels\RelayCommand.cs" />
@@ -342,6 +346,10 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="Pages\Episodic\EpisodicMemoryTreeView.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Pages\Understanding\SituationTypesView.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

@@ -3,6 +3,7 @@ using AIStudio.Pages;
 using AIStudio.Pages.Automatizm;
 using AIStudio.Pages.Episodic;
 using AIStudio.Pages.Reflexes;
+using AIStudio.Pages.Understanding;
 using AIStudio.ViewModels;
 using AIStudio.ViewModels.Episodic;
 using ISIDA.Actions;
@@ -327,6 +328,9 @@ namespace AIStudio
           case "12": // Дерево ситуации
             ShowStub("Дерево ситуации");
             break;
+          case "14": // Типы ситуаций
+            ShowSituationTypes();
+            break;
           case "13": // Дерево проблем
             ShowStub("Дерево проблем");
             break;
@@ -407,6 +411,17 @@ namespace AIStudio
             break;
         }
       }
+    }
+
+    private void ShowSituationTypes()
+    {
+      var view = new SituationTypesView();
+      var viewModel = new SituationTypesViewModel(
+          _gomeostas,
+          _isidaContext?.SituationTypeSystem,
+          _influenceActionSystem);
+      view.DataContext = viewModel;
+      CurrentContent = view;
     }
 
     private void ShowEpisodicMemoryTree()

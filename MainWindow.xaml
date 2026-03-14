@@ -166,7 +166,7 @@
 
         <Expander Header="Психика" Style="{StaticResource MenuExpanderStyle}">
           <StackPanel>
-            <Button Content="Дерево эпизодической памяти" Margin="20,2,5,2" 
+            <Button Content="Эпизодическая память" Margin="20,2,5,2" 
               Style="{StaticResource MenuButtonStyle}"
               Command="{Binding VerticalMenuItemClickedCommand}"
               CommandParameter="11"/>
@@ -175,6 +175,11 @@
               Style="{StaticResource MenuButtonStyle}"
               Command="{Binding VerticalMenuItemClickedCommand}"
               CommandParameter="12"/>
+
+            <Button Content="Типы ситуаций" Margin="20,2,5,2" 
+              Style="{StaticResource MenuButtonStyle}"
+              Command="{Binding VerticalMenuItemClickedCommand}"
+              CommandParameter="14"/>
 
             <Button Content="Дерево проблем" Margin="20,2,5,2" 
               Style="{StaticResource MenuButtonStyle}"
@@ -186,7 +191,7 @@
               Command="{Binding VerticalMenuItemClickedCommand}"
               CommandParameter="16"/>
 
-            <Button Content="Значимость элементов восприятия" Margin="20,2,5,2" 
+            <Button Content="Значимость образов восприятия" Margin="20,2,5,2" 
               Style="{StaticResource MenuButtonStyle}"
               Command="{Binding VerticalMenuItemClickedCommand}"
               CommandParameter="17"/>
