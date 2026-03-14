@@ -926,9 +926,8 @@ namespace AIStudio
 
     private void ShowAgentProperties()
     {
-      var dialog = new AgentPropertiesDialog(_gomeostas);
-      dialog.Owner = Application.Current.MainWindow;
-      dialog.ShowDialog();
+      var view = new AgentPropertiesDialog(_gomeostas, () => OpenAgent());
+      CurrentContent = view;
     }
 
     // Открыть страницу системных параметров

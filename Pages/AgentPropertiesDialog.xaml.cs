@@ -14,9 +14,10 @@ using System.Windows.Input;
 
 namespace AIStudio.Pages
 {
-  public partial class AgentPropertiesDialog : Window
+  public partial class AgentPropertiesDialog : UserControl
   {
     private readonly GomeostasSystem _gomeostas;
+    private readonly Action _onClose;
     private List<int> _stressBehaviorIds = new List<int>();
     private List<int> _threatResponseIds = new List<int>();
     private List<int> _rewardResponseIds = new List<int>();
@@ -28,10 +29,11 @@ namespace AIStudio.Pages
     private static readonly string[] DefaultSociality = { "Одиночка", "Избирательный", "Стайный", "Зависимый" };
     private static readonly string[] DefaultSpecialTriggersTaboos = { "Резкая смена контекста", "Одиночество", "Принуждение" };
 
-    public AgentPropertiesDialog(GomeostasSystem gomeostas)
+    public AgentPropertiesDialog(GomeostasSystem gomeostas, Action onClose = null)
     {
       InitializeComponent();
       _gomeostas = gomeostas ?? throw new ArgumentNullException(nameof(gomeostas));
+      _onClose = onClose;
 
       LoadStages();
       LoadData();
@@ -281,7 +283,7 @@ namespace AIStudio.Pages
     private void OpenActionsSelectionDialog(List<int> currentIds, Action<List<int>> onOk)
     {
       var dialog = new AdaptiveActionsSelectionDialog(currentIds);
-      dialog.Owner = this;
+      dialog.Owner = Window.GetWindow(this);
       if (dialog.ShowDialog() == true && dialog.SelectedAdaptiveActions != null)
         onOk(dialog.SelectedAdaptiveActions);
     }
@@ -417,7 +419,7 @@ namespace AIStudio.Pages
 
     private void ButtonClose_Click(object sender, RoutedEventArgs e)
     {
-      Close();
+      _onClose?.Invoke();
     }
   }
 }
