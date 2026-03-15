@@ -78,6 +78,10 @@
     <Compile Include="Common\MemoryLogManager.cs" />
     <Compile Include="Common\NumericListValidationRule.cs" />
     <Compile Include="Converters\ActionDisplayTextConverter.cs" />
+    <Compile Include="Converters\ActionImageLineToFontWeightConverter.cs" />
+    <Compile Include="Converters\BoolToFontWeightConverter.cs" />
+    <Compile Include="Converters\BoolToThicknessConverter.cs" />
+    <Compile Include="Converters\StringToVisibilityConverter.cs" />
     <Compile Include="Converters\ActionsForConditionReflexConverter.cs" />
     <Compile Include="Converters\ActionsForGeneticReflexConverter.cs" />
     <Compile Include="Converters\ActionSizeConverter.cs" />
@@ -247,6 +251,10 @@
     <Compile Include="Pages\Episodic\EpisodicMemoryTreeView.xaml.cs">
       <DependentUpon>EpisodicMemoryTreeView.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Pages\Understanding\ProblemTreeView.xaml.cs">
+      <DependentUpon>ProblemTreeView.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Pages\Understanding\PropertyRowTemplateSelector.cs" />
     <Compile Include="Pages\Understanding\SituationTypesView.xaml.cs">
       <DependentUpon>SituationTypesView.xaml</DependentUpon>
     </Compile>
@@ -274,6 +282,7 @@
     <Compile Include="ViewModels\Automatizm\AutomatizmChainsViewModel.cs" />
     <Compile Include="ViewModels\Automatizm\AutomatizmsViewModel.cs" />
     <Compile Include="ViewModels\Episodic\EpisodicMemoryTreeViewModel.cs" />
+    <Compile Include="ViewModels\Understanding\ProblemTreeViewModel.cs" />
     <Compile Include="ViewModels\BehaviorStylesViewModel.cs" />
     <Compile Include="ViewModels\AgentInfo.cs" />
     <Compile Include="ViewModels\ExterInalInfluencesViewModel.cs" />
@@ -346,6 +355,10 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="Pages\Episodic\EpisodicMemoryTreeView.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Pages\Understanding\ProblemTreeView.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

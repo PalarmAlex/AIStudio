@@ -378,6 +378,7 @@ namespace AIStudio.ViewModels.Episodic
       return string.Join("\n", lines);
     }
 
+    /// <summary>Загружает цепочку последних 100 кадров эпизодической памяти без фильтрации (панель фильтров не влияет на эту ленту).</summary>
     private void LoadHistoryFrames()
     {
       var list = new ObservableCollection<HistoryFrameItem>();
@@ -385,22 +386,12 @@ namespace AIStudio.ViewModels.Episodic
       if (history == null) { HistoryFrames = list; return; }
 
       var entries = history.GetLastEntries(100);
-      // Разбиваем на цепочки (между пустыми кадрами -1). Цепочка показывается только если ВСЕ её кадры проходят фильтры.
+      // Разбиваем на цепочки (между пустыми кадрами NodeId == -1). Показываем все кадры без фильтрации.
       var chains = SplitIntoChains(entries);
       // Слева — самая последняя: выводим цепочки и кадры в обратном порядке (newest first)
       for (int i = chains.Count - 1; i >= 0; i--)
       {
         var chain = chains[i];
-        // Показывать цепочку, если хотя бы одна плашка в ней попадает под фильтры; если ни одна не попала — скрывать всю цепочку
-        bool chainVisible = chain.Any(entry =>
-        {
-          if (entry.NodeId == -1) return false;
-          var n = _episodicMemory.GetNodeById(entry.NodeId);
-          if (n == null) return false;
-          if (SelectedBaseConditionFilter.HasValue && n.BaseID != SelectedBaseConditionFilter.Value)
-            return false;
-          return PassesFilters(n);
-        });
         for (int j = chain.Count - 1; j >= 0; j--)
         {
           var e = chain[j];
@@ -409,8 +400,6 @@ namespace AIStudio.ViewModels.Episodic
             list.Add(new HistoryFrameItem("—", Brushes.White, "Пустой кадр (разрыв цепочки правил)"));
             continue;
           }
-          if (!chainVisible)
-            continue;
           var node = _episodicMemory.GetNodeById(e.NodeId);
           int effect = node?.Params?.Effect ?? 0;
           Brush brush = effect < 0 ? Brushes.LightCoral : (effect > 0 ? Brushes.LightGreen : new SolidColorBrush(Color.FromRgb(0xE8, 0xC2, 0x00)));

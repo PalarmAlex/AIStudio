@@ -31,7 +31,7 @@ namespace AIStudio.ViewModels
 
     public bool IsStageFour => _currentAgentStage == 4;
 
-    public string CurrentAgentTitle => $"Справочник типов ситуаций: {_gomeostas?.GetAgentState()?.Name ?? "Не определен"}";
+    public string CurrentAgentTitle => "Справочник типов ситуаций";
 
     private ObservableCollection<SituationTypeRecord> _moodRecords = new ObservableCollection<SituationTypeRecord>();
     private ObservableCollection<SituationTypeRecord> _influenceRecords = new ObservableCollection<SituationTypeRecord>();

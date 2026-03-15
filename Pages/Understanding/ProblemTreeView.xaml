@@ -1,0 +1,236 @@
+<UserControl x:Class="AIStudio.Pages.Understanding.ProblemTreeView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:local="clr-namespace:AIStudio.Pages.Understanding"
+             xmlns:converters="clr-namespace:AIStudio.Converters"
+             mc:Ignorable="d"
+             d:DesignHeight="500" d:DesignWidth="900">
+
+  <UserControl.Resources>
+    <converters:StringToVisibilityConverter x:Key="StringToVisibilityConverter"/>
+    <converters:BoolToFontWeightConverter x:Key="BoolToFontWeightConverter"/>
+    <converters:BoolToThicknessConverter x:Key="BoolToThicknessConverter"/>
+    <DataTemplate x:Key="PropertyRowDefaultTemplate">
+      <Grid Margin="0,3,0,0">
+        <Grid.ColumnDefinitions>
+          <ColumnDefinition Width="Auto"/>
+          <ColumnDefinition Width="*"/>
+        </Grid.ColumnDefinitions>
+        <TextBlock Grid.Column="0" FontSize="12" Foreground="#FF333333" VerticalAlignment="Top">
+          <Run Text="{Binding Label}" FontWeight="Bold"/><Run Text=":"/>
+        </TextBlock>
+        <TextBlock Grid.Column="1" Text="{Binding Value}" FontSize="12" Foreground="#FF0066B3"
+                   TextWrapping="Wrap" VerticalAlignment="Top" Margin="4,0,0,0"/>
+      </Grid>
+    </DataTemplate>
+
+    <DataTemplate x:Key="PropertyRowAutNodeTemplate">
+      <StackPanel Margin="0,5,0,0">
+        <!-- Заголовок блока «Узел дерева автоматизмов» -->
+        <TextBlock FontSize="12" Foreground="#FF333333" FontWeight="Bold" Margin="0,0,0,2">
+          <Run Text="{Binding Label}"/><Run Text=":"/>
+        </TextBlock>
+  
+        <!-- Основное значение (если есть) -->
+        <TextBlock Text="{Binding Value}" 
+               FontSize="12" Foreground="#FF0066B3"
+               TextWrapping="Wrap" 
+               Margin="15,0,0,2"
+               Visibility="{Binding Value, Converter={StaticResource StringToVisibilityConverter}}"/>
+
+        <!-- Вложенные строки с отступом (всегда показываем, если есть элементы) -->
+        <ItemsControl ItemsSource="{Binding ValueLines}" 
+                  Margin="15,0,0,0">
+          <ItemsControl.ItemTemplate>
+            <DataTemplate>
+              <Grid Margin="0,1,0,1">
+                <Grid.ColumnDefinitions>
+                  <ColumnDefinition Width="Auto"/>
+                  <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+
+                <!-- Название свойства (курсив; «Образ действия» дополнительно жирный) -->
+                <TextBlock Grid.Column="0" 
+                       FontSize="12" 
+                       Foreground="#FF333333"
+                       FontStyle="Italic"
+                       FontWeight="{Binding IsBold, Converter={StaticResource BoolToFontWeightConverter}}"
+                       VerticalAlignment="Top">
+                  <Run Text="{Binding Name}"/><Run Text=":"/>
+                </TextBlock>
+
+                <!-- Значение свойства -->
+                <TextBlock Grid.Column="1" 
+                       Text="{Binding Value}" 
+                       FontSize="12" 
+                       Foreground="#FF0066B3"
+                       TextWrapping="Wrap" 
+                       VerticalAlignment="Top" 
+                       Margin="4,0,0,0"/>
+              </Grid>
+            </DataTemplate>
+          </ItemsControl.ItemTemplate>
+        </ItemsControl>
+      </StackPanel>
+    </DataTemplate>
+
+    <local:PropertyRowTemplateSelector x:Key="PropertyRowTemplateSelector"
+        DefaultTemplate="{StaticResource PropertyRowDefaultTemplate}"
+        AutNodeTemplate="{StaticResource PropertyRowAutNodeTemplate}"/>
+  </UserControl.Resources>
+
+  <Grid Margin="12">
+    <Grid.RowDefinitions>
+      <RowDefinition Height="Auto"/>
+      <RowDefinition Height="Auto"/>
+      <RowDefinition Height="Auto"/>
+      <RowDefinition Height="*"/>
+    </Grid.RowDefinitions>
+
+    <!-- Заголовок -->
+    <TextBlock Grid.Row="0"
+               Text="{Binding CurrentAgentTitle}"
+               FontSize="18"
+               FontWeight="SemiBold"
+               HorizontalAlignment="Center"
+               Margin="0,0,0,5"
+               Foreground="#FF333333"/>
+
+    <!-- Описание -->
+    <TextBlock Grid.Row="1"
+               Text="{Binding CurrentAgentDescription}"
+               HorizontalAlignment="Left"
+               Margin="0,0,0,10"
+               Foreground="#FF333333"
+               TextWrapping="Wrap"/>
+
+    <!-- Панель фильтров -->
+    <Border Grid.Row="2"
+            BorderBrush="#FFE0E0E0"
+            BorderThickness="1"
+            CornerRadius="4"
+            Margin="0,0,0,10"
+            Padding="5"
+            Background="#FFF5F5F5">
+      <Grid>
+          <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="Auto"/>
+            <ColumnDefinition Width="*"/>
+            <ColumnDefinition Width="Auto"/>
+          </Grid.ColumnDefinitions>
+
+          <TextBlock Grid.Column="0"
+                     Text="Фильтры:"
+                     VerticalAlignment="Top"
+                     Margin="0,6,12,0"
+                     FontWeight="Bold"/>
+
+          <StackPanel Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Left">
+            <StackPanel Orientation="Vertical" Margin="0,0,10,0" Width="130">
+              <TextBlock Text="ID дерева условий" FontSize="12" Margin="0,0,0,2"/>
+              <TextBox Style="{StaticResource AgentFilterTextBoxStyle}"
+                       Text="{Binding FilterAutTreeIdInput, UpdateSourceTrigger=PropertyChanged}"
+                       Height="25" Width="130"
+                       ToolTip="Вхождение в ID узла дерева автоматизмов (пусто = все)"/>
+            </StackPanel>
+            <StackPanel Orientation="Vertical" Margin="0,0,10,0" Width="130">
+              <TextBlock Text="ID образа ситуации" FontSize="12" Margin="0,0,0,2"/>
+              <TextBox Style="{StaticResource AgentFilterTextBoxStyle}"
+                       Text="{Binding FilterSituationTreeIdInput, UpdateSourceTrigger=PropertyChanged}"
+                       Height="25" Width="130"
+                       ToolTip="Вхождение в ID образа ситуации (пусто = все)"/>
+            </StackPanel>
+            <StackPanel Orientation="Vertical" Margin="0,0,10,0" Width="130">
+              <TextBlock Text="ID образа темы" FontSize="12" Margin="0,0,0,2"/>
+              <TextBox Style="{StaticResource AgentFilterTextBoxStyle}"
+                       Text="{Binding FilterThemeIdInput, UpdateSourceTrigger=PropertyChanged}"
+                       Height="25" Width="130"
+                       ToolTip="Вхождение в ID образа темы (пусто = все)"/>
+            </StackPanel>
+            <StackPanel Orientation="Vertical" Margin="0,0,10,0" Width="130">
+              <TextBlock Text="ID образа цели" FontSize="12" Margin="0,0,0,2"/>
+              <TextBox Style="{StaticResource AgentFilterTextBoxStyle}"
+                       Text="{Binding FilterPurposeIdInput, UpdateSourceTrigger=PropertyChanged}"
+                       Height="25" Width="130"
+                       ToolTip="Вхождение в ID образа цели (пусто = все)"/>
+            </StackPanel>
+            <StackPanel Orientation="Vertical" Margin="0,0,10,0" Width="150">
+              <TextBlock Text="Узлов на дерево" FontSize="12" Margin="0,0,0,2"/>
+              <ComboBox Style="{StaticResource AgentComboBoxStyle}"
+                       ItemsSource="{Binding MaxNodesOptions}"
+                       SelectedValue="{Binding SelectedMaxNodes, Mode=TwoWay}"
+                       DisplayMemberPath="Value"
+                       SelectedValuePath="Key"
+                       Height="25" Width="130"
+                       ToolTip="Ограничить количество отображаемых узлов"/>
+            </StackPanel>
+          </StackPanel>
+
+          <StackPanel Grid.Column="2" Orientation="Vertical" VerticalAlignment="Top" Margin="12,0,0,0">
+            <Button Content="Применить"
+                    Command="{Binding ApplyFiltersCommand}"
+                    Style="{StaticResource AgentButtonStyle}"
+                    Margin="0,15,0,6"
+                    Height="30"
+                    Width="150"
+                    Cursor="Hand"
+                    HorizontalAlignment="Left"
+                    ToolTip="Применить фильтры"/>
+            <Button Content="Сбросить фильтры"
+                    Command="{Binding ClearFiltersCommand}"
+                    Style="{StaticResource AgentButtonStyle}"
+                    Height="30"
+                    Width="150"
+                    Cursor="Hand"
+                    HorizontalAlignment="Left"/>
+          </StackPanel>
+      </Grid>
+    </Border>
+
+    <!-- Основная область: слева дерево, справа панель свойств -->
+    <Grid Grid.Row="3" Margin="0,0,0,5">
+      <Grid.ColumnDefinitions>
+        <ColumnDefinition Width="*" MinWidth="180"/>
+        <ColumnDefinition Width="380"/>
+      </Grid.ColumnDefinitions>
+
+      <!-- Дерево слева -->
+      <Border Grid.Column="0" BorderBrush="#FFE0E0E0" BorderThickness="1" CornerRadius="4" Margin="0,0,5,0">
+        <TreeView x:Name="ProblemTree"
+                  ItemsSource="{Binding TreeItems}"
+                  SelectedItemChanged="ProblemTree_SelectedItemChanged"
+                  VirtualizingStackPanel.IsVirtualizing="True"
+                  VirtualizingStackPanel.VirtualizationMode="Recycling"
+                  Margin="4"
+                  BorderThickness="0">
+          <TreeView.ItemTemplate>
+            <HierarchicalDataTemplate ItemsSource="{Binding Children}">
+              <TextBlock Text="{Binding TextDisplay}"
+                         TextTrimming="CharacterEllipsis"
+                         Margin="0,1"/>
+            </HierarchicalDataTemplate>
+          </TreeView.ItemTemplate>
+        </TreeView>
+      </Border>
+
+      <!-- Панель свойств справа -->
+      <Border Grid.Column="1" BorderBrush="#FFE0E0E0" BorderThickness="1" CornerRadius="4" Margin="5,0,0,0"
+              Background="#FFF9F9F9" Padding="10">
+        <Grid>
+          <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+          </Grid.RowDefinitions>
+          <TextBlock Grid.Row="0" Text="Свойства узла"
+                     FontSize="13" FontWeight="SemiBold" Foreground="#FF333333" Margin="0,0,0,8"/>
+          <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+            <ItemsControl ItemsSource="{Binding SelectedNodePropertyRows}" VerticalAlignment="Top"
+                          ItemTemplateSelector="{StaticResource PropertyRowTemplateSelector}"/>
+          </ScrollViewer>
+        </Grid>
+      </Border>
+    </Grid>
+  </Grid>
+</UserControl>

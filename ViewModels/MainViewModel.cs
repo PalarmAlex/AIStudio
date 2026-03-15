@@ -6,6 +6,7 @@ using AIStudio.Pages.Reflexes;
 using AIStudio.Pages.Understanding;
 using AIStudio.ViewModels;
 using AIStudio.ViewModels.Episodic;
+using AIStudio.ViewModels.Understanding;
 using ISIDA.Actions;
 using ISIDA.Common;
 using ISIDA.Gomeostas;
@@ -332,7 +333,7 @@ namespace AIStudio
             ShowSituationTypes();
             break;
           case "13": // Дерево проблем
-            ShowStub("Дерево проблем");
+            ShowProblemTree();
             break;
           case "16": // Циклы осмысления
             ShowStub("Циклы осмысления");
@@ -437,6 +438,33 @@ namespace AIStudio
           _influenceActionsImagesSystem,
           _actionsImagesSystem,
           _sensorySystem);
+      view.DataContext = viewModel;
+      CurrentContent = view;
+    }
+
+    private void ShowProblemTree()
+    {
+      var view = new ProblemTreeView();
+      var automatizmsVm = new AutomatizmsViewModel(
+          _gomeostas,
+          _automatizmSystem,
+          _automatizmTreeSystem,
+          _actionsImagesSystem,
+          _influenceActionsImagesSystem,
+          _emotionsImageSystem,
+          _sensorySystem,
+          _influenceActionSystem,
+          _actionsSystem,
+          _verbalBrocaImages,
+          _conditionedReflexToAutomatizm,
+          _automatizmFileLoader,
+          _stage2PrimitivesLoader);
+      var viewModel = new ProblemTreeViewModel(
+          _isidaContext?.ProblemTree,
+          _automatizmTreeSystem,
+          _isidaContext?.SituationTypeSystem,
+          _isidaContext?.SituationImageSystem,
+          getAutNodeDetails: automatizmsVm.GetFullAutNodeDetails);
       view.DataContext = viewModel;
       CurrentContent = view;
     }

@@ -869,6 +869,141 @@ namespace AIStudio.ViewModels
       }
     }
 
+    /// <summary>Полная расшифровка узла дерева условий: блок условий + блок «Образ действия» (если есть автоматизм с этим BranchID).</summary>
+    public string GetFullAutNodeDetails(int branchId)
+    {
+      try
+      {
+        var treeNode = GetTreeNode(branchId);
+        if (treeNode == null)
+          return $"Узел дерева ID:{branchId} не найден";
+
+        var emotionIdList = new List<int>();
+        if (treeNode.EmotionID > 0)
+          emotionIdList = GetEmotionIdsFromEmotionImage(treeNode.EmotionID);
+        var influenceActionIds = new List<int>();
+        if (treeNode.ActivityID > 0)
+          influenceActionIds = GetInfluenceActionIds(treeNode.ActivityID);
+
+        string toneMoodText = string.Empty;
+        if (treeNode.ToneMoodID > 0)
+        {
+          try { toneMoodText = PsychicSystem.GetToneMoodString(treeNode.ToneMoodID); }
+          catch { }
+        }
+
+        string verbalText = string.Empty;
+        if (treeNode.VerbID > 0)
+        {
+          try
+          {
+            var verbalImage = _verbalBrocaImages.GetVerbalBrocaImage(treeNode.VerbID);
+            if (verbalImage?.PhraseIdList != null && verbalImage.PhraseIdList.Any())
+            {
+              var phraseTexts = verbalImage.PhraseIdList
+                  .Select(pid => _sensorySystem.VerbalChannel.GetPhraseFromPhraseId(pid))
+                  .Where(s => !string.IsNullOrEmpty(s))
+                  .Select(s => "\"" + s + "\"")
+                  .ToList();
+              if (phraseTexts.Any())
+                verbalText = string.Join(" ", phraseTexts);
+            }
+          }
+          catch { }
+        }
+
+        var displayItem = new AutomatizmDisplayItem
+        {
+          BaseConditionText = GetBaseConditionText(treeNode.BaseID),
+          EmotionText = GetEmotionText(emotionIdList),
+          InfluenceActionsText = GetInfluenceActionsText(influenceActionIds),
+          ToneMoodText = toneMoodText,
+          VerbalText = verbalText,
+          SimbolID = treeNode.SimbolID
+        };
+
+        var sb = new System.Text.StringBuilder();
+        sb.AppendLine($"Состояние: {displayItem.BaseConditionText}");
+        sb.AppendLine($"Эмоции: {displayItem.EmotionText}");
+        sb.AppendLine($"Воздействие с пульта: {displayItem.InfluenceActionsText}");
+        if (treeNode.ToneMoodID >= 100 && treeNode.ToneMoodID <= 307)
+        {
+          try
+          {
+            var (tone, mood) = PsychicSystem.GetToneMoodFromID(treeNode.ToneMoodID);
+            string tStr = PsychicSystem.GetToneString(tone);
+            string mStr = PsychicSystem.GetMoodString(mood);
+            sb.AppendLine(string.IsNullOrEmpty(tStr) ? "Тон: —" : "Тон: " + tStr);
+            sb.AppendLine(string.IsNullOrEmpty(mStr) ? "Настроение: —" : "Настроение: " + mStr);
+          }
+          catch { sb.AppendLine("Тон: —"); sb.AppendLine("Настроение: —"); }
+        }
+        else
+        { sb.AppendLine("Тон: —"); sb.AppendLine("Настроение: —"); }
+        if (!string.IsNullOrEmpty(displayItem.VerbalText))
+          sb.AppendLine($"Вербальный образ: {displayItem.VerbalText}");
+        else
+          sb.AppendLine("Вербальный образ: Нет фраз");
+        if (displayItem.SimbolID > 0)
+        {
+          char symbol = _sensorySystem?.VerbalChannel?.GetPrimarySensorSymbol(displayItem.SimbolID) ?? '\0';
+          string symbolStr = symbol != '\0' ? $"\"{symbol}\" (ID: {displayItem.SimbolID})" : $"ID: {displayItem.SimbolID}";
+          sb.AppendLine($"Первый символ: {symbolStr}");
+        }
+        else
+          sb.AppendLine("Первый символ: Нет");
+
+        // Блок «Образ действия» — из первого автоматизма с данным BranchID
+        var automatizm = _automatizmSystem?.GetAllAutomatizms()?.FirstOrDefault(a => a.BranchID == branchId);
+        if (automatizm != null && automatizm.ActionsImageID > 0)
+        {
+          var actionsImage = GetActionsImage(automatizm.ActionsImageID);
+          if (actionsImage != null)
+          {
+            sb.AppendLine("Образ действия:");
+            if (actionsImage.ActIdList != null && actionsImage.ActIdList.Any())
+            {
+              var names = new List<string>();
+              var allActions = _adaptiveActionsSystem?.GetAllAdaptiveActions();
+              if (allActions != null)
+                names = actionsImage.ActIdList
+                    .Where(id => allActions.Any(a => a.Id == id))
+                    .Select(id => allActions.First(a => a.Id == id).Name)
+                    .ToList();
+              sb.AppendLine("  Действия: " + (names.Any() ? string.Join(", ", names) : string.Join(", ", actionsImage.ActIdList)));
+            }
+            else
+              sb.AppendLine("  Действия: нет");
+
+            if (actionsImage.PhraseIdList != null && actionsImage.PhraseIdList.Any())
+            {
+              var phraseTexts = actionsImage.PhraseIdList
+                  .Select(pid => _sensorySystem.VerbalChannel.GetPhraseFromPhraseId(pid))
+                  .Where(s => !string.IsNullOrEmpty(s))
+                  .Select(s => "\"" + s + "\"")
+                  .ToList();
+              sb.AppendLine("  Фразы: " + (phraseTexts.Any() ? string.Join(", ", phraseTexts) : string.Join(", ", actionsImage.PhraseIdList)));
+            }
+            else
+              sb.AppendLine("  Фразы: нет");
+
+            string toneStr = ActionsImagesSystem.IsInitialized ? ActionsImagesSystem.GetToneText(actionsImage.ToneId) : null;
+            string moodStr = ActionsImagesSystem.IsInitialized ? ActionsImagesSystem.GetMoodText(actionsImage.MoodId) : null;
+            sb.AppendLine(string.IsNullOrEmpty(toneStr) ? "  Тон: —" : "  Тон: " + toneStr);
+            sb.AppendLine(string.IsNullOrEmpty(moodStr) ? "  Настроение: —" : "  Настроение: " + moodStr);
+          }
+        }
+        else
+          sb.AppendLine("Образ действия: —");
+
+        return sb.ToString();
+      }
+      catch (Exception ex)
+      {
+        return $"Ошибка: {ex.Message}";
+      }
+    }
+
     private AutomatizmNode GetTreeNode(int branchId)
     {
       // Для BranchID < 1000000 это ID узла дерева
