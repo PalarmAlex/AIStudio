@@ -203,7 +203,7 @@ namespace AIStudio.ViewModels.Understanding
       {
         var rec = ThemeImageSystem.Instance.GetById(themeId);
         if (rec == null) return themeId.ToString();
-        string typeDesc = ThemeImageSystem.GetThemeTypeDescription(rec.Type);
+        string typeDesc = ThemeImageSystem.Instance.GetThemeTypeDescription(rec.Type);
         string prefix = string.IsNullOrEmpty(typeDesc) ? "" : typeDesc + ", ";
         return $"{prefix}тип {rec.Type}, вес {rec.Weight} (ID: {themeId})";
       }

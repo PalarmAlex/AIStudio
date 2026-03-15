@@ -1,8 +1,8 @@
-﻿<UserControl x:Class="AIStudio.Pages.ProjectSettingsView"
+<UserControl x:Class="AIStudio.Pages.ProjectSettingsView"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
-             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" xmlns:viewmodels="clr-namespace:AIStudio.ViewModels" d:DataContext="{d:DesignInstance Type=viewmodels:ProjectSettingsViewModel}"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" xmlns:viewmodels="clr-namespace:AIStudio.ViewModels" d:DataContext="{d:DesignInstance Type=viewmodels:ProjectSettingsViewModel, IsDesignTimeCreatable=False}"
              mc:Ignorable="d" 
              Height="Auto" Width="Auto">
 
@@ -308,8 +308,8 @@
 
     </Grid>
 
-    <!-- Настройки автоматизмов -->
-    <TextBlock Text="Настройки автоматизмов" 
+    <!-- Настройки психики -->
+    <TextBlock Text="Настройки психики" 
         FontSize="16"
         FontWeight="Bold"
         Margin="0,0,0,15"
@@ -335,6 +335,20 @@
           Margin="15,0,25,0"
           Background="#FFFFFFFF"
           IsReadOnly="False"/>
+      </StackPanel>
+
+      <!-- Тема по умолчанию -->
+      <StackPanel Grid.Column="1" Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,5">
+        <TextBlock Text="Тема мышления по умолчанию:" 
+          Width="220"
+          VerticalAlignment="Center"/>
+
+        <ComboBox ItemsSource="{Binding ThemeTypesWithNone}"
+          SelectedValue="{Binding DefaultThemeTypeId}"
+          DisplayMemberPath="Name"
+          SelectedValuePath="Id"
+          Width="220"
+          Margin="5,0"/>
       </StackPanel>
 
     </Grid>

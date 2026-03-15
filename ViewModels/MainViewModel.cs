@@ -143,6 +143,7 @@ namespace AIStudio
         config.DynamicTime = AppConfig.DynamicTime;
         config.ReflexActionDisplayDuration = AppConfig.ReflexActionDisplayDuration;
         config.DefaultAdaptiveActionId = AppConfig.DefaultAdaptiveActionId;
+        config.DefaultThemeTypeId = AppConfig.DefaultThemeTypeId;
         config.RecognitionThreshold = AppConfig.RecognitionThreshold;
         config.WaitingPeriodForActionsVal = AppConfig.WaitingPeriodForActionsVal;
         config.MemoryLogWriter = MemoryLogManager.Instance;

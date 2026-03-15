@@ -35,13 +35,16 @@ namespace AIStudio.ViewModels
 
     private ObservableCollection<SituationTypeRecord> _moodRecords = new ObservableCollection<SituationTypeRecord>();
     private ObservableCollection<SituationTypeRecord> _influenceRecords = new ObservableCollection<SituationTypeRecord>();
+    private ObservableCollection<SituationTypeRecord> _themeRecords = new ObservableCollection<SituationTypeRecord>();
 
     public ObservableCollection<SituationTypeRecord> MoodRecords => _moodRecords;
     public ObservableCollection<SituationTypeRecord> InfluenceRecords => _influenceRecords;
+    /// <summary>Привязка тем к кодам ID 41–60</summary>
+    public ObservableCollection<SituationTypeRecord> ThemeRecords => _themeRecords;
 
     private string _defaultRecordsText = "";
 
-    /// <summary>Текстовый блок: записи по умолчанию (ID 1–10)</summary>
+    /// <summary>Текстовый блок: записи по умолчанию (ID 1–10), три столбца — ID, Привязка, Описание</summary>
     public string DefaultRecordsText
     {
       get => _defaultRecordsText;
@@ -52,6 +55,8 @@ namespace AIStudio.ViewModels
     public ICommand SaveInfluenceCommand { get; }
     public ICommand ClearMoodCommand { get; }
     public ICommand ClearInfluenceCommand { get; }
+    public ICommand SaveThemeCommand { get; }
+    public ICommand ClearThemeCommand { get; }
 
     public SituationTypesViewModel(
       GomeostasSystem gomeostasSystem,
@@ -66,6 +71,8 @@ namespace AIStudio.ViewModels
       SaveInfluenceCommand = new RelayCommand(SaveInfluence);
       ClearMoodCommand = new RelayCommand(ClearMood);
       ClearInfluenceCommand = new RelayCommand(ClearInfluence);
+      SaveThemeCommand = new RelayCommand(SaveTheme);
+      ClearThemeCommand = new RelayCommand(ClearTheme);
 
       GlobalTimer.PulsationStateChanged += OnPulsationStateChanged;
       LoadData();
@@ -103,6 +110,8 @@ namespace AIStudio.ViewModels
 
     public List<KeyValuePair<int, string>> MoodCellOptions { get; private set; } = new List<KeyValuePair<int, string>>();
     public List<KeyValuePair<int, string>> InfluenceCellOptions { get; private set; } = new List<KeyValuePair<int, string>>();
+    /// <summary>Темы для слотов 41–60 (темы, не занятые в 1–10, + «—»)</summary>
+    public List<KeyValuePair<int, string>> ThemeSlotCellOptions { get; private set; } = new List<KeyValuePair<int, string>>();
 
     private void LoadCellOptions()
     {
@@ -128,8 +137,23 @@ namespace AIStudio.ViewModels
         }
       }
 
+      var allThemes = ThemeImageSystem.GetDefaultThemeTypesForSettings();
+      var usedInDefaults = _situationTypeSystem != null && SituationTypeSystem.IsInitialized
+        ? SituationTypeSystem.Instance.GetThemeTypeIdsUsedInDefaultSlots().ToList()
+        : new List<int>();
+      ThemeSlotCellOptions = new List<KeyValuePair<int, string>> { new KeyValuePair<int, string>(-1, "—") };
+      if (allThemes != null)
+      {
+        foreach (var t in allThemes.OrderBy(x => x.Id))
+        {
+          if (!usedInDefaults.Contains(t.Id))
+            ThemeSlotCellOptions.Add(new KeyValuePair<int, string>(t.Id, $"{t.Id}: {t.Description}"));
+        }
+      }
+
       OnPropertyChanged(nameof(MoodCellOptions));
       OnPropertyChanged(nameof(InfluenceCellOptions));
+      OnPropertyChanged(nameof(ThemeSlotCellOptions));
     }
 
     #endregion
@@ -143,18 +167,27 @@ namespace AIStudio.ViewModels
 
         if (_situationTypeSystem != null && ISIDA.Psychic.Understanding.SituationTypeSystem.IsInitialized)
         {
+          _situationTypeSystem.EnsureSlotsAndSaveIfNeeded();
           var all = _situationTypeSystem.GetAll().ToDictionary(r => r.Id);
 
           _moodRecords.Clear();
           for (int id = 11; id <= 20; id++)
           {
-            _moodRecords.Add(all.TryGetValue(id, out var r) ? r : new SituationTypeRecord { Id = id, MoodId = SituationTypeSystem.EmptySlotValue, InfluenceId = SituationTypeSystem.EmptySlotValue, Description = "" });
+            _moodRecords.Add(all.TryGetValue(id, out var r) ? r : new SituationTypeRecord { Id = id, MoodId = SituationTypeSystem.EmptySlotValue, InfluenceId = SituationTypeSystem.EmptySlotValue, ThemeTypeId = -1, Description = "" });
           }
 
           _influenceRecords.Clear();
           for (int id = 21; id <= 40; id++)
           {
-            _influenceRecords.Add(all.TryGetValue(id, out var r) ? r : new SituationTypeRecord { Id = id, MoodId = SituationTypeSystem.EmptySlotValue, InfluenceId = SituationTypeSystem.EmptySlotValue, Description = "" });
+            var r = all.TryGetValue(id, out var rec) ? rec : new SituationTypeRecord { Id = id, MoodId = SituationTypeSystem.EmptySlotValue, InfluenceId = SituationTypeSystem.EmptySlotValue, ThemeTypeId = -1, Description = "" };
+            _influenceRecords.Add(r);
+          }
+
+          _themeRecords.Clear();
+          for (int id = 41; id <= 60; id++)
+          {
+            var r = all.TryGetValue(id, out var rec) ? rec : new SituationTypeRecord { Id = id, MoodId = SituationTypeSystem.EmptySlotValue, InfluenceId = SituationTypeSystem.EmptySlotValue, ThemeTypeId = -1, Description = "" };
+            _themeRecords.Add(r);
           }
 
           BuildDefaultRecordsText(all);
@@ -164,6 +197,8 @@ namespace AIStudio.ViewModels
 
         OnPropertyChanged(nameof(MoodRecords));
         OnPropertyChanged(nameof(InfluenceRecords));
+        OnPropertyChanged(nameof(DefaultRecordsText));
+        OnPropertyChanged(nameof(ThemeRecords));
         OnPropertyChanged(nameof(IsStageFour));
         OnPropertyChanged(nameof(IsEditingEnabled));
         OnPropertyChanged(nameof(PulseWarningMessage));
@@ -181,18 +216,100 @@ namespace AIStudio.ViewModels
     private void BuildDefaultRecordsText(Dictionary<int, SituationTypeRecord> byId)
     {
       var sb = new StringBuilder();
-      sb.AppendLine("Записи по умолчанию (ID 1–10):");
       for (int id = 1; id <= 10; id++)
       {
         if (byId.TryGetValue(id, out var r))
-          sb.AppendLine($"  {r.Id}: MoodId={r.MoodId}, InfluenceId={r.InfluenceId}, {r.Description ?? ""}");
+          sb.AppendLine($"{r.Id}: {r.Description ?? ""}");
         else
-          sb.AppendLine($"  {id}: (нет)");
+          sb.AppendLine($"{id}: (нет)");
       }
       DefaultRecordsText = sb.ToString().TrimEnd();
     }
 
     public void RefreshData() => LoadData();
+
+    private void SaveTheme(object parameter)
+    {
+      SaveWithThemeValidation("привязки тем (41–60)");
+    }
+
+    private void SaveWithThemeValidation(string context)
+    {
+      try
+      {
+        if (_situationTypeSystem == null || !SituationTypeSystem.IsInitialized)
+        {
+          MessageBox.Show("Система типов ситуаций не инициализирована", "Ошибка",
+              MessageBoxButton.OK, MessageBoxImage.Error);
+          return;
+        }
+
+        _situationTypeSystem.UpdateFromRecords(_moodRecords);
+        _situationTypeSystem.UpdateFromRecords(_influenceRecords);
+        _situationTypeSystem.UpdateFromRecords(_themeRecords);
+
+        var allWithTheme = _situationTypeSystem.GetAll()
+          .Where(r => r != null && ((r.Id >= 1 && r.Id <= 10) || (r.Id >= 41 && r.Id <= 60)))
+          .ToList();
+        var (validTheme, themeErr) = _situationTypeSystem.ValidateThemeTypeIdUniqueness(allWithTheme);
+        if (!validTheme)
+        {
+          MessageBox.Show(themeErr, "Дубликат темы",
+              MessageBoxButton.OK, MessageBoxImage.Warning);
+          return;
+        }
+
+        var (valid, dupError) = _situationTypeSystem.ValidateRecordsNoDuplicates(_moodRecords, _influenceRecords);
+        if (!valid)
+        {
+          MessageBox.Show($"Невозможно сохранить: {dupError}", "Дубликаты",
+              MessageBoxButton.OK, MessageBoxImage.Warning);
+          return;
+        }
+
+        var (success, error) = _situationTypeSystem.Save();
+
+        if (success)
+        {
+          LoadData();
+          MessageBox.Show($"Справочник ({context}) успешно сохранён",
+              "Сохранение завершено",
+              MessageBoxButton.OK,
+              MessageBoxImage.Information);
+        }
+        else
+        {
+          MessageBox.Show($"Не удалось сохранить справочник:\n{error}",
+              "Ошибка сохранения",
+              MessageBoxButton.OK,
+              MessageBoxImage.Error);
+        }
+      }
+      catch (Exception ex)
+      {
+        MessageBox.Show($"Ошибка при сохранении:\n{ex.Message}",
+            "Ошибка",
+            MessageBoxButton.OK,
+            MessageBoxImage.Error);
+      }
+    }
+
+    private void ClearTheme(object parameter)
+    {
+      if (MessageBox.Show(
+          "Очистить привязки тем (ThemeTypeId и описание) для всех 20 слотов (ID 41–60)?",
+          "Подтверждение",
+          MessageBoxButton.YesNo,
+          MessageBoxImage.Question) != MessageBoxResult.Yes)
+        return;
+
+      foreach (var r in _themeRecords)
+      {
+        r.ThemeTypeId = -1;
+        r.Description = "";
+      }
+      SaveWithThemeValidation("привязки тем (очищены)");
+    }
 
     private void SaveMood(object parameter)
     {
@@ -215,6 +332,21 @@ namespace AIStudio.ViewModels
           return;
         }
 
+        _situationTypeSystem.UpdateFromRecords(_moodRecords);
+        _situationTypeSystem.UpdateFromRecords(_influenceRecords);
+        _situationTypeSystem.UpdateFromRecords(_themeRecords);
+
+        var allWithTheme = _situationTypeSystem.GetAll()
+          .Where(r => r != null && ((r.Id >= 1 && r.Id <= 10) || (r.Id >= 41 && r.Id <= 60)))
+          .ToList();
+        var (validTheme, themeErr) = _situationTypeSystem.ValidateThemeTypeIdUniqueness(allWithTheme);
+        if (!validTheme)
+        {
+          MessageBox.Show(themeErr, "Дубликат темы",
+              MessageBoxButton.OK, MessageBoxImage.Warning);
+          return;
+        }
+
         var (valid, dupError) = _situationTypeSystem.ValidateRecordsNoDuplicates(_moodRecords, _influenceRecords);
         if (!valid)
         {
@@ -223,8 +355,6 @@ namespace AIStudio.ViewModels
           return;
         }
 
-        _situationTypeSystem.UpdateFromRecords(_moodRecords);
-        _situationTypeSystem.UpdateFromRecords(_influenceRecords);
         var (success, error) = _situationTypeSystem.Save();
 
         if (success)

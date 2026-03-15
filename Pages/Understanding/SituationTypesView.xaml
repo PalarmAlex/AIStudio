@@ -33,176 +33,338 @@
   <ScrollViewer VerticalScrollBarVisibility="Auto"
                 HorizontalScrollBarVisibility="Disabled"
                 Margin="12">
-  <Grid>
-    <Grid.RowDefinitions>
-      <RowDefinition Height="Auto"/>
-      <RowDefinition Height="Auto"/>
-      <RowDefinition Height="*"/>
-      <RowDefinition Height="Auto"/>
-    </Grid.RowDefinitions>
+    <Grid>
+      <Grid.RowDefinitions>
+        <RowDefinition Height="Auto"/>
+        <RowDefinition Height="*"/>
+        <RowDefinition Height="Auto"/>
+      </Grid.RowDefinitions>
 
-    <!-- Заголовок -->
-    <TextBlock Grid.Row="0"
-               Text="{Binding CurrentAgentTitle}"
-               FontSize="18"
-               FontWeight="SemiBold"
-               HorizontalAlignment="Center"
-               Margin="0,0,0,5"
-               Foreground="#FF333333"/>
+      <!-- Заголовок -->
+      <TextBlock Grid.Row="0"
+                 Text="{Binding CurrentAgentTitle}"
+                 FontSize="18"
+                 FontWeight="SemiBold"
+                 HorizontalAlignment="Center"
+                 Margin="0,0,0,5"
+                 Foreground="#FF333333"/>
 
-    <!-- Две таблицы по горизонтали -->
-    <Grid Grid.Row="2">
-      <Grid.ColumnDefinitions>
-        <ColumnDefinition Width="*"/>
-        <ColumnDefinition Width="12"/>
-        <ColumnDefinition Width="*"/>
-      </Grid.ColumnDefinitions>
+      <!-- Три таблицы в одной строке: Настроение | Воздействие | Привязки тем -->
+      <Grid Grid.Row="1">
+        <Grid.ColumnDefinitions>
+          <ColumnDefinition Width="*"/>
+          <ColumnDefinition Width="5"/>
+          <ColumnDefinition Width="*"/>
+          <ColumnDefinition Width="5"/>
+          <ColumnDefinition Width="*"/>
+        </Grid.ColumnDefinitions>
 
-      <!-- Левая панель: MoodId (11–20) -->
-      <StackPanel Grid.Column="0">
-          <TextBlock Text="Слоты по настроению (Настроение, ID 11–20)" FontWeight="SemiBold" Margin="0,0,0,4"/>
-        <Border BorderBrush="#FFE0E0E0" BorderThickness="1" CornerRadius="4" Margin="0,0,0,6">
-          <DataGrid ItemsSource="{Binding MoodRecords}"
-                    x:Name="MoodGrid"
-                    IsEnabled="True"
-                    IsReadOnly="{Binding IsReadOnlyMode}"
-                    AutoGenerateColumns="False"
-                    CanUserAddRows="False"
-                    CanUserDeleteRows="False"
-                    SelectionMode="Single"
-                    BorderThickness="0"
-                    Background="White"
-                    RowBackground="#FFF9F9F9"
-                    AlternatingRowBackground="White"
-                    GridLinesVisibility="None"
-                    VerticalScrollBarVisibility="Auto"
-                    HorizontalScrollBarVisibility="Disabled"
-                    HeadersVisibility="Column"
-                    RowEditEnding="DataGrid_RowEditEnding">
-            <DataGrid.Columns>
-              <DataGridTextColumn Header="ID" Binding="{Binding Id}" Width="40" IsReadOnly="True"/>
-              <DataGridTemplateColumn Header="Настроение" Width="160">
-                <DataGridTemplateColumn.CellTemplate>
-                  <DataTemplate>
-                    <ComboBox ItemsSource="{Binding DataContext.MoodCellOptions, ElementName=Root}"
-                              SelectedValue="{Binding MoodId, UpdateSourceTrigger=PropertyChanged}"
-                              DisplayMemberPath="Value"
-                              SelectedValuePath="Key"
-                              Height="24"
-                              IsEnabled="{Binding DataContext.IsEditingEnabled, ElementName=Root}"/>
-                  </DataTemplate>
-                </DataGridTemplateColumn.CellTemplate>
-              </DataGridTemplateColumn>
-              <DataGridTextColumn Header="Описание" Binding="{Binding Description, UpdateSourceTrigger=PropertyChanged}" Width="*" MinWidth="80"/>
-            </DataGrid.Columns>
-          </DataGrid>
-        </Border>
-        <TextBlock Text="{Binding DefaultRecordsText}"
-                   FontFamily="Consolas"
-                   FontSize="13"
-                   Foreground="#FF555555"
-                   TextWrapping="Wrap"
-                   Margin="0,4,0,8"/>
-        <StackPanel Orientation="Horizontal">
-          <Button Content="Очистить"
-                  Command="{Binding ClearMoodCommand}"
-                  IsEnabled="{Binding IsEditingEnabled}"
-                  Visibility="{Binding IsEditingEnabled, Converter={StaticResource BoolToVis}}"
-                  Style="{StaticResource RedButtonStyle}"
-                  ToolTip="Очистить Настроение и описание для всех 10 слотов"
-                  Margin="0,0,8,0"/>
-          <Button Content="Сохранить"
-                  Command="{Binding SaveMoodCommand}"
-                  PreviewMouseLeftButtonDown="SaveButton_PreviewMouseLeftButtonDown"
-                  IsEnabled="{Binding IsEditingEnabled}"
-                  Visibility="{Binding IsEditingEnabled, Converter={StaticResource BoolToVis}}"
-                  Style="{StaticResource ActionButtonStyle}"
-                  ToolTip="Сохранить слоты по настроению"
-                  Cursor="Hand"/>
-        </StackPanel>
-      </StackPanel>
+        <!-- Левая панель: MoodId (11–20) -->
+        <Grid Grid.Column="0">
+          <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+          </Grid.RowDefinitions>
 
-      <!-- Правая панель: InfluenceId (21–40) -->
-      <StackPanel Grid.Column="2">
-        <TextBlock Text="Слоты по воздействию (Воздействие, ID 21–40)" FontWeight="SemiBold" Margin="0,0,0,4"/>
-        <Border BorderBrush="#FFE0E0E0" BorderThickness="1" CornerRadius="4" Margin="0,0,0,8">
-          <DataGrid ItemsSource="{Binding InfluenceRecords}"
-                    x:Name="InfluenceGrid"
-                    IsEnabled="True"
-                    IsReadOnly="{Binding IsReadOnlyMode}"
-                    AutoGenerateColumns="False"
-                    CanUserAddRows="False"
-                    CanUserDeleteRows="False"
-                    SelectionMode="Single"
-                    BorderThickness="0"
-                    Background="White"
-                    RowBackground="#FFF9F9F9"
-                    AlternatingRowBackground="White"
-                    GridLinesVisibility="None"
-                    VerticalScrollBarVisibility="Auto"
-                    HorizontalScrollBarVisibility="Disabled"
-                    HeadersVisibility="Column"
-                    RowEditEnding="DataGrid_RowEditEnding">
-            <DataGrid.Columns>
-              <DataGridTextColumn Header="ID" Binding="{Binding Id}" Width="40" IsReadOnly="True"/>
-                <DataGridTemplateColumn Header="Воздействие" Width="180">
-                <DataGridTemplateColumn.CellTemplate>
-                  <DataTemplate>
-                    <ComboBox ItemsSource="{Binding DataContext.InfluenceCellOptions, ElementName=Root}"
-                              SelectedValue="{Binding InfluenceId, UpdateSourceTrigger=PropertyChanged}"
-                              DisplayMemberPath="Value"
-                              SelectedValuePath="Key"
-                              Height="24"
-                              IsEnabled="{Binding DataContext.IsEditingEnabled, ElementName=Root}"/>
-                  </DataTemplate>
-                </DataGridTemplateColumn.CellTemplate>
-              </DataGridTemplateColumn>
-              <DataGridTextColumn Header="Описание" Binding="{Binding Description, UpdateSourceTrigger=PropertyChanged}" Width="*" MinWidth="80"/>
-            </DataGrid.Columns>
-          </DataGrid>
-        </Border>
-        <StackPanel Orientation="Horizontal">
-          <Button Content="Очистить"
-                  Command="{Binding ClearInfluenceCommand}"
-                  IsEnabled="{Binding IsEditingEnabled}"
-                  Visibility="{Binding IsEditingEnabled, Converter={StaticResource BoolToVis}}"
-                  Style="{StaticResource RedButtonStyle}"
-                  ToolTip="Очистить Воздействие и описание для всех 20 слотов"
-                  Margin="0,0,8,0"/>
-          <Button Content="Сохранить"
-                  Command="{Binding SaveInfluenceCommand}"
-                  PreviewMouseLeftButtonDown="SaveButton_PreviewMouseLeftButtonDown"
-                  IsEnabled="{Binding IsEditingEnabled}"
-                  Visibility="{Binding IsEditingEnabled, Converter={StaticResource BoolToVis}}"
-                  Style="{StaticResource ActionButtonStyle}"
-                  ToolTip="Сохранить слоты по воздействию"
-                  Cursor="Hand"/>
-        </StackPanel>
-      </StackPanel>
+          <TextBlock Grid.Row="0"
+                     Text="Слоты по настроению (Настроение, ID 11–20)"
+                     FontWeight="SemiBold"
+                     Margin="0,0,0,4"/>
+
+          <Border Grid.Row="1"
+                  BorderBrush="#FFE0E0E0"
+                  BorderThickness="1"
+                  CornerRadius="4"
+                  Margin="0,0,0,6">
+            <DataGrid ItemsSource="{Binding MoodRecords}"
+                      x:Name="MoodGrid"
+                      IsEnabled="True"
+                      IsReadOnly="{Binding IsReadOnlyMode}"
+                      AutoGenerateColumns="False"
+                      CanUserAddRows="False"
+                      CanUserDeleteRows="False"
+                      SelectionMode="Single"
+                      BorderThickness="0"
+                      Background="White"
+                      RowBackground="#FFF9F9F9"
+                      AlternatingRowBackground="White"
+                      GridLinesVisibility="None"
+                      VerticalScrollBarVisibility="Auto"
+                      HorizontalScrollBarVisibility="Disabled"
+                      HeadersVisibility="Column"
+                      RowEditEnding="DataGrid_RowEditEnding"
+                      HorizontalAlignment="Stretch"
+                      HorizontalContentAlignment="Stretch">
+              <DataGrid.Columns>
+                <DataGridTextColumn Header="ID"
+                                    Binding="{Binding Id}"
+                                    Width="30"
+                                    IsReadOnly="True"/>
+                <DataGridTemplateColumn Header="Настроение"
+                                        Width="160">
+                  <DataGridTemplateColumn.CellTemplate>
+                    <DataTemplate>
+                      <ComboBox ItemsSource="{Binding DataContext.MoodCellOptions, ElementName=Root}"
+                                SelectedValue="{Binding MoodId, UpdateSourceTrigger=PropertyChanged}"
+                                DisplayMemberPath="Value"
+                                SelectedValuePath="Key"
+                                Height="24"
+                                IsEnabled="{Binding DataContext.IsEditingEnabled, ElementName=Root}"/>
+                    </DataTemplate>
+                  </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+                <DataGridTextColumn Header="Описание"
+                                    Binding="{Binding Description, UpdateSourceTrigger=PropertyChanged}"
+                                    Width="*"
+                                    MinWidth="120">
+                  <DataGridTextColumn.ElementStyle>
+                    <Style TargetType="TextBlock">
+                      <Setter Property="TextWrapping" Value="Wrap"/>
+                      <Setter Property="VerticalAlignment" Value="Center"/>
+                      <Setter Property="Margin" Value="4,2"/>
+                    </Style>
+                  </DataGridTextColumn.ElementStyle>
+                </DataGridTextColumn>
+              </DataGrid.Columns>
+            </DataGrid>
+          </Border>
+
+          <TextBlock Grid.Row="2"
+                     Text="{Binding DefaultRecordsText}"
+                     FontFamily="Consolas"
+                     FontSize="13"
+                     Foreground="#FF555555"
+                     TextWrapping="Wrap"
+                     Margin="0,4,0,8"/>
+
+          <StackPanel Grid.Row="3"
+                      Orientation="Horizontal">
+            <Button Content="Очистить"
+                    Command="{Binding ClearMoodCommand}"
+                    IsEnabled="{Binding IsEditingEnabled}"
+                    Visibility="{Binding IsEditingEnabled, Converter={StaticResource BoolToVis}}"
+                    Style="{StaticResource RedButtonStyle}"
+                    ToolTip="Очистить Настроение и описание для всех 10 слотов"
+                    Margin="0,0,8,0"/>
+            <Button Content="Сохранить"
+                    Command="{Binding SaveMoodCommand}"
+                    PreviewMouseLeftButtonDown="SaveButton_PreviewMouseLeftButtonDown"
+                    IsEnabled="{Binding IsEditingEnabled}"
+                    Visibility="{Binding IsEditingEnabled, Converter={StaticResource BoolToVis}}"
+                    Style="{StaticResource ActionButtonStyle}"
+                    ToolTip="Сохранить слоты по настроению"
+                    Cursor="Hand"/>
+          </StackPanel>
+        </Grid>
+
+        <!-- Средняя панель: InfluenceId (21–40) -->
+        <Grid Grid.Column="2">
+          <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+          </Grid.RowDefinitions>
+
+          <TextBlock Grid.Row="0"
+                     Text="Слоты по воздействию (Воздействие, ID 21–40)"
+                     FontWeight="SemiBold"
+                     Margin="0,0,0,4"/>
+
+          <Border Grid.Row="1"
+                  BorderBrush="#FFE0E0E0"
+                  BorderThickness="1"
+                  CornerRadius="4"
+                  Margin="0,0,0,8">
+            <DataGrid ItemsSource="{Binding InfluenceRecords}"
+                      x:Name="InfluenceGrid"
+                      IsEnabled="True"
+                      IsReadOnly="{Binding IsReadOnlyMode}"
+                      AutoGenerateColumns="False"
+                      CanUserAddRows="False"
+                      CanUserDeleteRows="False"
+                      SelectionMode="Single"
+                      BorderThickness="0"
+                      Background="White"
+                      RowBackground="#FFF9F9F9"
+                      AlternatingRowBackground="White"
+                      GridLinesVisibility="None"
+                      VerticalScrollBarVisibility="Auto"
+                      HorizontalScrollBarVisibility="Disabled"
+                      HeadersVisibility="Column"
+                      RowEditEnding="DataGrid_RowEditEnding"
+                      HorizontalAlignment="Stretch"
+                      HorizontalContentAlignment="Stretch">
+              <DataGrid.Columns>
+                <DataGridTextColumn Header="ID"
+                                    Binding="{Binding Id}"
+                                    Width="30"
+                                    IsReadOnly="True"/>
+                <DataGridTemplateColumn Header="Воздействие"
+                                        Width="180">
+                  <DataGridTemplateColumn.CellTemplate>
+                    <DataTemplate>
+                      <ComboBox ItemsSource="{Binding DataContext.InfluenceCellOptions, ElementName=Root}"
+                                SelectedValue="{Binding InfluenceId, UpdateSourceTrigger=PropertyChanged}"
+                                DisplayMemberPath="Value"
+                                SelectedValuePath="Key"
+                                Height="24"
+                                IsEnabled="{Binding DataContext.IsEditingEnabled, ElementName=Root}"/>
+                    </DataTemplate>
+                  </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+                <DataGridTextColumn Header="Описание"
+                                    Binding="{Binding Description, UpdateSourceTrigger=PropertyChanged}"
+                                    Width="*"
+                                    MinWidth="120">
+                  <DataGridTextColumn.ElementStyle>
+                    <Style TargetType="TextBlock">
+                      <Setter Property="TextWrapping" Value="Wrap"/>
+                      <Setter Property="VerticalAlignment" Value="Center"/>
+                      <Setter Property="Margin" Value="4,2"/>
+                    </Style>
+                  </DataGridTextColumn.ElementStyle>
+                </DataGridTextColumn>
+              </DataGrid.Columns>
+            </DataGrid>
+          </Border>
+
+          <StackPanel Grid.Row="2"
+                      Orientation="Horizontal">
+            <Button Content="Очистить"
+                    Command="{Binding ClearInfluenceCommand}"
+                    IsEnabled="{Binding IsEditingEnabled}"
+                    Visibility="{Binding IsEditingEnabled, Converter={StaticResource BoolToVis}}"
+                    Style="{StaticResource RedButtonStyle}"
+                    ToolTip="Очистить Воздействие и описание для всех 20 слотов"
+                    Margin="0,0,8,0"/>
+            <Button Content="Сохранить"
+                    Command="{Binding SaveInfluenceCommand}"
+                    PreviewMouseLeftButtonDown="SaveButton_PreviewMouseLeftButtonDown"
+                    IsEnabled="{Binding IsEditingEnabled}"
+                    Visibility="{Binding IsEditingEnabled, Converter={StaticResource BoolToVis}}"
+                    Style="{StaticResource ActionButtonStyle}"
+                    ToolTip="Сохранить слоты по воздействию"
+                    Cursor="Hand"/>
+          </StackPanel>
+        </Grid>
+
+        <!-- Правая панель: привязка тем (ID 41–60) -->
+        <Grid Grid.Column="4">
+          <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+          </Grid.RowDefinitions>
+
+          <TextBlock Grid.Row="0"
+                     Text="Привязки тем (ID 41–60)"
+                     FontWeight="SemiBold"
+                     Margin="0,0,0,4"/>
+
+          <Border Grid.Row="1"
+                  BorderBrush="#FFE0E0E0"
+                  BorderThickness="1"
+                  CornerRadius="4"
+                  Margin="0,0,0,6">
+            <DataGrid ItemsSource="{Binding ThemeRecords}"
+                      x:Name="ThemeGrid"
+                      IsEnabled="True"
+                      IsReadOnly="False"
+                      AutoGenerateColumns="False"
+                      CanUserAddRows="False"
+                      CanUserDeleteRows="False"
+                      SelectionMode="Single"
+                      BorderThickness="0"
+                      Background="White"
+                      RowBackground="#FFF9F9F9"
+                      AlternatingRowBackground="White"
+                      GridLinesVisibility="None"
+                      VerticalScrollBarVisibility="Auto"
+                      HorizontalScrollBarVisibility="Disabled"
+                      HeadersVisibility="Column"
+                      RowEditEnding="DataGrid_RowEditEnding"
+                      HorizontalAlignment="Stretch"
+                      HorizontalContentAlignment="Stretch">
+              <DataGrid.Columns>
+                <DataGridTextColumn Header="ID"
+                                    Binding="{Binding Id}"
+                                    Width="30"
+                                    IsReadOnly="True"/>
+                <DataGridTemplateColumn Header="Тема"
+                                        Width="*"
+                                        MinWidth="200">
+                  <DataGridTemplateColumn.CellTemplate>
+                    <DataTemplate>
+                      <ComboBox ItemsSource="{Binding DataContext.ThemeSlotCellOptions, ElementName=Root}"
+                                SelectedValue="{Binding ThemeTypeId, UpdateSourceTrigger=PropertyChanged}"
+                                DisplayMemberPath="Value"
+                                SelectedValuePath="Key"
+                                Height="24"
+                                IsEnabled="{Binding DataContext.IsEditingEnabled, ElementName=Root}"/>
+                    </DataTemplate>
+                  </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+                <DataGridTextColumn Header="Описание"
+                                    Binding="{Binding Description, UpdateSourceTrigger=PropertyChanged}"
+                                    Width="*"
+                                    MinWidth="80">
+                  <DataGridTextColumn.ElementStyle>
+                    <Style TargetType="TextBlock">
+                      <Setter Property="TextWrapping" Value="Wrap"/>
+                      <Setter Property="VerticalAlignment" Value="Center"/>
+                      <Setter Property="Margin" Value="4,2"/>
+                    </Style>
+                  </DataGridTextColumn.ElementStyle>
+                </DataGridTextColumn>
+              </DataGrid.Columns>
+            </DataGrid>
+          </Border>
+
+          <StackPanel Grid.Row="2"
+                      Orientation="Horizontal">
+            <Button Content="Очистить"
+                    Command="{Binding ClearThemeCommand}"
+                    IsEnabled="{Binding IsEditingEnabled}"
+                    Visibility="{Binding IsEditingEnabled, Converter={StaticResource BoolToVis}}"
+                    Style="{StaticResource RedButtonStyle}"
+                    ToolTip="Очистить привязки тем для слотов 41–60"
+                    Margin="0,0,8,0"/>
+            <Button Content="Сохранить"
+                    Command="{Binding SaveThemeCommand}"
+                    PreviewMouseLeftButtonDown="SaveButton_PreviewMouseLeftButtonDown"
+                    IsEnabled="{Binding IsEditingEnabled}"
+                    Visibility="{Binding IsEditingEnabled, Converter={StaticResource BoolToVis}}"
+                    Style="{StaticResource ActionButtonStyle}"
+                    ToolTip="Сохранить привязки тем (41–60)"
+                    Cursor="Hand"/>
+          </StackPanel>
+        </Grid>
+      </Grid>
+
+      <!-- Нижняя строка: предупреждение -->
+      <Border Grid.Row="2"
+              BorderBrush="#FFE0E0E0"
+              BorderThickness="0,1,0,0"
+              Margin="0,8,0,0"
+              Padding="0,6,0,0">
+        <TextBlock Text="{Binding PulseWarningMessage}"
+                   Foreground="{Binding WarningMessageColor}"
+                   FontStyle="Italic"
+                   TextWrapping="Wrap">
+          <TextBlock.Style>
+            <Style TargetType="TextBlock">
+              <Setter Property="Visibility" Value="Visible"/>
+              <Style.Triggers>
+                <DataTrigger Binding="{Binding IsEditingEnabled}" Value="True">
+                  <Setter Property="Visibility" Value="Collapsed"/>
+                </DataTrigger>
+              </Style.Triggers>
+            </Style>
+          </TextBlock.Style>
+        </TextBlock>
+      </Border>
     </Grid>
-
-    <!-- Нижняя строка: предупреждение -->
-    <Border Grid.Row="3"
-            BorderBrush="#FFE0E0E0"
-            BorderThickness="0,1,0,0"
-            Margin="0,8,0,0"
-            Padding="0,6,0,0">
-      <TextBlock Text="{Binding PulseWarningMessage}"
-                 Foreground="{Binding WarningMessageColor}"
-                 FontStyle="Italic"
-                 TextWrapping="Wrap">
-        <TextBlock.Style>
-          <Style TargetType="TextBlock">
-            <Setter Property="Visibility" Value="Visible"/>
-            <Style.Triggers>
-              <DataTrigger Binding="{Binding IsEditingEnabled}" Value="True">
-                <Setter Property="Visibility" Value="Collapsed"/>
-              </DataTrigger>
-            </Style.Triggers>
-          </Style>
-        </TextBlock.Style>
-      </TextBlock>
-    </Border>
-  </Grid>
   </ScrollViewer>
 </UserControl>

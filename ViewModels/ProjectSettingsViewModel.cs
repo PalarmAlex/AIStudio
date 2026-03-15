@@ -1,4 +1,5 @@
-﻿using ISIDA.Common;
+using ISIDA.Common;
+using ISIDA.Psychic.Understanding;
 using ISIDA.Reflexes;
 using ISIDA.Actions;
 using ISIDA.Gomeostas;
@@ -32,6 +33,7 @@ namespace AIStudio.ViewModels
     private string _bootDataFolderPath;
     private int _defaultStileId;
     private int _defaultAdaptiveActionId;
+    private int _defaultThemeTypeId;
     private int _defaultFormatLog;
     private int _waitingPeriodForActionsVal;
 
@@ -159,6 +161,15 @@ namespace AIStudio.ViewModels
       {
         _defaultAdaptiveActionId = value;
         OnPropertyChanged(nameof(DefaultAdaptiveActionId));
+      }
+    }
+    public int DefaultThemeTypeId
+    {
+      get => _defaultThemeTypeId;
+      set
+      {
+        _defaultThemeTypeId = value;
+        OnPropertyChanged(nameof(DefaultThemeTypeId));
       }
     }
     public int RecognitionThreshold
@@ -329,6 +340,7 @@ namespace AIStudio.ViewModels
 
     public ObservableCollection<SelectableItem> BehaviorStylesWithNone { get; } = new ObservableCollection<SelectableItem>();
     public ObservableCollection<SelectableItem> AdaptiveActionsWithNone { get; } = new ObservableCollection<SelectableItem>();
+    public ObservableCollection<SelectableItem> ThemeTypesWithNone { get; } = new ObservableCollection<SelectableItem>();
     public ObservableCollection<SelectableItem> GeneticReflexesWithNone { get; } = new ObservableCollection<SelectableItem>();
     public ObservableCollection<SelectableItem> FormatLog { get; } = new ObservableCollection<SelectableItem>();
 
@@ -351,6 +363,7 @@ namespace AIStudio.ViewModels
       DefaultStileId = AppConfig.DefaultStileId;
       WaitingPeriodForActionsVal = AppConfig.WaitingPeriodForActionsVal;
       DefaultAdaptiveActionId = AppConfig.DefaultAdaptiveActionId;
+      DefaultThemeTypeId = AppConfig.DefaultThemeTypeId;
       LogEnabled = AppConfig.LogEnabled;
       _defaultFormatLog = (int)AppConfig.LogFormat;
       _recognitionThreshold = AppConfig.RecognitionThreshold;
@@ -391,6 +404,7 @@ namespace AIStudio.ViewModels
 
       LoadBehaviorStylesWithNone();
       LoadAdaptiveActionsWithNone();
+      LoadThemeTypesWithNone();
       LoadLogFormats();
 
       DefaultFormatLog = (int)AppConfig.LogFormat;
@@ -434,6 +448,16 @@ namespace AIStudio.ViewModels
         {
           AdaptiveActionsWithNone.Add(new SelectableItem { Id = action.Id, Name = action.Name });
         }
+      }
+    }
+
+    private void LoadThemeTypesWithNone()
+    {
+      ThemeTypesWithNone.Clear();
+      ThemeTypesWithNone.Add(new SelectableItem { Id = 0, Name = "Нет темы" });
+      foreach (var (id, description) in ThemeImageSystem.GetDefaultThemeTypesForSettings())
+      {
+        ThemeTypesWithNone.Add(new SelectableItem { Id = id, Name = description });
       }
     }
 
@@ -559,6 +583,7 @@ namespace AIStudio.ViewModels
         AppConfig.SetIntSetting(nameof(DefaultStileId), DefaultStileId);
         AppConfig.SetIntSetting(nameof(WaitingPeriodForActionsVal), WaitingPeriodForActionsVal);
         AppConfig.SetIntSetting(nameof(DefaultAdaptiveActionId), DefaultAdaptiveActionId);
+        AppConfig.SetIntSetting(nameof(DefaultThemeTypeId), DefaultThemeTypeId);
         AppConfig.SetIntSetting(nameof(RecognitionThreshold), RecognitionThreshold);
         AppConfig.SetIntSetting(nameof(CompareLevel), CompareLevel);
         AppConfig.SetFloatSetting(nameof(DifSensorPar), DifSensorPar);
