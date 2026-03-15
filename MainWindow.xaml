@@ -181,6 +181,11 @@
               Command="{Binding VerticalMenuItemClickedCommand}"
               CommandParameter="14"/>
 
+            <Button Content="Темы мышления" Margin="20,2,5,2"
+              Style="{StaticResource MenuButtonStyle}"
+              Command="{Binding VerticalMenuItemClickedCommand}"
+              CommandParameter="15"/>
+
             <Button Content="Дерево проблем" Margin="20,2,5,2" 
               Style="{StaticResource MenuButtonStyle}"
               Command="{Binding VerticalMenuItemClickedCommand}"

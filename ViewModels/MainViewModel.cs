@@ -333,6 +333,9 @@ namespace AIStudio
           case "14": // Типы ситуаций
             ShowSituationTypes();
             break;
+          case "15": // Темы мышления (типы тем)
+            ShowThemeTypes();
+            break;
           case "13": // Дерево проблем
             ShowProblemTree();
             break;
@@ -422,6 +425,14 @@ namespace AIStudio
           _gomeostas,
           _isidaContext?.SituationTypeSystem,
           _influenceActionSystem);
+      view.DataContext = viewModel;
+      CurrentContent = view;
+    }
+
+    private void ShowThemeTypes()
+    {
+      var view = new ThemeTypesView();
+      var viewModel = new ThemeTypesViewModel(_gomeostas);
       view.DataContext = viewModel;
       CurrentContent = view;
     }
