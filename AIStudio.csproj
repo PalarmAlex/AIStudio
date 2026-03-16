@@ -254,7 +254,7 @@
     <Compile Include="Pages\Understanding\ProblemTreeView.xaml.cs">
       <DependentUpon>ProblemTreeView.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Pages\Understanding\PropertyRowTemplateSelector.cs" />
+    <Compile Include="ViewModels\Understanding\PropertyRowTemplateSelector.cs" />
     <Compile Include="Pages\Understanding\SituationTypesView.xaml.cs">
       <DependentUpon>SituationTypesView.xaml</DependentUpon>
     </Compile>

@@ -7,6 +7,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.Linq;
 using System.Windows.Data;
 using System.Windows.Input;
@@ -136,6 +137,12 @@ namespace AIStudio.ViewModels
         };
 
     public List<KeyValuePair<int, string>> ActionFilterOptions { get; } = new List<KeyValuePair<int, string>>();
+
+    /// <summary>Описание страницы и ссылка на справку для отображения под заголовком.</summary>
+    public DescriptionWithLink CurrentAgentDescription => new DescriptionWithLink
+    {
+      Text = "Таблица цепочек автоматизмов. Отображает связи между автоматизмами и последовательностями действий. "
+    };
 
     public AutomatizmChainsViewModel(
         AutomatizmSystem automatizmSystem,
@@ -463,6 +470,26 @@ namespace AIStudio.ViewModels
       SelectedActionFilterId = 0;
       FilterPhrases = string.Empty;
       FilterImageKind = string.Empty;
+    }
+
+    public class DescriptionWithLink
+    {
+      public string Text { get; set; }
+      public string LinkText { get; set; } = "Подробнее...";
+      public string Url { get; set; } = "https://scorcher.ru/isida/iadaptive_agents_guide.php#automatism_chain";
+      public ICommand OpenLinkCommand { get; }
+
+      public DescriptionWithLink()
+      {
+        OpenLinkCommand = new RelayCommand(_ =>
+        {
+          try
+          {
+            Process.Start(new ProcessStartInfo(Url) { UseShellExecute = true });
+          }
+          catch { }
+        });
+      }
     }
 
     public class ChainDisplayItem

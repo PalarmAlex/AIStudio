@@ -7,6 +7,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.Linq;
 
 namespace AIStudio.ViewModels.Understanding
@@ -66,8 +67,10 @@ namespace AIStudio.ViewModels.Understanding
 
     public string CurrentAgentTitle => "Дерево проблем";
 
-    public string CurrentAgentDescription =>
-      "Дерево проблем — 4 уровня: AutTreeID, SituationTreeID, ThemeID, PurposeID. При клике на узел в правой панели отображаются свойства узла.";
+    public DescriptionWithLink CurrentAgentDescription => new DescriptionWithLink
+    {
+      Text = "Дерево проблем — 4 уровня: AutTreeID, SituationTreeID, ThemeID, PurposeID. При клике на узел в правой панели отображаются свойства узла. "
+    };
 
     #region Дерево
 
@@ -404,6 +407,26 @@ namespace AIStudio.ViewModels.Understanding
     public void RefreshSelectedProperties()
     {
       UpdateSelectedNodePropertyRows();
+    }
+
+    public class DescriptionWithLink
+    {
+      public string Text { get; set; }
+      public string LinkText { get; set; } = "Подробнее...";
+      public string Url { get; set; } = "https://scorcher.ru/isida/iadaptive_agents_guide.php#understanding";
+      public ICommand OpenLinkCommand { get; }
+
+      public DescriptionWithLink()
+      {
+        OpenLinkCommand = new RelayCommand(_ =>
+        {
+          try
+          {
+            Process.Start(new ProcessStartInfo(Url) { UseShellExecute = true });
+          }
+          catch { }
+        });
+      }
     }
   }
 }

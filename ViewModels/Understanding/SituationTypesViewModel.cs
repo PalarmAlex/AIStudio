@@ -8,6 +8,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Windows;
@@ -32,6 +33,11 @@ namespace AIStudio.ViewModels
     public bool IsStageFour => _currentAgentStage == 4;
 
     public string CurrentAgentTitle => "Справочник типов ситуаций";
+
+    public DescriptionWithLink CurrentAgentDescription => new DescriptionWithLink
+    {
+      Text = "Справочник типов ситуаций: слоты по настроению (ID 11–20), воздействию (ID 21–40), привязки тем (ID 41–60). "
+    };
 
     private ObservableCollection<SituationTypeRecord> _moodRecords = new ObservableCollection<SituationTypeRecord>();
     private ObservableCollection<SituationTypeRecord> _influenceRecords = new ObservableCollection<SituationTypeRecord>();
@@ -416,6 +422,26 @@ namespace AIStudio.ViewModels
         r.Description = "";
       }
       SaveAndReload("слоты по воздействию (очищены)");
+    }
+
+    public class DescriptionWithLink
+    {
+      public string Text { get; set; }
+      public string LinkText { get; set; } = "Подробнее...";
+      public string Url { get; set; } = "https://scorcher.ru/isida/iadaptive_agents_guide.php#understanding";
+      public ICommand OpenLinkCommand { get; }
+
+      public DescriptionWithLink()
+      {
+        OpenLinkCommand = new RelayCommand(_ =>
+        {
+          try
+          {
+            Process.Start(new ProcessStartInfo(Url) { UseShellExecute = true });
+          }
+          catch { }
+        });
+      }
     }
   }
 }

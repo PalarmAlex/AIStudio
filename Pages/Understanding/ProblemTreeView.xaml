@@ -100,11 +100,16 @@
 
     <!-- Описание -->
     <TextBlock Grid.Row="1"
-               Text="{Binding CurrentAgentDescription}"
                HorizontalAlignment="Left"
                Margin="0,0,0,10"
                Foreground="#FF333333"
-               TextWrapping="Wrap"/>
+               TextWrapping="Wrap"
+               Height="Auto">
+      <Run Text="{Binding CurrentAgentDescription.Text}"/>
+      <Hyperlink Command="{Binding CurrentAgentDescription.OpenLinkCommand}">
+        <Run Text="{Binding CurrentAgentDescription.LinkText}"/>
+      </Hyperlink>
+    </TextBlock>
 
     <!-- Панель фильтров -->
     <Border Grid.Row="2"
