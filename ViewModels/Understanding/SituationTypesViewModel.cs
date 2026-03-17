@@ -225,7 +225,12 @@ namespace AIStudio.ViewModels
       for (int id = 1; id <= 10; id++)
       {
         if (byId.TryGetValue(id, out var r))
-          sb.AppendLine($"{r.Id}: {r.Description ?? ""}");
+        {
+          var line = $"{r.Id}: {r.Description ?? ""}";
+          if (r.ThemeTypeId > 0)
+            line += $" (ID: {r.ThemeTypeId})";
+          sb.AppendLine(line);
+        }
         else
           sb.AppendLine($"{id}: (нет)");
       }

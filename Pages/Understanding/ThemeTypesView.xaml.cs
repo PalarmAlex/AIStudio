@@ -20,7 +20,7 @@ namespace AIStudio.Pages.Understanding
       if (vm == null) return;
 
       int nextId = vm.GetNextId();
-      e.NewItem = new ThemeTypeItem { Id = nextId, Description = "" };
+      e.NewItem = new ThemeTypeItem { Id = nextId, Description = "", DefaultWeight = 2 };
     }
 
     private void ThemesGrid_PreviewKeyDown(object sender, KeyEventArgs e)

@@ -33,6 +33,7 @@
     <Grid.RowDefinitions>
       <RowDefinition Height="Auto"/>
       <RowDefinition Height="Auto"/>
+      <RowDefinition Height="Auto"/>
       <RowDefinition Height="*"/>
       <RowDefinition Height="Auto"/>
     </Grid.RowDefinitions>
@@ -57,7 +58,25 @@
       </Hyperlink>
     </TextBlock>
 
-    <Border Grid.Row="2"
+    <StackPanel Grid.Row="2" Margin="0,0,0,8">
+      <TextBlock Text="Темы мышления привязанные к событиям агента"
+                 FontWeight="SemiBold"
+                 Foreground="#FF333333"
+                 Margin="0,0,0,4"/>
+      <Border BorderBrush="#FFE0E0E0"
+              BorderThickness="1"
+              CornerRadius="4"
+              Padding="8,6"
+              Background="#FFF5F5F5">
+        <TextBlock Text="{Binding ReservedThemeTypesText}"
+                   Foreground="#FF333333"
+                   TextWrapping="Wrap"
+                   FontFamily="Consolas"
+                   FontSize="13"/>
+      </Border>
+    </StackPanel>
+
+    <Border Grid.Row="3"
             BorderBrush="#FFE0E0E0"
             BorderThickness="1"
             CornerRadius="4"
@@ -92,11 +111,12 @@
               </Style>
             </DataGridTextColumn.ElementStyle>
           </DataGridTextColumn>
+          <DataGridTextColumn Header="Вес" Binding="{Binding DefaultWeight, UpdateSourceTrigger=PropertyChanged}" Width="50" MinWidth="50"/>
         </DataGrid.Columns>
       </DataGrid>
     </Border>
 
-    <Grid Grid.Row="3">
+    <Grid Grid.Row="4">
       <Grid.ColumnDefinitions>
         <ColumnDefinition Width="*"/>
         <ColumnDefinition Width="Auto"/>

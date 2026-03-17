@@ -171,11 +171,6 @@
               Command="{Binding VerticalMenuItemClickedCommand}"
               CommandParameter="11"/>
 
-            <Button Content="Дерево ситуации" Margin="20,2,5,2" 
-              Style="{StaticResource MenuButtonStyle}"
-              Command="{Binding VerticalMenuItemClickedCommand}"
-              CommandParameter="12"/>
-
             <Button Content="Типы ситуаций" Margin="20,2,5,2" 
               Style="{StaticResource MenuButtonStyle}"
               Command="{Binding VerticalMenuItemClickedCommand}"

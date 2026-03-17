@@ -141,7 +141,7 @@ namespace AIStudio.ViewModels
     /// <summary>Описание страницы и ссылка на справку для отображения под заголовком.</summary>
     public DescriptionWithLink CurrentAgentDescription => new DescriptionWithLink
     {
-      Text = "Таблица цепочек автоматизмов. Отображает связи между автоматизмами и последовательностями действий. "
+      Text = "Таблица цепочек автоматизмов - контекстным продолжением действий автоматизмов. "
     };
 
     public AutomatizmChainsViewModel(

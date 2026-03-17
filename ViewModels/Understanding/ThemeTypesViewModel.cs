@@ -14,14 +14,16 @@ using System.Windows.Media;
 
 namespace AIStudio.ViewModels
 {
-  /// <summary>Строка таблицы типов тем (theme_types.dat): ID и описание.</summary>
+  /// <summary>Строка таблицы типов тем (theme_types.dat): ID, описание и вес по умолчанию.</summary>
   public class ThemeTypeItem : INotifyPropertyChanged
   {
     private int _id;
     private string _description;
+    private int _defaultWeight = 2;
 
     public int Id { get => _id; set { if (_id != value) { _id = value; OnPropertyChanged(nameof(Id)); } } }
     public string Description { get => _description; set { if (_description != value) { _description = value; OnPropertyChanged(nameof(Description)); } } }
+    public int DefaultWeight { get => _defaultWeight; set { if (_defaultWeight != value) { _defaultWeight = value; OnPropertyChanged(nameof(DefaultWeight)); } } }
 
     public event PropertyChangedEventHandler PropertyChanged;
     protected void OnPropertyChanged(string name) => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
@@ -39,14 +41,17 @@ namespace AIStudio.ViewModels
     private int _currentAgentStage;
 
     public bool IsStageFour => _currentAgentStage == 4;
-    public string CurrentAgentTitle => "Типы тем мышления";
+    public string CurrentAgentTitle => "Темы мышления";
 
     public DescriptionWithLink CurrentAgentDescription => new DescriptionWithLink
     {
-      Text = "Справочник типов тем мышления. "
+      Text = "Темы мышления агента. "
     };
 
     public ObservableCollection<ThemeTypeItem> ThemeTypes { get; } = new ObservableCollection<ThemeTypeItem>();
+
+    /// <summary>Текст блока «Темы мышления привязанные к событиям агента»: строки вида «ID: 1, Описание».</summary>
+    public string ReservedThemeTypesText { get; private set; } = "";
 
     public ICommand SaveCommand { get; }
     public ICommand ClearCommand { get; }
@@ -78,7 +83,7 @@ namespace AIStudio.ViewModels
 
     public string PulseWarningMessage =>
         !IsStageFour
-            ? "[КРИТИЧНО] Редактирование типов тем доступно только в стадии 4"
+            ? "[КРИТИЧНО] Редактирование тем мышления доступно только в стадии 4"
             : GlobalTimer.IsPulsationRunning
                 ? "Редактирование доступно только при выключенной пульсации"
                 : string.Empty;
@@ -100,11 +105,20 @@ namespace AIStudio.ViewModels
         {
           foreach (var t in ThemeImageSystem.Instance.GetEditableThemeTypes())
           {
-            ThemeTypes.Add(new ThemeTypeItem { Id = t.Id, Description = t.Description ?? "" });
+            ThemeTypes.Add(new ThemeTypeItem { Id = t.Id, Description = t.Description ?? "", DefaultWeight = t.DefaultWeight });
           }
+          var protectedIds = ThemeImageSystem.GetThemeTypeIdsProtectedFromRemoval();
+          var instance = ThemeImageSystem.Instance;
+          ReservedThemeTypesText = string.Join(Environment.NewLine,
+            protectedIds.OrderBy(id => id).Select(id => $"ID: {id}, {instance.GetThemeTypeDescription(id)}"));
+        }
+        else
+        {
+          ReservedThemeTypesText = "";
         }
 
         OnPropertyChanged(nameof(ThemeTypes));
+        OnPropertyChanged(nameof(ReservedThemeTypesText));
         OnPropertyChanged(nameof(IsStageFour));
         OnPropertyChanged(nameof(IsEditingEnabled));
         OnPropertyChanged(nameof(PulseWarningMessage));
@@ -114,7 +128,7 @@ namespace AIStudio.ViewModels
       }
       catch (Exception ex)
       {
-        MessageBox.Show($"Ошибка загрузки типов тем: {ex.Message}", "Ошибка",
+        MessageBox.Show($"Ошибка загрузки тем мышления: {ex.Message}", "Ошибка",
             MessageBoxButton.OK, MessageBoxImage.Error);
       }
     }
@@ -142,7 +156,7 @@ namespace AIStudio.ViewModels
       if (toRemove == null || toRemove.Count == 0) return;
       if (!ThemeImageSystem.IsInitialized)
       {
-        MessageBox.Show("Система типов тем не инициализирована.", "Ошибка",
+        MessageBox.Show("Система тем мышления не инициализирована.", "Ошибка",
             MessageBoxButton.OK, MessageBoxImage.Error);
         return;
       }
@@ -150,7 +164,7 @@ namespace AIStudio.ViewModels
       {
         foreach (var r in toRemove)
           ThemeTypes.Remove(r);
-        var list = ThemeTypes.Select(t => (t.Id, t.Description ?? "")).ToList();
+        var list = ThemeTypes.Select(t => (t.Id, t.Description ?? "", t.DefaultWeight)).ToList();
         var (success, error) = ThemeImageSystem.Instance.UpdateThemeTypesFromEditable(list);
         if (success)
           LoadData();
@@ -169,23 +183,23 @@ namespace AIStudio.ViewModels
     {
       if (!ThemeImageSystem.IsInitialized)
       {
-        MessageBox.Show("Система типов тем не инициализирована.", "Ошибка",
+        MessageBox.Show("Система тем мышления не инициализирована.", "Ошибка",
             MessageBoxButton.OK, MessageBoxImage.Error);
         return;
       }
 
-      var list = ThemeTypes.Select(t => (t.Id, t.Description ?? "")).ToList();
+      var list = ThemeTypes.Select(t => (t.Id, t.Description ?? "", t.DefaultWeight)).ToList();
       var (success, error) = ThemeImageSystem.Instance.UpdateThemeTypesFromEditable(list);
 
       if (success)
       {
         LoadData();
-        MessageBox.Show("Типы тем успешно сохранены.", "Сохранение завершено",
+        MessageBox.Show("Темы мышления успешно сохранены.", "Сохранение завершено",
             MessageBoxButton.OK, MessageBoxImage.Information);
       }
       else
       {
-        MessageBox.Show($"Не удалось сохранить типы тем:\n{error}",
+        MessageBox.Show($"Не удалось сохранить темы мышления:\n{error}",
             "Ошибка сохранения",
             MessageBoxButton.OK, MessageBoxImage.Error);
       }
@@ -194,7 +208,7 @@ namespace AIStudio.ViewModels
     private void ClearData(object parameter)
     {
       var result = MessageBox.Show(
-          "Очистить описания всех типов тем в таблице (заменить на пустые строки и сохранить в файл)?",
+          "Очистить описания всех тем мышления в таблице (заменить на пустые строки и сохранить в файл)?",
           "Подтверждение очистки",
           MessageBoxButton.YesNo,
           MessageBoxImage.Warning);
@@ -204,17 +218,17 @@ namespace AIStudio.ViewModels
 
       if (!ThemeImageSystem.IsInitialized)
       {
-        MessageBox.Show("Система типов тем не инициализирована.", "Ошибка",
+        MessageBox.Show("Система тем мышления не инициализирована.", "Ошибка",
             MessageBoxButton.OK, MessageBoxImage.Error);
         return;
       }
 
-      var list = ThemeTypes.Select(t => (t.Id, "")).ToList();
+      var list = ThemeTypes.Select(t => (t.Id, "", t.DefaultWeight)).ToList();
       var (success, error) = ThemeImageSystem.Instance.UpdateThemeTypesFromEditable(list);
       if (success)
       {
         LoadData();
-        MessageBox.Show("Описания типов тем очищены.", "Очистка завершена",
+        MessageBox.Show("Описания тем мышления очищены.", "Очистка завершена",
             MessageBoxButton.OK, MessageBoxImage.Information);
       }
       else

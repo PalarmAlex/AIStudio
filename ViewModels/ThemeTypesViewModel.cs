@@ -13,14 +13,16 @@ using System.Windows.Media;
 
 namespace AIStudio.ViewModels
 {
-  /// <summary>Строка таблицы типов тем (theme_types.dat): ID и описание.</summary>
+  /// <summary>Строка таблицы типов тем (theme_types.dat): ID, описание и вес по умолчанию.</summary>
   public class ThemeTypeItem : INotifyPropertyChanged
   {
     private int _id;
     private string _description;
+    private int _defaultWeight = 2;
 
     public int Id { get => _id; set { if (_id != value) { _id = value; OnPropertyChanged(nameof(Id)); } } }
     public string Description { get => _description; set { if (_description != value) { _description = value; OnPropertyChanged(nameof(Description)); } } }
+    public int DefaultWeight { get => _defaultWeight; set { if (_defaultWeight != value) { _defaultWeight = value; OnPropertyChanged(nameof(DefaultWeight)); } } }
 
     public event PropertyChangedEventHandler PropertyChanged;
     protected void OnPropertyChanged(string name) => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
@@ -94,7 +96,7 @@ namespace AIStudio.ViewModels
         {
           foreach (var t in ThemeImageSystem.Instance.GetEditableThemeTypes())
           {
-            ThemeTypes.Add(new ThemeTypeItem { Id = t.Id, Description = t.Description ?? "" });
+            ThemeTypes.Add(new ThemeTypeItem { Id = t.Id, Description = t.Description ?? "", DefaultWeight = t.DefaultWeight });
           }
         }
 
@@ -139,7 +141,7 @@ namespace AIStudio.ViewModels
         return;
       }
 
-      var list = ThemeTypes.Select(t => (t.Id, t.Description ?? "")).ToList();
+      var list = ThemeTypes.Select(t => (t.Id, t.Description ?? "", t.DefaultWeight)).ToList();
       var (success, error) = ThemeImageSystem.Instance.UpdateThemeTypesFromEditable(list);
 
       if (success)
@@ -174,7 +176,7 @@ namespace AIStudio.ViewModels
         return;
       }
 
-      var list = ThemeTypes.Select(t => (t.Id, "")).ToList();
+      var list = ThemeTypes.Select(t => (t.Id, "", t.DefaultWeight)).ToList();
       var (success, error) = ThemeImageSystem.Instance.UpdateThemeTypesFromEditable(list);
       if (success)
       {
