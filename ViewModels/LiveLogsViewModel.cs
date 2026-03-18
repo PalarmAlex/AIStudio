@@ -442,6 +442,26 @@ namespace AIStudio.ViewModels
       return $"Ориентировочный рефлекс: {orValue}";
     }
 
+    /// <summary>
+    /// Получает текст подсказки для уровня мышления (УМ1/УМ2) с результатом (успех/неудача)
+    /// </summary>
+    public string GetThinkingLevelTooltip(string displayThinkingLevel, bool? thinkingLevelSuccess)
+    {
+      if (string.IsNullOrEmpty(displayThinkingLevel) || displayThinkingLevel == "-")
+        return "Уровень мышления не активирован";
+
+      var value = displayThinkingLevel.Trim();
+      string levelDesc = value == "1"
+          ? "УМ1: решение за счёт штатного автоматизма узла дерева (без правил эпизодической памяти)"
+          : value == "2"
+              ? "УМ2: поиск или создание автоматизма по правилам эпизодической памяти"
+              : $"Уровень мышления: {value}";
+      string resultLine = thinkingLevelSuccess.HasValue
+          ? (thinkingLevelSuccess.Value ? "Результат: Успех" : "Результат: Неудача")
+          : "";
+      return string.IsNullOrEmpty(resultLine) ? levelDesc : levelDesc + "\n" + resultLine;
+    }
+
     #endregion
   }
 }

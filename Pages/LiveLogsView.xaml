@@ -15,6 +15,7 @@
     <converters:ActionsForConditionReflexConverter x:Key="ActionsForConditionReflexConverter"/>
     <converters:AutomatizmTooltipMultiConverter x:Key="AutomatizmTooltipConverter"/>
     <converters:OrientationReflexTooltipMultiConverter x:Key="OrientationReflexTooltipConverter"/>
+    <converters:ThinkingLevelTooltipMultiConverter x:Key="ThinkingLevelTooltipConverter"/>
 
     <!-- Стиль для текста матрицы -->
     <Style x:Key="MatrixTextStyle" TargetType="TextBlock">
@@ -269,6 +270,31 @@
       <Setter Property="ToolTipService.InitialShowDelay" Value="500"/>
     </Style>
 
+    <!-- Стиль для ячейки УМ (уровень мышления): цвет как в других ячейках, зелёный фон — успех, красный — неуспех -->
+    <Style x:Key="ThinkingLevelCellStyle" TargetType="DataGridCell" BasedOn="{StaticResource MatrixCellStyle}">
+      <Setter Property="Foreground" Value="#FF00FF00"/>
+      <Setter Property="ToolTip">
+        <Setter.Value>
+          <MultiBinding Converter="{StaticResource ThinkingLevelTooltipConverter}">
+            <Binding Path="DataContext" RelativeSource="{RelativeSource AncestorType=UserControl}"/>
+            <Binding Path="DisplayThinkingLevel"/>
+            <Binding Path="ThinkingLevelSuccessDisplay"/>
+          </MultiBinding>
+        </Setter.Value>
+      </Setter>
+      <Style.Triggers>
+        <DataTrigger Binding="{Binding ThinkingLevelSuccessDisplay}" Value="True">
+          <Setter Property="Background" Value="#4000AA00"/>
+        </DataTrigger>
+        <DataTrigger Binding="{Binding ThinkingLevelSuccessDisplay}" Value="False">
+          <Setter Property="Background" Value="#40AA0000"/>
+        </DataTrigger>
+        <Trigger Property="IsSelected" Value="True">
+          <Setter Property="Foreground" Value="#FFFFFF"/>
+        </Trigger>
+      </Style.Triggers>
+    </Style>
+
   </UserControl.Resources>
 
   <Grid Background="Black">
@@ -407,6 +433,16 @@
               <DataGridColumnHeader Style="{StaticResource MatrixHeaderStyle}" 
                             Content="Цепочка АВ"
                             ToolTip="ID цепочки автоматизма и ID действия (ChainId:ActionId)"/>
+            </DataGridTextColumn.Header>
+          </DataGridTextColumn>
+
+          <DataGridTextColumn Binding="{Binding DisplayThinkingLevel}" 
+                    Width="40" 
+                    CellStyle="{StaticResource ThinkingLevelCellStyle}">
+            <DataGridTextColumn.Header>
+              <DataGridColumnHeader Style="{StaticResource MatrixHeaderStyle}" 
+                            Content="УМ"
+                            ToolTip="Уровень мышления"/>
             </DataGridTextColumn.Header>
           </DataGridTextColumn>
 

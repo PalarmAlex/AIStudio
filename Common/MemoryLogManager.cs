@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.ObjectModel;
 using System.Windows;
 using System.Windows.Threading;
@@ -167,7 +167,8 @@ namespace AIStudio.Common
     public void WriteLog(string className, string method, int? pulse, int? baseId,
                        int? baseStyleId, int? triggerStimulusId, int? orientationReflexType,
                        int? geneticReflexId, int? conditionedReflexId, int? automatizmId,
-                       string reflexChainInfo = null, string automatizmChainInfo = null)
+                       string reflexChainInfo = null, string automatizmChainInfo = null,
+                       int? thinkingLevel = null, bool? thinkingLevelSuccess = null)
     {
       if (_disposed) return;
 
@@ -185,6 +186,8 @@ namespace AIStudio.Common
         AutomatizmID = automatizmId == 0 ? null : automatizmId,
         ReflexChainInfo = reflexChainInfo ?? string.Empty,
         AutomatizmChainInfo = automatizmChainInfo ?? string.Empty,
+        ThinkingLevel = thinkingLevel,
+        ThinkingLevelSuccess = thinkingLevelSuccess,
         Timestamp = DateTime.Now
       };
 
@@ -746,6 +749,30 @@ namespace AIStudio.Common
       /// ID цепочки автоматизма и ID действия в формате "ChainId:ActionId"
       /// </summary>
       public string AutomatizmChainInfo { get; set; } = string.Empty;
+
+      /// <summary>
+      /// Уровень мышления: 1 = УМ1, 2 = УМ2, null = не активирован
+      /// </summary>
+      public int? ThinkingLevel { get; set; }
+
+      /// <summary>
+      /// Успех решения проблемы на активированном уровне мышления (зелёный/красный фон в UI)
+      /// </summary>
+      public bool? ThinkingLevelSuccess { get; set; }
+
+      /// <summary>
+      /// Строковое представление результата УМ для привязок в шаблоне (избегаем bool? в XAML): "True", "False" или ""
+      /// </summary>
+      public string ThinkingLevelSuccessDisplay => ThinkingLevelSuccess.HasValue
+          ? (ThinkingLevelSuccess.Value ? "True" : "False")
+          : "";
+
+      /// <summary>
+      /// Отображаемое значение уровня мышления для UI: "1", "2" или "-"
+      /// </summary>
+      public string DisplayThinkingLevel => ThinkingLevel.HasValue && (ThinkingLevel.Value == 1 || ThinkingLevel.Value == 2)
+          ? ThinkingLevel.Value.ToString()
+          : "-";
 
       /// <summary>
       /// Форматированная информация о цепочке рефлекса для отображения в UI (используется с tooltip)
