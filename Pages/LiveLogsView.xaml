@@ -14,8 +14,7 @@
     <converters:ActionsForGeneticReflexConverter x:Key="ActionsForGeneticReflexConverter"/>
     <converters:ActionsForConditionReflexConverter x:Key="ActionsForConditionReflexConverter"/>
     <converters:AutomatizmTooltipMultiConverter x:Key="AutomatizmTooltipConverter"/>
-    <converters:OrientationReflexTooltipMultiConverter x:Key="OrientationReflexTooltipConverter"/>
-    <converters:ThinkingLevelTooltipMultiConverter x:Key="ThinkingLevelTooltipConverter"/>
+    <converters:OrUmTooltipMultiConverter x:Key="OrUmTooltipConverter"/>
 
     <!-- Стиль для текста матрицы -->
     <Style x:Key="MatrixTextStyle" TargetType="TextBlock">
@@ -220,38 +219,59 @@
       </Setter>
     </Style>
 
-    <!-- Стиль для ячейки ОР: -->
-    <Style x:Key="OrientationReflexCellStyle" TargetType="DataGridCell" BasedOn="{StaticResource MatrixCellStyle}">
-      <!-- Устанавливаем зеленый цвет шрифта по умолчанию -->
+    <!-- Стиль для ячейки ОР/УМ (ориентировка на стадиях ≤3; с 4-й — уровни 1–2 мышления) -->
+    <Style x:Key="OrUmCellStyle" TargetType="DataGridCell" BasedOn="{StaticResource MatrixCellStyle}">
       <Setter Property="Foreground" Value="#00FF00"/>
-
       <Setter Property="ToolTip">
         <Setter.Value>
-          <MultiBinding Converter="{StaticResource OrientationReflexTooltipConverter}">
+          <MultiBinding Converter="{StaticResource OrUmTooltipConverter}">
             <Binding Path="DataContext" RelativeSource="{RelativeSource AncestorType=UserControl}"/>
-            <Binding Path="DisplayOrientationReflexType"/>
+            <Binding Path="DisplayOrUm"/>
+            <Binding Path="ThinkingLevelSuccessDisplay"/>
           </MultiBinding>
         </Setter.Value>
       </Setter>
-
       <Style.Triggers>
-        <!-- Для ОР и ОР1 - красный фон -->
-        <DataTrigger Binding="{Binding DisplayOrientationReflexType}" Value="ОР">
+        <DataTrigger Binding="{Binding DisplayOrUm}" Value="ОР">
           <Setter Property="Background" Value="#40FF0000"/>
           <Setter Property="FontWeight" Value="Bold"/>
         </DataTrigger>
-        <DataTrigger Binding="{Binding DisplayOrientationReflexType}" Value="ОР1">
+        <DataTrigger Binding="{Binding DisplayOrUm}" Value="ОР1">
           <Setter Property="Background" Value="#40FF0000"/>
           <Setter Property="FontWeight" Value="Bold"/>
         </DataTrigger>
-
-        <!-- Для ОР2 - желтый фон -->
-        <DataTrigger Binding="{Binding DisplayOrientationReflexType}" Value="ОР2">
+        <DataTrigger Binding="{Binding DisplayOrUm}" Value="ОР2">
           <Setter Property="Background" Value="#40FFFF00"/>
           <Setter Property="FontWeight" Value="Bold"/>
         </DataTrigger>
-
-        <!-- При нажатии/выделении меняем цвет шрифта на белый -->
+        <MultiDataTrigger>
+          <MultiDataTrigger.Conditions>
+            <Condition Binding="{Binding DisplayOrUm}" Value="УМ1"/>
+            <Condition Binding="{Binding ThinkingLevelSuccessDisplay}" Value="True"/>
+          </MultiDataTrigger.Conditions>
+          <Setter Property="Background" Value="#4000AA00"/>
+        </MultiDataTrigger>
+        <MultiDataTrigger>
+          <MultiDataTrigger.Conditions>
+            <Condition Binding="{Binding DisplayOrUm}" Value="УМ1"/>
+            <Condition Binding="{Binding ThinkingLevelSuccessDisplay}" Value="False"/>
+          </MultiDataTrigger.Conditions>
+          <Setter Property="Background" Value="#40AA0000"/>
+        </MultiDataTrigger>
+        <MultiDataTrigger>
+          <MultiDataTrigger.Conditions>
+            <Condition Binding="{Binding DisplayOrUm}" Value="УМ2"/>
+            <Condition Binding="{Binding ThinkingLevelSuccessDisplay}" Value="True"/>
+          </MultiDataTrigger.Conditions>
+          <Setter Property="Background" Value="#4000AA00"/>
+        </MultiDataTrigger>
+        <MultiDataTrigger>
+          <MultiDataTrigger.Conditions>
+            <Condition Binding="{Binding DisplayOrUm}" Value="УМ2"/>
+            <Condition Binding="{Binding ThinkingLevelSuccessDisplay}" Value="False"/>
+          </MultiDataTrigger.Conditions>
+          <Setter Property="Background" Value="#40AA0000"/>
+        </MultiDataTrigger>
         <Trigger Property="IsSelected" Value="True">
           <Setter Property="Foreground" Value="#FFFFFF"/>
         </Trigger>
@@ -268,31 +288,6 @@
     <Style x:Key="AutomatizmChainCellStyle" TargetType="DataGridCell" BasedOn="{StaticResource MatrixCellStyle}">
       <Setter Property="ToolTipService.ToolTip" Value="Наведите для просмотра названия действия"/>
       <Setter Property="ToolTipService.InitialShowDelay" Value="500"/>
-    </Style>
-
-    <!-- Стиль для ячейки УМ (уровень мышления): цвет как в других ячейках, зелёный фон — успех, красный — неуспех -->
-    <Style x:Key="ThinkingLevelCellStyle" TargetType="DataGridCell" BasedOn="{StaticResource MatrixCellStyle}">
-      <Setter Property="Foreground" Value="#FF00FF00"/>
-      <Setter Property="ToolTip">
-        <Setter.Value>
-          <MultiBinding Converter="{StaticResource ThinkingLevelTooltipConverter}">
-            <Binding Path="DataContext" RelativeSource="{RelativeSource AncestorType=UserControl}"/>
-            <Binding Path="DisplayThinkingLevel"/>
-            <Binding Path="ThinkingLevelSuccessDisplay"/>
-          </MultiBinding>
-        </Setter.Value>
-      </Setter>
-      <Style.Triggers>
-        <DataTrigger Binding="{Binding ThinkingLevelSuccessDisplay}" Value="True">
-          <Setter Property="Background" Value="#4000AA00"/>
-        </DataTrigger>
-        <DataTrigger Binding="{Binding ThinkingLevelSuccessDisplay}" Value="False">
-          <Setter Property="Background" Value="#40AA0000"/>
-        </DataTrigger>
-        <Trigger Property="IsSelected" Value="True">
-          <Setter Property="Foreground" Value="#FFFFFF"/>
-        </Trigger>
-      </Style.Triggers>
     </Style>
 
   </UserControl.Resources>
@@ -376,13 +371,13 @@
             </DataGridTextColumn.Header>
           </DataGridTextColumn>
 
-          <DataGridTextColumn Binding="{Binding DisplayOrientationReflexType}" 
-                    Width="50"
-                    CellStyle="{StaticResource OrientationReflexCellStyle}">
+          <DataGridTextColumn Binding="{Binding DisplayOrUm}" 
+                    Width="56"
+                    CellStyle="{StaticResource OrUmCellStyle}">
             <DataGridTextColumn.Header>
               <DataGridColumnHeader Style="{StaticResource MatrixHeaderStyle}" 
-                    Content="ОР"
-                    ToolTip="Ориентировочный рефлекс"/>
+                    Content="ОР/УМ"
+                    ToolTip="До 4-й стадии — ориентировочный рефлекс; с 4-й — уровни мышления вместо ОР."/>
             </DataGridTextColumn.Header>
           </DataGridTextColumn>
 
@@ -433,16 +428,6 @@
               <DataGridColumnHeader Style="{StaticResource MatrixHeaderStyle}" 
                             Content="Цепочка АВ"
                             ToolTip="ID цепочки автоматизма и ID действия (ChainId:ActionId)"/>
-            </DataGridTextColumn.Header>
-          </DataGridTextColumn>
-
-          <DataGridTextColumn Binding="{Binding DisplayThinkingLevel}" 
-                    Width="40" 
-                    CellStyle="{StaticResource ThinkingLevelCellStyle}">
-            <DataGridTextColumn.Header>
-              <DataGridColumnHeader Style="{StaticResource MatrixHeaderStyle}" 
-                            Content="УМ"
-                            ToolTip="Уровень мышления"/>
             </DataGridTextColumn.Header>
           </DataGridTextColumn>
 

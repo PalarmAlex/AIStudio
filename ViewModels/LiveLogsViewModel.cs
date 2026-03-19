@@ -451,9 +451,11 @@ namespace AIStudio.ViewModels
         return "Уровень мышления не активирован";
 
       var value = displayThinkingLevel.Trim();
-      string levelDesc = value == "1"
+      bool isUm1 = value == "1" || value == "УМ1";
+      bool isUm2 = value == "2" || value == "УМ2";
+      string levelDesc = isUm1
           ? "УМ1: решение за счёт штатного автоматизма узла дерева (без правил эпизодической памяти)"
-          : value == "2"
+          : isUm2
               ? "УМ2: поиск или создание автоматизма по правилам эпизодической памяти"
               : $"Уровень мышления: {value}";
       string resultLine = thinkingLevelSuccess.HasValue

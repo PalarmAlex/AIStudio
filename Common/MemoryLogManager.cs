@@ -725,6 +725,12 @@ namespace AIStudio.Common
         }
       }
 
+      /// <summary>Одна колонка: при активном УМ — «УМ1»/«УМ2», иначе ОР1/ОР2 или «-».</summary>
+      public string DisplayOrUm =>
+          ThinkingLevel.HasValue && (ThinkingLevel.Value == 1 || ThinkingLevel.Value == 2)
+              ? (ThinkingLevel.Value == 1 ? "УМ1" : "УМ2")
+              : DisplayOrientationReflexType;
+
       /// <summary>
       /// Отформатированный идентификатор безусловного рефлекса для отображения в UI
       /// </summary>
@@ -768,10 +774,10 @@ namespace AIStudio.Common
           : "";
 
       /// <summary>
-      /// Отображаемое значение уровня мышления для UI: "1", "2" или "-"
+      /// Отображаемое значение уровня мышления для UI: «УМ1», «УМ2» или «-»
       /// </summary>
       public string DisplayThinkingLevel => ThinkingLevel.HasValue && (ThinkingLevel.Value == 1 || ThinkingLevel.Value == 2)
-          ? ThinkingLevel.Value.ToString()
+          ? (ThinkingLevel.Value == 1 ? "УМ1" : "УМ2")
           : "-";
 
       /// <summary>
