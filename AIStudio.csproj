@@ -183,6 +183,9 @@
     <Compile Include="Pages\LiveLogsView.xaml.cs">
       <DependentUpon>LiveLogsView.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Pages\ThinkingCyclesView.xaml.cs">
+      <DependentUpon>ThinkingCyclesView.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Pages\ParameterLogsView.xaml.cs">
       <DependentUpon>ParameterLogsView.xaml</DependentUpon>
     </Compile>
@@ -292,6 +295,7 @@
     <Compile Include="ViewModels\AgentInfo.cs" />
     <Compile Include="ViewModels\ExterInalInfluencesViewModel.cs" />
     <Compile Include="ViewModels\LiveLogsViewModel.cs" />
+    <Compile Include="ViewModels\ThinkingCyclesViewModel.cs" />
     <Compile Include="ViewModels\MainViewModel.cs" />
     <Compile Include="ViewModels\ParameterLogsViewModel.cs" />
     <Compile Include="ViewModels\ParametersStylesMatrixViewModel.cs" />
@@ -409,6 +413,10 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="Pages\LiveLogsView.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Pages\ThinkingCyclesView.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

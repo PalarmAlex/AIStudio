@@ -1,0 +1,220 @@
+<UserControl x:Class="AIStudio.Pages.ThinkingCyclesView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:viewmodels="clr-namespace:AIStudio.ViewModels"
+             mc:Ignorable="d"
+             d:DataContext="{d:DesignInstance Type=viewmodels:ThinkingCyclesViewModel}"
+             d:DesignHeight="700" d:DesignWidth="1100">
+
+  <UserControl.Resources>
+    <Style x:Key="CardBorderStyle" TargetType="Border">
+      <Setter Property="BorderBrush" Value="#FFE0E0E0"/>
+      <Setter Property="BorderThickness" Value="1"/>
+      <Setter Property="CornerRadius" Value="4"/>
+      <Setter Property="Background" Value="#FFF5F5F5"/>
+    </Style>
+
+    <Style x:Key="SectionTitleStyle" TargetType="TextBlock">
+      <Setter Property="FontSize" Value="14"/>
+      <Setter Property="FontWeight" Value="SemiBold"/>
+      <Setter Property="Foreground" Value="#FF333333"/>
+      <Setter Property="Margin" Value="0,0,0,6"/>
+    </Style>
+
+    <Style x:Key="KeyTextStyle" TargetType="TextBlock">
+      <Setter Property="FontSize" Value="12"/>
+      <Setter Property="Foreground" Value="#FF333333"/>
+      <Setter Property="FontWeight" Value="Bold"/>
+      <Setter Property="Margin" Value="0,0,10,4"/>
+    </Style>
+
+    <Style x:Key="ValueTextStyle" TargetType="TextBlock">
+      <Setter Property="FontSize" Value="12"/>
+      <Setter Property="Foreground" Value="#FF0066B3"/>
+      <Setter Property="TextWrapping" Value="Wrap"/>
+      <Setter Property="Margin" Value="0,0,0,4"/>
+    </Style>
+
+    <Style x:Key="MonoReadOnlyTextBoxStyle" TargetType="TextBox">
+      <Setter Property="FontFamily" Value="Consolas"/>
+      <Setter Property="FontSize" Value="12"/>
+      <Setter Property="Background" Value="White"/>
+      <Setter Property="BorderBrush" Value="#FFE0E0E0"/>
+      <Setter Property="BorderThickness" Value="1"/>
+      <Setter Property="Padding" Value="6"/>
+      <Setter Property="IsReadOnly" Value="True"/>
+      <Setter Property="VerticalScrollBarVisibility" Value="Auto"/>
+      <Setter Property="HorizontalScrollBarVisibility" Value="Auto"/>
+      <Setter Property="TextWrapping" Value="NoWrap"/>
+    </Style>
+  </UserControl.Resources>
+
+  <Grid Margin="12">
+    <Grid.RowDefinitions>
+      <RowDefinition Height="Auto"/>
+      <RowDefinition Height="Auto"/>
+      <RowDefinition Height="*"/>
+    </Grid.RowDefinitions>
+
+    <TextBlock Grid.Row="0"
+               Text="Циклы осмысления"
+               FontSize="18"
+               FontWeight="SemiBold"
+               HorizontalAlignment="Center"
+               Foreground="#FF333333"
+               Margin="0,0,0,5"/>
+
+    <TextBlock Grid.Row="1"
+               Text="Визуализация состояния главного цикла (3-й уровень) и его отладочного дампа. Страница только для чтения."
+               Foreground="#FF333333"
+               TextWrapping="Wrap"
+               Margin="0,0,0,10"/>
+
+    <Grid Grid.Row="2">
+      <Grid.RowDefinitions>
+        <RowDefinition Height="Auto"/>
+        <RowDefinition Height="Auto"/>
+        <RowDefinition Height="*"/>
+      </Grid.RowDefinitions>
+
+      <!-- Главный цикл -->
+      <Border Grid.Row="0" Style="{StaticResource CardBorderStyle}">
+        <Grid Margin="8">
+          <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+          </Grid.RowDefinitions>
+          <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="Auto"/>
+            <ColumnDefinition Width="*"/>
+          </Grid.ColumnDefinitions>
+
+          <TextBlock Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2" Style="{StaticResource SectionTitleStyle}"
+                     Text="Главный цикл (3-й уровень)"/>
+
+          <StackPanel Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2">
+            <Grid Margin="0,0,0,2">
+              <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="220"/>
+                <ColumnDefinition Width="*"/>
+              </Grid.ColumnDefinitions>
+              <TextBlock Grid.Column="0" Text="Статус:" Style="{StaticResource KeyTextStyle}"/>
+              <TextBlock Grid.Column="1" Text="{Binding MainCycleStatusText}"
+                         Foreground="{Binding MainCycleStatusBrush}"
+                         FontFamily="Consolas"
+                         FontSize="12"
+                         FontWeight="Bold"/>
+            </Grid>
+
+            <Grid>
+              <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="220"/>
+                <ColumnDefinition Width="*"/>
+              </Grid.ColumnDefinitions>
+              <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+              </Grid.RowDefinitions>
+
+              <TextBlock Grid.Row="0" Grid.Column="0" Text="ID цикла:" Style="{StaticResource KeyTextStyle}"/>
+              <TextBlock Grid.Row="0" Grid.Column="1" Text="{Binding MainCycleIdText}" Style="{StaticResource ValueTextStyle}"/>
+
+              <TextBlock Grid.Row="1" Grid.Column="0" Text="Порядок:" Style="{StaticResource KeyTextStyle}"/>
+              <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding MainCycleOrderText}" Style="{StaticResource ValueTextStyle}"/>
+
+              <TextBlock Grid.Row="2" Grid.Column="0" Text="Создан на пульсе:" Style="{StaticResource KeyTextStyle}"/>
+              <TextBlock Grid.Row="2" Grid.Column="1" Text="{Binding MainCycleCreatedPulseText}" Style="{StaticResource ValueTextStyle}"/>
+
+              <TextBlock Grid.Row="3" Grid.Column="0" Text="Шаги выполнения:" Style="{StaticResource KeyTextStyle}"/>
+              <TextBlock Grid.Row="3" Grid.Column="1" Text="{Binding MainCycleStepCountText}" Style="{StaticResource ValueTextStyle}"/>
+
+              <TextBlock Grid.Row="4" Grid.Column="0" Text="Вес (значимость):" Style="{StaticResource KeyTextStyle}"/>
+              <TextBlock Grid.Row="4" Grid.Column="1" Text="{Binding MainCycleWeightText}" Style="{StaticResource ValueTextStyle}"/>
+
+              <TextBlock Grid.Row="5" Grid.Column="0" Text="Последнее обновление:" Style="{StaticResource KeyTextStyle}"/>
+              <TextBlock Grid.Row="5" Grid.Column="1" Text="{Binding MainCycleLastUpdatedText}" Style="{StaticResource ValueTextStyle}"/>
+            </Grid>
+          </StackPanel>
+        </Grid>
+      </Border>
+
+      <!-- Контекст нерешённой проблемы -->
+      <Border Grid.Row="1" Style="{StaticResource CardBorderStyle}" Margin="0,8,0,8">
+        <Grid Margin="8">
+          <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+          </Grid.RowDefinitions>
+          <TextBlock Grid.Row="0" Style="{StaticResource SectionTitleStyle}" Text="Контекст нерешённой проблемы (на момент шага)"/>
+
+          <Grid Grid.Row="1">
+            <Grid.ColumnDefinitions>
+              <ColumnDefinition Width="220"/>
+              <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+            <Grid.RowDefinitions>
+              <RowDefinition Height="Auto"/>
+              <RowDefinition Height="Auto"/>
+              <RowDefinition Height="Auto"/>
+              <RowDefinition Height="Auto"/>
+              <RowDefinition Height="Auto"/>
+              <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+
+            <TextBlock Grid.Row="0" Grid.Column="0" Text="NodeId (2 уровень):" Style="{StaticResource KeyTextStyle}"/>
+            <TextBlock Grid.Row="0" Grid.Column="1" Text="{Binding MainCycleUnresolvedNodeIdText}" Style="{StaticResource ValueTextStyle}"/>
+
+            <TextBlock Grid.Row="1" Grid.Column="0" Text="StimulusActionsImageId:" Style="{StaticResource KeyTextStyle}"/>
+            <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding MainCycleUnresolvedActionsImageIdText}" Style="{StaticResource ValueTextStyle}"/>
+
+            <TextBlock Grid.Row="2" Grid.Column="0" Text="ProblemNodeId:" Style="{StaticResource KeyTextStyle}"/>
+            <TextBlock Grid.Row="2" Grid.Column="1" Text="{Binding MainCycleProblemNodeIdText}" Style="{StaticResource ValueTextStyle}"/>
+
+            <TextBlock Grid.Row="3" Grid.Column="0" Text="ThemeId:" Style="{StaticResource KeyTextStyle}"/>
+            <TextBlock Grid.Row="3" Grid.Column="1" Text="{Binding MainCycleThemeIdText}" Style="{StaticResource ValueTextStyle}"/>
+
+            <TextBlock Grid.Row="4" Grid.Column="0" Text="PurposeId:" Style="{StaticResource KeyTextStyle}"/>
+            <TextBlock Grid.Row="4" Grid.Column="1" Text="{Binding MainCyclePurposeIdText}" Style="{StaticResource ValueTextStyle}"/>
+
+            <TextBlock Grid.Row="5" Grid.Column="0" Text="Последняя стратегия:" Style="{StaticResource KeyTextStyle}"/>
+            <TextBlock Grid.Row="5" Grid.Column="1" Text="{Binding MainCycleLastStrategyIdText}" Style="{StaticResource ValueTextStyle}"/>
+          </Grid>
+        </Grid>
+      </Border>
+
+      <!-- Лог и отладочный дамп -->
+      <Border Grid.Row="2" Style="{StaticResource CardBorderStyle}">
+        <Grid Margin="8">
+          <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+          </Grid.RowDefinitions>
+
+          <TextBlock Grid.Row="0" Style="{StaticResource SectionTitleStyle}" Text="Лог главного цикла (усечённый хвост)"/>
+
+          <TextBox Grid.Row="1"
+                   Style="{StaticResource MonoReadOnlyTextBoxStyle}"
+                   Text="{Binding MainCycleLogText, Mode=OneWay}"/>
+
+          <Expander Grid.Row="2"
+                    Margin="0,10,0,0"
+                    Header="Отладочный снимок: все циклы"
+                    IsExpanded="False">
+            <Grid Margin="0,6,0,0">
+              <TextBox Style="{StaticResource MonoReadOnlyTextBoxStyle}"
+                       Text="{Binding DebugSnapshotText, Mode=OneWay}"/>
+            </Grid>
+          </Expander>
+        </Grid>
+      </Border>
+    </Grid>
+  </Grid>
+</UserControl>
+

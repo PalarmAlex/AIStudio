@@ -340,7 +340,7 @@ namespace AIStudio
             ShowProblemTree();
             break;
           case "16": // Циклы осмысления
-            ShowStub("Циклы осмысления");
+            ShowThinkingCycles();
             break;
           case "17": // Значимость элементов восприятия
             ShowStub("Значимость элементов восприятия");
@@ -477,6 +477,14 @@ namespace AIStudio
           _isidaContext?.SituationTypeSystem,
           _isidaContext?.SituationImageSystem,
           getAutNodeDetails: automatizmsVm.GetFullAutNodeDetails);
+      view.DataContext = viewModel;
+      CurrentContent = view;
+    }
+
+    private void ShowThinkingCycles()
+    {
+      var view = new ThinkingCyclesView();
+      var viewModel = new ThinkingCyclesViewModel(_psychicSystem);
       view.DataContext = viewModel;
       CurrentContent = view;
     }
