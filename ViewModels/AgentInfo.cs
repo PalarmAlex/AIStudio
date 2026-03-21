@@ -10,7 +10,6 @@ namespace AIStudio.ViewModels
   public class AgentInfo : INotifyPropertyChanged
   {
     private bool _isSelected;
-
     public string Name { get; set; }
     public string Description { get; set; }
 
