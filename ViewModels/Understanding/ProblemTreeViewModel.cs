@@ -192,8 +192,8 @@ namespace AIStudio.ViewModels.Understanding
       var rec = _situationImageSystem?.GetById(situationTreeId);
       if (rec == null) return situationTreeId.ToString();
       var typeRec = _situationTypeSystem?.GetById(rec.SituationTypeId);
-      string namePart = (typeRec != null && !string.IsNullOrWhiteSpace(typeRec.Description))
-        ? typeRec.Description
+      string namePart = (typeRec != null && !string.IsNullOrWhiteSpace(typeRec.ThemeTypeId.ToString()))
+        ? typeRec.ThemeTypeId.ToString()
         : rec.SituationTypeId.ToString();
       return $"{namePart} (ID: {situationTreeId})";
     }

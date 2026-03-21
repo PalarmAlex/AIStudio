@@ -14,6 +14,8 @@ namespace AIStudio.Pages.Understanding
     /// <summary>Перед сохранением фиксируем изменения в ячейках (ComboBox, TextBox) — иначе значения не попадают в модель.</summary>
     private void SaveButton_PreviewMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
     {
+      EventGrid.CommitEdit(DataGridEditingUnit.Row, true);
+      EventGrid.CommitEdit(DataGridEditingUnit.Cell, true);
       MoodGrid.CommitEdit(DataGridEditingUnit.Row, true);
       MoodGrid.CommitEdit(DataGridEditingUnit.Cell, true);
       InfluenceGrid.CommitEdit(DataGridEditingUnit.Row, true);

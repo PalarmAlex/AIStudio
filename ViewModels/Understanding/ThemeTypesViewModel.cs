@@ -133,7 +133,7 @@ namespace AIStudio.ViewModels
       }
     }
 
-    /// <summary>Следующий свободный ID: не занят в таблице и не зарезервирован в дефолтных типах ситуаций (EnsureDefaultTypes).</summary>
+    /// <summary>Следующий свободный ID: не занят в таблице и не используется в справочнике типов ситуаций.</summary>
     public int GetNextId()
     {
       var reserved = new HashSet<int>(ThemeImageSystem.GetThemeTypeIdsProtectedFromRemoval());
