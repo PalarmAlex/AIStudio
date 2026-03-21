@@ -14,6 +14,7 @@
     <WarningLevel>4</WarningLevel>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
     <Deterministic>true</Deterministic>
+    <LangVersion>7.3</LangVersion>
     <NuGetPackageImportStamp>
     </NuGetPackageImportStamp>
   </PropertyGroup>
@@ -112,6 +113,7 @@
     <Compile Include="Converters\MatrixColumnsConverter.cs" />
     <Compile Include="Converters\NumericWithCommaValidationRule.cs" />
     <Compile Include="Converters\StringToIntConverter.cs" />
+    <Compile Include="Converters\SituationSlotDisplayConverters.cs" />
     <Compile Include="Converters\ParameterGradientConverter.cs" />
     <Compile Include="Converters\ParametersStylesColumnsConverter.cs" />
     <Compile Include="Converters\ParameterStateToBrushConverter.cs" />

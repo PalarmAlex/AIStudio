@@ -8,6 +8,13 @@ alwaysApply: false
 
 Apply these rules for AIStudio (client/UI layer).
 
+- **C# language version**: The AIStudio project targets **C# 7.3** (`<LangVersion>7.3</LangVersion>` in `AIStudio.csproj`). Do **not** use syntax or APIs that require C# 8.0+ or 9.0+ unless the project language version is explicitly upgraded. Examples to **avoid** in new/edited code:
+  - `is not Type`, `and` / `or` in `is` patterns, `not` pattern
+  - `switch` expressions, property patterns beyond C# 7.3
+  - `record` types, `init` accessors, target-typed `new`, `with` expressions
+  - Default interface members (if not supported by your toolchain)
+  - Prefer classic checks: `if (!(x is int y))`, explicit `out` variable declarations, block-bodied `ConvertBack` where needed.
+- **Конвертеры (WPF)**: Перед тем как добавлять новый класс в `AIStudio/Converters/`, просмотри уже существующие конвертеры в этой папке и привязки в XAML (`StaticResource`, `Converter=`). По возможности **переиспользуй или доработай** существующий (в т.ч. через `ConverterParameter`, общий хелпер или узкое расширение API), а не вводи новый тип с дублирующей логикой. Цель — не плодить почти одинаковые конвертеры.
 - Follow MVVM boundaries: UI logic in ViewModels, rendering/layout in XAML, domain logic stays in `isida`.
 - Do not duplicate core logic from `isida` in AIStudio; consume services via `IsidaContext`.
 - For new integrations, prefer using existing context services and explicit dependency passing.

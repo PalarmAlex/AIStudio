@@ -164,11 +164,14 @@ namespace AIStudio.Common
     /// <param name="hasCriticalChanges">Флаг наличия критических изменений</param>
     /// <param name="geneticReflexId">Идентификатор безусловного рефлекса</param>
     /// <param name="conditionedReflexId">Идентификатор условного рефлекса</param>
+    /// <param name="thinkingThemeTypeId">Тип темы мышления (идентификатор из справочника)</param>
+    /// <param name="thinkingThemeTooltip">Подсказка для ячейки: имя типа темы и вес</param>
     public void WriteLog(string className, string method, int? pulse, int? baseId,
                        int? baseStyleId, int? triggerStimulusId, int? orientationReflexType,
                        int? geneticReflexId, int? conditionedReflexId, int? automatizmId,
                        string reflexChainInfo = null, string automatizmChainInfo = null,
-                       int? thinkingLevel = null, bool? thinkingLevelSuccess = null)
+                       int? thinkingLevel = null, bool? thinkingLevelSuccess = null,
+                       int? thinkingThemeTypeId = null, string thinkingThemeTooltip = null)
     {
       if (_disposed) return;
 
@@ -188,6 +191,8 @@ namespace AIStudio.Common
         AutomatizmChainInfo = automatizmChainInfo ?? string.Empty,
         ThinkingLevel = thinkingLevel,
         ThinkingLevelSuccess = thinkingLevelSuccess,
+        ThinkingThemeTypeId = thinkingThemeTypeId.HasValue && thinkingThemeTypeId.Value > 0 ? thinkingThemeTypeId : null,
+        ThinkingThemeTooltip = string.IsNullOrEmpty(thinkingThemeTooltip) ? null : thinkingThemeTooltip,
         Timestamp = DateTime.Now
       };
 
@@ -767,6 +772,16 @@ namespace AIStudio.Common
       public bool? ThinkingLevelSuccess { get; set; }
 
       /// <summary>
+      /// Идентификатор типа темы мышления (после резолвера на пульсе)
+      /// </summary>
+      public int? ThinkingThemeTypeId { get; set; }
+
+      /// <summary>
+      /// Текст подсказки: имя типа темы и вес по справочнику
+      /// </summary>
+      public string ThinkingThemeTooltip { get; set; }
+
+      /// <summary>
       /// Строковое представление результата УМ для привязок в шаблоне (избегаем bool? в XAML): "True", "False" или ""
       /// </summary>
       public string ThinkingLevelSuccessDisplay => ThinkingLevelSuccess.HasValue
@@ -789,6 +804,14 @@ namespace AIStudio.Common
       /// Форматированная информация о цепочке автоматизма для отображения в UI (используется с tooltip)
       /// </summary>
       public string DisplayAutomatizmChainInfo => !string.IsNullOrEmpty(AutomatizmChainInfo) ? AutomatizmChainInfo : "-";
+
+      /// <summary>
+      /// Код типа темы мышления для колонки «Тема»
+      /// </summary>
+      public string DisplayThinkingThemeId =>
+          ThinkingThemeTypeId.HasValue && ThinkingThemeTypeId.Value > 0
+              ? ThinkingThemeTypeId.Value.ToString()
+              : "-";
     }
 
     /// <summary>

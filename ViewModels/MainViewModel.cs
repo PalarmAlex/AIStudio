@@ -423,8 +423,7 @@ namespace AIStudio
       var view = new SituationTypesView();
       var viewModel = new SituationTypesViewModel(
           _gomeostas,
-          _isidaContext?.SituationTypeSystem,
-          _influenceActionSystem);
+          _isidaContext?.SituationTypeSystem);
       view.DataContext = viewModel;
       CurrentContent = view;
     }

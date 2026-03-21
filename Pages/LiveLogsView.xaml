@@ -183,6 +183,11 @@
       </Setter>
     </Style>
 
+    <!-- Стиль для ячейки Тема (код типа темы; расшифровка — в ToolTip из движка) -->
+    <Style x:Key="ThemeCellStyle" TargetType="DataGridCell" BasedOn="{StaticResource MatrixCellStyle}">
+      <Setter Property="ToolTip" Value="{Binding ThinkingThemeTooltip}"/>
+    </Style>
+
     <!-- стиль для ячейки безусловного рефлекса: -->
     <Style x:Key="GeneticReflexCellStyle" TargetType="DataGridCell" BasedOn="{StaticResource MatrixCellStyle}">
       <Setter Property="ToolTip">
@@ -359,6 +364,15 @@
               <DataGridColumnHeader Style="{StaticResource MatrixHeaderStyle}" 
                             Content="Стиль"
                             ToolTip="ID образа стилей поведения"/>
+            </DataGridTextColumn.Header>
+          </DataGridTextColumn>
+
+          <DataGridTextColumn Binding="{Binding DisplayThinkingThemeId}" Width="52"
+                    CellStyle="{StaticResource ThemeCellStyle}">
+            <DataGridTextColumn.Header>
+              <DataGridColumnHeader Style="{StaticResource MatrixHeaderStyle}" 
+                            Content="Тема"
+                            ToolTip="Тема мышления"/>
             </DataGridTextColumn.Header>
           </DataGridTextColumn>
 

@@ -2,7 +2,6 @@ using AIStudio.Common;
 using ISIDA.Actions;
 using ISIDA.Common;
 using ISIDA.Gomeostas;
-using ISIDA.Psychic.Automatism;
 using ISIDA.Psychic.Understanding;
 using System;
 using System.Collections.Generic;
@@ -25,7 +24,6 @@ namespace AIStudio.ViewModels
     }
 
     private readonly SituationTypeSystem _situationTypeSystem;
-    private readonly InfluenceActionSystem _influenceActionSystem;
     private readonly GomeostasSystem _gomeostas;
     private int _currentAgentStage;
 
@@ -35,7 +33,7 @@ namespace AIStudio.ViewModels
 
     public DescriptionWithLink CurrentAgentDescription => new DescriptionWithLink
     {
-      Text = "Справочник типов ситуаций: слоты событий (1–20), настроения (21–40), воздействия (41–60). Во всех группах можно задать привязку темы (ThemeTypeId). "
+      Text = "Справочник типов ситуаций: слоты событий (1–20), настроения (21–40), воздействия (41–60). Коды событий, настроений и воздействий заданы в движке и справочниках (только просмотр); редактируется привязка типа темы (ThemeTypeId) в каждом слоте. "
     };
 
     private ObservableCollection<SituationTypeRecord> _eventRecords = new ObservableCollection<SituationTypeRecord>();
@@ -53,12 +51,10 @@ namespace AIStudio.ViewModels
 
     public SituationTypesViewModel(
       GomeostasSystem gomeostasSystem,
-      SituationTypeSystem situationTypeSystem,
-      InfluenceActionSystem influenceActionSystem)
+      SituationTypeSystem situationTypeSystem)
     {
       _gomeostas = gomeostasSystem ?? throw new ArgumentNullException(nameof(gomeostasSystem));
       _situationTypeSystem = situationTypeSystem;
-      _influenceActionSystem = influenceActionSystem;
 
       SaveAllCommand = new RelayCommand(SaveAll);
       ClearAllCommand = new RelayCommand(ClearAll);
@@ -96,39 +92,13 @@ namespace AIStudio.ViewModels
 
     #endregion
 
-    #region Опции для ComboBox
+    #region Опции для ComboBox (только тема)
 
-    public List<KeyValuePair<int, string>> MoodCellOptions { get; private set; } = new List<KeyValuePair<int, string>>();
-    public List<KeyValuePair<int, string>> InfluenceCellOptions { get; private set; } = new List<KeyValuePair<int, string>>();
-    /// <summary>Темы для слотов событий 1–20</summary>
+    /// <summary>Темы для привязки в слотах (ThemeTypeId)</summary>
     public List<KeyValuePair<int, string>> ThemeSlotCellOptions { get; private set; } = new List<KeyValuePair<int, string>>();
-    /// <summary>Коды событий агента для слотов 1–20</summary>
-    public List<KeyValuePair<int, string>> EventAgentCellOptions { get; private set; } = new List<KeyValuePair<int, string>>();
 
     private void LoadCellOptions()
     {
-      MoodCellOptions = new List<KeyValuePair<int, string>> { new KeyValuePair<int, string>(SituationTypeSystem.EmptySlotValue, "—") };
-      if (ActionsImagesSystem.IsInitialized)
-      {
-        var moods = ActionsImagesSystem.GetMoodList();
-        if (moods != null)
-        {
-          foreach (var kv in moods.OrderBy(x => x.Key))
-            MoodCellOptions.Add(new KeyValuePair<int, string>(kv.Key, $"{kv.Key}: {kv.Value}"));
-        }
-      }
-
-      InfluenceCellOptions = new List<KeyValuePair<int, string>> { new KeyValuePair<int, string>(SituationTypeSystem.EmptySlotValue, "—") };
-      if (_influenceActionSystem != null)
-      {
-        var influences = _influenceActionSystem.GetAllInfluenceActions();
-        if (influences != null)
-        {
-          foreach (var inf in influences.OrderBy(x => x.Id))
-            InfluenceCellOptions.Add(new KeyValuePair<int, string>(inf.Id, $"{inf.Id}: {inf.Name}"));
-        }
-      }
-
       var allThemes = ThemeImageSystem.GetDefaultThemeTypesForSettings();
       ThemeSlotCellOptions = new List<KeyValuePair<int, string>> { new KeyValuePair<int, string>(-1, "—") };
       if (allThemes != null)
@@ -137,17 +107,52 @@ namespace AIStudio.ViewModels
           ThemeSlotCellOptions.Add(new KeyValuePair<int, string>(t.Id, $"{t.Id}: {t.Description}"));
       }
 
-      EventAgentCellOptions = new List<KeyValuePair<int, string>> { new KeyValuePair<int, string>(-1, "—") };
-      foreach (var e in AgentEventsCatalog.GetAllForPulpit().OrderBy(x => x.Id))
-        EventAgentCellOptions.Add(new KeyValuePair<int, string>(e.Id, $"{e.Id}: {e.Name}"));
-
-      OnPropertyChanged(nameof(MoodCellOptions));
-      OnPropertyChanged(nameof(InfluenceCellOptions));
       OnPropertyChanged(nameof(ThemeSlotCellOptions));
-      OnPropertyChanged(nameof(EventAgentCellOptions));
     }
 
     #endregion
+
+    /// <summary>
+    /// Слоты 41–60 изначально часто без InfluenceId (-1): «Заполнить по умолчанию» их не трогает.
+    /// Подставляем ID воздействий из справочника по порядку (как строки в ExterInalInfluencesView: OrderBy Id),
+    /// чтобы колонка «Воздействие» и движок GetIdByInfluenceId имели согласованные коды. Сохраняем файл при изменении.
+    /// </summary>
+    private void SyncEmptyInfluenceSlotsFromCatalogAndSave()
+    {
+      if (_situationTypeSystem == null || !SituationTypeSystem.IsInitialized || !InfluenceActionSystem.IsInitialized)
+        return;
+      var list = InfluenceActionSystem.Instance.GetAllInfluenceActions();
+      if (list == null || list.Count == 0)
+        return;
+      var sorted = list.OrderBy(x => x.Id).ToList();
+      bool changed = false;
+      foreach (var r in _influenceRecords)
+      {
+        if (r == null || r.Id < 41 || r.Id > 60)
+          continue;
+        if (r.InfluenceId >= 0)
+          continue;
+        int idx = r.Id - 41;
+        if (idx < 0 || idx >= sorted.Count)
+          continue;
+        r.InfluenceId = sorted[idx].Id;
+        changed = true;
+      }
+      if (!changed)
+        return;
+      _situationTypeSystem.UpdateFromRecords(_influenceRecords);
+      var (ok, err) = _situationTypeSystem.Save();
+      if (!ok)
+      {
+        MessageBox.Show(
+            $"Не удалось сохранить автоподстановку воздействий для слотов 41–60:\n{err}",
+            "Справочник типов ситуаций",
+            MessageBoxButton.OK,
+            MessageBoxImage.Warning);
+        return;
+      }
+      RefreshObservableCollectionInPlace(_influenceRecords);
+    }
 
     private void LoadData()
     {
@@ -179,6 +184,7 @@ namespace AIStudio.ViewModels
             _influenceRecords.Add(all.TryGetValue(id, out var r) ? r : new SituationTypeRecord { Id = id, MoodId = SituationTypeSystem.EmptySlotValue, InfluenceId = SituationTypeSystem.EmptySlotValue, ThemeTypeId = -1, EventAgentCode = -1 });
           }
 
+          SyncEmptyInfluenceSlotsFromCatalogAndSave();
         }
 
         LoadCellOptions();
@@ -247,6 +253,14 @@ namespace AIStudio.ViewModels
         _situationTypeSystem.UpdateFromRecords(_eventRecords);
         _situationTypeSystem.UpdateFromRecords(_moodRecords);
         _situationTypeSystem.UpdateFromRecords(_influenceRecords);
+
+        var (validLink, linkErr) = _situationTypeSystem.ValidateThemeRequiresLinkField(_situationTypeSystem.GetAll());
+        if (!validLink)
+        {
+          MessageBox.Show(linkErr, "Тема без связи",
+              MessageBoxButton.OK, MessageBoxImage.Warning);
+          return;
+        }
 
         var allWithTheme = _situationTypeSystem.GetAll()
           .Where(r => r != null && r.Id >= 1 && r.Id <= 60 && r.ThemeTypeId > 0)
