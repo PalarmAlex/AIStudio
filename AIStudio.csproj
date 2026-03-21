@@ -266,6 +266,9 @@
     <Compile Include="Pages\Understanding\ThemeTypesView.xaml.cs">
       <DependentUpon>ThemeTypesView.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Pages\Understanding\InfoFunctionsChecklistEditor.xaml.cs">
+      <DependentUpon>InfoFunctionsChecklistEditor.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Pages\TextInputDialog.xaml.cs">
       <DependentUpon>TextInputDialog.xaml</DependentUpon>
     </Compile>
@@ -377,6 +380,10 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="Pages\Understanding\ThemeTypesView.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Pages\Understanding\InfoFunctionsChecklistEditor.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

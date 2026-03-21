@@ -1,5 +1,6 @@
-using AIStudio.Common;
+using AIStudio.Dialogs;
 using AIStudio.ViewModels;
+using System.Globalization;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
@@ -14,47 +15,6 @@ namespace AIStudio.Pages.Understanding
       InitializeComponent();
     }
 
-    private void DataGrid_AddingNewItem(object sender, AddingNewItemEventArgs e)
-    {
-      var vm = DataContext as ThemeTypesViewModel;
-      if (vm == null) return;
-
-      int nextId = vm.GetNextId();
-      e.NewItem = new ThemeTypeItem { Id = nextId, Description = "", DefaultWeight = 2 };
-    }
-
-    private void ThemesGrid_PreviewKeyDown(object sender, KeyEventArgs e)
-    {
-      if (e.Key != Key.Delete) return;
-
-      var vm = DataContext as ThemeTypesViewModel;
-      if (vm == null || !vm.IsEditingEnabled)
-      {
-        e.Handled = true;
-        return;
-      }
-
-      var grid = (DataGrid)sender;
-      if (grid.IsEditing()) return;
-
-      if (grid.SelectedItems.Count > 0)
-      {
-        var toRemove = grid.SelectedItems.OfType<ThemeTypeItem>().ToList();
-        if (toRemove.Count > 0)
-        {
-          var result = MessageBox.Show(
-              $"Удалить выбранные записи ({toRemove.Count}) из таблицы?",
-              "Подтверждение удаления",
-              MessageBoxButton.YesNo,
-              MessageBoxImage.Question);
-
-          if (result == MessageBoxResult.Yes)
-            vm.RemoveRecordsAndSave(toRemove);
-          e.Handled = true;
-        }
-      }
-    }
-
     private void DataGrid_RowEditEnding(object sender, DataGridRowEditEndingEventArgs e)
     {
       if (e.EditAction == DataGridEditAction.Commit && e.Row != null && !e.Row.IsEditing)
@@ -64,12 +24,82 @@ namespace AIStudio.Pages.Understanding
       }
     }
 
+    private void DataGrid_CellEditEnding(object sender, DataGridCellEditEndingEventArgs e)
+    {
+      if (e.EditAction != DataGridEditAction.Commit || !(e.EditingElement is TextBox textBox))
+        return;
+      if (e.Column is DataGridTextColumn col && col.Header?.ToString() == "Вес")
+      {
+        string input = textBox.Text.Trim();
+        if (!int.TryParse(input, NumberStyles.Integer, CultureInfo.InvariantCulture, out int value) || value < 1 || value > 10)
+        {
+          MessageBox.Show("Введите целое число от 1 до 10.", "Ошибка ввода", MessageBoxButton.OK, MessageBoxImage.Warning);
+          e.Cancel = true;
+          textBox.GetBindingExpression(TextBox.TextProperty)?.UpdateTarget();
+        }
+      }
+    }
+
+    private void ThemesGrid_PreviewKeyDown(object sender, KeyEventArgs e)
+    {
+      if (e.Key == Key.Delete)
+        e.Handled = true;
+    }
+
+    private void NumericColumn_PreviewTextInput(object sender, TextCompositionEventArgs e)
+    {
+      if (!char.IsDigit(e.Text, 0))
+        e.Handled = true;
+    }
+
+    private void InfoFunctionsCell_MouseDown(object sender, MouseButtonEventArgs e)
+    {
+      if (e.ClickCount != 2)
+        return;
+      if (!IsFormEnabled)
+      {
+        e.Handled = true;
+        return;
+      }
+      if (sender is FrameworkElement fe && fe.DataContext is ThemeTypeItem item)
+      {
+        var editor = new InfoFunctionsChecklistEditor(
+            $"Инфо-функции темы: {item.Description} (ID {item.Id})",
+            item.AllowedInfoFuncIds);
+
+        if (editor.ShowDialog() == true)
+        {
+          item.SetAllowedInfoFuncIds(editor.SelectedIds);
+          ThemesGrid.CommitEdit(DataGridEditingUnit.Row, true);
+          ThemesGrid.Items.Refresh();
+        }
+      }
+      e.Handled = true;
+    }
+
     private void SaveButton_PreviewMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
     {
       ThemesGrid.CommitEdit(DataGridEditingUnit.Row, true);
       ThemesGrid.CommitEdit(DataGridEditingUnit.Cell, true);
       if (sender is Control ctrl)
         ctrl.Focus();
+    }
+
+    private bool IsFormEnabled
+    {
+      get
+      {
+        if (DataContext is ThemeTypesViewModel viewModel && !viewModel.IsEditingEnabled)
+        {
+          MessageBox.Show(
+              viewModel.PulseWarningMessage,
+              "Редактирование недоступно",
+              MessageBoxButton.OK,
+              MessageBoxImage.Warning);
+          return false;
+        }
+        return true;
+      }
     }
   }
 }

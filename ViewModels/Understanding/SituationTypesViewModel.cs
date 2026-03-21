@@ -49,6 +49,7 @@ namespace AIStudio.ViewModels
 
     public ICommand SaveAllCommand { get; }
     public ICommand ClearAllCommand { get; }
+    public ICommand FillDefaultsCommand { get; }
 
     public SituationTypesViewModel(
       GomeostasSystem gomeostasSystem,
@@ -61,6 +62,7 @@ namespace AIStudio.ViewModels
 
       SaveAllCommand = new RelayCommand(SaveAll);
       ClearAllCommand = new RelayCommand(ClearAll);
+      FillDefaultsCommand = new RelayCommand(FillDefaults);
 
       GlobalTimer.PulsationStateChanged += OnPulsationStateChanged;
       LoadData();
@@ -199,6 +201,32 @@ namespace AIStudio.ViewModels
     }
 
     public void RefreshData() => LoadData();
+
+    private void FillDefaults(object parameter)
+    {
+      if (MessageBox.Show(
+          "Подставить рекомендуемые привязки из кода движка (AgentEventsCatalog)?\n\n"
+          + "• События: слоты 1–8 — код события и тема; слоты 9–20 очищаются.\n"
+          + "• Настроение: слоты 21–28 — настроения 0–7 и темы; слоты 29–40 очищаются.\n"
+          + "• Воздействия (41–60) не меняются.\n\n"
+          + "Запись в файл — только после «Сохранить».",
+          "Заполнить по умолчанию",
+          MessageBoxButton.YesNo,
+          MessageBoxImage.Question) != MessageBoxResult.Yes)
+        return;
+
+      AgentEventsCatalog.ApplyDefaultSituationSlotBindings(_eventRecords, _moodRecords);
+      RefreshObservableCollectionInPlace(_eventRecords);
+      RefreshObservableCollectionInPlace(_moodRecords);
+    }
+
+    private static void RefreshObservableCollectionInPlace(ObservableCollection<SituationTypeRecord> col)
+    {
+      var copy = col.ToList();
+      col.Clear();
+      foreach (var x in copy)
+        col.Add(x);
+    }
 
     private void SaveAll(object parameter)
     {

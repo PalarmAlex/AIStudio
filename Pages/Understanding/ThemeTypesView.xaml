@@ -4,13 +4,14 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-             xmlns:local="clr-namespace:AIStudio.Pages.Understanding"
+             xmlns:converters="clr-namespace:AIStudio.Converters"
              xmlns:viewmodels="clr-namespace:AIStudio.ViewModels"
              d:DataContext="{d:DesignInstance Type=viewmodels:ThemeTypesViewModel}"
              mc:Ignorable="d"
              d:DesignHeight="500" d:DesignWidth="900">
 
   <UserControl.Resources>
+    <converters:ListToStringConverter x:Key="ListToStringConverter"/>
     <Style x:Key="BaseTextBlockStyle" TargetType="TextBlock">
       <Setter Property="Background" Value="White"/>
       <Style.Triggers>
@@ -31,7 +32,6 @@
 
   <Grid Margin="12">
     <Grid.RowDefinitions>
-      <RowDefinition Height="Auto"/>
       <RowDefinition Height="Auto"/>
       <RowDefinition Height="Auto"/>
       <RowDefinition Height="*"/>
@@ -58,25 +58,7 @@
       </Hyperlink>
     </TextBlock>
 
-    <StackPanel Grid.Row="2" Margin="0,0,0,8">
-      <TextBlock Text="Темы мышления привязанные к событиям агента"
-                 FontWeight="SemiBold"
-                 Foreground="#FF333333"
-                 Margin="0,0,0,4"/>
-      <Border BorderBrush="#FFE0E0E0"
-              BorderThickness="1"
-              CornerRadius="4"
-              Padding="8,6"
-              Background="#FFF5F5F5">
-        <TextBlock Text="{Binding ReservedThemeTypesText}"
-                   Foreground="#FF333333"
-                   TextWrapping="Wrap"
-                   FontFamily="Consolas"
-                   FontSize="13"/>
-      </Border>
-    </StackPanel>
-
-    <Border Grid.Row="3"
+    <Border Grid.Row="2"
             BorderBrush="#FFE0E0E0"
             BorderThickness="1"
             CornerRadius="4"
@@ -85,10 +67,9 @@
       <DataGrid ItemsSource="{Binding ThemeTypes}"
                 x:Name="ThemesGrid"
                 IsEnabled="True"
-                IsReadOnly="{Binding IsReadOnlyMode}"
                 AutoGenerateColumns="False"
-                CanUserAddRows="{Binding IsEditingEnabled}"
-                CanUserDeleteRows="{Binding IsEditingEnabled}"
+                CanUserAddRows="False"
+                CanUserDeleteRows="False"
                 SelectionMode="Extended"
                 BorderThickness="0"
                 Background="White"
@@ -98,11 +79,11 @@
                 VerticalScrollBarVisibility="Auto"
                 HorizontalScrollBarVisibility="Auto"
                 RowEditEnding="DataGrid_RowEditEnding"
-                AddingNewItem="DataGrid_AddingNewItem"
+                CellEditEnding="DataGrid_CellEditEnding"
                 PreviewKeyDown="ThemesGrid_PreviewKeyDown">
         <DataGrid.Columns>
-          <DataGridTextColumn Header="ID" Binding="{Binding Id, UpdateSourceTrigger=PropertyChanged}" Width="60" IsReadOnly="True"/>
-          <DataGridTextColumn Header="Описание" Binding="{Binding Description, UpdateSourceTrigger=PropertyChanged}" Width="*" MinWidth="200">
+          <DataGridTextColumn Header="ID" Binding="{Binding Id}" Width="56" IsReadOnly="True"/>
+          <DataGridTextColumn Header="Описание" Binding="{Binding Description}" Width="*" MinWidth="200" IsReadOnly="True">
             <DataGridTextColumn.ElementStyle>
               <Style TargetType="TextBlock">
                 <Setter Property="TextWrapping" Value="Wrap"/>
@@ -111,12 +92,43 @@
               </Style>
             </DataGridTextColumn.ElementStyle>
           </DataGridTextColumn>
-          <DataGridTextColumn Header="Вес" Binding="{Binding DefaultWeight, UpdateSourceTrigger=PropertyChanged}" Width="50" MinWidth="50"/>
+          <DataGridTextColumn Header="Вес"
+                              Binding="{Binding DefaultWeight, UpdateSourceTrigger=PropertyChanged}"
+                              Width="56"
+                              MinWidth="50"
+                              IsReadOnly="{Binding IsReadOnlyMode, ElementName=Root}">
+            <DataGridTextColumn.HeaderStyle>
+              <Style TargetType="DataGridColumnHeader" BasedOn="{StaticResource {x:Type DataGridColumnHeader}}">
+                <Setter Property="ToolTip" Value="Вес темы по умолчанию (1–10) при создании образа темы."/>
+              </Style>
+            </DataGridTextColumn.HeaderStyle>
+            <DataGridTextColumn.EditingElementStyle>
+              <Style TargetType="TextBox">
+                <EventSetter Event="PreviewTextInput" Handler="NumericColumn_PreviewTextInput"/>
+              </Style>
+            </DataGridTextColumn.EditingElementStyle>
+          </DataGridTextColumn>
+          <DataGridTextColumn Header="Инфо-функции"
+                              Binding="{Binding AllowedInfoFuncIds, Converter={StaticResource ListToStringConverter}}"
+                              IsReadOnly="True"
+                              Width="*"
+                              MinWidth="120">
+            <DataGridTextColumn.ElementStyle>
+              <Style TargetType="TextBlock">
+                <EventSetter Event="MouseDown" Handler="InfoFunctionsCell_MouseDown"/>
+              </Style>
+            </DataGridTextColumn.ElementStyle>
+            <DataGridTextColumn.HeaderStyle>
+              <Style TargetType="DataGridColumnHeader">
+                <Setter Property="ToolTip" Value="Номера разрешённых инфо-функций (из справочника в коде). Двойной щелчок — выбор в списке."/>
+              </Style>
+            </DataGridTextColumn.HeaderStyle>
+          </DataGridTextColumn>
         </DataGrid.Columns>
       </DataGrid>
     </Border>
 
-    <Grid Grid.Row="4">
+    <Grid Grid.Row="3">
       <Grid.ColumnDefinitions>
         <ColumnDefinition Width="*"/>
         <ColumnDefinition Width="Auto"/>
@@ -142,18 +154,13 @@
       </TextBlock>
 
       <StackPanel Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Right">
-        <Button Content="Очистить"
-                Command="{Binding ClearCommand}"
-                IsEnabled="{Binding IsEditingEnabled}"
-                Style="{StaticResource RedButtonStyle}"
-                ToolTip="Очистить описания всех типов тем в таблице и сохранить"
-                Margin="0,0,8,0"/>
         <Button Content="Сохранить"
                 Command="{Binding SaveCommand}"
                 IsEnabled="{Binding IsEditingEnabled}"
                 Style="{StaticResource ActionButtonStyle}"
-                ToolTip="Сохранить типы тем в theme_types.dat"
-                PreviewMouseLeftButtonDown="SaveButton_PreviewMouseLeftButtonDown"/>
+                ToolTip="Сохранить веса и списки инфо-функций в theme_types.dat"
+                PreviewMouseLeftButtonDown="SaveButton_PreviewMouseLeftButtonDown"
+                Cursor="Hand"/>
       </StackPanel>
     </Grid>
   </Grid>

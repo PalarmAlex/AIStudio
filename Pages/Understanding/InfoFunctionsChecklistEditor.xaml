@@ -1,0 +1,35 @@
+<Window x:Class="AIStudio.Dialogs.InfoFunctionsChecklistEditor"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d"
+        Title="Инфо-функции темы"
+        Height="420" Width="420"
+        WindowStartupLocation="CenterOwner"
+        PreviewKeyDown="Window_PreviewKeyDown"
+        ResizeMode="NoResize">
+
+  <Grid Margin="10">
+    <Grid.RowDefinitions>
+      <RowDefinition Height="Auto"/>
+      <RowDefinition Height="*"/>
+      <RowDefinition Height="Auto"/>
+    </Grid.RowDefinitions>
+
+    <TextBlock Grid.Row="0" Text="Отметьте инфо-функции, разрешённые для этой темы:" Margin="0,0,0,10" TextWrapping="Wrap"/>
+
+    <ListBox Grid.Row="1" x:Name="FuncsList" SelectionMode="Multiple">
+      <ListBox.ItemTemplate>
+        <DataTemplate>
+          <CheckBox Content="{Binding Label}" IsChecked="{Binding IsSelected}" Margin="2"/>
+        </DataTemplate>
+      </ListBox.ItemTemplate>
+    </ListBox>
+
+    <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,10,0,0">
+      <Button Content="OK" Width="80" Margin="0,0,10,0" Click="OK_Click"/>
+      <Button Content="Отмена" Width="80" Click="Cancel_Click"/>
+    </StackPanel>
+  </Grid>
+</Window>

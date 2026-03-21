@@ -316,6 +316,15 @@
                       Orientation="Horizontal"
                       HorizontalAlignment="Right"
                       VerticalAlignment="Center">
+            <Button Content="Заполнить"
+                    Command="{Binding FillDefaultsCommand}"
+                    PreviewMouseLeftButtonDown="SaveButton_PreviewMouseLeftButtonDown"
+                    IsEnabled="{Binding IsEditingEnabled}"
+                    Visibility="{Binding IsEditingEnabled, Converter={StaticResource BoolToVis}}"
+                    Style="{StaticResource ActionButtonStyle}"
+                    ToolTip="Подставить рекомендуемые коды событий и темы (слоты 1–8) и настроение с темами (слоты 21–28) из дефолтов движка. Слоты воздействия не меняются. Сохранение в файл — кнопкой «Сохранить»."
+                    Margin="0,0,8,0"
+                    Cursor="Hand"/>
             <Button Content="Очистить"
                     Command="{Binding ClearAllCommand}"
                     PreviewMouseLeftButtonDown="SaveButton_PreviewMouseLeftButtonDown"

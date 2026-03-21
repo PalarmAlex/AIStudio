@@ -11,6 +11,7 @@ namespace AIStudio.ViewModels
   {
     private bool _isSelected;
     public string Name { get; set; }
+
     public string Description { get; set; }
 
     public bool IsSelected

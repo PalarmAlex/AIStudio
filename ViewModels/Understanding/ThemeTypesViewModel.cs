@@ -14,16 +14,25 @@ using System.Windows.Media;
 
 namespace AIStudio.ViewModels
 {
-  /// <summary>Строка таблицы типов тем (theme_types.dat): ID, описание и вес по умолчанию.</summary>
+  /// <summary>Строка таблицы типов тем: Id и описание задаются в коде движка; в theme_types.dat — вес и список инфо-функций.</summary>
   public class ThemeTypeItem : INotifyPropertyChanged
   {
     private int _id;
     private string _description;
     private int _defaultWeight = 2;
+    private List<int> _allowedInfoFuncIds = new List<int>();
 
     public int Id { get => _id; set { if (_id != value) { _id = value; OnPropertyChanged(nameof(Id)); } } }
     public string Description { get => _description; set { if (_description != value) { _description = value; OnPropertyChanged(nameof(Description)); } } }
     public int DefaultWeight { get => _defaultWeight; set { if (_defaultWeight != value) { _defaultWeight = value; OnPropertyChanged(nameof(DefaultWeight)); } } }
+
+    public IReadOnlyList<int> AllowedInfoFuncIds => _allowedInfoFuncIds;
+
+    public void SetAllowedInfoFuncIds(IEnumerable<int> ids)
+    {
+      _allowedInfoFuncIds = ids?.Where(x => x > 0).Distinct().OrderBy(x => x).ToList() ?? new List<int>();
+      OnPropertyChanged(nameof(AllowedInfoFuncIds));
+    }
 
     public event PropertyChangedEventHandler PropertyChanged;
     protected void OnPropertyChanged(string name) => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
@@ -45,22 +54,17 @@ namespace AIStudio.ViewModels
 
     public DescriptionWithLink CurrentAgentDescription => new DescriptionWithLink
     {
-      Text = "Темы мышления агента. "
+      Text = "Темы мышления агента. Состав тем и их Id фиксированы в коде движка; здесь задаются только вес по умолчанию и списки инфо-функций. "
     };
 
     public ObservableCollection<ThemeTypeItem> ThemeTypes { get; } = new ObservableCollection<ThemeTypeItem>();
 
-    /// <summary>Текст блока «Темы мышления привязанные к событиям агента»: строки вида «ID: 1, Описание».</summary>
-    public string ReservedThemeTypesText { get; private set; } = "";
-
     public ICommand SaveCommand { get; }
-    public ICommand ClearCommand { get; }
 
     public ThemeTypesViewModel(GomeostasSystem gomeostas)
     {
       _gomeostas = gomeostas ?? throw new ArgumentNullException(nameof(gomeostas));
       SaveCommand = new RelayCommand(SaveData);
-      ClearCommand = new RelayCommand(ClearData);
       GlobalTimer.PulsationStateChanged += OnPulsationStateChanged;
       LoadData();
     }
@@ -103,22 +107,20 @@ namespace AIStudio.ViewModels
         ThemeTypes.Clear();
         if (ThemeImageSystem.IsInitialized)
         {
-          foreach (var t in ThemeImageSystem.Instance.GetEditableThemeTypes())
+          foreach (var t in ThemeImageSystem.Instance.GetFixedCatalogThemeTypesForUi())
           {
-            ThemeTypes.Add(new ThemeTypeItem { Id = t.Id, Description = t.Description ?? "", DefaultWeight = t.DefaultWeight });
+            var item = new ThemeTypeItem
+            {
+              Id = t.Id,
+              Description = t.Description ?? "",
+              DefaultWeight = t.DefaultWeight
+            };
+            item.SetAllowedInfoFuncIds(t.AllowedInfoFuncIds);
+            ThemeTypes.Add(item);
           }
-          var protectedIds = ThemeImageSystem.GetThemeTypeIdsProtectedFromRemoval();
-          var instance = ThemeImageSystem.Instance;
-          ReservedThemeTypesText = string.Join(Environment.NewLine,
-            protectedIds.OrderBy(id => id).Select(id => $"ID: {id}, {instance.GetThemeTypeDescription(id)}"));
-        }
-        else
-        {
-          ReservedThemeTypesText = "";
         }
 
         OnPropertyChanged(nameof(ThemeTypes));
-        OnPropertyChanged(nameof(ReservedThemeTypesText));
         OnPropertyChanged(nameof(IsStageFour));
         OnPropertyChanged(nameof(IsEditingEnabled));
         OnPropertyChanged(nameof(PulseWarningMessage));
@@ -133,52 +135,6 @@ namespace AIStudio.ViewModels
       }
     }
 
-    /// <summary>Следующий свободный ID: не занят в таблице и не используется в справочнике типов ситуаций.</summary>
-    public int GetNextId()
-    {
-      var reserved = new HashSet<int>(ThemeImageSystem.GetThemeTypeIdsProtectedFromRemoval());
-      var used = new HashSet<int>(ThemeTypes.Select(x => x.Id));
-      int candidate = 1;
-      while (reserved.Contains(candidate) || used.Contains(candidate))
-        candidate++;
-      return candidate;
-    }
-
-    public void RemoveRecord(ThemeTypeItem record)
-    {
-      if (record != null)
-        ThemeTypes.Remove(record);
-    }
-
-    /// <summary>Удалить выбранные записи из коллекции и сразу сохранить в theme_types.dat (как в AdaptiveActionsView).</summary>
-    public void RemoveRecordsAndSave(IReadOnlyList<ThemeTypeItem> toRemove)
-    {
-      if (toRemove == null || toRemove.Count == 0) return;
-      if (!ThemeImageSystem.IsInitialized)
-      {
-        MessageBox.Show("Система тем мышления не инициализирована.", "Ошибка",
-            MessageBoxButton.OK, MessageBoxImage.Error);
-        return;
-      }
-      try
-      {
-        foreach (var r in toRemove)
-          ThemeTypes.Remove(r);
-        var list = ThemeTypes.Select(t => (t.Id, t.Description ?? "", t.DefaultWeight)).ToList();
-        var (success, error) = ThemeImageSystem.Instance.UpdateThemeTypesFromEditable(list);
-        if (success)
-          LoadData();
-        else
-          MessageBox.Show($"Не удалось сохранить после удаления:\n{error}", "Ошибка сохранения",
-              MessageBoxButton.OK, MessageBoxImage.Error);
-      }
-      catch (Exception ex)
-      {
-        MessageBox.Show($"Ошибка при удалении записей: {ex.Message}", "Ошибка",
-            MessageBoxButton.OK, MessageBoxImage.Error);
-      }
-    }
-
     private void SaveData(object parameter)
     {
       if (!ThemeImageSystem.IsInitialized)
@@ -188,8 +144,10 @@ namespace AIStudio.ViewModels
         return;
       }
 
-      var list = ThemeTypes.Select(t => (t.Id, t.Description ?? "", t.DefaultWeight)).ToList();
-      var (success, error) = ThemeImageSystem.Instance.UpdateThemeTypesFromEditable(list);
+      var rows = ThemeTypes
+          .Select(t => (t.Id, t.DefaultWeight, (IReadOnlyList<int>)t.AllowedInfoFuncIds.ToList()))
+          .ToList();
+      var (success, error) = ThemeImageSystem.Instance.SaveFixedCatalogThemeTypes(rows);
 
       if (success)
       {
@@ -201,40 +159,6 @@ namespace AIStudio.ViewModels
       {
         MessageBox.Show($"Не удалось сохранить темы мышления:\n{error}",
             "Ошибка сохранения",
-            MessageBoxButton.OK, MessageBoxImage.Error);
-      }
-    }
-
-    private void ClearData(object parameter)
-    {
-      var result = MessageBox.Show(
-          "Очистить описания всех тем мышления в таблице (заменить на пустые строки и сохранить в файл)?",
-          "Подтверждение очистки",
-          MessageBoxButton.YesNo,
-          MessageBoxImage.Warning);
-
-      if (result != MessageBoxResult.Yes)
-        return;
-
-      if (!ThemeImageSystem.IsInitialized)
-      {
-        MessageBox.Show("Система тем мышления не инициализирована.", "Ошибка",
-            MessageBoxButton.OK, MessageBoxImage.Error);
-        return;
-      }
-
-      var list = ThemeTypes.Select(t => (t.Id, "", t.DefaultWeight)).ToList();
-      var (success, error) = ThemeImageSystem.Instance.UpdateThemeTypesFromEditable(list);
-      if (success)
-      {
-        LoadData();
-        MessageBox.Show("Описания тем мышления очищены.", "Очистка завершена",
-            MessageBoxButton.OK, MessageBoxImage.Information);
-      }
-      else
-      {
-        MessageBox.Show($"Ошибка при очистке:\n{error}",
-            "Ошибка",
             MessageBoxButton.OK, MessageBoxImage.Error);
       }
     }
