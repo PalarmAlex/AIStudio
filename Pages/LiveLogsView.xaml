@@ -164,7 +164,7 @@
       <Setter Property="ToolTip">
         <Setter.Value>
           <MultiBinding Converter="{StaticResource StyleTooltipConverter}">
-            <Binding Path="DataContext" RelativeSource="{RelativeSource AncestorType=UserControl}"/>
+            <Binding ElementName="LogDataGrid" Path="DataContext"/>
             <Binding Path="DisplayBaseStyleID"/>
           </MultiBinding>
         </Setter.Value>
@@ -176,7 +176,7 @@
       <Setter Property="ToolTip">
         <Setter.Value>
           <MultiBinding Converter="{StaticResource TriggerTooltipConverter}">
-            <Binding Path="DataContext" RelativeSource="{RelativeSource AncestorType=UserControl}"/>
+            <Binding ElementName="LogDataGrid" Path="DataContext"/>
             <Binding Path="DisplayTriggerStimulusID"/>
           </MultiBinding>
         </Setter.Value>
@@ -193,7 +193,7 @@
       <Setter Property="ToolTip">
         <Setter.Value>
           <MultiBinding Converter="{StaticResource ActionsForGeneticReflexConverter}">
-            <Binding Path="DataContext" RelativeSource="{RelativeSource AncestorType=UserControl}"/>
+            <Binding ElementName="LogDataGrid" Path="DataContext"/>
             <Binding Path="DisplayGeneticReflexID"/>
           </MultiBinding>
         </Setter.Value>
@@ -205,7 +205,7 @@
       <Setter Property="ToolTip">
         <Setter.Value>
           <MultiBinding Converter="{StaticResource ActionsForConditionReflexConverter}">
-            <Binding Path="DataContext" RelativeSource="{RelativeSource AncestorType=UserControl}"/>
+            <Binding ElementName="LogDataGrid" Path="DataContext"/>
             <Binding Path="DisplayConditionReflexID"/>
           </MultiBinding>
         </Setter.Value>
@@ -217,7 +217,7 @@
       <Setter Property="ToolTip">
         <Setter.Value>
           <MultiBinding Converter="{StaticResource AutomatizmTooltipConverter}">
-            <Binding Path="DataContext" RelativeSource="{RelativeSource AncestorType=UserControl}"/>
+            <Binding ElementName="LogDataGrid" Path="DataContext"/>
             <Binding Path="DisplayAutomatizmID"/>
           </MultiBinding>
         </Setter.Value>
@@ -230,7 +230,7 @@
       <Setter Property="ToolTip">
         <Setter.Value>
           <MultiBinding Converter="{StaticResource OrUmTooltipConverter}">
-            <Binding Path="DataContext" RelativeSource="{RelativeSource AncestorType=UserControl}"/>
+            <Binding ElementName="LogDataGrid" Path="DataContext"/>
             <Binding Path="DisplayOrUm"/>
             <Binding Path="ThinkingLevelSuccessDisplay"/>
           </MultiBinding>

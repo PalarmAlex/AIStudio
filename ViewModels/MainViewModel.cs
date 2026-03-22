@@ -438,7 +438,7 @@ namespace AIStudio
       view.DataContext = viewModel;
       CurrentContent = view;
     }
-
+ 
     private void ShowEpisodicMemoryTree()
     {
       var view = new EpisodicMemoryTreeView();
@@ -473,6 +473,7 @@ namespace AIStudio
           _conditionedReflexToAutomatizm,
           _automatizmFileLoader,
           _stage2PrimitivesLoader);
+
       var viewModel = new ProblemTreeViewModel(
           _isidaContext?.ProblemTree,
           _automatizmTreeSystem,

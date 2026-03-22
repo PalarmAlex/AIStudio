@@ -185,7 +185,7 @@
     <Compile Include="Pages\LiveLogsView.xaml.cs">
       <DependentUpon>LiveLogsView.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Pages\ThinkingCyclesView.xaml.cs">
+    <Compile Include="Pages\Understanding\ThinkingCyclesView.xaml.cs">
       <DependentUpon>ThinkingCyclesView.xaml</DependentUpon>
     </Compile>
     <Compile Include="Pages\ParameterLogsView.xaml.cs">
@@ -425,7 +425,7 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="Pages\ThinkingCyclesView.xaml">
+    <Page Include="Pages\Understanding\ThinkingCyclesView.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
