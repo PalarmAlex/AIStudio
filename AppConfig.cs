@@ -52,6 +52,9 @@ public static class AppConfig
   /// <summary>Максимальный возраст главного цикла мышления в пульсах.</summary>
   public static int ThinkingCycleMainMaxAgePulses => GetIntSetting("ThinkingCycleMainMaxAgePulses", (int)GetDefaultValueSettings("ThinkingCycleMainMaxAgePulses"));
 
+  /// <summary>Пульсов без стимула с пульта до события «долго без оператора» (тема мышления).</summary>
+  public static int NoOperatorStimulusSilencePulses => GetIntSetting("NoOperatorStimulusSilencePulses", (int)GetDefaultValueSettings("NoOperatorStimulusSilencePulses"));
+
   /// <summary>
   /// Инициализирует конфигурацию и проверяет первый запуск
   /// </summary>
@@ -110,6 +113,7 @@ public static class AppConfig
           new XElement("ThinkingCycleDecayAgeDivisor", 100),
           new XElement("ThinkingCycleDecayBase", 1),
           new XElement("ThinkingCycleMainMaxAgePulses", 1000),
+          new XElement("NoOperatorStimulusSilencePulses", 30),
           new XElement("FirstRun", 1),
           new XElement("LogEnabled", false),
           new XElement("LogFormat", "All")
@@ -352,6 +356,8 @@ public static class AppConfig
         return 1;
       case "ThinkingCycleMainMaxAgePulses":
         return 1000;
+      case "NoOperatorStimulusSilencePulses":
+        return 30;
       case "CompareLevel":
         return 30;
       case "DifSensorPar":

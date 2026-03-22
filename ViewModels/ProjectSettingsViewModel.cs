@@ -39,6 +39,7 @@ namespace AIStudio.ViewModels
     private int _thinkingCycleDecayAgeDivisor;
     private int _thinkingCycleDecayBase;
     private int _thinkingCycleMainMaxAgePulses;
+    private int _noOperatorStimulusSilencePulses;
 
     private int _recognitionThreshold;
     private int _previousRecognitionThreshold;
@@ -190,6 +191,22 @@ namespace AIStudio.ViewModels
         }
         _thinkingCycleMainMaxAgePulses = value;
         OnPropertyChanged(nameof(ThinkingCycleMainMaxAgePulses));
+      }
+    }
+
+    /// <summary>Пульсов без стимула с пульта до события «долго без оператора» (тема мышления).</summary>
+    public int NoOperatorStimulusSilencePulses
+    {
+      get => _noOperatorStimulusSilencePulses;
+      set
+      {
+        if (value < 1)
+        {
+          MessageBox.Show("Порог тишины для события «долго без оператора» должен быть не меньше 1 пульса.", "Ошибка ввода");
+          return;
+        }
+        _noOperatorStimulusSilencePulses = value;
+        OnPropertyChanged(nameof(NoOperatorStimulusSilencePulses));
       }
     }
 
@@ -413,6 +430,7 @@ namespace AIStudio.ViewModels
       _thinkingCycleDecayAgeDivisor = AppConfig.ThinkingCycleDecayAgeDivisor;
       _thinkingCycleDecayBase = AppConfig.ThinkingCycleDecayBase;
       _thinkingCycleMainMaxAgePulses = AppConfig.ThinkingCycleMainMaxAgePulses;
+      _noOperatorStimulusSilencePulses = AppConfig.NoOperatorStimulusSilencePulses;
       DefaultAdaptiveActionId = AppConfig.DefaultAdaptiveActionId;
       DefaultThemeTypeId = AppConfig.DefaultThemeTypeId;
       LogEnabled = AppConfig.LogEnabled;
@@ -466,6 +484,7 @@ namespace AIStudio.ViewModels
       OnPropertyChanged(nameof(ThinkingCycleDecayAgeDivisor));
       OnPropertyChanged(nameof(ThinkingCycleDecayBase));
       OnPropertyChanged(nameof(ThinkingCycleMainMaxAgePulses));
+      OnPropertyChanged(nameof(NoOperatorStimulusSilencePulses));
     }
     private void LoadLogFormats()
     {
@@ -639,6 +658,7 @@ namespace AIStudio.ViewModels
         AppConfig.SetIntSetting(nameof(ThinkingCycleDecayAgeDivisor), ThinkingCycleDecayAgeDivisor);
         AppConfig.SetIntSetting(nameof(ThinkingCycleDecayBase), ThinkingCycleDecayBase);
         AppConfig.SetIntSetting(nameof(ThinkingCycleMainMaxAgePulses), ThinkingCycleMainMaxAgePulses);
+        AppConfig.SetIntSetting(nameof(NoOperatorStimulusSilencePulses), NoOperatorStimulusSilencePulses);
         AppConfig.SetIntSetting(nameof(DefaultAdaptiveActionId), DefaultAdaptiveActionId);
         AppConfig.SetIntSetting(nameof(DefaultThemeTypeId), DefaultThemeTypeId);
         AppConfig.SetIntSetting(nameof(RecognitionThreshold), RecognitionThreshold);

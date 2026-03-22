@@ -149,6 +149,7 @@ namespace AIStudio
         config.ThinkingCycleDecayAgeDivisor = AppConfig.ThinkingCycleDecayAgeDivisor;
         config.ThinkingCycleDecayBase = AppConfig.ThinkingCycleDecayBase;
         config.ThinkingCycleMainMaxAgePulses = AppConfig.ThinkingCycleMainMaxAgePulses;
+        config.NoOperatorStimulusSilencePulses = AppConfig.NoOperatorStimulusSilencePulses;
         config.MemoryLogWriter = MemoryLogManager.Instance;
 
         _stepInzialized = 2;
