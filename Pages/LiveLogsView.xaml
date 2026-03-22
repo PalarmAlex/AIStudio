@@ -295,6 +295,11 @@
       <Setter Property="ToolTipService.InitialShowDelay" Value="500"/>
     </Style>
 
+    <!-- Стиль для ячейки главного цикла мышления -->
+    <Style x:Key="MainThinkingCycleCellStyle" TargetType="DataGridCell" BasedOn="{StaticResource MatrixCellStyle}">
+      <Setter Property="ToolTip" Value="{Binding MainThinkingCycleTooltip}"/>
+    </Style>
+
   </UserControl.Resources>
 
   <Grid Background="Black">
@@ -442,6 +447,16 @@
               <DataGridColumnHeader Style="{StaticResource MatrixHeaderStyle}" 
                             Content="Цепочка АВ"
                             ToolTip="ID цепочки автоматизма и ID действия (ChainId:ActionId)"/>
+            </DataGridTextColumn.Header>
+          </DataGridTextColumn>
+
+          <DataGridTextColumn Binding="{Binding DisplayMainThinkingCycle}"
+                    Width="64"
+                    CellStyle="{StaticResource MainThinkingCycleCellStyle}">
+            <DataGridTextColumn.Header>
+              <DataGridColumnHeader Style="{StaticResource MatrixHeaderStyle}"
+                            Content="Цикл М"
+                            ToolTip="Главный цикл мышления"/>
             </DataGridTextColumn.Header>
           </DataGridTextColumn>
 
