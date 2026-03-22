@@ -146,6 +146,9 @@ namespace AIStudio
         config.DefaultThemeTypeId = AppConfig.DefaultThemeTypeId;
         config.RecognitionThreshold = AppConfig.RecognitionThreshold;
         config.WaitingPeriodForActionsVal = AppConfig.WaitingPeriodForActionsVal;
+        config.ThinkingCycleDecayAgeDivisor = AppConfig.ThinkingCycleDecayAgeDivisor;
+        config.ThinkingCycleDecayBase = AppConfig.ThinkingCycleDecayBase;
+        config.ThinkingCycleMainMaxAgePulses = AppConfig.ThinkingCycleMainMaxAgePulses;
         config.MemoryLogWriter = MemoryLogManager.Instance;
 
         _stepInzialized = 2;

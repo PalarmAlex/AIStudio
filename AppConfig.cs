@@ -43,6 +43,15 @@ public static class AppConfig
   public static int ReflexActionDisplayDuration => GetIntSetting("ReflexActionDisplayDuration", (int)GetDefaultValueSettings("ReflexActionDisplayDuration"));
   public static int WaitingPeriodForActionsVal => GetIntSetting("WaitingPeriodForActionsVal", (int)GetDefaultValueSettings("WaitingPeriodForActionsVal"));
 
+  /// <summary>Делитель возраста A: loss = B + (age / A) для фоновых циклов мышления.</summary>
+  public static int ThinkingCycleDecayAgeDivisor => GetIntSetting("ThinkingCycleDecayAgeDivisor", (int)GetDefaultValueSettings("ThinkingCycleDecayAgeDivisor"));
+
+  /// <summary>Базовое снятие веса B за пульс (фоновые циклы).</summary>
+  public static int ThinkingCycleDecayBase => GetIntSetting("ThinkingCycleDecayBase", (int)GetDefaultValueSettings("ThinkingCycleDecayBase"));
+
+  /// <summary>Максимальный возраст главного цикла мышления в пульсах.</summary>
+  public static int ThinkingCycleMainMaxAgePulses => GetIntSetting("ThinkingCycleMainMaxAgePulses", (int)GetDefaultValueSettings("ThinkingCycleMainMaxAgePulses"));
+
   /// <summary>
   /// Инициализирует конфигурацию и проверяет первый запуск
   /// </summary>
@@ -98,6 +107,9 @@ public static class AppConfig
           new XElement("DynamicTime", 50),
           new XElement("ReflexActionDisplayDuration", 3),
           new XElement("WaitingPeriodForActionsVal", 30),
+          new XElement("ThinkingCycleDecayAgeDivisor", 100),
+          new XElement("ThinkingCycleDecayBase", 1),
+          new XElement("ThinkingCycleMainMaxAgePulses", 1000),
           new XElement("FirstRun", 1),
           new XElement("LogEnabled", false),
           new XElement("LogFormat", "All")
@@ -334,6 +346,12 @@ public static class AppConfig
         return 3;
       case "WaitingPeriodForActionsVal":
         return 30;
+      case "ThinkingCycleDecayAgeDivisor":
+        return 100;
+      case "ThinkingCycleDecayBase":
+        return 1;
+      case "ThinkingCycleMainMaxAgePulses":
+        return 1000;
       case "CompareLevel":
         return 30;
       case "DifSensorPar":

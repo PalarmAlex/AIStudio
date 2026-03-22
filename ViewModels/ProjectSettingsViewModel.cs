@@ -36,6 +36,9 @@ namespace AIStudio.ViewModels
     private int _defaultThemeTypeId;
     private int _defaultFormatLog;
     private int _waitingPeriodForActionsVal;
+    private int _thinkingCycleDecayAgeDivisor;
+    private int _thinkingCycleDecayBase;
+    private int _thinkingCycleMainMaxAgePulses;
 
     private int _recognitionThreshold;
     private int _previousRecognitionThreshold;
@@ -142,6 +145,51 @@ namespace AIStudio.ViewModels
       {
         _waitingPeriodForActionsVal = value;
         OnPropertyChanged(nameof(WaitingPeriodForActionsVal));
+      }
+    }
+
+    public int ThinkingCycleDecayAgeDivisor
+    {
+      get => _thinkingCycleDecayAgeDivisor;
+      set
+      {
+        if (value < 1)
+        {
+          MessageBox.Show("Делитель возраста цикла (A) должен быть не меньше 1.", "Ошибка ввода");
+          return;
+        }
+        _thinkingCycleDecayAgeDivisor = value;
+        OnPropertyChanged(nameof(ThinkingCycleDecayAgeDivisor));
+      }
+    }
+
+    public int ThinkingCycleDecayBase
+    {
+      get => _thinkingCycleDecayBase;
+      set
+      {
+        if (value < 0)
+        {
+          MessageBox.Show("Базовое снятие веса (B) не может быть отрицательным.", "Ошибка ввода");
+          return;
+        }
+        _thinkingCycleDecayBase = value;
+        OnPropertyChanged(nameof(ThinkingCycleDecayBase));
+      }
+    }
+
+    public int ThinkingCycleMainMaxAgePulses
+    {
+      get => _thinkingCycleMainMaxAgePulses;
+      set
+      {
+        if (value < 1)
+        {
+          MessageBox.Show("Максимальный возраст главного цикла (пульсов) должен быть не меньше 1.", "Ошибка ввода");
+          return;
+        }
+        _thinkingCycleMainMaxAgePulses = value;
+        OnPropertyChanged(nameof(ThinkingCycleMainMaxAgePulses));
       }
     }
 
@@ -362,6 +410,9 @@ namespace AIStudio.ViewModels
       BootDataFolderPath = AppConfig.BootDataFolderPath;
       DefaultStileId = AppConfig.DefaultStileId;
       WaitingPeriodForActionsVal = AppConfig.WaitingPeriodForActionsVal;
+      _thinkingCycleDecayAgeDivisor = AppConfig.ThinkingCycleDecayAgeDivisor;
+      _thinkingCycleDecayBase = AppConfig.ThinkingCycleDecayBase;
+      _thinkingCycleMainMaxAgePulses = AppConfig.ThinkingCycleMainMaxAgePulses;
       DefaultAdaptiveActionId = AppConfig.DefaultAdaptiveActionId;
       DefaultThemeTypeId = AppConfig.DefaultThemeTypeId;
       LogEnabled = AppConfig.LogEnabled;
@@ -412,6 +463,9 @@ namespace AIStudio.ViewModels
       SaveSettingsCommand = new RelayCommand(SaveSettingsWithParameter);
 
       _isInitialized = true;
+      OnPropertyChanged(nameof(ThinkingCycleDecayAgeDivisor));
+      OnPropertyChanged(nameof(ThinkingCycleDecayBase));
+      OnPropertyChanged(nameof(ThinkingCycleMainMaxAgePulses));
     }
     private void LoadLogFormats()
     {
@@ -582,6 +636,9 @@ namespace AIStudio.ViewModels
         AppConfig.SetSetting(nameof(BootDataFolderPath), BootDataFolderPath);
         AppConfig.SetIntSetting(nameof(DefaultStileId), DefaultStileId);
         AppConfig.SetIntSetting(nameof(WaitingPeriodForActionsVal), WaitingPeriodForActionsVal);
+        AppConfig.SetIntSetting(nameof(ThinkingCycleDecayAgeDivisor), ThinkingCycleDecayAgeDivisor);
+        AppConfig.SetIntSetting(nameof(ThinkingCycleDecayBase), ThinkingCycleDecayBase);
+        AppConfig.SetIntSetting(nameof(ThinkingCycleMainMaxAgePulses), ThinkingCycleMainMaxAgePulses);
         AppConfig.SetIntSetting(nameof(DefaultAdaptiveActionId), DefaultAdaptiveActionId);
         AppConfig.SetIntSetting(nameof(DefaultThemeTypeId), DefaultThemeTypeId);
         AppConfig.SetIntSetting(nameof(RecognitionThreshold), RecognitionThreshold);
