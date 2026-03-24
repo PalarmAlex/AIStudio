@@ -172,7 +172,8 @@ namespace AIStudio.Common
                        string reflexChainInfo = null, string automatizmChainInfo = null,
                        int? thinkingLevel = null, bool? thinkingLevelSuccess = null,
                        int? thinkingThemeTypeId = null, string thinkingThemeTooltip = null,
-                       int? mainThinkingCycleId = null, string mainThinkingCycleTooltip = null)
+                       int? mainThinkingCycleId = null, string mainThinkingCycleTooltip = null,
+                       string mainThinkingCycleTaskStatus = null)
     {
       if (_disposed) return;
 
@@ -196,6 +197,7 @@ namespace AIStudio.Common
         ThinkingThemeTooltip = string.IsNullOrEmpty(thinkingThemeTooltip) ? null : thinkingThemeTooltip,
         MainThinkingCycleId = mainThinkingCycleId.HasValue && mainThinkingCycleId.Value > 0 ? mainThinkingCycleId : null,
         MainThinkingCycleTooltip = string.IsNullOrEmpty(mainThinkingCycleTooltip) ? null : mainThinkingCycleTooltip,
+        MainThinkingCycleTaskStatus = string.IsNullOrEmpty(mainThinkingCycleTaskStatus) ? null : mainThinkingCycleTaskStatus,
         Timestamp = DateTime.Now
       };
 
@@ -789,6 +791,9 @@ namespace AIStudio.Common
 
       /// <summary>Подсказка для колонки «Цикл М».</summary>
       public string MainThinkingCycleTooltip { get; set; }
+
+      /// <summary>Статус задачи главного цикла для фона ячейки: Awaiting / NoSolution / Solved.</summary>
+      public string MainThinkingCycleTaskStatus { get; set; }
 
       /// <summary>
       /// Строковое представление результата УМ для привязок в шаблоне (избегаем bool? в XAML): "True", "False" или ""

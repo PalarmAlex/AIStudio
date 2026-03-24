@@ -443,7 +443,7 @@ namespace AIStudio.ViewModels
     }
 
     /// <summary>
-    /// Получает текст подсказки для уровня мышления (УМ1/УМ2) с результатом (успех/неудача)
+    /// Получает текст подсказки для уровня мышления (уровни 1 и 2) с результатом (успех/неудача)
     /// </summary>
     public string GetThinkingLevelTooltip(string displayThinkingLevel, bool? thinkingLevelSuccess)
     {
@@ -454,9 +454,9 @@ namespace AIStudio.ViewModels
       bool isUm1 = value == "1" || value == "УМ1";
       bool isUm2 = value == "2" || value == "УМ2";
       string levelDesc = isUm1
-          ? "УМ1: решение за счёт штатного автоматизма узла дерева (без правил эпизодической памяти)"
+          ? "Уровень мышления 1: решение за счёт штатного автоматизма узла дерева (без правил эпизодической памяти)"
           : isUm2
-              ? "УМ2: поиск или создание автоматизма по правилам эпизодической памяти"
+              ? "Уровень мышления 2: поиск или создание автоматизма по правилам эпизодической памяти"
               : $"Уровень мышления: {value}";
       string resultLine = thinkingLevelSuccess.HasValue
           ? (thinkingLevelSuccess.Value ? "Результат: Успех" : "Результат: Неудача")

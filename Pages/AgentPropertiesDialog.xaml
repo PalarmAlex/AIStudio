@@ -210,7 +210,7 @@
                 Orientation="Horizontal">
         <Button x:Name="ButtonCreatePrompt" Content="Создать промпт для ИИ" Margin="0,0,10,0" Padding="12,6" Click="ButtonCreatePrompt_Click"/>
         <Button x:Name="ButtonSave" Content="Сохранить" Margin="0,0,10,0" Padding="12,6" IsDefault="True" Click="ButtonSave_Click"/>
-        <Button Content="Закрыть" Padding="12,6" IsCancel="True" Click="ButtonClose_Click"/>
+        <Button x:Name="ButtonClose" Content="Закрыть" Padding="12,6" IsCancel="True" Click="ButtonClose_Click"/>
       </StackPanel>
     </Grid>
   </Grid>

@@ -38,22 +38,38 @@ namespace AIStudio.Pages
       LoadStages();
       LoadData();
       ApplyStageEditMode();
+
+      GlobalTimer.PulsationStateChanged += OnPulsationStateChanged;
+      Unloaded += AgentPropertiesDialog_Unloaded;
+    }
+
+    private void AgentPropertiesDialog_Unloaded(object sender, RoutedEventArgs e)
+    {
+      GlobalTimer.PulsationStateChanged -= OnPulsationStateChanged;
+      Unloaded -= AgentPropertiesDialog_Unloaded;
+    }
+
+    private void OnPulsationStateChanged()
+    {
+      Dispatcher.Invoke(ApplyStageEditMode);
     }
 
     /// <summary>
-    /// В стадии 0 — разрешено редактирование; в остальных стадиях — только чтение, все кнопки кроме «Закрыть» заблокированы.
+    /// В стадии 0 — разрешено редактирование (если пульсация не идёт); в остальных стадиях — только чтение.
+    /// Во время пульсации страница полностью заблокирована, кроме кнопки «Закрыть».
     /// </summary>
     private void ApplyStageEditMode()
     {
       int stage = GetStage();
-      bool canEdit = (stage == 0);
+      bool pulsationRunning = GlobalTimer.IsPulsationRunning;
+      bool canEdit = (stage == 0) && !pulsationRunning;
 
       TextBoxAgentName.IsReadOnly = !canEdit;
       TextBoxDescription.IsReadOnly = !canEdit;
       TextBoxAdditionalWishes.IsReadOnly = !canEdit;
       TextBoxPromptSuffix.IsReadOnly = !canEdit;
 
-      // Список смены стадии всегда доступен, чтобы можно было перейти на другие стадии
+      ComboStage.IsEnabled = !pulsationRunning;
       ComboSpecialTriggers.IsEnabled = canEdit;
       ComboSpecialTaboos.IsEnabled = canEdit;
       ComboBaseArchetype.IsEnabled = canEdit;
@@ -70,7 +86,18 @@ namespace AIStudio.Pages
       ButtonCreatePrompt.IsEnabled = canEdit;
       ButtonSave.IsEnabled = canEdit;
 
-      StageWarningText.Visibility = canEdit ? Visibility.Collapsed : Visibility.Visible;
+      if (pulsationRunning)
+      {
+        StageWarningText.Text = "Редактирование недоступно во время пульсации.";
+        StageWarningText.Visibility = Visibility.Visible;
+      }
+      else if (stage != 0)
+      {
+        StageWarningText.Text = "Редактирование доступно только на стадии 0.";
+        StageWarningText.Visibility = Visibility.Visible;
+      }
+      else
+        StageWarningText.Visibility = Visibility.Collapsed;
     }
 
     private void LoadStages()
@@ -84,6 +111,14 @@ namespace AIStudio.Pages
     private async void ComboStage_SelectionChanged(object sender, SelectionChangedEventArgs e)
     {
       if (e.AddedItems.Count == 0) return;
+
+      if (GlobalTimer.IsPulsationRunning)
+      {
+        var st = _gomeostas.GetAgentState();
+        if (st != null)
+          _ = ComboStage.Dispatcher.InvokeAsync(() => { ComboStage.SelectedValue = st.EvolutionStage; });
+        return;
+      }
 
       int newStage = (e.AddedItems[0] as EvolutionStageItem)?.StageNumber ?? 0;
       var state = _gomeostas.GetAgentState();
@@ -322,6 +357,8 @@ namespace AIStudio.Pages
 
     private void ButtonSave_Click(object sender, RoutedEventArgs e)
     {
+      if (GlobalTimer.IsPulsationRunning) return;
+
       try
       {
         var name = (TextBoxAgentName.Text ?? string.Empty).Trim();
@@ -365,6 +402,8 @@ namespace AIStudio.Pages
 
     private void ButtonCreatePrompt_Click(object sender, RoutedEventArgs e)
     {
+      if (GlobalTimer.IsPulsationRunning) return;
+
       try
       {
         // Сначала сохраняем текущие значения формы в AgentProperties.dat и обновляем глобальную переменную
