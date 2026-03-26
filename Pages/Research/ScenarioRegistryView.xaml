@@ -1,0 +1,51 @@
+<UserControl x:Class="AIStudio.Pages.Research.ScenarioRegistryView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             mc:Ignorable="d"
+             d:DesignHeight="500" d:DesignWidth="800">
+
+  <Grid Margin="12">
+    <Grid.RowDefinitions>
+      <RowDefinition Height="Auto"/>
+      <RowDefinition Height="Auto"/>
+      <RowDefinition Height="*"/>
+      <RowDefinition Height="Auto"/>
+    </Grid.RowDefinitions>
+
+    <TextBlock Grid.Row="0" Text="Сценарии оператора" FontSize="18" FontWeight="SemiBold" Foreground="#FF333333" Margin="0,0,0,8"/>
+
+    <StackPanel Grid.Row="1" Orientation="Horizontal" Margin="0,0,0,10">
+      <Button Content="Обновить список" Padding="10,4" Command="{Binding RefreshCommand}" Margin="0,0,8,0"/>
+      <Button Content="Новый сценарий" Padding="10,4" Command="{Binding NewCommand}" Margin="0,0,8,0"/>
+      <Button Content="Импорт из файла…" Padding="10,4" Command="{Binding ImportCommand}" Margin="0,0,8,0"/>
+      <Button Content="Запустить" Padding="12,4" FontWeight="SemiBold" Command="{Binding LaunchCommand}" Margin="16,0,8,0"/>
+      <Button Content="Стоп сценария" Padding="10,4" Command="{Binding StopScenarioCommand}" Margin="0,0,8,0"/>
+    </StackPanel>
+
+    <DataGrid Grid.Row="2"
+              ItemsSource="{Binding Items}"
+              SelectedItem="{Binding Selected, Mode=TwoWay}"
+              AutoGenerateColumns="False"
+              IsReadOnly="True"
+              SelectionMode="Single"
+              HeadersVisibility="Column"
+              MouseDoubleClick="DataGrid_OnMouseDoubleClick"
+              GridLinesVisibility="Horizontal"
+              AlternatingRowBackground="#FFF8F8F8">
+      <DataGrid.Columns>
+        <DataGridTextColumn Header="ID" Binding="{Binding Id}" Width="60"/>
+        <DataGridTextColumn Header="Дата" Binding="{Binding DateText}" Width="100"/>
+        <DataGridTextColumn Header="Название" Binding="{Binding Title}" Width="*"/>
+        <DataGridTextColumn Header="Описание" Binding="{Binding Description}" Width="2*"/>
+      </DataGrid.Columns>
+    </DataGrid>
+
+    <StackPanel Grid.Row="3" Orientation="Horizontal" Margin="0,10,0,0">
+      <Button Content="Редактировать" Padding="10,4" Command="{Binding EditCommand}" Margin="0,0,8,0"/>
+      <Button Content="Копировать" Padding="10,4" Command="{Binding DuplicateCommand}" Margin="0,0,8,0"/>
+      <Button Content="Удалить" Padding="10,4" Command="{Binding DeleteCommand}"/>
+    </StackPanel>
+  </Grid>
+</UserControl>

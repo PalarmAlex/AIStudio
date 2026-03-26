@@ -1,0 +1,301 @@
+<Window x:Class="AIStudio.Windows.ScenarioEditorWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Редактор сценария оператора" Height="720" Width="1000"
+        WindowStartupLocation="CenterOwner"
+        MinHeight="480" MinWidth="800">
+  <Window.Resources>
+    <Style x:Key="LinkDataGridStyle" TargetType="DataGrid">
+      <Setter Property="Background" Value="White"/>
+      <Setter Property="RowBackground" Value="#FFF9F9F9"/>
+      <Setter Property="AlternatingRowBackground" Value="#FFF0F0F0"/>
+      <Setter Property="BorderThickness" Value="0"/>
+      <Setter Property="GridLinesVisibility" Value="None"/>
+      <Setter Property="VerticalScrollBarVisibility" Value="Auto"/>
+      <Setter Property="HorizontalScrollBarVisibility" Value="Auto"/>
+      <Setter Property="SelectionUnit" Value="FullRow"/>
+      <Setter Property="CanUserAddRows" Value="False"/>
+      <Setter Property="CanUserDeleteRows" Value="False"/>
+      <Setter Property="CanUserSortColumns" Value="False"/>
+    </Style>
+    <Style x:Key="HighlightedRowStyle" TargetType="DataGridRow">
+      <Style.Triggers>
+        <Trigger Property="IsSelected" Value="True">
+          <Setter Property="Background" Value="#FFE3F2FD"/>
+          <Setter Property="BorderBrush" Value="#FF2196F3"/>
+          <Setter Property="BorderThickness" Value="1"/>
+        </Trigger>
+      </Style.Triggers>
+    </Style>
+    <Style x:Key="InfoTitleStyle" TargetType="TextBlock">
+      <Setter Property="FontSize" Value="14"/>
+      <Setter Property="FontWeight" Value="SemiBold"/>
+    </Style>
+  </Window.Resources>
+  <Grid Margin="12">
+    <Grid.RowDefinitions>
+      <RowDefinition Height="Auto"/>
+      <RowDefinition Height="Auto"/>
+      <RowDefinition Height="Auto"/>
+      <RowDefinition Height="*"/>
+      <RowDefinition Height="Auto"/>
+    </Grid.RowDefinitions>
+
+    <Border Grid.Row="0"
+            Background="#FF2196F3"
+            CornerRadius="4"
+            Margin="0,0,0,10"
+            Padding="12">
+      <TextBlock Text="РЕДАКТОР СЦЕНАРИЯ ОПЕРАТОРА"
+                 FontSize="18"
+                 FontWeight="Bold"
+                 HorizontalAlignment="Center"
+                 Foreground="White"/>
+    </Border>
+
+    <Border Grid.Row="1"
+            BorderBrush="#FFBBDEFB"
+            BorderThickness="1"
+            CornerRadius="4"
+            Margin="0,0,0,10"
+            Padding="12"
+            Background="#FFE3F2FD">
+      <Grid>
+        <Grid.RowDefinitions>
+          <RowDefinition Height="Auto"/>
+          <RowDefinition Height="Auto"/>
+          <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+        <Grid.ColumnDefinitions>
+          <ColumnDefinition Width="Auto"/>
+          <ColumnDefinition Width="*"/>
+        </Grid.ColumnDefinitions>
+        <TextBlock Grid.Row="0" Grid.Column="0" Text="Название" VerticalAlignment="Center" Margin="0,0,10,6"
+                   Style="{StaticResource InfoTitleStyle}" Foreground="#FF0D47A1"/>
+        <TextBox Grid.Row="0" Grid.Column="1" Text="{Binding Title, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,6"/>
+        <TextBlock Grid.Row="1" Grid.Column="0" Text="Описание" VerticalAlignment="Top" Margin="0,0,10,6"
+                   Style="{StaticResource InfoTitleStyle}" Foreground="#FF0D47A1"/>
+        <TextBox Grid.Row="1" Grid.Column="1" Text="{Binding Description, UpdateSourceTrigger=PropertyChanged}" Height="44" TextWrapping="Wrap" AcceptsReturn="True" Margin="0,0,0,6"/>
+        <TextBlock Grid.Row="2" Grid.Column="0" Text="Дата" VerticalAlignment="Center" Margin="0,0,10,0"
+                   Style="{StaticResource InfoTitleStyle}" Foreground="#FF0D47A1"/>
+        <TextBox Grid.Row="2" Grid.Column="1" Text="{Binding DateText, UpdateSourceTrigger=PropertyChanged}" Width="220" HorizontalAlignment="Left"/>
+      </Grid>
+    </Border>
+
+    <Border Grid.Row="2"
+            BorderBrush="#FFC8E6C9"
+            BorderThickness="1"
+            CornerRadius="4"
+            Margin="0,0,0,10"
+            Padding="10,8"
+            Background="#FFF1F8E9"
+            MaxHeight="220">
+      <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+        <StackPanel>
+          <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
+            <TextBlock Text="Состояние: "
+                       Foreground="Black"
+                       FontSize="16"
+                       FontWeight="SemiBold"/>
+            <TextBlock Text="{Binding PreviewStateValue}"
+                       Foreground="{Binding PreviewStateValueBrush}"
+                       FontSize="16"
+                       FontWeight="SemiBold"
+                       TextWrapping="Wrap"/>
+          </StackPanel>
+          <Grid Margin="0,0,0,8">
+            <Grid.ColumnDefinitions>
+              <ColumnDefinition Width="Auto"/>
+              <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+            <TextBlock Grid.Column="0"
+                       Text="Активные стили: "
+                       Foreground="Black"
+                       FontSize="16"
+                       FontWeight="SemiBold"
+                       VerticalAlignment="Top"/>
+            <TextBlock Grid.Column="1"
+                       Text="{Binding PreviewStylesValue}"
+                       TextWrapping="Wrap"
+                       Foreground="#FF6A6A6A"
+                       FontSize="16"
+                       FontWeight="SemiBold"
+                       VerticalAlignment="Top"/>
+          </Grid>
+          <ItemsControl ItemsSource="{Binding HomeostasisRows}">
+            <ItemsControl.ItemsPanel>
+              <ItemsPanelTemplate>
+                <UniformGrid Columns="4"/>
+              </ItemsPanelTemplate>
+            </ItemsControl.ItemsPanel>
+            <ItemsControl.ItemTemplate>
+              <DataTemplate>
+                <Border Margin="0,0,8,6" Padding="4,4,4,8" BorderBrush="#FFC8E6C9" BorderThickness="1" CornerRadius="2" Background="White">
+                  <StackPanel>
+                    <TextBlock Text="{Binding LabelText}"
+                               TextWrapping="Wrap"
+                               TextTrimming="CharacterEllipsis"
+                               MaxHeight="26"
+                               ToolTip="{Binding LabelText}"
+                               FontSize="11"
+                               LineHeight="14"/>
+                    <Grid Margin="0,6,0,0" MinHeight="30">
+                      <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                      </Grid.ColumnDefinitions>
+                      <TextBlock Grid.Column="0"
+                                 Text="{Binding ValueDisplay, Mode=OneWay}"
+                                 VerticalAlignment="Center"
+                                 Width="22"
+                                 FontSize="11"
+                                 FontWeight="SemiBold"/>
+                      <Slider Grid.Column="1"
+                              Minimum="0"
+                              Maximum="100"
+                              TickFrequency="1"
+                              IsSnapToTickEnabled="True"
+                              Height="20"
+                              Margin="4,2,0,2"
+                              VerticalAlignment="Center"
+                              HorizontalAlignment="Stretch"
+                              Value="{Binding SliderValue, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                              LostFocus="HomeostasisSlider_OnCommitted"
+                              PreviewMouseLeftButtonUp="HomeostasisSlider_OnCommitted"
+                              PreviewKeyUp="HomeostasisSlider_OnPreviewKeyUp"/>
+                    </Grid>
+                  </StackPanel>
+                </Border>
+              </DataTemplate>
+            </ItemsControl.ItemTemplate>
+          </ItemsControl>
+        </StackPanel>
+      </ScrollViewer>
+    </Border>
+
+    <Grid Grid.Row="3">
+      <Grid.RowDefinitions>
+        <RowDefinition Height="Auto"/>
+        <RowDefinition Height="*"/>
+      </Grid.RowDefinitions>
+      <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,8">
+        <Button Content="Добавить строку" Padding="10,4" Command="{Binding AddLineCommand}" Margin="0,0,8,0"/>
+        <Button Content="Удалить строку" Padding="10,4" Command="{Binding RemoveLineCommand}"/>
+      </StackPanel>
+
+      <Border Grid.Row="1" BorderBrush="#FFE0E0E0" BorderThickness="1" CornerRadius="4" MinHeight="180">
+        <Grid>
+          <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+          </Grid.RowDefinitions>
+          <Border Grid.Row="0" Background="#FFE8EAF6" BorderBrush="#FFE0E0E0" BorderThickness="0,0,0,1" Padding="10">
+            <TextBlock Text="ШАГИ СЦЕНАРИЯ" FontWeight="Bold" FontSize="15" Foreground="#FF3F51B5"/>
+          </Border>
+          <DataGrid x:Name="LinesGrid"
+                    Grid.Row="1"
+                    ItemsSource="{Binding Lines}"
+                    SelectedItem="{Binding SelectedLine}"
+                    AutoGenerateColumns="False"
+                    CanUserAddRows="False"
+                    HeadersVisibility="Column"
+                    Style="{StaticResource LinkDataGridStyle}"
+                    RowStyle="{StaticResource HighlightedRowStyle}"
+                    MouseDoubleClick="LinesGrid_OnMouseDoubleClick"
+                    CellEditEnding="LinesGrid_OnCellEditEnding">
+            <DataGrid.Columns>
+              <DataGridTextColumn Header="Шаг"
+                                  Binding="{Binding StepIndex, UpdateSourceTrigger=PropertyChanged}"
+                                  Width="56"
+                                  IsReadOnly="False">
+                <DataGridTextColumn.HeaderStyle>
+                  <Style TargetType="DataGridColumnHeader">
+                    <Setter Property="ToolTip" Value="Порядковый номер шага (1, 2, 3 …). После правки пересчитывается № пульса."/>
+                    <Setter Property="FontSize" Value="12"/>
+                    <Setter Property="FontWeight" Value="SemiBold"/>
+                  </Style>
+                </DataGridTextColumn.HeaderStyle>
+              </DataGridTextColumn>
+              <DataGridTextColumn Header="№ пульса"
+                                  Binding="{Binding PulseWithinScenario}"
+                                  Width="80"
+                                  IsReadOnly="True">
+                <DataGridTextColumn.HeaderStyle>
+                  <Style TargetType="DataGridColumnHeader">
+                    <Setter Property="ToolTip" Value="Расчётный номер пульса внутри прогона."/>
+                    <Setter Property="FontSize" Value="12"/>
+                    <Setter Property="FontWeight" Value="SemiBold"/>
+                  </Style>
+                </DataGridTextColumn.HeaderStyle>
+              </DataGridTextColumn>
+              <DataGridTextColumn Header="Воздействия"
+                                  Binding="{Binding ActionNamesDisplay}"
+                                  Width="2*"
+                                  IsReadOnly="True">
+                <DataGridTextColumn.HeaderStyle>
+                  <Style TargetType="DataGridColumnHeader">
+                    <Setter Property="ToolTip" Value="Двойной щелчок — выбор воздействий из справочника"/>
+                    <Setter Property="FontSize" Value="12"/>
+                    <Setter Property="FontWeight" Value="SemiBold"/>
+                  </Style>
+                </DataGridTextColumn.HeaderStyle>
+                <DataGridTextColumn.ElementStyle>
+                  <Style TargetType="TextBlock">
+                    <Setter Property="TextTrimming" Value="CharacterEllipsis"/>
+                    <Setter Property="ToolTip" Value="{Binding ActionNamesDisplay}"/>
+                  </Style>
+                </DataGridTextColumn.ElementStyle>
+              </DataGridTextColumn>
+              <DataGridTextColumn Header="Фраза" Binding="{Binding Phrase, UpdateSourceTrigger=PropertyChanged}" Width="2*">
+                <DataGridTextColumn.HeaderStyle>
+                  <Style TargetType="DataGridColumnHeader">
+                    <Setter Property="FontSize" Value="12"/>
+                    <Setter Property="FontWeight" Value="SemiBold"/>
+                  </Style>
+                </DataGridTextColumn.HeaderStyle>
+              </DataGridTextColumn>
+              <DataGridTextColumn Header="Тон" Binding="{Binding ToneId}" Width="56">
+                <DataGridTextColumn.HeaderStyle>
+                  <Style TargetType="DataGridColumnHeader">
+                    <Setter Property="FontSize" Value="12"/>
+                    <Setter Property="FontWeight" Value="SemiBold"/>
+                  </Style>
+                </DataGridTextColumn.HeaderStyle>
+              </DataGridTextColumn>
+              <DataGridTextColumn Header="Настроение" Binding="{Binding MoodId}" Width="88">
+                <DataGridTextColumn.HeaderStyle>
+                  <Style TargetType="DataGridColumnHeader">
+                    <Setter Property="FontSize" Value="12"/>
+                    <Setter Property="FontWeight" Value="SemiBold"/>
+                  </Style>
+                </DataGridTextColumn.HeaderStyle>
+              </DataGridTextColumn>
+              <DataGridCheckBoxColumn Header="Сброс ожидания" Binding="{Binding ResetWaitingPeriod}" Width="120">
+                <DataGridCheckBoxColumn.HeaderStyle>
+                  <Style TargetType="DataGridColumnHeader">
+                    <Setter Property="FontSize" Value="12"/>
+                    <Setter Property="FontWeight" Value="SemiBold"/>
+                  </Style>
+                </DataGridCheckBoxColumn.HeaderStyle>
+              </DataGridCheckBoxColumn>
+            </DataGrid.Columns>
+          </DataGrid>
+        </Grid>
+      </Border>
+    </Grid>
+
+    <Border Grid.Row="4"
+            BorderBrush="#FFE0E0E0"
+            BorderThickness="1"
+            CornerRadius="4"
+            Padding="12"
+            Margin="0,12,0,0"
+            Background="#FFF5F5F5">
+      <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+        <Button Content="Сохранить" Padding="16,6" Margin="0,0,8,0" IsDefault="True" Command="{Binding SaveCommand}"
+                Background="#FF4CAF50" BorderBrush="#FF388E3C" Foreground="White" FontWeight="SemiBold"/>
+        <Button Content="Закрыть" Padding="16,6" Click="CloseButton_Click"/>
+      </StackPanel>
+    </Border>
+  </Grid>
+</Window>

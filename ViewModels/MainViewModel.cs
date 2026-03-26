@@ -3,9 +3,11 @@ using AIStudio.Pages;
 using AIStudio.Pages.Automatizm;
 using AIStudio.Pages.Episodic;
 using AIStudio.Pages.Reflexes;
+using AIStudio.Pages.Research;
 using AIStudio.Pages.Understanding;
 using AIStudio.ViewModels;
 using AIStudio.ViewModels.Episodic;
+using AIStudio.ViewModels.Research;
 using AIStudio.ViewModels.Understanding;
 using ISIDA.Actions;
 using ISIDA.Common;
@@ -13,16 +15,20 @@ using ISIDA.Gomeostas;
 using ISIDA.Psychic;
 using ISIDA.Psychic.Automatism;
 using ISIDA.Reflexes;
+using ISIDA.Scenarios;
 using ISIDA.Sensors;
 using System;
 using System.ComponentModel;
+using System.Linq;
 using System.Diagnostics;
 using System.IO;
+using System.Text;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Media;
+using Microsoft.Win32;
 using static ISIDA.Psychic.Automatism.AutomatizmChainsSystem;
 using static ISIDA.Psychic.VerbalBrocaImagesSystem;
 
@@ -56,6 +62,9 @@ namespace AIStudio
     private readonly AutomatizmChainsSystem _automatizmChains;
     private readonly AutomatizmFileLoader _automatizmFileLoader;
     private readonly Stage2PrimitivesLoader _stage2PrimitivesLoader;
+    private readonly OperatorScenarioRunner _scenarioRunner = new OperatorScenarioRunner();
+    private OperatorScenarioEngine _operatorScenarioEngine;
+    private bool _wasPulsatingForScenario;
 
     public event PropertyChangedEventHandler PropertyChanged;
     private AgentViewModel _agentViewModel;
@@ -181,6 +190,7 @@ namespace AIStudio
         _automatizmChains = _isidaContext.AutomatizmChainsSystem;
         _automatizmFileLoader = _isidaContext.AutomatizmFileLoader;
         _stage2PrimitivesLoader = _isidaContext.Stage2PrimitivesLoader;
+        _operatorScenarioEngine = new OperatorScenarioEngine(_actionsSystem);
 
         _stepInzialized = 4;
       }
@@ -203,6 +213,10 @@ namespace AIStudio
 
       InitializePulseCommands();
       SetupPulseHandlers();
+
+      _scenarioRunner.Finished += OnScenarioRunFinished;
+      _wasPulsatingForScenario = GlobalTimer.IsPulsationRunning;
+      GlobalTimer.PulsationStateChanged += OnPulsationStateChangedForScenario;
 
       ResetLifeTimeCommand = new RelayCommand(_ =>
       {
@@ -415,6 +429,9 @@ namespace AIStudio
           case "38":  // о программе
             ShowAbout();
             break;
+          case "40": // Исследования: сценарии оператора
+            ShowScenarioRegistry();
+            break;
           default:
             ShowStub($"Меню {menuItem}");
             break;
@@ -491,6 +508,100 @@ namespace AIStudio
       var viewModel = new ThinkingCyclesViewModel(_psychicSystem);
       view.DataContext = viewModel;
       CurrentContent = view;
+    }
+
+    private void ShowScenarioRegistry()
+    {
+      var view = new ScenarioRegistryView();
+      var viewModel = new ScenarioRegistryViewModel(
+          _influenceActionSystem,
+          () => _agentViewModel?.AgentPultViewModel,
+          () => _isidaContext.CancelWaitingPeriodAndResetMirror(),
+          _scenarioRunner,
+          _operatorScenarioEngine,
+          () => GlobalTimer.IsPulsationRunning,
+          () => _gomeostas.GetAgentState()?.IsDead == true);
+      view.DataContext = viewModel;
+      CurrentContent = view;
+    }
+
+    private void OnPulsationStateChangedForScenario()
+    {
+      if (_wasPulsatingForScenario && !GlobalTimer.IsPulsationRunning)
+        _scenarioRunner.OnPulsationStopped();
+      _wasPulsatingForScenario = GlobalTimer.IsPulsationRunning;
+    }
+
+    private void OnScenarioRunFinished(object sender, OperatorScenarioCompletedEventArgs e)
+    {
+      Application.Current?.Dispatcher.BeginInvoke(new Action(() =>
+      {
+        try
+        {
+          var sb = new StringBuilder();
+          if (e.Success)
+            sb.AppendLine("Сценарий завершён успешно.");
+          else if (e.AbortedByUser)
+            sb.AppendLine("Сценарий остановлен (кнопка «Стоп»).");
+          else if (e.AbortedByPulsationStop)
+            sb.AppendLine("Сценарий прерван: остановлена пульсация.");
+          else if (!string.IsNullOrEmpty(e.ErrorMessage))
+            sb.AppendLine("Ошибка: " + e.ErrorMessage);
+          sb.AppendLine("Последний выполненный пульс внутри сценария: " + e.LastExecutedPulseWithinScenario);
+
+          var msg = sb.ToString();
+          MessageBox.Show(msg, "Сценарий", MessageBoxButton.OK,
+              e.Success ? MessageBoxImage.Information : MessageBoxImage.Warning);
+
+          if (MessageBox.Show("Сохранить результат в файл?", "Сценарий",
+                MessageBoxButton.YesNo, MessageBoxImage.Question) != MessageBoxResult.Yes)
+            return;
+
+          var dlg = new SaveFileDialog
+          {
+            Filter = "Текст (*.txt)|*.txt|Все файлы|*.*",
+            FileName = "scenario_result.txt"
+          };
+          if (dlg.ShowDialog() != true)
+            return;
+
+          var outText = new StringBuilder();
+          outText.AppendLine(msg);
+          if (e.Document != null)
+          {
+            outText.AppendLine();
+            outText.AppendLine("--- Сценарий (шапка) ---");
+            outText.AppendLine("ID: " + e.Document.Header.Id);
+            outText.AppendLine("Название: " + e.Document.Header.Title);
+            outText.AppendLine("Описание: " + e.Document.Header.Description);
+            outText.AppendLine("Дата: " + e.Document.Header.DateText);
+            outText.AppendLine("--- Строки ---");
+            foreach (var line in e.Document.Lines.OrderBy(x => x.StepIndex))
+            {
+              line.RefreshActionNames(_influenceActionSystem);
+              var actionsText = string.IsNullOrEmpty(line.ActionNamesDisplay)
+                  ? line.ActionIdsText
+                  : line.ActionNamesDisplay;
+              outText.AppendLine(string.Format(System.Globalization.CultureInfo.InvariantCulture,
+                  "Шаг {0}; пульс {1}; {2}; тон={3}; настроение={4}; действия={5}; фраза={6}; сброс ожидания={7}",
+                  line.StepIndex,
+                  line.PulseWithinScenario,
+                  line.Kind == ScenarioLineKind.WaitClick ? "W" : "P",
+                  line.ToneId,
+                  line.MoodId,
+                  actionsText,
+                  line.Phrase ?? "",
+                  line.ResetWaitingPeriod));
+            }
+          }
+          File.WriteAllText(dlg.FileName, outText.ToString(), Encoding.UTF8);
+        }
+        catch (Exception ex)
+        {
+          Logger.Error(ex.Message);
+          MessageBox.Show(ex.Message, "Ошибка сохранения", MessageBoxButton.OK, MessageBoxImage.Error);
+        }
+      }));
     }
 
     private void ShowAutomatizms()
@@ -1256,6 +1367,8 @@ namespace AIStudio
 
             // Обновляем период ожидания оценки оператора
             UpdateWaitingPeriodDisplay();
+
+            _scenarioRunner.OnPulseCompleted(pulseCount);
 
             // Логируем состояние (если агент жив)
             if (!IsAgentDead)

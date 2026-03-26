@@ -146,6 +146,9 @@
     <Compile Include="Pages\AdaptiveActions\AntagonistActionsEditor.xaml.cs">
       <DependentUpon>AntagonistActionsEditor.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Pages\AdaptiveActions\ScenarioInfluenceActionsEditor.xaml.cs">
+      <DependentUpon>ScenarioInfluenceActionsEditor.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Pages\AdaptiveActions\TargetParametersEditor.xaml.cs">
       <DependentUpon>TargetParametersEditor.xaml</DependentUpon>
     </Compile>
@@ -316,6 +319,16 @@
     <Compile Include="ViewModels\StyleLogsViewModel.cs" />
     <Compile Include="ViewModels\SystemParametersViewModel.cs" />
     <Compile Include="ViewModels\VerbalTreesViewModel.cs" />
+    <Compile Include="Common\ScenarioPaths.cs" />
+    <Compile Include="Common\ScenarioStorage.cs" />
+    <Compile Include="ViewModels\Research\ScenarioEditorViewModel.cs" />
+    <Compile Include="ViewModels\Research\ScenarioRegistryViewModel.cs" />
+    <Compile Include="Pages\Research\ScenarioRegistryView.xaml.cs">
+      <DependentUpon>ScenarioRegistryView.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Windows\ScenarioEditorWindow.xaml.cs">
+      <DependentUpon>ScenarioEditorWindow.xaml</DependentUpon>
+    </Compile>
     <Page Include="MainWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
@@ -342,6 +355,10 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="Pages\AdaptiveActions\AntagonistActionsEditor.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Pages\AdaptiveActions\ScenarioInfluenceActionsEditor.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
@@ -526,6 +543,14 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="Pages\Automatizm\AutomatizmChainsView.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Pages\Research\ScenarioRegistryView.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Windows\ScenarioEditorWindow.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

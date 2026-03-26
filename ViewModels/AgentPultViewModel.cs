@@ -17,10 +17,11 @@ using System.Windows.Media;
 using System.Windows.Threading;
 using ISIDA.Psychic.Automatism;
 using ISIDA.Common;
+using ISIDA.Scenarios;
 
 namespace AIStudio.ViewModels
 {
-  public class AgentPultViewModel : INotifyPropertyChanged
+  public class AgentPultViewModel : INotifyPropertyChanged, IOperatorScenarioPult
   {
     public event PropertyChangedEventHandler PropertyChanged;
     protected virtual void OnPropertyChanged([CallerMemberName] string propertyName = null)
@@ -677,6 +678,73 @@ namespace AIStudio.ViewModels
           .Where(a => a.IsSelected)
           .Select(a => a.Id)
           .ToList();
+    }
+
+    /// <summary>
+    /// Применяет воздействия с пульта для сценария без диалогов (ошибка — строка, успех — null).
+    /// </summary>
+    public string TryApplyScenarioStimulus(
+        IReadOnlyList<int> actionIds,
+        string phraseText,
+        int toneId,
+        int moodId)
+    {
+      if (IsAgentDead)
+        return "Агент мёртв";
+      if (!GlobalTimer.IsPulsationRunning)
+        return "Пульсация выключена";
+
+      var ids = actionIds == null ? new List<int>() : actionIds.Where(id => id > 0).Distinct().ToList();
+      if (ids.Count == 0 && string.IsNullOrWhiteSpace(phraseText))
+        return "Пустой шаг сценария";
+
+      int prevTone = SelectedToneId;
+      int prevMood = SelectedMoodId;
+      try
+      {
+        SelectedToneId = toneId;
+        SelectedMoodId = moodId;
+
+        List<int> phraseIds = new List<int>();
+        if (!string.IsNullOrWhiteSpace(phraseText))
+        {
+          phraseIds = _sensorySystem.VerbalChannel.RecognizeText(
+              phraseText,
+              AuthoritativeMode);
+        }
+
+        if (!ids.Any() && !phraseIds.Any())
+          return "Не удалось распознать фразу и нет воздействий";
+
+        var (success, errorMessage) = _influenceActionSystem.ApplyMultipleInfluenceActions(
+            ids,
+            phraseIds,
+            AuthoritativeMode,
+            SelectedToneId,
+            SelectedMoodId);
+
+        if (!success)
+        {
+          if (errorMessage != null && errorMessage.Contains("Агент мертв"))
+            IsAgentDead = true;
+          return errorMessage ?? "Ошибка применения воздействий";
+        }
+
+        if (AppGlobalState.IsAutomatizmChainActive && AutomatismExecutionService.IsInitialized)
+          AutomatismExecutionService.Instance.ApplyStimulusEffectAndAdvanceChain();
+        UpdateAgentState();
+        return null;
+      }
+      catch (Exception ex)
+      {
+        Logger.Error(ex.Message);
+        return ex.Message;
+      }
+      finally
+      {
+        SelectedToneId = prevTone;
+        SelectedMoodId = prevMood;
+      }
     }
 
     public void ApplyInfluenceActions(object parameter)
