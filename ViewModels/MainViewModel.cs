@@ -8,6 +8,7 @@ using AIStudio.Pages.Understanding;
 using AIStudio.ViewModels;
 using AIStudio.ViewModels.Episodic;
 using AIStudio.ViewModels.Research;
+using AIStudio.Windows;
 using AIStudio.ViewModels.Understanding;
 using ISIDA.Actions;
 using ISIDA.Common;
@@ -65,6 +66,7 @@ namespace AIStudio
     private readonly OperatorScenarioRunner _scenarioRunner = new OperatorScenarioRunner();
     private OperatorScenarioEngine _operatorScenarioEngine;
     private bool _wasPulsatingForScenario;
+    private ScenarioRunLiveWindow _scenarioRunLiveWindow;
 
     public event PropertyChangedEventHandler PropertyChanged;
     private AgentViewModel _agentViewModel;
@@ -519,6 +521,7 @@ namespace AIStudio
           () => _isidaContext.CancelWaitingPeriodAndResetMirror(),
           _scenarioRunner,
           _operatorScenarioEngine,
+          _gomeostas,
           () => GlobalTimer.IsPulsationRunning,
           () => _gomeostas.GetAgentState()?.IsDead == true,
           openEditorEmbedded: vm =>
@@ -547,68 +550,33 @@ namespace AIStudio
           ScenarioLogComparisonSession.LastAnchorGlobalPulse = e.AnchorGlobalPulse;
           ScenarioLogComparisonSession.LastScenarioId = e.Document?.Header?.Id;
 
-          var sb = new StringBuilder();
-          if (e.Success)
-            sb.AppendLine("Сценарий завершён успешно.");
-          else if (e.AbortedByUser)
-            sb.AppendLine("Сценарий остановлен (кнопка «Стоп»).");
-          else if (e.AbortedByPulsationStop)
-            sb.AppendLine("Сценарий прерван: остановлена пульсация.");
-          else if (!string.IsNullOrEmpty(e.ErrorMessage))
-            sb.AppendLine("Ошибка: " + e.ErrorMessage);
-          sb.AppendLine("Последний выполненный пульс внутри сценария: " + e.LastExecutedPulseWithinScenario);
-
-          var msg = sb.ToString();
-          MessageBox.Show(msg, "Сценарий", MessageBoxButton.OK,
-              e.Success ? MessageBoxImage.Information : MessageBoxImage.Warning);
-
-          if (MessageBox.Show("Сохранить результат в файл?", "Сценарий",
-                MessageBoxButton.YesNo, MessageBoxImage.Question) != MessageBoxResult.Yes)
-            return;
-
-          var dlg = new SaveFileDialog
-          {
-            Filter = "Текст (*.txt)|*.txt|Все файлы|*.*",
-            FileName = "scenario_result.txt"
-          };
-          if (dlg.ShowDialog() != true)
-            return;
-
-          var outText = new StringBuilder();
-          outText.AppendLine(msg);
           if (e.Document != null)
           {
-            outText.AppendLine();
-            outText.AppendLine("--- Сценарий (шапка) ---");
-            outText.AppendLine("ID: " + e.Document.Header.Id);
-            outText.AppendLine("Название: " + e.Document.Header.Title);
-            outText.AppendLine("Описание: " + e.Document.Header.Description);
-            outText.AppendLine("Дата: " + e.Document.Header.DateText);
-            outText.AppendLine("--- Строки ---");
-            foreach (var line in e.Document.Lines.OrderBy(x => x.StepIndex))
+            try
             {
-              line.RefreshActionNames(_influenceActionSystem);
-              var actionsText = string.IsNullOrEmpty(line.ActionNamesDisplay)
-                  ? line.ActionIdsText
-                  : line.ActionNamesDisplay;
-              outText.AppendLine(string.Format(System.Globalization.CultureInfo.InvariantCulture,
-                  "Шаг {0}; пульс {1}; {2}; тон={3}; настроение={4}; действия={5}; фраза={6}; сброс ожидания={7}",
-                  line.StepIndex,
-                  line.PulseWithinScenario,
-                  line.Kind == ScenarioLineKind.WaitClick ? "W" : "P",
-                  line.ToneId,
-                  line.MoodId,
-                  actionsText,
-                  line.Phrase ?? "",
-                  line.ResetWaitingPeriod));
+              if (_scenarioRunLiveWindow != null)
+              {
+                try { _scenarioRunLiveWindow.Close(); } catch { /* ignore */ }
+                _scenarioRunLiveWindow = null;
+              }
+              var vm = new ScenarioRunLiveViewModel(e.Document, e, _influenceActionSystem);
+              _scenarioRunLiveWindow = new ScenarioRunLiveWindow
+              {
+                DataContext = vm,
+                Owner = Application.Current?.MainWindow
+              };
+              _scenarioRunLiveWindow.Show();
+            }
+            catch (Exception ex)
+            {
+              Logger.Error(ex.Message);
+              MessageBox.Show(ex.Message, "Результат сценария", MessageBoxButton.OK, MessageBoxImage.Error);
             }
           }
-          File.WriteAllText(dlg.FileName, outText.ToString(), Encoding.UTF8);
         }
         catch (Exception ex)
         {
           Logger.Error(ex.Message);
-          MessageBox.Show(ex.Message, "Ошибка сохранения", MessageBoxButton.OK, MessageBoxImage.Error);
         }
       }));
     }

@@ -44,13 +44,14 @@
     <Grid.RowDefinitions>
       <RowDefinition Height="Auto"/>
       <RowDefinition Height="Auto"/>
+      <RowDefinition Height="Auto"/>
       <RowDefinition Height="*"/>
       <RowDefinition Height="Auto"/>
     </Grid.RowDefinitions>
 
     <TextBlock Grid.Row="0" Text="Сценарии оператора" FontSize="18" FontWeight="SemiBold" Foreground="#FF333333" Margin="0,0,0,8"/>
 
-    <Border Grid.Row="1" BorderBrush="#FFE0E0E0" BorderThickness="1" CornerRadius="4" Padding="8,6" Margin="0,0,0,10" Background="#FFF5F5F5">
+    <Border Grid.Row="1" BorderBrush="#FFE0E0E0" BorderThickness="1" CornerRadius="4" Padding="8,6" Margin="0,0,0,8" Background="#FFF5F5F5">
       <StackPanel Orientation="Horizontal">
         <Button Content="Обновить список" Padding="10,6" Margin="0,0,8,0" Command="{Binding RefreshCommand}" Cursor="Hand"/>
         <Button Content="Новый сценарий" Padding="10,6" Margin="0,0,8,0" Command="{Binding NewCommand}" Cursor="Hand"/>
@@ -60,7 +61,30 @@
       </StackPanel>
     </Border>
 
-    <Border Grid.Row="2" BorderBrush="#FFE0E0E0" BorderThickness="1" CornerRadius="4" Margin="0,0,0,8">
+    <Border Grid.Row="2" BorderBrush="#FFE0E0E0" BorderThickness="1" CornerRadius="4" Padding="8,8" Margin="0,0,0,10" Background="#FFF9FBE7">
+      <Grid>
+        <Grid.ColumnDefinitions>
+          <ColumnDefinition Width="Auto"/>
+          <ColumnDefinition Width="120"/>
+          <ColumnDefinition Width="Auto"/>
+          <ColumnDefinition Width="*"/>
+          <ColumnDefinition Width="Auto"/>
+          <ColumnDefinition Width="120"/>
+          <ColumnDefinition Width="Auto"/>
+          <ColumnDefinition Width="Auto"/>
+        </Grid.ColumnDefinitions>
+        <TextBlock Grid.Column="0" Text="ID" VerticalAlignment="Center" Margin="0,0,8,0" FontWeight="SemiBold"/>
+        <TextBox Grid.Column="1" Text="{Binding FilterIdText, UpdateSourceTrigger=PropertyChanged}" Padding="4,3" Margin="0,0,16,0"/>
+        <TextBlock Grid.Column="2" Text="Название" VerticalAlignment="Center" Margin="0,0,8,0" FontWeight="SemiBold"/>
+        <TextBox Grid.Column="3" Text="{Binding FilterTitleText, UpdateSourceTrigger=PropertyChanged}" Padding="4,3" Margin="0,0,16,0"/>
+        <TextBlock Grid.Column="4" Text="Группа" VerticalAlignment="Center" Margin="0,0,8,0" FontWeight="SemiBold"/>
+        <TextBox Grid.Column="5" Text="{Binding FilterGroupText, UpdateSourceTrigger=PropertyChanged}" Padding="4,3" Margin="0,0,12,0"/>
+        <Button Grid.Column="6" Content="Применить" Padding="12,6" Margin="0,0,8,0" Command="{Binding ApplyFiltersCommand}" Cursor="Hand"/>
+        <Button Grid.Column="7" Content="Сброс" Padding="12,6" Command="{Binding ResetFiltersCommand}" Cursor="Hand"/>
+      </Grid>
+    </Border>
+
+    <Border Grid.Row="3" BorderBrush="#FFE0E0E0" BorderThickness="1" CornerRadius="4" Margin="0,0,0,8">
       <DataGrid ItemsSource="{Binding Items}"
                 SelectedItem="{Binding Selected, Mode=TwoWay}"
                 AutoGenerateColumns="False"
@@ -83,6 +107,14 @@
             </DataGridTextColumn.ElementStyle>
           </DataGridTextColumn>
           <DataGridTextColumn Header="Дата" Binding="{Binding DateText}" Width="100">
+            <DataGridTextColumn.ElementStyle>
+              <Style TargetType="TextBlock">
+                <Setter Property="Padding" Value="6,4"/>
+                <Setter Property="VerticalAlignment" Value="Center"/>
+              </Style>
+            </DataGridTextColumn.ElementStyle>
+          </DataGridTextColumn>
+          <DataGridTextColumn Header="Группа" Binding="{Binding GroupNumber}" Width="72">
             <DataGridTextColumn.ElementStyle>
               <Style TargetType="TextBlock">
                 <Setter Property="Padding" Value="6,4"/>
@@ -113,7 +145,7 @@
       </DataGrid>
     </Border>
 
-    <Border Grid.Row="3" BorderBrush="#FFE0E0E0" BorderThickness="1" CornerRadius="4" Padding="8,6" Background="#FFF5F5F5">
+    <Border Grid.Row="4" BorderBrush="#FFE0E0E0" BorderThickness="1" CornerRadius="4" Padding="8,6" Background="#FFF5F5F5">
       <StackPanel Orientation="Horizontal">
         <Button Content="Редактировать" Padding="10,6" Margin="0,0,8,0" Command="{Binding EditCommand}" Cursor="Hand"/>
         <Button Content="Копировать" Padding="10,6" Margin="0,0,8,0" Command="{Binding DuplicateCommand}" Cursor="Hand"/>

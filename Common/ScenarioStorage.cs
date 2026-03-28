@@ -39,12 +39,20 @@ namespace AIStudio.Common
           continue;
         if (!int.TryParse(p[0], NumberStyles.Integer, CultureInfo.InvariantCulture, out int id))
           continue;
+        int group = 0, sortInGroup = 0;
+        if (p.Length >= 6)
+        {
+          int.TryParse(p[4].Trim(), NumberStyles.Integer, CultureInfo.InvariantCulture, out group);
+          int.TryParse(p[5].Trim(), NumberStyles.Integer, CultureInfo.InvariantCulture, out sortInGroup);
+        }
         list.Add(new ScenarioHeader
         {
           Id = id,
           Title = Unescape(p[1]),
           Description = Unescape(p[2]),
-          DateText = Unescape(p[3])
+          DateText = Unescape(p[3]),
+          GroupNumber = group,
+          SortOrderInGroup = sortInGroup
         });
       }
 
@@ -93,19 +101,33 @@ namespace AIStudio.Common
           if (t.StartsWith("# SCENARIO_META|", StringComparison.Ordinal))
           {
             var meta = t.Substring("# SCENARIO_META|".Length).Split('|');
-            if (meta.Length >= 4)
+            if (meta.Length >= 3)
             {
               doc.Header.Title = Unescape(meta[0]);
               doc.Header.Description = Unescape(meta[1]);
               doc.Header.DateText = Unescape(meta[2]);
             }
-            if (meta.Length >= 6)
+            if (meta.Length >= 8)
             {
-              doc.Header.InitialHomeostasisValues = "";
+              doc.Header.InitialHomeostasisValues = Unescape(meta[3]);
+              int.TryParse(meta[4].Trim(), NumberStyles.Integer, CultureInfo.InvariantCulture, out int gn);
+              int.TryParse(meta[5].Trim(), NumberStyles.Integer, CultureInfo.InvariantCulture, out int sg);
+              int.TryParse(meta[6].Trim(), NumberStyles.Integer, CultureInfo.InvariantCulture, out int pst);
+              doc.Header.GroupNumber = gn;
+              doc.Header.SortOrderInGroup = sg;
+              doc.Header.PreRunTargetStage = pst;
+              doc.Header.PreRunClearAgentData =
+                  int.TryParse(meta[7].Trim(), NumberStyles.Integer, CultureInfo.InvariantCulture, out int cl)
+                  && cl != 0;
             }
-            else if (meta.Length >= 5)
+            else
             {
-              doc.Header.InitialHomeostasisValues = Unescape(meta[4]);
+              if (meta.Length >= 6)
+                doc.Header.InitialHomeostasisValues = "";
+              else if (meta.Length >= 5)
+                doc.Header.InitialHomeostasisValues = Unescape(meta[4]);
+              else if (meta.Length >= 4)
+                doc.Header.InitialHomeostasisValues = Unescape(meta[3]);
             }
           }
           continue;
@@ -256,7 +278,7 @@ namespace AIStudio.Common
       {
         "# Реестр сценариев оператора",
         $"{RegistryFormatHeader}{ScenarioDocument.FormatVersion}",
-        "# Id|Title|Description|Date"
+        "# Id|Title|Description|Date|Group|SortInGroup"
       };
       foreach (var h in headers.OrderBy(x => x.Id))
       {
@@ -264,7 +286,9 @@ namespace AIStudio.Common
             h.Id.ToString(CultureInfo.InvariantCulture),
             Escape(h.Title ?? ""),
             Escape(h.Description ?? ""),
-            Escape(h.DateText ?? "")));
+            Escape(h.DateText ?? ""),
+            h.GroupNumber.ToString(CultureInfo.InvariantCulture),
+            h.SortOrderInGroup.ToString(CultureInfo.InvariantCulture)));
       }
 
       return FileValidator.SafeSaveFile(
@@ -295,7 +319,7 @@ namespace AIStudio.Common
       {
         "# Строки сценария оператора",
         $"{LinesFormatHeader}{ScenarioDocument.LinesFileFormatVersion}",
-        $"# SCENARIO_META|{Escape(doc.Header.Title ?? "")}|{Escape(doc.Header.Description ?? "")}|{Escape(doc.Header.DateText ?? "")}|{Escape(doc.Header.InitialHomeostasisValues ?? "")}",
+        $"# SCENARIO_META|{Escape(doc.Header.Title ?? "")}|{Escape(doc.Header.Description ?? "")}|{Escape(doc.Header.DateText ?? "")}|{Escape(doc.Header.InitialHomeostasisValues ?? "")}|{doc.Header.GroupNumber.ToString(CultureInfo.InvariantCulture)}|{doc.Header.SortOrderInGroup.ToString(CultureInfo.InvariantCulture)}|{doc.Header.PreRunTargetStage.ToString(CultureInfo.InvariantCulture)}|{(doc.Header.PreRunClearAgentData ? "1" : "0")}",
         "# Step|Pulse|Kind(P|W)|ToneId|MoodId|ActionIds|Phrase|ResetWait",
         "# Kind=W — только клик по плашке ожидания; P — воздействия с пульта. Пульс — расчётный (задержка между шагами = период ожидания ответа оператора, пульсов)."
       };

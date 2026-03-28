@@ -3,11 +3,13 @@ using AIStudio.Common;
 using AIStudio.Pages.Research;
 using AIStudio.Windows;
 using ISIDA.Actions;
+using ISIDA.Gomeostas;
 using ISIDA.Scenarios;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
@@ -26,11 +28,34 @@ namespace AIStudio.ViewModels.Research
     private readonly Action _cancelWaitingPeriod;
     private readonly OperatorScenarioRunner _runner;
     private readonly OperatorScenarioEngine _scenarioEngine;
+    private readonly GomeostasSystem _gomeostas;
     private readonly Func<bool> _isPulsationRunning;
     private readonly Func<bool> _isAgentDead;
     private readonly Action<ScenarioEditorViewModel> _openEditorEmbedded;
 
     private ScenarioHeader _selected;
+    private readonly List<ScenarioHeader> _registryAll = new List<ScenarioHeader>();
+    private string _filterIdText = "";
+    private string _filterTitleText = "";
+    private string _filterGroupText = "";
+
+    public string FilterIdText
+    {
+      get => _filterIdText;
+      set { if (_filterIdText == value) return; _filterIdText = value; OnPropertyChanged(); }
+    }
+
+    public string FilterTitleText
+    {
+      get => _filterTitleText;
+      set { if (_filterTitleText == value) return; _filterTitleText = value; OnPropertyChanged(); }
+    }
+
+    public string FilterGroupText
+    {
+      get => _filterGroupText;
+      set { if (_filterGroupText == value) return; _filterGroupText = value; OnPropertyChanged(); }
+    }
 
     public ScenarioRegistryViewModel(
         InfluenceActionSystem influenceActions,
@@ -38,6 +63,7 @@ namespace AIStudio.ViewModels.Research
         Action cancelWaitingPeriod,
         OperatorScenarioRunner runner,
         OperatorScenarioEngine scenarioEngine,
+        GomeostasSystem gomeostas,
         Func<bool> isPulsationRunning,
         Func<bool> isAgentDead,
         Action<ScenarioEditorViewModel> openEditorEmbedded = null)
@@ -47,6 +73,7 @@ namespace AIStudio.ViewModels.Research
       _cancelWaitingPeriod = cancelWaitingPeriod ?? throw new ArgumentNullException(nameof(cancelWaitingPeriod));
       _runner = runner ?? throw new ArgumentNullException(nameof(runner));
       _scenarioEngine = scenarioEngine ?? throw new ArgumentNullException(nameof(scenarioEngine));
+      _gomeostas = gomeostas ?? throw new ArgumentNullException(nameof(gomeostas));
       _isPulsationRunning = isPulsationRunning ?? throw new ArgumentNullException(nameof(isPulsationRunning));
       _isAgentDead = isAgentDead ?? throw new ArgumentNullException(nameof(isAgentDead));
       _openEditorEmbedded = openEditorEmbedded;
@@ -60,6 +87,8 @@ namespace AIStudio.ViewModels.Research
       DuplicateCommand = new RelayCommand(_ => Duplicate(), _ => Selected != null && !_runner.IsRunning);
       ImportCommand = new RelayCommand(_ => Import(), _ => !_runner.IsRunning);
       StopScenarioCommand = new RelayCommand(_ => _runner.StopUser(), _ => _runner.IsRunning);
+      ApplyFiltersCommand = new RelayCommand(_ => ApplyFilters());
+      ResetFiltersCommand = new RelayCommand(_ => ResetFilters());
 
       _runner.RunningStateChanged += () =>
       {
@@ -91,13 +120,45 @@ namespace AIStudio.ViewModels.Research
     public ICommand DuplicateCommand { get; }
     public ICommand ImportCommand { get; }
     public ICommand StopScenarioCommand { get; }
+    public ICommand ApplyFiltersCommand { get; }
+    public ICommand ResetFiltersCommand { get; }
 
     public void Refresh()
     {
-      Items.Clear();
+      _registryAll.Clear();
       foreach (var h in ScenarioStorage.LoadRegistry())
+        _registryAll.Add(h);
+      ApplyFilters();
+    }
+
+    private void ApplyFilters()
+    {
+      var idF = (FilterIdText ?? "").Trim();
+      var titleF = (FilterTitleText ?? "").Trim();
+      var groupF = (FilterGroupText ?? "").Trim();
+      IEnumerable<ScenarioHeader> q = _registryAll;
+      if (idF.Length > 0)
+        q = q.Where(h => h.Id.ToString(CultureInfo.InvariantCulture).IndexOf(idF, StringComparison.OrdinalIgnoreCase) >= 0);
+      if (titleF.Length > 0)
+        q = q.Where(h => (h.Title ?? "").IndexOf(titleF, StringComparison.OrdinalIgnoreCase) >= 0);
+      if (groupF.Length > 0)
+        q = q.Where(h => h.GroupNumber.ToString(CultureInfo.InvariantCulture).IndexOf(groupF, StringComparison.OrdinalIgnoreCase) >= 0);
+      var prevId = Selected?.Id;
+      Items.Clear();
+      foreach (var h in q.OrderBy(x => x.Id))
         Items.Add(h);
-      Selected = Items.FirstOrDefault();
+      Selected = prevId.HasValue ? Items.FirstOrDefault(x => x.Id == prevId.Value) : Items.FirstOrDefault();
+    }
+
+    private void ResetFilters()
+    {
+      FilterIdText = "";
+      FilterTitleText = "";
+      FilterGroupText = "";
+      OnPropertyChanged(nameof(FilterIdText));
+      OnPropertyChanged(nameof(FilterTitleText));
+      OnPropertyChanged(nameof(FilterGroupText));
+      ApplyFilters();
     }
 
     private void OpenEditor(ScenarioHeader header, bool isNew)
@@ -194,12 +255,41 @@ namespace AIStudio.ViewModels.Research
 
       try
       {
+        if (!TryApplyPreRunStage(doc))
+          return;
         _runner.Start(doc, _getPult, _cancelWaitingPeriod);
       }
       catch (Exception ex)
       {
         MessageBox.Show(ex.Message, "Запуск", MessageBoxButton.OK, MessageBoxImage.Error);
       }
+    }
+
+    private bool TryApplyPreRunStage(ScenarioDocument doc)
+    {
+      int target = doc.Header.PreRunTargetStage;
+      if (target < 0 || target > 5)
+        return true;
+      var agent = _gomeostas.GetAgentState();
+      if (agent == null)
+      {
+        MessageBox.Show("Состояние агента недоступно.", "Запуск сценария", MessageBoxButton.OK, MessageBoxImage.Warning);
+        return false;
+      }
+      int current = agent.EvolutionStage;
+      if (target == current)
+        return true;
+      bool force = target < current || target > current + 1;
+      bool skipClear = !doc.Header.PreRunClearAgentData;
+      var result = _gomeostas.SetEvolutionStage(target, force, skipClear);
+      if (!result.Success)
+      {
+        MessageBox.Show(result.Message ?? "Не удалось перейти на выбранную стадию.",
+            "Запуск сценария", MessageBoxButton.OK, MessageBoxImage.Warning);
+        return false;
+      }
+      _gomeostas.SaveAgentProperties();
+      return true;
     }
 
     private void Delete()
@@ -242,7 +332,9 @@ namespace AIStudio.ViewModels.Research
           Id = doc.Header.Id,
           Title = doc.Header.Title,
           Description = doc.Header.Description,
-          DateText = doc.Header.DateText
+          DateText = doc.Header.DateText,
+          GroupNumber = doc.Header.GroupNumber,
+          SortOrderInGroup = doc.Header.SortOrderInGroup
         });
         var (ok, msg) = ScenarioStorage.SaveRegistry(reg);
         if (!ok)

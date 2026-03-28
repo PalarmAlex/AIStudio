@@ -26,9 +26,8 @@
         </Trigger>
       </Style.Triggers>
     </Style>
-    <Style x:Key="InfoTitleStyle" TargetType="TextBlock">
-      <Setter Property="FontSize" Value="14"/>
-      <Setter Property="FontWeight" Value="SemiBold"/>
+    <Style x:Key="StageItemContainerStyle" TargetType="ComboBoxItem">
+      <Setter Property="ToolTip" Value="{Binding Description}"/>
     </Style>
   </UserControl.Resources>
   <Grid Margin="8">
@@ -61,36 +60,86 @@
                 VerticalContentAlignment="Stretch">
       <TabItem Header="Сведения">
         <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" Margin="4">
-          <Border BorderBrush="#FFBBDEFB"
-                  BorderThickness="1"
-                  CornerRadius="4"
-                  Padding="10,8"
-                  Background="#FFE3F2FD">
-            <Grid>
-              <Grid.RowDefinitions>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
-              </Grid.RowDefinitions>
-              <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="Auto"/>
-                <ColumnDefinition Width="*"/>
-              </Grid.ColumnDefinitions>
-              <TextBlock Grid.Row="0" Grid.Column="0" Text="Название" VerticalAlignment="Center" Margin="0,0,10,6"
-                         FontSize="12" FontWeight="SemiBold" Foreground="#FF0D47A1"/>
-              <TextBox Grid.Row="0" Grid.Column="1" Text="{Binding Title, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,6" Padding="4,3" FontSize="12"/>
-              <TextBlock Grid.Row="1" Grid.Column="0" Text="Описание" VerticalAlignment="Top" Margin="0,0,10,6"
-                         FontSize="12" FontWeight="SemiBold" Foreground="#FF0D47A1"/>
-              <TextBox Grid.Row="1" Grid.Column="1" Text="{Binding Description, UpdateSourceTrigger=PropertyChanged}" MinHeight="80" MaxHeight="220"
-                       TextWrapping="Wrap" AcceptsReturn="True" VerticalScrollBarVisibility="Auto" Margin="0,0,0,6" Padding="4,3" FontSize="12"/>
-              <TextBlock Grid.Row="2" Grid.Column="0" Text="Дата" VerticalAlignment="Center" Margin="0,0,10,0"
-                         FontSize="12" FontWeight="SemiBold" Foreground="#FF0D47A1"/>
-              <TextBox Grid.Row="2" Grid.Column="1" Text="{Binding DateText, UpdateSourceTrigger=PropertyChanged}" Width="160" HorizontalAlignment="Left" Padding="4,3" FontSize="12"/>
-            </Grid>
-          </Border>
+          <StackPanel>
+            <Border BorderBrush="#FFBBDEFB"
+                    BorderThickness="1"
+                    CornerRadius="4"
+                    Padding="10,8"
+                    Background="#FFE3F2FD">
+              <Grid>
+                <Grid.RowDefinitions>
+                  <RowDefinition Height="Auto"/>
+                  <RowDefinition Height="Auto"/>
+                  <RowDefinition Height="Auto"/>
+                  <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+                <Grid.ColumnDefinitions>
+                  <ColumnDefinition Width="*"/>
+                  <ColumnDefinition Width="*"/>
+                  <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+                <StackPanel Grid.Row="0" Grid.Column="0" Margin="0,0,8,8">
+                  <TextBlock Text="Дата" FontSize="12" FontWeight="SemiBold" Foreground="#FF0D47A1" Margin="0,0,0,4"/>
+                  <TextBox Text="{Binding DateText, UpdateSourceTrigger=PropertyChanged}" Padding="4,3" FontSize="12"/>
+                </StackPanel>
+                <StackPanel Grid.Row="0" Grid.Column="1" Margin="4,0,4,8">
+                  <TextBlock Text="Номер группы" FontSize="12" FontWeight="SemiBold" Foreground="#FF0D47A1" Margin="0,0,0,4"/>
+                  <TextBox Text="{Binding GroupNumber, UpdateSourceTrigger=PropertyChanged}" Padding="4,3" FontSize="12"/>
+                </StackPanel>
+                <StackPanel Grid.Row="0" Grid.Column="2" Margin="8,0,0,8">
+                  <TextBlock Text="Сортировка в группе" FontSize="12" FontWeight="SemiBold" Foreground="#FF0D47A1" Margin="0,0,0,4"/>
+                  <TextBox Text="{Binding SortOrderInGroup, UpdateSourceTrigger=PropertyChanged}" Padding="4,3" FontSize="12"/>
+                </StackPanel>
+                <StackPanel Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="3" Margin="0,0,0,8">
+                  <TextBlock Text="Название" FontSize="12" FontWeight="SemiBold" Foreground="#FF0D47A1" Margin="0,0,0,4"/>
+                  <TextBox Text="{Binding Title, UpdateSourceTrigger=PropertyChanged}" Padding="4,3" FontSize="12"/>
+                </StackPanel>
+                <StackPanel Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="3" Margin="0,0,0,0">
+                  <TextBlock Text="Описание" FontSize="12" FontWeight="SemiBold" Foreground="#FF0D47A1" Margin="0,0,0,4"/>
+                  <TextBox Text="{Binding Description, UpdateSourceTrigger=PropertyChanged}" MinHeight="80" MaxHeight="220"
+                           TextWrapping="Wrap" AcceptsReturn="True" VerticalScrollBarVisibility="Auto" Padding="4,3" FontSize="12"/>
+                </StackPanel>
+              </Grid>
+            </Border>
+
+            <Border Margin="0,10,0,0" BorderBrush="#FFBBDEFB" BorderThickness="1" CornerRadius="4" Padding="10,8" Background="#FFE8EAF6">
+              <StackPanel>
+                <TextBlock Text="Выполнить действия перед запуском" FontSize="13" FontWeight="SemiBold" Foreground="#FF283593" Margin="0,0,0,8"/>
+                <Grid>
+                  <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                  </Grid.ColumnDefinitions>
+                  <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                  </Grid.RowDefinitions>
+                  <TextBlock Grid.Row="0" Grid.Column="0" Text="Перейти на стадию" VerticalAlignment="Center" Margin="0,0,12,8"
+                             FontSize="12" FontWeight="SemiBold" Foreground="#FF0D47A1"/>
+                  <Grid Grid.Row="0" Grid.Column="1" Margin="0,0,0,8">
+                    <Grid.ColumnDefinitions>
+                      <ColumnDefinition Width="*"/>
+                      <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <ComboBox Grid.Column="0" Padding="4,3" FontSize="12" HorizontalAlignment="Stretch"
+                              ItemsSource="{Binding PreRunStageChoices}"
+                              SelectedValue="{Binding PreRunTargetStage, UpdateSourceTrigger=PropertyChanged}"
+                              SelectedValuePath="StageNumber"
+                              DisplayMemberPath="Description"
+                              ItemContainerStyle="{StaticResource StageItemContainerStyle}"/>
+                  </Grid>
+                  <TextBlock Grid.Row="1" Grid.Column="0" Text="Очистить данные" VerticalAlignment="Center" Margin="0,0,12,0"
+                             FontSize="12" FontWeight="SemiBold" Foreground="#FF0D47A1"/>
+                  <CheckBox Grid.Row="1" Grid.Column="1" VerticalAlignment="Center"
+                            IsChecked="{Binding PreRunClearAgentData, UpdateSourceTrigger=PropertyChanged}"
+                            Content="При переходе на выбранную стадию очищать данные по правилам смены стадии"/>
+                </Grid>
+              </StackPanel>
+            </Border>
+          </StackPanel>
         </ScrollViewer>
       </TabItem>
-      <TabItem Header="Шаги, логи и сравнение">
+      <TabItem Header="Шаги и ожидаемый результат">
     <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
       <StackPanel>
       <Border BorderBrush="#FFE0E0E0" BorderThickness="1" CornerRadius="4" MinHeight="200">
@@ -200,7 +249,7 @@
       <TextBlock Text="Ожидаемые логи (как в «Системных логах»)"
                  FontWeight="Bold" FontSize="14" Foreground="#FF37474F"/>
       <TextBlock TextWrapping="Wrap" FontSize="11" Foreground="#FF616161" Margin="0,2,0,0"
-                 Text="«-» — в логе ожидается прочерк. Пустая ячейка — столбец не проверяется. Иное значение — точное совпадение с логом."/>
+                 Text="«Пусто» — в логе ожидается прочерк. «Неизвестно» — столбец не проверяется. Иное — точное совпадение."/>
     </StackPanel>
 
     <Border BorderBrush="#FFE0E0E0" BorderThickness="1" CornerRadius="4" MinHeight="180">
@@ -210,7 +259,21 @@
           <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
         <Border Grid.Row="0" Background="#FFFFF8E1" BorderBrush="#FFE0E0E0" BorderThickness="0,0,0,1" Padding="10">
-          <TextBlock Text="ОЖИДАЕМЫЙ РЕЗУЛЬТАТ (ПО ПУЛЬСУ)" FontWeight="Bold" FontSize="14" Foreground="#FF795548"/>
+          <Grid>
+            <Grid.ColumnDefinitions>
+              <ColumnDefinition Width="*"/>
+              <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+            <TextBlock Text="ОЖИДАЕМЫЙ РЕЗУЛЬТАТ (ПО ПУЛЬСУ)" FontWeight="Bold" FontSize="14" Foreground="#FF795548" VerticalAlignment="Center"/>
+            <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+              <TextBlock Text="Массово:" VerticalAlignment="Center" Margin="0,0,8,0" FontSize="12"/>
+              <ComboBox Width="200" Margin="0,0,8,0"
+                        ItemsSource="{Binding MassFillOptions}"
+                        SelectedValue="{Binding MassFillMode, UpdateSourceTrigger=PropertyChanged}"
+                        DisplayMemberPath="Label" SelectedValuePath="Code"/>
+              <Button Content="ОК" Padding="12,4" Command="{Binding MassFillExpectationsCommand}"/>
+            </StackPanel>
+          </Grid>
         </Border>
         <DataGrid x:Name="ExpectGrid"
                   Grid.Row="1"
@@ -224,55 +287,41 @@
           <DataGrid.Columns>
             <DataGridTextColumn Header="Шаг" Binding="{Binding StepIndex}" Width="48" IsReadOnly="True"/>
             <DataGridTextColumn Header="№ пульса" Binding="{Binding PulseWithinScenario}" Width="72" IsReadOnly="True"/>
-            <DataGridTextColumn Header="Состояние" Binding="{Binding StateText, UpdateSourceTrigger=PropertyChanged}" Width="88"/>
-            <DataGridTextColumn Header="Стиль" Binding="{Binding StyleText, UpdateSourceTrigger=PropertyChanged}" Width="72"/>
+            <DataGridTemplateColumn Header="Состояние" Width="120">
+              <DataGridTemplateColumn.CellTemplate>
+                <DataTemplate>
+                  <ComboBox ItemsSource="{Binding DataContext.StateChoiceOptions, ElementName=EditorRoot}"
+                            SelectedValue="{Binding StateText, UpdateSourceTrigger=PropertyChanged}"
+                            DisplayMemberPath="Label" SelectedValuePath="Code"/>
+                </DataTemplate>
+              </DataGridTemplateColumn.CellTemplate>
+            </DataGridTemplateColumn>
+            <DataGridTemplateColumn Header="Стиль" Width="120">
+              <DataGridTemplateColumn.CellTemplate>
+                <DataTemplate>
+                  <ComboBox ItemsSource="{Binding DataContext.StyleChoiceOptions, ElementName=EditorRoot}"
+                            SelectedValue="{Binding StyleText, UpdateSourceTrigger=PropertyChanged}"
+                            DisplayMemberPath="Label" SelectedValuePath="Code"/>
+                </DataTemplate>
+              </DataGridTemplateColumn.CellTemplate>
+            </DataGridTemplateColumn>
             <DataGridTextColumn Header="Тема" Binding="{Binding ThemeText, UpdateSourceTrigger=PropertyChanged}" Width="56"/>
             <DataGridTextColumn Header="Триггер" Binding="{Binding TriggerText, UpdateSourceTrigger=PropertyChanged}" Width="80"/>
-            <DataGridTextColumn Header="ОР/УМ" Binding="{Binding OrUmText, UpdateSourceTrigger=PropertyChanged}" Width="72"/>
+            <DataGridTemplateColumn Header="ОР/УМ" Width="100">
+              <DataGridTemplateColumn.CellTemplate>
+                <DataTemplate>
+                  <ComboBox ItemsSource="{Binding DataContext.OrUmChoiceOptions, ElementName=EditorRoot}"
+                            SelectedValue="{Binding OrUmText, UpdateSourceTrigger=PropertyChanged}"
+                            DisplayMemberPath="Label" SelectedValuePath="Code"/>
+                </DataTemplate>
+              </DataGridTemplateColumn.CellTemplate>
+            </DataGridTemplateColumn>
             <DataGridTextColumn Header="Б/у рефлекс" Binding="{Binding GeneticReflexText, UpdateSourceTrigger=PropertyChanged}" Width="88"/>
             <DataGridTextColumn Header="Усл. рефлекс" Binding="{Binding ConditionReflexText, UpdateSourceTrigger=PropertyChanged}" Width="88"/>
             <DataGridTextColumn Header="Автоматизм" Binding="{Binding AutomatizmText, UpdateSourceTrigger=PropertyChanged}" Width="88"/>
             <DataGridTextColumn Header="Цепочка РФ" Binding="{Binding ReflexChainText, UpdateSourceTrigger=PropertyChanged}" Width="88"/>
             <DataGridTextColumn Header="Цепочка АВ" Binding="{Binding AutomatizmChainText, UpdateSourceTrigger=PropertyChanged}" Width="88"/>
             <DataGridTextColumn Header="Цикл М" Binding="{Binding MainCycleText, UpdateSourceTrigger=PropertyChanged}" Width="72"/>
-          </DataGrid.Columns>
-        </DataGrid>
-      </Grid>
-    </Border>
-
-    <Grid Margin="0,10,0,6">
-      <Grid.ColumnDefinitions>
-        <ColumnDefinition Width="*"/>
-        <ColumnDefinition Width="Auto"/>
-      </Grid.ColumnDefinitions>
-      <TextBlock Grid.Column="0" Text="Сравнение с текущими логами в памяти"
-                 VerticalAlignment="Center" FontWeight="Bold" FontSize="14" Foreground="#FF37474F"/>
-      <Button Grid.Column="1" Content="Сравнить с логами" Padding="12,6"
-              Command="{Binding CompareWithLogsCommand}"/>
-    </Grid>
-
-    <Border BorderBrush="#FFE0E0E0" BorderThickness="1" CornerRadius="4" MinHeight="120">
-      <Grid>
-        <Grid.RowDefinitions>
-          <RowDefinition Height="Auto"/>
-          <RowDefinition Height="*"/>
-        </Grid.RowDefinitions>
-        <Border Grid.Row="0" Background="#FFE8F5E9" BorderBrush="#FFE0E0E0" BorderThickness="0,0,0,1" Padding="10">
-          <TextBlock Text="РЕЗУЛЬТАТ СРАВНЕНИЯ" FontWeight="Bold" FontSize="14" Foreground="#FF2E7D32"/>
-        </Border>
-        <DataGrid Grid.Row="1"
-                  ItemsSource="{Binding CompareResults}"
-                  AutoGenerateColumns="False"
-                  IsReadOnly="True"
-                  CanUserAddRows="False"
-                  HeadersVisibility="Column"
-                  Style="{StaticResource LinkDataGridStyle}"
-                  RowStyle="{StaticResource HighlightedRowStyle}">
-          <DataGrid.Columns>
-            <DataGridTextColumn Header="Шаг" Binding="{Binding StepIndex}" Width="56"/>
-            <DataGridTextColumn Header="Пульс" Binding="{Binding PulseWithinScenario}" Width="72"/>
-            <DataGridTextColumn Header="Итог" Binding="{Binding OkLabel}" Width="56"/>
-            <DataGridTextColumn Header="Пояснение" Binding="{Binding Details}" Width="*"/>
           </DataGrid.Columns>
         </DataGrid>
       </Grid>
