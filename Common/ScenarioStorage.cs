@@ -60,12 +60,37 @@ namespace AIStudio.Common
       var doc = new ScenarioDocument();
       doc.Header.Id = scenarioId;
 
+      bool expectationMode = false;
       foreach (var line in File.ReadAllLines(path, Encoding.UTF8))
       {
         var t = line?.Trim();
-        if (string.IsNullOrEmpty(t) || t.StartsWith("#"))
+        if (string.IsNullOrEmpty(t))
+          continue;
+
+        if (expectationMode)
         {
-          if (t != null && t.StartsWith("# SCENARIO_META|", StringComparison.Ordinal))
+          if (t.StartsWith("# COL_SKIP|", StringComparison.Ordinal))
+          {
+            ParseLogExpectationColSkip(t, doc);
+            continue;
+          }
+          if (t.StartsWith("#"))
+            continue;
+          TryParseLogExpectationRow(t, doc);
+          continue;
+        }
+
+        if (t.StartsWith("# SCENARIO_LOG_EXPECTATIONS", StringComparison.Ordinal))
+        {
+          expectationMode = true;
+          doc.LogExpectationColumnSkips = doc.LogExpectationColumnSkips ?? new ScenarioLogExpectationColumnSkips();
+          doc.LogExpectations = doc.LogExpectations ?? new List<ScenarioLogExpectationRow>();
+          continue;
+        }
+
+        if (t.StartsWith("#"))
+        {
+          if (t.StartsWith("# SCENARIO_META|", StringComparison.Ordinal))
           {
             var meta = t.Substring("# SCENARIO_META|".Length).Split('|');
             if (meta.Length >= 4)
@@ -76,7 +101,6 @@ namespace AIStudio.Common
             }
             if (meta.Length >= 6)
             {
-              // Старый формат: состояние + ключ стилей — начальные значения параметров не заданы
               doc.Header.InitialHomeostasisValues = "";
             }
             else if (meta.Length >= 5)
@@ -170,6 +194,61 @@ namespace AIStudio.Common
       };
     }
 
+    private static void ParseLogExpectationColSkip(string line, ScenarioDocument doc)
+    {
+      var sk = doc.LogExpectationColumnSkips ?? new ScenarioLogExpectationColumnSkips();
+      doc.LogExpectationColumnSkips = sk;
+      var raw = line.Substring("# COL_SKIP|".Length);
+      var p = raw.Split('|');
+      if (p.Length < 11)
+        return;
+      bool Skip(int i) =>
+          int.TryParse(p[i].Trim(), NumberStyles.Integer, CultureInfo.InvariantCulture, out int v) && v != 0;
+
+      sk.SkipState = Skip(0);
+      sk.SkipStyle = Skip(1);
+      sk.SkipTheme = Skip(2);
+      sk.SkipTrigger = Skip(3);
+      sk.SkipOrUm = Skip(4);
+      sk.SkipGeneticReflex = Skip(5);
+      sk.SkipConditionReflex = Skip(6);
+      sk.SkipAutomatizm = Skip(7);
+      sk.SkipReflexChain = Skip(8);
+      sk.SkipAutomatizmChain = Skip(9);
+      sk.SkipMainCycle = Skip(10);
+    }
+
+    private static void TryParseLogExpectationRow(string line, ScenarioDocument doc)
+    {
+      if (doc.LogExpectations == null)
+        doc.LogExpectations = new List<ScenarioLogExpectationRow>();
+
+      var p = line.Split('|');
+      if (p.Length < 13)
+        return;
+      if (!int.TryParse(p[0].Trim(), NumberStyles.Integer, CultureInfo.InvariantCulture, out int step))
+        return;
+      if (!int.TryParse(p[1].Trim(), NumberStyles.Integer, CultureInfo.InvariantCulture, out int pulse))
+        return;
+
+      doc.LogExpectations.Add(new ScenarioLogExpectationRow
+      {
+        StepIndex = step,
+        PulseWithinScenario = pulse,
+        StateText = Unescape(p[2]),
+        StyleText = Unescape(p[3]),
+        ThemeText = Unescape(p[4]),
+        TriggerText = Unescape(p[5]),
+        OrUmText = Unescape(p[6]),
+        GeneticReflexText = Unescape(p[7]),
+        ConditionReflexText = Unescape(p[8]),
+        AutomatizmText = Unescape(p[9]),
+        ReflexChainText = Unescape(p[10]),
+        AutomatizmChainText = Unescape(p[11]),
+        MainCycleText = Unescape(p[12])
+      });
+    }
+
     public static (bool Success, string Error) SaveRegistry(IEnumerable<ScenarioHeader> headers)
     {
       EnsureFolder();
@@ -236,6 +315,39 @@ namespace AIStudio.Common
             ids,
             Escape(row.Phrase ?? ""),
             row.ResetWaitingPeriod ? "1" : "0"));
+      }
+
+      var skc = doc.LogExpectationColumnSkips ?? new ScenarioLogExpectationColumnSkips();
+      lines.Add("# SCENARIO_LOG_EXPECTATIONS|1");
+      lines.Add("# COL_SKIP|" + string.Join("|",
+          skc.SkipState ? "1" : "0",
+          skc.SkipStyle ? "1" : "0",
+          skc.SkipTheme ? "1" : "0",
+          skc.SkipTrigger ? "1" : "0",
+          skc.SkipOrUm ? "1" : "0",
+          skc.SkipGeneticReflex ? "1" : "0",
+          skc.SkipConditionReflex ? "1" : "0",
+          skc.SkipAutomatizm ? "1" : "0",
+          skc.SkipReflexChain ? "1" : "0",
+          skc.SkipAutomatizmChain ? "1" : "0",
+          skc.SkipMainCycle ? "1" : "0"));
+      lines.Add("# Step|Pulse|State|Style|Theme|Trigger|OrUm|GenRef|CondRef|Aut|RefChain|AutChain|Cycle");
+      foreach (var exp in (doc.LogExpectations ?? new List<ScenarioLogExpectationRow>()).OrderBy(e => e.StepIndex))
+      {
+        lines.Add(string.Join("|",
+            exp.StepIndex.ToString(CultureInfo.InvariantCulture),
+            exp.PulseWithinScenario.ToString(CultureInfo.InvariantCulture),
+            Escape(exp.StateText ?? ""),
+            Escape(exp.StyleText ?? ""),
+            Escape(exp.ThemeText ?? ""),
+            Escape(exp.TriggerText ?? ""),
+            Escape(exp.OrUmText ?? ""),
+            Escape(exp.GeneticReflexText ?? ""),
+            Escape(exp.ConditionReflexText ?? ""),
+            Escape(exp.AutomatizmText ?? ""),
+            Escape(exp.ReflexChainText ?? ""),
+            Escape(exp.AutomatizmChainText ?? ""),
+            Escape(exp.MainCycleText ?? "")));
       }
 
       var path = ScenarioPaths.LinesPath(doc.Header.Id);

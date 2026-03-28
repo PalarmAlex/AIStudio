@@ -6,6 +6,40 @@
              mc:Ignorable="d"
              d:DesignHeight="500" d:DesignWidth="800">
 
+  <UserControl.Resources>
+    <Style x:Key="ScenarioRegistryDataGridStyle" TargetType="DataGrid">
+      <Setter Property="Background" Value="White"/>
+      <Setter Property="RowBackground" Value="#FFF9F9F9"/>
+      <Setter Property="AlternatingRowBackground" Value="White"/>
+      <Setter Property="BorderThickness" Value="0"/>
+      <Setter Property="GridLinesVisibility" Value="None"/>
+      <Setter Property="VerticalScrollBarVisibility" Value="Auto"/>
+      <Setter Property="HorizontalScrollBarVisibility" Value="Auto"/>
+      <Setter Property="SelectionUnit" Value="FullRow"/>
+      <Setter Property="CanUserAddRows" Value="False"/>
+      <Setter Property="CanUserDeleteRows" Value="False"/>
+      <Setter Property="CanUserSortColumns" Value="False"/>
+    </Style>
+    <Style x:Key="ScenarioRegistryRowStyle" TargetType="DataGridRow">
+      <Style.Triggers>
+        <Trigger Property="IsSelected" Value="True">
+          <Setter Property="Background" Value="#FFE3F2FD"/>
+          <Setter Property="BorderBrush" Value="#FF2196F3"/>
+          <Setter Property="BorderThickness" Value="1"/>
+        </Trigger>
+      </Style.Triggers>
+    </Style>
+    <Style x:Key="ScenarioRegistryHeaderStyle" TargetType="DataGridColumnHeader">
+      <Setter Property="FontSize" Value="12"/>
+      <Setter Property="FontWeight" Value="SemiBold"/>
+      <Setter Property="Padding" Value="8,6"/>
+      <Setter Property="Background" Value="#FFE8EAF6"/>
+      <Setter Property="Foreground" Value="#FF283593"/>
+      <Setter Property="BorderBrush" Value="#FFE0E0E0"/>
+      <Setter Property="BorderThickness" Value="0,0,1,1"/>
+    </Style>
+  </UserControl.Resources>
+
   <Grid Margin="12">
     <Grid.RowDefinitions>
       <RowDefinition Height="Auto"/>
@@ -16,36 +50,75 @@
 
     <TextBlock Grid.Row="0" Text="Сценарии оператора" FontSize="18" FontWeight="SemiBold" Foreground="#FF333333" Margin="0,0,0,8"/>
 
-    <StackPanel Grid.Row="1" Orientation="Horizontal" Margin="0,0,0,10">
-      <Button Content="Обновить список" Padding="10,4" Command="{Binding RefreshCommand}" Margin="0,0,8,0"/>
-      <Button Content="Новый сценарий" Padding="10,4" Command="{Binding NewCommand}" Margin="0,0,8,0"/>
-      <Button Content="Импорт из файла…" Padding="10,4" Command="{Binding ImportCommand}" Margin="0,0,8,0"/>
-      <Button Content="Запустить" Padding="12,4" FontWeight="SemiBold" Command="{Binding LaunchCommand}" Margin="16,0,8,0"/>
-      <Button Content="Стоп сценария" Padding="10,4" Command="{Binding StopScenarioCommand}" Margin="0,0,8,0"/>
-    </StackPanel>
+    <Border Grid.Row="1" BorderBrush="#FFE0E0E0" BorderThickness="1" CornerRadius="4" Padding="8,6" Margin="0,0,0,10" Background="#FFF5F5F5">
+      <StackPanel Orientation="Horizontal">
+        <Button Content="Обновить список" Padding="10,6" Margin="0,0,8,0" Command="{Binding RefreshCommand}" Cursor="Hand"/>
+        <Button Content="Новый сценарий" Padding="10,6" Margin="0,0,8,0" Command="{Binding NewCommand}" Cursor="Hand"/>
+        <Button Content="Импорт из файла…" Padding="10,6" Margin="0,0,8,0" Command="{Binding ImportCommand}" Cursor="Hand"/>
+        <Button Content="Запустить" Padding="12,6" Margin="8,0,8,0" FontWeight="SemiBold" Command="{Binding LaunchCommand}" Cursor="Hand"/>
+        <Button Content="Стоп сценария" Padding="10,6" Command="{Binding StopScenarioCommand}" Cursor="Hand"/>
+      </StackPanel>
+    </Border>
 
-    <DataGrid Grid.Row="2"
-              ItemsSource="{Binding Items}"
-              SelectedItem="{Binding Selected, Mode=TwoWay}"
-              AutoGenerateColumns="False"
-              IsReadOnly="True"
-              SelectionMode="Single"
-              HeadersVisibility="Column"
-              MouseDoubleClick="DataGrid_OnMouseDoubleClick"
-              GridLinesVisibility="Horizontal"
-              AlternatingRowBackground="#FFF8F8F8">
-      <DataGrid.Columns>
-        <DataGridTextColumn Header="ID" Binding="{Binding Id}" Width="60"/>
-        <DataGridTextColumn Header="Дата" Binding="{Binding DateText}" Width="100"/>
-        <DataGridTextColumn Header="Название" Binding="{Binding Title}" Width="*"/>
-        <DataGridTextColumn Header="Описание" Binding="{Binding Description}" Width="2*"/>
-      </DataGrid.Columns>
-    </DataGrid>
+    <Border Grid.Row="2" BorderBrush="#FFE0E0E0" BorderThickness="1" CornerRadius="4" Margin="0,0,0,8">
+      <DataGrid ItemsSource="{Binding Items}"
+                SelectedItem="{Binding Selected, Mode=TwoWay}"
+                AutoGenerateColumns="False"
+                IsReadOnly="True"
+                SelectionMode="Single"
+                HeadersVisibility="Column"
+                Style="{StaticResource ScenarioRegistryDataGridStyle}"
+                RowStyle="{StaticResource ScenarioRegistryRowStyle}"
+                MouseDoubleClick="DataGrid_OnMouseDoubleClick">
+        <DataGrid.ColumnHeaderStyle>
+          <Style TargetType="DataGridColumnHeader" BasedOn="{StaticResource ScenarioRegistryHeaderStyle}"/>
+        </DataGrid.ColumnHeaderStyle>
+        <DataGrid.Columns>
+          <DataGridTextColumn Header="ID" Binding="{Binding Id}" Width="56">
+            <DataGridTextColumn.ElementStyle>
+              <Style TargetType="TextBlock">
+                <Setter Property="Padding" Value="6,4"/>
+                <Setter Property="VerticalAlignment" Value="Center"/>
+              </Style>
+            </DataGridTextColumn.ElementStyle>
+          </DataGridTextColumn>
+          <DataGridTextColumn Header="Дата" Binding="{Binding DateText}" Width="100">
+            <DataGridTextColumn.ElementStyle>
+              <Style TargetType="TextBlock">
+                <Setter Property="Padding" Value="6,4"/>
+                <Setter Property="VerticalAlignment" Value="Center"/>
+              </Style>
+            </DataGridTextColumn.ElementStyle>
+          </DataGridTextColumn>
+          <DataGridTextColumn Header="Название" Binding="{Binding Title}" Width="*">
+            <DataGridTextColumn.ElementStyle>
+              <Style TargetType="TextBlock">
+                <Setter Property="Padding" Value="6,4"/>
+                <Setter Property="TextTrimming" Value="CharacterEllipsis"/>
+                <Setter Property="VerticalAlignment" Value="Center"/>
+              </Style>
+            </DataGridTextColumn.ElementStyle>
+          </DataGridTextColumn>
+          <DataGridTextColumn Header="Описание" Binding="{Binding Description}" Width="2*">
+            <DataGridTextColumn.ElementStyle>
+              <Style TargetType="TextBlock">
+                <Setter Property="Padding" Value="6,4"/>
+                <Setter Property="TextTrimming" Value="CharacterEllipsis"/>
+                <Setter Property="TextWrapping" Value="Wrap"/>
+                <Setter Property="VerticalAlignment" Value="Center"/>
+              </Style>
+            </DataGridTextColumn.ElementStyle>
+          </DataGridTextColumn>
+        </DataGrid.Columns>
+      </DataGrid>
+    </Border>
 
-    <StackPanel Grid.Row="3" Orientation="Horizontal" Margin="0,10,0,0">
-      <Button Content="Редактировать" Padding="10,4" Command="{Binding EditCommand}" Margin="0,0,8,0"/>
-      <Button Content="Копировать" Padding="10,4" Command="{Binding DuplicateCommand}" Margin="0,0,8,0"/>
-      <Button Content="Удалить" Padding="10,4" Command="{Binding DeleteCommand}"/>
-    </StackPanel>
+    <Border Grid.Row="3" BorderBrush="#FFE0E0E0" BorderThickness="1" CornerRadius="4" Padding="8,6" Background="#FFF5F5F5">
+      <StackPanel Orientation="Horizontal">
+        <Button Content="Редактировать" Padding="10,6" Margin="0,0,8,0" Command="{Binding EditCommand}" Cursor="Hand"/>
+        <Button Content="Копировать" Padding="10,6" Margin="0,0,8,0" Command="{Binding DuplicateCommand}" Cursor="Hand"/>
+        <Button Content="Удалить" Padding="10,6" Command="{Binding DeleteCommand}" Cursor="Hand"/>
+      </StackPanel>
+    </Border>
   </Grid>
 </UserControl>

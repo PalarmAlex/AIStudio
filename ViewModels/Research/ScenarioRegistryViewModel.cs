@@ -1,8 +1,8 @@
 using AIStudio;
 using AIStudio.Common;
+using AIStudio.Pages.Research;
 using AIStudio.Windows;
 using ISIDA.Actions;
-using ISIDA.Gomeostas;
 using ISIDA.Scenarios;
 using System;
 using System.Collections.Generic;
@@ -28,6 +28,7 @@ namespace AIStudio.ViewModels.Research
     private readonly OperatorScenarioEngine _scenarioEngine;
     private readonly Func<bool> _isPulsationRunning;
     private readonly Func<bool> _isAgentDead;
+    private readonly Action<ScenarioEditorViewModel> _openEditorEmbedded;
 
     private ScenarioHeader _selected;
 
@@ -38,7 +39,8 @@ namespace AIStudio.ViewModels.Research
         OperatorScenarioRunner runner,
         OperatorScenarioEngine scenarioEngine,
         Func<bool> isPulsationRunning,
-        Func<bool> isAgentDead)
+        Func<bool> isAgentDead,
+        Action<ScenarioEditorViewModel> openEditorEmbedded = null)
     {
       _influenceActions = influenceActions ?? throw new ArgumentNullException(nameof(influenceActions));
       _getPult = getPult ?? throw new ArgumentNullException(nameof(getPult));
@@ -47,6 +49,7 @@ namespace AIStudio.ViewModels.Research
       _scenarioEngine = scenarioEngine ?? throw new ArgumentNullException(nameof(scenarioEngine));
       _isPulsationRunning = isPulsationRunning ?? throw new ArgumentNullException(nameof(isPulsationRunning));
       _isAgentDead = isAgentDead ?? throw new ArgumentNullException(nameof(isAgentDead));
+      _openEditorEmbedded = openEditorEmbedded;
 
       Items = new ObservableCollection<ScenarioHeader>();
       RefreshCommand = new RelayCommand(_ => Refresh());
@@ -121,7 +124,7 @@ namespace AIStudio.ViewModels.Research
           doc.Header.Title = header.Title;
           doc.Header.Description = header.Description;
           doc.Header.DateText = header.DateText;
-          _scenarioEngine.NormalizeSchedule(doc.Lines);
+          ScenarioPulseSchedule.EnsureSequentialStepIndices(doc.Lines);
         }
         catch (Exception ex)
         {
@@ -131,6 +134,17 @@ namespace AIStudio.ViewModels.Research
       }
 
       var vm = new ScenarioEditorViewModel(_influenceActions, _scenarioEngine, doc, isNew);
+      OpenEditorWithViewModel(vm);
+    }
+
+    private void OpenEditorWithViewModel(ScenarioEditorViewModel vm)
+    {
+      if (_openEditorEmbedded != null)
+      {
+        _openEditorEmbedded(vm);
+        return;
+      }
+
       var w = new ScenarioEditorWindow { DataContext = vm };
       if (Application.Current?.MainWindow is Window owner)
         w.Owner = owner;
@@ -155,7 +169,7 @@ namespace AIStudio.ViewModels.Research
         doc.Header.Title = Selected.Title;
         doc.Header.Description = Selected.Description;
         doc.Header.DateText = Selected.DateText;
-        _scenarioEngine.NormalizeSchedule(doc.Lines);
+        ScenarioPulseSchedule.EnsureSequentialStepIndices(doc.Lines);
       }
       catch (Exception ex)
       {
@@ -180,12 +194,6 @@ namespace AIStudio.ViewModels.Research
 
       try
       {
-        if (GomeostasSystem.IsInitialized)
-        {
-          var values = ScenarioHomeostasisValuesFormat.Parse(doc.Header.InitialHomeostasisValues ?? "");
-          GomeostasSystem.Instance.ApplyScenarioInitialHomeostasisValues(values);
-        }
-
         _runner.Start(doc, _getPult, _cancelWaitingPeriod);
       }
       catch (Exception ex)
@@ -217,7 +225,7 @@ namespace AIStudio.ViewModels.Research
       try
       {
         var doc = ScenarioStorage.LoadScenario(Selected.Id);
-        _scenarioEngine.NormalizeSchedule(doc.Lines);
+        ScenarioPulseSchedule.EnsureSequentialStepIndices(doc.Lines);
         doc.Header.Id = ScenarioStorage.NextScenarioId();
         doc.Header.Title = (Selected.Title ?? "Сценарий") + "_copy1";
 
@@ -261,7 +269,7 @@ namespace AIStudio.ViewModels.Research
           MessageBox.Show("Не удалось разобрать файл.", "Импорт", MessageBoxButton.OK, MessageBoxImage.Warning);
           return;
         }
-        _scenarioEngine.NormalizeSchedule(doc.Lines);
+        ScenarioPulseSchedule.EnsureSequentialStepIndices(doc.Lines);
         var verr = OperatorScenarioValidator.ValidateDocument(doc, _influenceActions);
         if (verr != null)
         {
@@ -269,16 +277,7 @@ namespace AIStudio.ViewModels.Research
           return;
         }
         var vm = new ScenarioEditorViewModel(_influenceActions, _scenarioEngine, doc, true);
-        var w = new ScenarioEditorWindow { DataContext = vm };
-        if (Application.Current?.MainWindow is Window owner)
-          w.Owner = owner;
-        vm.RequestClose += (_, saved) =>
-        {
-          w.DialogResult = saved;
-          w.Close();
-        };
-        w.ShowDialog();
-        Refresh();
+        OpenEditorWithViewModel(vm);
       }
       catch (Exception ex)
       {

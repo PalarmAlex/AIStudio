@@ -41,9 +41,6 @@
     <ApplicationIcon>isida.ico</ApplicationIcon>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="isida">
-      <HintPath>..\..\isida\bin\Debug\isida.dll</HintPath>
-    </Reference>
     <Reference Include="Ookii.Dialogs.Wpf, Version=5.0.0.0, Culture=neutral, PublicKeyToken=66aa232afad40158, processorArchitecture=MSIL">
       <HintPath>packages\Ookii.Dialogs.Wpf.5.0.1\lib\net462\Ookii.Dialogs.Wpf.dll</HintPath>
     </Reference>
@@ -69,6 +66,12 @@
     <Reference Include="PresentationFramework" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\..\isida\isida.csproj">
+      <Project>{CB9344B3-4697-428C-A1C7-46836E163E9C}</Project>
+      <Name>isida</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
     <ApplicationDefinition Include="App.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
@@ -77,6 +80,8 @@
     <Compile Include="Common\AntagonistManager.cs" />
     <Compile Include="Common\DataGridExtensions.cs" />
     <Compile Include="Common\MemoryLogManager.cs" />
+    <Compile Include="Common\ScenarioLogComparer.cs" />
+    <Compile Include="Common\ScenarioLogComparisonSession.cs" />
     <Compile Include="Common\NumericListValidationRule.cs" />
     <Compile Include="Converters\ActionDisplayTextConverter.cs" />
     <Compile Include="Converters\ActionImageLineToFontWeightConverter.cs" />
@@ -326,6 +331,9 @@
     <Compile Include="Pages\Research\ScenarioRegistryView.xaml.cs">
       <DependentUpon>ScenarioRegistryView.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Pages\Research\ScenarioEditorView.xaml.cs">
+      <DependentUpon>ScenarioEditorView.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Windows\ScenarioEditorWindow.xaml.cs">
       <DependentUpon>ScenarioEditorWindow.xaml</DependentUpon>
     </Compile>
@@ -547,6 +555,10 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="Pages\Research\ScenarioRegistryView.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Pages\Research\ScenarioEditorView.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

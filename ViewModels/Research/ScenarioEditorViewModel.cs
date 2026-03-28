@@ -3,74 +3,21 @@ using AIStudio.Common;
 using AIStudio.ViewModels;
 
 using ISIDA.Actions;
-using ISIDA.Gomeostas;
 using ISIDA.Scenarios;
 
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
-using System.Globalization;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Windows;
 using System.Windows.Input;
-using System.Windows.Media;
 
 namespace AIStudio.ViewModels.Research
 {
-  /// <summary>Строка редактора: один параметр гомеостаза, значение 0…100 для ползунка.</summary>
-  public sealed class HomeostasisParamRow : INotifyPropertyChanged
-  {
-    private int _sliderValue;
-
-    public HomeostasisParamRow(int paramId, string labelText, int sliderValue)
-    {
-      ParamId = paramId;
-      LabelText = labelText ?? "";
-      _sliderValue = sliderValue;
-    }
-
-    public int ParamId { get; }
-
-    public string LabelText { get; }
-
-    public int SliderValue
-    {
-      get => _sliderValue;
-      set
-      {
-        int v = value;
-        if (v < 0) v = 0;
-        if (v > 100) v = 100;
-        if (_sliderValue == v) return;
-        _sliderValue = v;
-        OnPropertyChanged(nameof(SliderValue));
-        OnPropertyChanged(nameof(ValueDisplay));
-      }
-    }
-
-    public string ValueDisplay => SliderValue.ToString(CultureInfo.InvariantCulture);
-
-    public event PropertyChangedEventHandler PropertyChanged;
-
-    private void OnPropertyChanged(string name) =>
-        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
-  }
-
   public sealed class ScenarioEditorViewModel : INotifyPropertyChanged
   {
-    private static readonly SolidColorBrush PreviewBrushStateBad = CreateFrozenBrush(211, 47, 47);
-    private static readonly SolidColorBrush PreviewBrushStateNormal = CreateFrozenBrush(204, 204, 0);
-    private static readonly SolidColorBrush PreviewBrushStateWell = CreateFrozenBrush(46, 125, 50);
-
-    private static SolidColorBrush CreateFrozenBrush(byte r, byte g, byte b)
-    {
-      var br = new SolidColorBrush(Color.FromRgb(r, g, b));
-      br.Freeze();
-      return br;
-    }
-
     private readonly InfluenceActionSystem _influenceActions;
     private readonly OperatorScenarioEngine _scenarioEngine;
     private readonly bool _isNew;
@@ -79,9 +26,48 @@ namespace AIStudio.ViewModels.Research
     private string _description = "";
     private string _dateText = "";
     private ScenarioLineRow _selectedLine;
-    private string _previewStateValue = "";
-    private Brush _previewStateValueBrush = Brushes.Black;
-    private string _previewStylesValue = "";
+
+    /// <summary>Строка таблицы сравнения ожидаемого лога с фактическим.</summary>
+    public sealed class ScenarioLogCompareRow : INotifyPropertyChanged
+    {
+      private int _stepIndex;
+      private int _pulseWithinScenario;
+      private bool _ok;
+      private string _details = "";
+
+      public int StepIndex
+      {
+        get => _stepIndex;
+        set { if (_stepIndex == value) return; _stepIndex = value; OnPropertyChanged(); OnPropertyChanged(nameof(LabelText)); }
+      }
+
+      public int PulseWithinScenario
+      {
+        get => _pulseWithinScenario;
+        set { if (_pulseWithinScenario == value) return; _pulseWithinScenario = value; OnPropertyChanged(); OnPropertyChanged(nameof(LabelText)); }
+      }
+
+      public bool Ok
+      {
+        get => _ok;
+        set { if (_ok == value) return; _ok = value; OnPropertyChanged(); OnPropertyChanged(nameof(OkLabel)); }
+      }
+
+      public string Details
+      {
+        get => _details;
+        set { if (_details == value) return; _details = value ?? ""; OnPropertyChanged(); }
+      }
+
+      public string OkLabel => Ok ? "OK" : "No";
+
+      public string LabelText => $"Шаг {StepIndex}, пульс {PulseWithinScenario} — {OkLabel}";
+
+      public event PropertyChangedEventHandler PropertyChanged;
+
+      private void OnPropertyChanged([CallerMemberName] string name = null) =>
+          PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
+    }
 
     public ScenarioEditorViewModel(
         InfluenceActionSystem influenceActions,
@@ -100,48 +86,198 @@ namespace AIStudio.ViewModels.Research
           ? DateTime.Now.ToString("yyyy-MM-dd")
           : doc.Header.DateText;
 
-      var saved = ScenarioHomeostasisValuesFormat.Parse(doc.Header.InitialHomeostasisValues ?? "");
-
-      HomeostasisRows = new ObservableCollection<HomeostasisParamRow>();
-      if (GomeostasSystem.IsInitialized)
-      {
-        foreach (var p in GomeostasSystem.Instance.GetAllParameters())
-        {
-          float raw = saved.TryGetValue(p.Id, out var sv)
-              ? sv
-              : GomeostasSystem.GetDefaultInitialValueForScenarioParameter(p);
-          int iv = (int)Math.Round(raw);
-          if (iv < 0) iv = 0;
-          if (iv > 100) iv = 100;
-          string label = $"{p.Name} ({p.NormaWell})";
-          HomeostasisRows.Add(new HomeostasisParamRow(p.Id, label, iv));
-        }
-      }
-
-      Lines = new ObservableCollection<ScenarioLineRow>();
+      Lines = new BindingList<ScenarioLineRow>();
+      Lines.AllowNew = true;
+      Lines.AllowRemove = true;
+      Lines.AllowEdit = true;
+      Lines.RaiseListChangedEvents = false;
       foreach (var l in doc.Lines.OrderBy(x => x.StepIndex > 0 ? x.StepIndex : int.MaxValue).ThenBy(x => x.PulseWithinScenario))
       {
         var row = l.Clone();
         Lines.Add(row);
         row.RefreshActionNames(_influenceActions);
       }
+      Lines.RaiseListChangedEvents = true;
+      Lines.AddingNew += (_, e) => e.NewObject = CreateNewLineRow();
 
-      _scenarioEngine.NormalizeSchedule(Lines);
+      ScenarioPulseSchedule.EnsureSequentialStepIndices(Lines);
       foreach (var l in Lines)
         l.RefreshActionNames(_influenceActions);
 
-      AddLineCommand = new RelayCommand(_ => AddLine());
-      RemoveLineCommand = new RelayCommand(_ => RemoveLine(), _ => SelectedLine != null);
+      if (Document.LogExpectationColumnSkips == null)
+        Document.LogExpectationColumnSkips = new ScenarioLogExpectationColumnSkips();
+      ExpectationRows = new ObservableCollection<ScenarioLogExpectationRow>();
+      CompareResults = new ObservableCollection<ScenarioLogCompareRow>();
+      LoadExpectationsFromDocument();
+
+      Lines.ListChanged += OnLinesListChanged;
+
       SaveCommand = new RelayCommand(_ => Save(requestCloseAfterSuccess: true));
+      CompareWithLogsCommand = new RelayCommand(_ => CompareWithLogs());
 
       HasUnsavedChanges = false;
-
-      RefreshHomeostasisPreview();
     }
 
     public ScenarioDocument Document { get; }
-    public ObservableCollection<ScenarioLineRow> Lines { get; }
-    public ObservableCollection<HomeostasisParamRow> HomeostasisRows { get; }
+    public BindingList<ScenarioLineRow> Lines { get; }
+
+    /// <summary>Ожидаемые значения колонок лога (по строкам шагов).</summary>
+    public ObservableCollection<ScenarioLogExpectationRow> ExpectationRows { get; }
+
+    /// <summary>Результат сравнения с логами после «Сравнить с логами».</summary>
+    public ObservableCollection<ScenarioLogCompareRow> CompareResults { get; }
+
+    public ICommand CompareWithLogsCommand { get; }
+
+    private void ExpectationRowOnPropertyChanged(object sender, PropertyChangedEventArgs e)
+    {
+      if (e.PropertyName == nameof(ScenarioLogExpectationRow.StepIndex)
+          || e.PropertyName == nameof(ScenarioLogExpectationRow.PulseWithinScenario))
+        return;
+      HasUnsavedChanges = true;
+    }
+
+    private void AttachExpectationRow(ScenarioLogExpectationRow r)
+    {
+      r.PropertyChanged -= ExpectationRowOnPropertyChanged;
+      r.PropertyChanged += ExpectationRowOnPropertyChanged;
+    }
+
+    private void OnLinesListChanged(object sender, ListChangedEventArgs e)
+    {
+      switch (e.ListChangedType)
+      {
+        case ListChangedType.ItemAdded:
+          if (e.NewIndex >= 0 && e.NewIndex < Lines.Count)
+            Lines[e.NewIndex].RefreshActionNames(_influenceActions);
+          goto case ListChangedType.ItemDeleted;
+        case ListChangedType.ItemDeleted:
+          ScenarioPulseSchedule.EnsureSequentialStepIndices(Lines);
+          foreach (var l in Lines)
+            l.RefreshActionNames(_influenceActions);
+          SyncExpectationRowsWithLines();
+          HasUnsavedChanges = true;
+          CommandManager.InvalidateRequerySuggested();
+          break;
+        case ListChangedType.Reset:
+          // После BindingList.ResetBindings() от Normalize — не вызывать Normalize снова (рекурсия / StackOverflow).
+          break;
+      }
+    }
+
+    private static void NormalizeExpectationRowFields(ScenarioLogExpectationRow r)
+    {
+      if (r == null) return;
+      r.StateText = NormalizeExpectedCell(r.StateText);
+      r.StyleText = NormalizeExpectedCell(r.StyleText);
+      r.ThemeText = NormalizeExpectedCell(r.ThemeText);
+      r.TriggerText = NormalizeExpectedCell(r.TriggerText);
+      r.OrUmText = NormalizeExpectedCell(r.OrUmText);
+      r.GeneticReflexText = NormalizeExpectedCell(r.GeneticReflexText);
+      r.ConditionReflexText = NormalizeExpectedCell(r.ConditionReflexText);
+      r.AutomatizmText = NormalizeExpectedCell(r.AutomatizmText);
+      r.ReflexChainText = NormalizeExpectedCell(r.ReflexChainText);
+      r.AutomatizmChainText = NormalizeExpectedCell(r.AutomatizmChainText);
+      r.MainCycleText = NormalizeExpectedCell(r.MainCycleText);
+    }
+
+    private static string NormalizeExpectedCell(string s) =>
+        string.IsNullOrWhiteSpace(s) ? "-" : s.Trim();
+
+    private void LoadExpectationsFromDocument()
+    {
+      var byStep = (Document.LogExpectations ?? new List<ScenarioLogExpectationRow>())
+          .GroupBy(x => x.StepIndex)
+          .ToDictionary(g => g.Key, g => g.First());
+      ExpectationRows.Clear();
+      foreach (var line in Lines)
+      {
+        if (byStep.TryGetValue(line.StepIndex, out var src))
+        {
+          var c = src.Clone();
+          c.StepIndex = line.StepIndex;
+          c.PulseWithinScenario = line.PulseWithinScenario;
+          NormalizeExpectationRowFields(c);
+          ExpectationRows.Add(c);
+          AttachExpectationRow(c);
+        }
+        else
+        {
+          var er = new ScenarioLogExpectationRow
+          {
+            StepIndex = line.StepIndex,
+            PulseWithinScenario = line.PulseWithinScenario
+          };
+          NormalizeExpectationRowFields(er);
+          ExpectationRows.Add(er);
+          AttachExpectationRow(er);
+        }
+      }
+      SyncExpectationRowsWithLines();
+    }
+
+    private void SyncExpectationRowsWithLines()
+    {
+      while (ExpectationRows.Count < Lines.Count)
+      {
+        var r = new ScenarioLogExpectationRow();
+        NormalizeExpectationRowFields(r);
+        AttachExpectationRow(r);
+        ExpectationRows.Add(r);
+      }
+      while (ExpectationRows.Count > Lines.Count)
+        ExpectationRows.RemoveAt(ExpectationRows.Count - 1);
+      for (int i = 0; i < Lines.Count; i++)
+      {
+        var line = Lines[i];
+        var exp = ExpectationRows[i];
+        exp.StepIndex = line.StepIndex;
+        exp.PulseWithinScenario = line.PulseWithinScenario;
+      }
+    }
+
+    private void CompareWithLogs()
+    {
+      if (!ScenarioLogComparisonSession.LastAnchorGlobalPulse.HasValue)
+      {
+        MessageBox.Show(
+            "Нет данных о якоре пульса для последнего прогона. Запустите сценарий, дождитесь завершения, затем сравните.",
+            "Сравнение с логами",
+            MessageBoxButton.OK,
+            MessageBoxImage.Information);
+        return;
+      }
+
+      if (ScenarioLogComparisonSession.LastScenarioId.HasValue
+          && Document.Header.Id != 0
+          && ScenarioLogComparisonSession.LastScenarioId.Value != Document.Header.Id)
+      {
+        var r = MessageBox.Show(
+            "Идентификатор сценария не совпадает с последним прогоном. Продолжить сравнение?",
+            "Сравнение с логами",
+            MessageBoxButton.YesNo,
+            MessageBoxImage.Question);
+        if (r != MessageBoxResult.Yes)
+          return;
+      }
+
+      SyncExpectationRowsWithLines();
+      var doc = BuildDocument();
+      var anchor = ScenarioLogComparisonSession.LastAnchorGlobalPulse.Value;
+      var agg = ScenarioLogComparer.AggregateByPulse(MemoryLogManager.Instance.LogEntries);
+      var list = ScenarioLogComparer.Compare(doc, anchor, agg);
+      CompareResults.Clear();
+      foreach (var r in list)
+      {
+        CompareResults.Add(new ScenarioLogCompareRow
+        {
+          StepIndex = r.StepIndex,
+          PulseWithinScenario = r.PulseWithinScenario,
+          Ok = r.Ok,
+          Details = r.Details ?? ""
+        });
+      }
+    }
 
     public InfluenceActionSystem InfluenceActions => _influenceActions;
 
@@ -181,42 +317,6 @@ namespace AIStudio.ViewModels.Research
       }
     }
 
-    /// <summary>Текст состояния без подписи «Состояние:» (Плохо / Норма / Хорошо или пояснение).</summary>
-    public string PreviewStateValue
-    {
-      get => _previewStateValue;
-      private set
-      {
-        if (_previewStateValue == value) return;
-        _previewStateValue = value ?? "";
-        OnPropertyChanged(nameof(PreviewStateValue));
-      }
-    }
-
-    /// <summary>Цвет только для значения состояния (Плохо — красный, Норма — жёлтый, Хорошо — зелёный).</summary>
-    public Brush PreviewStateValueBrush
-    {
-      get => _previewStateValueBrush;
-      private set
-      {
-        if (_previewStateValueBrush == value) return;
-        _previewStateValueBrush = value ?? Brushes.Black;
-        OnPropertyChanged(nameof(PreviewStateValueBrush));
-      }
-    }
-
-    /// <summary>Текст комбинации стилей без подписи «Активные стили:» (подпись в XAML чёрная, значение — серое).</summary>
-    public string PreviewStylesValue
-    {
-      get => _previewStylesValue;
-      private set
-      {
-        if (_previewStylesValue == value) return;
-        _previewStylesValue = value ?? "";
-        OnPropertyChanged(nameof(PreviewStylesValue));
-      }
-    }
-
     public ScenarioLineRow SelectedLine
     {
       get => _selectedLine;
@@ -228,65 +328,14 @@ namespace AIStudio.ViewModels.Research
       }
     }
 
-    public ICommand AddLineCommand { get; }
-    public ICommand RemoveLineCommand { get; }
     public ICommand SaveCommand { get; }
 
     public event EventHandler<bool> RequestClose;
 
+    /// <summary>Для встроенного редактора: вернуться к реестру (после «Закрыть» с подтверждением).</summary>
+    public Action CloseAction { get; set; }
+
     public bool HasUnsavedChanges { get; private set; }
-
-    /// <summary>Вызывать после отпускания ползунка / потери фокуса / клавиш — пересчёт превью и отметка несохранённого.</summary>
-    public void OnHomeostasisSliderCommitted()
-    {
-      HasUnsavedChanges = true;
-      RefreshHomeostasisPreview();
-    }
-
-    public void RefreshHomeostasisPreview()
-    {
-      if (!GomeostasSystem.IsInitialized || HomeostasisRows.Count == 0)
-      {
-        if (!GomeostasSystem.IsInitialized)
-        {
-          PreviewStateValue = "Гомеостаз не инициализирован";
-          PreviewStateValueBrush = Brushes.Black;
-          PreviewStylesValue = "—";
-        }
-        else
-        {
-          PreviewStateValue = "—";
-          PreviewStateValueBrush = Brushes.Black;
-          PreviewStylesValue = "—";
-        }
-        return;
-      }
-
-      var dict = HomeostasisRows.ToDictionary(r => r.ParamId, r => (float)r.SliderValue);
-      var (st, styles) = GomeostasSystem.Instance.PreviewScenarioHomeostasisForEditor(dict);
-      PreviewStateValue = st;
-      PreviewStateValueBrush = BrushForHomeostasisStateText(st);
-      PreviewStylesValue = styles ?? "";
-    }
-
-    private static Brush BrushForHomeostasisStateText(string st)
-    {
-      if (string.IsNullOrEmpty(st) || st == "—")
-        return Brushes.Black;
-      if (st == "Плохо")
-        return PreviewBrushStateBad;
-      if (st == "Норма")
-        return PreviewBrushStateNormal;
-      if (st == "Хорошо")
-        return PreviewBrushStateWell;
-      return Brushes.Black;
-    }
-
-    public void RecomputePulseSchedule()
-    {
-      _scenarioEngine.NormalizeSchedule(Lines);
-      HasUnsavedChanges = true;
-    }
 
     public bool TryCancelWithPrompt()
     {
@@ -301,34 +350,43 @@ namespace AIStudio.ViewModels.Research
       return true;
     }
 
-    private void AddLine()
+    private ScenarioLineRow CreateNewLineRow()
     {
-      int nextStep = Lines.Count == 0 ? 1 : Lines.Max(l => l.StepIndex) + 1;
+      var gap = _scenarioEngine.PulseGapBetweenSteps;
+      int maxPulse = Lines.Count == 0 ? 0 : Lines.Max(l => l.PulseWithinScenario);
+      int nextPulse = maxPulse <= 0 ? 1 : maxPulse + gap + 1;
+
       var row = new ScenarioLineRow
       {
-        StepIndex = nextStep,
+        StepIndex = Lines.Count + 1,
+        PulseWithinScenario = nextPulse,
         Kind = ScenarioLineKind.Pult,
         ToneId = 0,
         MoodId = 0
       };
-      Lines.Add(row);
       row.RefreshActionNames(_influenceActions);
-      _scenarioEngine.NormalizeSchedule(Lines);
-      SelectedLine = row;
+      return row;
+    }
+
+    /// <summary>Удаление выделенных строк (клавиша Delete в таблице шагов).</summary>
+    public void DeleteSelectedLines(IEnumerable<ScenarioLineRow> rows)
+    {
+      if (rows == null)
+        return;
+      var list = rows.Where(r => r != null && Lines.Contains(r)).Distinct().OrderByDescending(r => Lines.IndexOf(r)).ToList();
+      if (list.Count == 0)
+        return;
+      foreach (var r in list)
+        Lines.Remove(r);
+      ScenarioPulseSchedule.EnsureSequentialStepIndices(Lines);
+      foreach (var l in Lines)
+        l.RefreshActionNames(_influenceActions);
+      SelectedLine = Lines.FirstOrDefault();
       HasUnsavedChanges = true;
     }
 
     public void MarkDirty()
     {
-      HasUnsavedChanges = true;
-    }
-
-    private void RemoveLine()
-    {
-      if (SelectedLine == null) return;
-      Lines.Remove(SelectedLine);
-      _scenarioEngine.NormalizeSchedule(Lines);
-      SelectedLine = Lines.FirstOrDefault();
       HasUnsavedChanges = true;
     }
 
@@ -384,8 +442,8 @@ namespace AIStudio.ViewModels.Research
 
     public ScenarioDocument BuildDocument()
     {
-      _scenarioEngine.NormalizeSchedule(Lines);
-      var dict = HomeostasisRows.ToDictionary(r => r.ParamId, r => (float)r.SliderValue);
+      ScenarioPulseSchedule.EnsureSequentialStepIndices(Lines);
+      SyncExpectationRowsWithLines();
       var doc = new ScenarioDocument
       {
         Header = new ScenarioHeader
@@ -394,9 +452,11 @@ namespace AIStudio.ViewModels.Research
           Title = Title?.Trim() ?? "",
           Description = Description?.Trim() ?? "",
           DateText = DateText?.Trim() ?? "",
-          InitialHomeostasisValues = ScenarioHomeostasisValuesFormat.Serialize(dict)
+          InitialHomeostasisValues = ""
         },
-        Lines = Lines.Select(l => l.Clone()).ToList()
+        Lines = Lines.Select(l => l.Clone()).ToList(),
+        LogExpectationColumnSkips = Document.LogExpectationColumnSkips?.Clone() ?? new ScenarioLogExpectationColumnSkips(),
+        LogExpectations = ExpectationRows.Select(r => r.Clone()).ToList()
       };
       return doc;
     }

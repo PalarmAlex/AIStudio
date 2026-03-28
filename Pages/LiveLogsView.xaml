@@ -295,20 +295,9 @@
       <Setter Property="ToolTipService.InitialShowDelay" Value="500"/>
     </Style>
 
-    <!-- Стиль для ячейки главного цикла мышления (фон по статусу задачи: Awaiting / NoSolution / Solved — см. ThinkingCycleInfo) -->
+    <!-- Стиль для ячейки главного цикла мышления: номер цикла; статус — во всплывающей подсказке -->
     <Style x:Key="MainThinkingCycleCellStyle" TargetType="DataGridCell" BasedOn="{StaticResource MatrixCellStyle}">
       <Setter Property="ToolTip" Value="{Binding MainThinkingCycleTooltip}"/>
-      <Style.Triggers>
-        <DataTrigger Binding="{Binding MainThinkingCycleTaskStatus}" Value="NoSolution">
-          <Setter Property="Background" Value="#40FF0000"/>
-        </DataTrigger>
-        <DataTrigger Binding="{Binding MainThinkingCycleTaskStatus}" Value="Awaiting">
-          <Setter Property="Background" Value="#40FFFF00"/>
-        </DataTrigger>
-        <DataTrigger Binding="{Binding MainThinkingCycleTaskStatus}" Value="Solved">
-          <Setter Property="Background" Value="#4000FF00"/>
-        </DataTrigger>
-      </Style.Triggers>
     </Style>
 
   </UserControl.Resources>

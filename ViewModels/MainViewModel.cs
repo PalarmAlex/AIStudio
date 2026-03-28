@@ -520,7 +520,13 @@ namespace AIStudio
           _scenarioRunner,
           _operatorScenarioEngine,
           () => GlobalTimer.IsPulsationRunning,
-          () => _gomeostas.GetAgentState()?.IsDead == true);
+          () => _gomeostas.GetAgentState()?.IsDead == true,
+          openEditorEmbedded: vm =>
+          {
+            vm.CloseAction = ShowScenarioRegistry;
+            vm.RequestClose += (_, __) => ShowScenarioRegistry();
+            CurrentContent = new ScenarioEditorView { DataContext = vm };
+          });
       view.DataContext = viewModel;
       CurrentContent = view;
     }
@@ -538,6 +544,9 @@ namespace AIStudio
       {
         try
         {
+          ScenarioLogComparisonSession.LastAnchorGlobalPulse = e.AnchorGlobalPulse;
+          ScenarioLogComparisonSession.LastScenarioId = e.Document?.Header?.Id;
+
           var sb = new StringBuilder();
           if (e.Success)
             sb.AppendLine("Сценарий завершён успешно.");
@@ -1355,6 +1364,22 @@ namespace AIStudio
         });
       };
 
+      // Сценарий оператора: после дрейфа гомеостаза на пульсе, до ProcessPsychicPulse (см. GlobalTimer).
+      GlobalTimer.OnPulseAfterGomeostasisBeforePsychic += pulseCount =>
+      {
+        Application.Current.Dispatcher.Invoke(() =>
+        {
+          try
+          {
+            _scenarioRunner.OnGlobalPulseBeforeProcessing(pulseCount);
+          }
+          catch (Exception ex)
+          {
+            Logger.Error(ex.Message);
+          }
+        });
+      };
+
       GlobalTimer.OnPulseCompleted += pulseCount =>
       {
         Application.Current.Dispatcher.Invoke(() =>
@@ -1368,9 +1393,7 @@ namespace AIStudio
             // Обновляем период ожидания оценки оператора
             UpdateWaitingPeriodDisplay();
 
-            _scenarioRunner.OnPulseCompleted(pulseCount);
-
-            // Логируем состояние (если агент жив)
+            // Логируем состояние (если агент жив) — после полной обработки пульса
             if (!IsAgentDead)
               _researchLogger?.LogSystemState(pulseCount);
           }
