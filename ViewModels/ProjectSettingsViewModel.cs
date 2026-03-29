@@ -31,6 +31,7 @@ namespace AIStudio.ViewModels
     private string _psychicDataFolderPath;
     private string _logsFolderPath;
     private string _bootDataFolderPath;
+    private string _scenarioReportsFolderPath;
     private int _defaultStileId;
     private int _defaultAdaptiveActionId;
     private int _defaultThemeTypeId;
@@ -126,6 +127,16 @@ namespace AIStudio.ViewModels
       {
         _bootDataFolderPath = value;
         OnPropertyChanged(nameof(BootDataFolderPath));
+      }
+    }
+
+    public string ScenarioReportsFolderPath
+    {
+      get => _scenarioReportsFolderPath;
+      set
+      {
+        _scenarioReportsFolderPath = value;
+        OnPropertyChanged(nameof(ScenarioReportsFolderPath));
       }
     }
 
@@ -425,6 +436,7 @@ namespace AIStudio.ViewModels
       PsychicDataFolderPath = AppConfig.PsychicDataFolderPath;
       LogsFolderPath = AppConfig.LogsFolderPath;
       BootDataFolderPath = AppConfig.BootDataFolderPath;
+      ScenarioReportsFolderPath = AppConfig.ScenarioReportsFolderPath;
       DefaultStileId = AppConfig.DefaultStileId;
       WaitingPeriodForActionsVal = AppConfig.WaitingPeriodForActionsVal;
       _thinkingCycleDecayAgeDivisor = AppConfig.ThinkingCycleDecayAgeDivisor;
@@ -578,6 +590,9 @@ namespace AIStudio.ViewModels
         case nameof(BootDataFolderPath):
           initialPath = Directory.Exists(BootDataFolderPath) ? BootDataFolderPath : "";
           break;
+        case nameof(ScenarioReportsFolderPath):
+          initialPath = Directory.Exists(ScenarioReportsFolderPath) ? ScenarioReportsFolderPath : "";
+          break;
         default:
           initialPath = "";
           break;
@@ -612,6 +627,9 @@ namespace AIStudio.ViewModels
             break;
           case nameof(BootDataFolderPath):
             BootDataFolderPath = dialog.SelectedPath;
+            break;
+          case nameof(ScenarioReportsFolderPath):
+            ScenarioReportsFolderPath = dialog.SelectedPath;
             break;
         }
       }
@@ -653,6 +671,7 @@ namespace AIStudio.ViewModels
         AppConfig.SetSetting(nameof(PsychicDataFolderPath), PsychicDataFolderPath);
         AppConfig.SetSetting(nameof(LogsFolderPath), LogsFolderPath);
         AppConfig.SetSetting(nameof(BootDataFolderPath), BootDataFolderPath);
+        AppConfig.SetSetting(nameof(ScenarioReportsFolderPath), ScenarioReportsFolderPath);
         AppConfig.SetIntSetting(nameof(DefaultStileId), DefaultStileId);
         AppConfig.SetIntSetting(nameof(WaitingPeriodForActionsVal), WaitingPeriodForActionsVal);
         AppConfig.SetIntSetting(nameof(ThinkingCycleDecayAgeDivisor), ThinkingCycleDecayAgeDivisor);

@@ -327,9 +327,9 @@
     <Compile Include="Common\ScenarioPaths.cs" />
     <Compile Include="Common\ScenarioStorage.cs" />
     <Compile Include="Common\ScenarioExpectationChoiceLists.cs" />
+    <Compile Include="Common\ScenarioReportHtmlBuilder.cs" />
     <Compile Include="ViewModels\Research\ScenarioEditorViewModel.cs" />
     <Compile Include="ViewModels\Research\ScenarioRegistryViewModel.cs" />
-    <Compile Include="ViewModels\Research\ScenarioRunLiveViewModel.cs" />
     <Compile Include="Pages\Research\ScenarioRegistryView.xaml.cs">
       <DependentUpon>ScenarioRegistryView.xaml</DependentUpon>
     </Compile>
@@ -339,8 +339,8 @@
     <Compile Include="Windows\ScenarioEditorWindow.xaml.cs">
       <DependentUpon>ScenarioEditorWindow.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Windows\ScenarioRunLiveWindow.xaml.cs">
-      <DependentUpon>ScenarioRunLiveWindow.xaml</DependentUpon>
+    <Compile Include="Windows\ScenarioRunProgressWindow.xaml.cs">
+      <DependentUpon>ScenarioRunProgressWindow.xaml</DependentUpon>
     </Compile>
     <Page Include="MainWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
@@ -571,7 +571,7 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="Windows\ScenarioRunLiveWindow.xaml">
+    <Page Include="Windows\ScenarioRunProgressWindow.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

@@ -3,7 +3,6 @@ using AIStudio.Common;
 using AIStudio.Pages.Research;
 using AIStudio.Windows;
 using ISIDA.Actions;
-using ISIDA.Gomeostas;
 using ISIDA.Scenarios;
 using System;
 using System.Collections.Generic;
@@ -24,14 +23,10 @@ namespace AIStudio.ViewModels.Research
   public sealed class ScenarioRegistryViewModel : INotifyPropertyChanged
   {
     private readonly InfluenceActionSystem _influenceActions;
-    private readonly Func<IOperatorScenarioPult> _getPult;
-    private readonly Action _cancelWaitingPeriod;
     private readonly OperatorScenarioRunner _runner;
     private readonly OperatorScenarioEngine _scenarioEngine;
-    private readonly GomeostasSystem _gomeostas;
-    private readonly Func<bool> _isPulsationRunning;
-    private readonly Func<bool> _isAgentDead;
     private readonly Action<ScenarioEditorViewModel> _openEditorEmbedded;
+    private readonly Func<ScenarioDocument, string, bool> _tryStartScenario;
 
     private ScenarioHeader _selected;
     private readonly List<ScenarioHeader> _registryAll = new List<ScenarioHeader>();
@@ -59,24 +54,16 @@ namespace AIStudio.ViewModels.Research
 
     public ScenarioRegistryViewModel(
         InfluenceActionSystem influenceActions,
-        Func<IOperatorScenarioPult> getPult,
-        Action cancelWaitingPeriod,
         OperatorScenarioRunner runner,
         OperatorScenarioEngine scenarioEngine,
-        GomeostasSystem gomeostas,
-        Func<bool> isPulsationRunning,
-        Func<bool> isAgentDead,
-        Action<ScenarioEditorViewModel> openEditorEmbedded = null)
+        Action<ScenarioEditorViewModel> openEditorEmbedded = null,
+        Func<ScenarioDocument, string, bool> tryStartScenario = null)
     {
       _influenceActions = influenceActions ?? throw new ArgumentNullException(nameof(influenceActions));
-      _getPult = getPult ?? throw new ArgumentNullException(nameof(getPult));
-      _cancelWaitingPeriod = cancelWaitingPeriod ?? throw new ArgumentNullException(nameof(cancelWaitingPeriod));
       _runner = runner ?? throw new ArgumentNullException(nameof(runner));
       _scenarioEngine = scenarioEngine ?? throw new ArgumentNullException(nameof(scenarioEngine));
-      _gomeostas = gomeostas ?? throw new ArgumentNullException(nameof(gomeostas));
-      _isPulsationRunning = isPulsationRunning ?? throw new ArgumentNullException(nameof(isPulsationRunning));
-      _isAgentDead = isAgentDead ?? throw new ArgumentNullException(nameof(isAgentDead));
       _openEditorEmbedded = openEditorEmbedded;
+      _tryStartScenario = tryStartScenario ?? throw new ArgumentNullException(nameof(tryStartScenario));
 
       Items = new ObservableCollection<ScenarioHeader>();
       RefreshCommand = new RelayCommand(_ => Refresh());
@@ -194,8 +181,18 @@ namespace AIStudio.ViewModels.Research
         }
       }
 
-      var vm = new ScenarioEditorViewModel(_influenceActions, _scenarioEngine, doc, isNew);
-      OpenEditorWithViewModel(vm);
+      OpenEditorWithViewModel(CreateEditorViewModel(doc, isNew));
+    }
+
+    private ScenarioEditorViewModel CreateEditorViewModel(ScenarioDocument doc, bool isNew)
+    {
+      return new ScenarioEditorViewModel(
+          _influenceActions,
+          _scenarioEngine,
+          doc,
+          isNew,
+          _tryStartScenario,
+          () => _runner.IsRunning);
     }
 
     private void OpenEditorWithViewModel(ScenarioEditorViewModel vm)
@@ -238,58 +235,7 @@ namespace AIStudio.ViewModels.Research
         return;
       }
 
-      var err = OperatorScenarioValidator.ValidateForRun(
-          doc, _influenceActions, _isPulsationRunning(), _isAgentDead());
-      if (err != null)
-      {
-        MessageBox.Show(err, "Запуск сценария", MessageBoxButton.OK, MessageBoxImage.Warning);
-        return;
-      }
-
-      if (_getPult() == null)
-      {
-        MessageBox.Show("Откройте раздел «Агент» (пульт), чтобы сценарий мог подавать воздействия.",
-            "Запуск сценария", MessageBoxButton.OK, MessageBoxImage.Information);
-        return;
-      }
-
-      try
-      {
-        if (!TryApplyPreRunStage(doc))
-          return;
-        _runner.Start(doc, _getPult, _cancelWaitingPeriod);
-      }
-      catch (Exception ex)
-      {
-        MessageBox.Show(ex.Message, "Запуск", MessageBoxButton.OK, MessageBoxImage.Error);
-      }
-    }
-
-    private bool TryApplyPreRunStage(ScenarioDocument doc)
-    {
-      int target = doc.Header.PreRunTargetStage;
-      if (target < 0 || target > 5)
-        return true;
-      var agent = _gomeostas.GetAgentState();
-      if (agent == null)
-      {
-        MessageBox.Show("Состояние агента недоступно.", "Запуск сценария", MessageBoxButton.OK, MessageBoxImage.Warning);
-        return false;
-      }
-      int current = agent.EvolutionStage;
-      if (target == current)
-        return true;
-      bool force = target < current || target > current + 1;
-      bool skipClear = !doc.Header.PreRunClearAgentData;
-      var result = _gomeostas.SetEvolutionStage(target, force, skipClear);
-      if (!result.Success)
-      {
-        MessageBox.Show(result.Message ?? "Не удалось перейти на выбранную стадию.",
-            "Запуск сценария", MessageBoxButton.OK, MessageBoxImage.Warning);
-        return false;
-      }
-      _gomeostas.SaveAgentProperties();
-      return true;
+      _tryStartScenario(doc, AppConfig.ScenarioReportsFolderPath);
     }
 
     private void Delete()
@@ -368,8 +314,7 @@ namespace AIStudio.ViewModels.Research
           MessageBox.Show(verr, "Проверка", MessageBoxButton.OK, MessageBoxImage.Warning);
           return;
         }
-        var vm = new ScenarioEditorViewModel(_influenceActions, _scenarioEngine, doc, true);
-        OpenEditorWithViewModel(vm);
+        OpenEditorWithViewModel(CreateEditorViewModel(doc, true));
       }
       catch (Exception ex)
       {

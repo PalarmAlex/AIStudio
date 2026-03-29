@@ -30,6 +30,23 @@ public static class AppConfig
   public static string SettingsPath => GetSetting("SettingsPath");
   public static string LogsFolderPath => GetSetting("LogsFolderPath");
   public static string BootDataFolderPath => GetSetting("BootDataFolderPath");
+
+  /// <summary>Каталог для HTML-отчётов прогона сценариев (по умолчанию …\ISIDA\Data\Scenarios\Reports).</summary>
+  public static string ScenarioReportsFolderPath
+  {
+    get
+    {
+      var path = GetSetting("ScenarioReportsFolderPath");
+      if (string.IsNullOrWhiteSpace(path))
+      {
+        string appDataPath = Path.Combine(
+            Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData),
+            "ISIDA");
+        path = Path.Combine(appDataPath, "Data", "Scenarios", "Reports");
+      }
+      return path;
+    }
+  }
   public static ResearchLogger.LogFormat LogFormat => GetLogFormatSetting("DefaultFormatLog", ResearchLogger.LogFormat.All);
   public static int FirstRun => GetIntSetting("FirstRun", (int)GetDefaultValueSettings("FirstRun"));
   public static bool LogEnabled => GetBoolSetting("LogEnabled", (bool)GetDefaultValueSettings("LogEnabled"));
@@ -55,6 +72,31 @@ public static class AppConfig
   /// <summary>Пульсов без стимула с пульта до события «долго без оператора» (тема мышления).</summary>
   public static int NoOperatorStimulusSilencePulses => GetIntSetting("NoOperatorStimulusSilencePulses", (int)GetDefaultValueSettings("NoOperatorStimulusSilencePulses"));
 
+  /// <summary>Добавляет в существующий XML ключ каталога отчётов сценариев, если его ещё нет.</summary>
+  private static void EnsureScenarioReportsFolderSetting()
+  {
+    try
+    {
+      if (!File.Exists(ConfigFullPath))
+        return;
+      var doc = XDocument.Load(ConfigFullPath);
+      var app = doc.Root?.Element("AppSettings");
+      if (app == null)
+        return;
+      if (app.Element("ScenarioReportsFolderPath") != null)
+        return;
+      string appDataPath = Path.Combine(
+          Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData),
+          "ISIDA");
+      app.Add(new XElement("ScenarioReportsFolderPath", Path.Combine(appDataPath, "Data", "Scenarios", "Reports")));
+      doc.Save(ConfigFullPath);
+    }
+    catch (Exception ex)
+    {
+      Logger.Error(ex.Message);
+    }
+  }
+
   /// <summary>
   /// Инициализирует конфигурацию и проверяет первый запуск
   /// </summary>
@@ -65,6 +107,16 @@ public static class AppConfig
       // Если конфиг не существует -создаем
       if (!File.Exists(ConfigFullPath))
         CreateDefaultConfig();
+
+      EnsureScenarioReportsFolderSetting();
+      try
+      {
+        Directory.CreateDirectory(ScenarioReportsFolderPath);
+      }
+      catch
+      {
+        // ignore
+      }
 
       // Проверяем первый запуск
       int firstRunValue = GetIntSetting("FirstRun", 0);
@@ -101,6 +153,7 @@ public static class AppConfig
           new XElement("SettingsPath", Path.Combine(appDataPath, "Settings")),
           new XElement("LogsFolderPath", Path.Combine(appDataPath, "Logs")),
           new XElement("BootDataFolderPath", Path.Combine(appDataPath, "BootData")),
+          new XElement("ScenarioReportsFolderPath", Path.Combine(appDataPath, "Data", "Scenarios", "Reports")),
           new XElement("DefaultStileId", 0),
           new XElement("DefaultAdaptiveActionId", 0),
           new XElement("DefaultThemeTypeId", 4),
@@ -143,6 +196,7 @@ public static class AppConfig
       SetSetting("SettingsPath", Path.Combine(appDataPath, "Settings"));
       SetSetting("LogsFolderPath", Path.Combine(appDataPath, "Logs"));
       SetSetting("BootDataFolderPath", Path.Combine(appDataPath, "BootData"));
+      SetSetting("ScenarioReportsFolderPath", Path.Combine(appDataPath, "Data", "Scenarios", "Reports"));
 
       Logger.Info($"Конфигурационные пути обновлены для установки в: {appDataPath}");
     }

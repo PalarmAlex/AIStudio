@@ -26,6 +26,7 @@ using System.IO;
 using System.Text;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Threading;
 using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Media;
@@ -66,7 +67,8 @@ namespace AIStudio
     private readonly OperatorScenarioRunner _scenarioRunner = new OperatorScenarioRunner();
     private OperatorScenarioEngine _operatorScenarioEngine;
     private bool _wasPulsatingForScenario;
-    private ScenarioRunLiveWindow _scenarioRunLiveWindow;
+    private ScenarioRunProgressWindow _scenarioRunProgressWindow;
+    private string _pendingScenarioReportFolder;
 
     public event PropertyChangedEventHandler PropertyChanged;
     private AgentViewModel _agentViewModel;
@@ -217,6 +219,8 @@ namespace AIStudio
       SetupPulseHandlers();
 
       _scenarioRunner.Finished += OnScenarioRunFinished;
+      _scenarioRunner.RunningStateChanged += OnScenarioRunningStateChanged;
+      _scenarioRunner.StepProgress += OnScenarioStepProgress;
       _wasPulsatingForScenario = GlobalTimer.IsPulsationRunning;
       GlobalTimer.PulsationStateChanged += OnPulsationStateChangedForScenario;
 
@@ -517,19 +521,15 @@ namespace AIStudio
       var view = new ScenarioRegistryView();
       var viewModel = new ScenarioRegistryViewModel(
           _influenceActionSystem,
-          () => _agentViewModel?.AgentPultViewModel,
-          () => _isidaContext.CancelWaitingPeriodAndResetMirror(),
           _scenarioRunner,
           _operatorScenarioEngine,
-          _gomeostas,
-          () => GlobalTimer.IsPulsationRunning,
-          () => _gomeostas.GetAgentState()?.IsDead == true,
           openEditorEmbedded: vm =>
           {
             vm.CloseAction = ShowScenarioRegistry;
             vm.RequestClose += (_, __) => ShowScenarioRegistry();
             CurrentContent = new ScenarioEditorView { DataContext = vm };
-          });
+          },
+          tryStartScenario: TryStartScenario);
       view.DataContext = viewModel;
       CurrentContent = view;
     }
@@ -541,36 +541,30 @@ namespace AIStudio
       _wasPulsatingForScenario = GlobalTimer.IsPulsationRunning;
     }
 
-    private void OnScenarioRunFinished(object sender, OperatorScenarioCompletedEventArgs e)
+    private void OnScenarioRunningStateChanged()
     {
       Application.Current?.Dispatcher.BeginInvoke(new Action(() =>
       {
         try
         {
-          ScenarioLogComparisonSession.LastAnchorGlobalPulse = e.AnchorGlobalPulse;
-          ScenarioLogComparisonSession.LastScenarioId = e.Document?.Header?.Id;
-
-          if (e.Document != null)
+          if (_scenarioRunner.IsRunning)
           {
-            try
+            if (_scenarioRunProgressWindow == null)
             {
-              if (_scenarioRunLiveWindow != null)
+              _scenarioRunProgressWindow = new ScenarioRunProgressWindow
               {
-                try { _scenarioRunLiveWindow.Close(); } catch { /* ignore */ }
-                _scenarioRunLiveWindow = null;
-              }
-              var vm = new ScenarioRunLiveViewModel(e.Document, e, _influenceActionSystem);
-              _scenarioRunLiveWindow = new ScenarioRunLiveWindow
-              {
-                DataContext = vm,
                 Owner = Application.Current?.MainWindow
               };
-              _scenarioRunLiveWindow.Show();
+              _scenarioRunProgressWindow.SetStatus("Запуск сценария…");
+              _scenarioRunProgressWindow.Show();
             }
-            catch (Exception ex)
+          }
+          else
+          {
+            if (_scenarioRunProgressWindow != null)
             {
-              Logger.Error(ex.Message);
-              MessageBox.Show(ex.Message, "Результат сценария", MessageBoxButton.OK, MessageBoxImage.Error);
+              try { _scenarioRunProgressWindow.Close(); } catch { /* ignore */ }
+              _scenarioRunProgressWindow = null;
             }
           }
         }
@@ -579,6 +573,176 @@ namespace AIStudio
           Logger.Error(ex.Message);
         }
       }));
+    }
+
+    private void OnScenarioStepProgress(object sender, OperatorScenarioStepProgressEventArgs e)
+    {
+      Application.Current?.Dispatcher.BeginInvoke(new Action(() =>
+      {
+        try
+        {
+          if (_scenarioRunProgressWindow != null)
+            _scenarioRunProgressWindow.SetStatus($"Выполняется: шаг №{e.StepIndex}…");
+        }
+        catch (Exception ex)
+        {
+          Logger.Error(ex.Message);
+        }
+      }));
+    }
+
+    /// <summary>Запуск сценария из реестра или редактора: проверки, переход на стадию, старт раннера.</summary>
+    public bool TryStartScenario(ScenarioDocument doc, string reportOutputFolder)
+    {
+      if (doc == null)
+        return false;
+
+      var folder = string.IsNullOrWhiteSpace(reportOutputFolder)
+          ? AppConfig.ScenarioReportsFolderPath
+          : reportOutputFolder.Trim();
+      try
+      {
+        Directory.CreateDirectory(folder);
+      }
+      catch (Exception ex)
+      {
+        MessageBox.Show("Не удалось подготовить каталог отчёта: " + ex.Message, "Запуск сценария",
+            MessageBoxButton.OK, MessageBoxImage.Warning);
+        return false;
+      }
+
+      var err = OperatorScenarioValidator.ValidateForRun(
+          doc, _influenceActionSystem, GlobalTimer.IsPulsationRunning, _gomeostas.GetAgentState()?.IsDead == true);
+      if (err != null)
+      {
+        MessageBox.Show(err, "Запуск сценария", MessageBoxButton.OK, MessageBoxImage.Warning);
+        return false;
+      }
+
+      if (_agentViewModel?.AgentPultViewModel == null)
+      {
+        MessageBox.Show("Откройте раздел «Агент» (пульт), чтобы сценарий мог подавать воздействия.",
+            "Запуск сценария", MessageBoxButton.OK, MessageBoxImage.Information);
+        return false;
+      }
+
+      if (!TryApplyPreRunStageForScenario(doc))
+        return false;
+
+      _pendingScenarioReportFolder = folder;
+
+      try
+      {
+        _scenarioRunner.Start(doc, () => _agentViewModel?.AgentPultViewModel,
+            () => _isidaContext.CancelWaitingPeriodAndResetMirror());
+      }
+      catch (Exception ex)
+      {
+        MessageBox.Show(ex.Message, "Запуск", MessageBoxButton.OK, MessageBoxImage.Error);
+        return false;
+      }
+      return true;
+    }
+
+    private bool TryApplyPreRunStageForScenario(ScenarioDocument doc)
+    {
+      int target = doc.Header.PreRunTargetStage;
+      if (target < 0 || target > 5)
+        return true;
+      var agent = _gomeostas.GetAgentState();
+      if (agent == null)
+      {
+        MessageBox.Show("Состояние агента недоступно.", "Запуск сценария", MessageBoxButton.OK, MessageBoxImage.Warning);
+        return false;
+      }
+      int current = agent.EvolutionStage;
+      if (target == current)
+        return true;
+      bool force = target < current || target > current + 1;
+      bool skipClear = !doc.Header.PreRunClearAgentData;
+      var result = _gomeostas.SetEvolutionStage(target, force, skipClear);
+      if (!result.Success)
+      {
+        MessageBox.Show(result.Message ?? "Не удалось перейти на выбранную стадию.",
+            "Запуск сценария", MessageBoxButton.OK, MessageBoxImage.Warning);
+        return false;
+      }
+      _gomeostas.SaveAgentProperties();
+      return true;
+    }
+
+    private void OnScenarioRunFinished(object sender, OperatorScenarioCompletedEventArgs e)
+    {
+      // SystemIdle: после FlushBufferedAgentRowToMemoryNow на том же пульсе записи ещё ставятся в MemoryLogManager
+      // через BeginInvoke(Background); отчёт должен собраться позже очереди Background, иначе фантомное расхождение на последнем шаге.
+      Application.Current?.Dispatcher.BeginInvoke(new Action(() =>
+      {
+        try
+        {
+          ScenarioLogComparisonSession.LastAnchorGlobalPulse = e.AnchorGlobalPulse;
+          ScenarioLogComparisonSession.LastScenarioId = e.Document?.Header?.Id;
+
+          if (e.Document == null)
+            return;
+
+          string reportPath = null;
+          var folder = _pendingScenarioReportFolder;
+          if (string.IsNullOrWhiteSpace(folder))
+            folder = AppConfig.ScenarioReportsFolderPath;
+          _pendingScenarioReportFolder = null;
+
+          try
+          {
+            Directory.CreateDirectory(folder);
+            var fname = $"scenario_{e.Document.Header?.Id ?? 0}_{DateTime.Now:yyyyMMdd_HHmmss}.html";
+            reportPath = Path.Combine(folder, fname);
+            var html = ScenarioReportHtmlBuilder.BuildHtml(e.Document, e, _influenceActionSystem);
+            File.WriteAllText(reportPath, html, Encoding.UTF8);
+          }
+          catch (Exception ex)
+          {
+            Logger.Error(ex.Message);
+            MessageBox.Show("Отчёт не сохранён: " + ex.Message, "Сценарий", MessageBoxButton.OK, MessageBoxImage.Warning);
+            reportPath = null;
+          }
+
+          var msg = e.Success
+              ? "Сценарий завершён успешно."
+              : (e.AbortedByUser ? "Сценарий остановлен пользователем."
+                  : e.AbortedByPulsationStop ? "Сценарий прерван: остановлена пульсация."
+                  : (!string.IsNullOrEmpty(e.ErrorMessage) ? "Ошибка: " + e.ErrorMessage : "Сценарий завершён."));
+
+          var saved = reportPath != null && File.Exists(reportPath);
+          if (saved)
+            msg += "\n\nОтчёт сохранён:\n" + reportPath + "\n\nОткрыть отчёт в браузере?";
+          else
+            msg += "\n\nHTML-отчёт не был сохранён на диск.";
+
+          var result = MessageBox.Show(msg, "Результат прогона сценария",
+              saved ? MessageBoxButton.YesNo : MessageBoxButton.OK,
+              MessageBoxImage.Information);
+
+          if (result == MessageBoxResult.Yes && saved)
+          {
+            try
+            {
+              Process.Start(new ProcessStartInfo
+              {
+                FileName = reportPath,
+                UseShellExecute = true
+              });
+            }
+            catch (Exception ex)
+            {
+              MessageBox.Show(ex.Message, "Не удалось открыть отчёт", MessageBoxButton.OK, MessageBoxImage.Warning);
+            }
+          }
+        }
+        catch (Exception ex)
+        {
+          Logger.Error(ex.Message);
+        }
+      }), DispatcherPriority.SystemIdle);
     }
 
     private void ShowAutomatizms()
@@ -1364,6 +1528,12 @@ namespace AIStudio
             // Логируем состояние (если агент жив) — после полной обработки пульса
             if (!IsAgentDead)
               _researchLogger?.LogSystemState(pulseCount);
+
+            // Сценарий: стимул последнего шага применяется в OnPulseAfterGomeostasisBeforePsychic,
+            // а LogSystemState выше буферизует данные за этот пульс. Сбрасываем буфер в MemoryLogManager
+            // (синхронно, т.к. мы на UI-потоке) и завершаем сценарий — отчёт увидит все записи.
+            _researchLogger?.FlushBufferedAgentRowToMemoryNow();
+            _scenarioRunner.TryFinishAfterPulseCompleted();
           }
           catch (Exception ex)
           {

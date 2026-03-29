@@ -15,6 +15,8 @@ using System.Runtime.CompilerServices;
 using System.Windows;
 using System.Windows.Input;
 
+using Ookii.Dialogs.Wpf;
+
 namespace AIStudio.ViewModels.Research
 {
   public sealed class ScenarioEditorViewModel : INotifyPropertyChanged
@@ -38,16 +40,24 @@ namespace AIStudio.ViewModels.Research
       new ScenarioExpectationChoiceItem { Label = "Пусто (прочерк)", Code = "Dash" }
     };
     private ScenarioLineRow _selectedLine;
+    private readonly Func<ScenarioDocument, string, bool> _tryStartScenario;
+    private readonly Func<bool> _isScenarioRunning;
+    private string _reportOutputFolder = "";
 
     public ScenarioEditorViewModel(
         InfluenceActionSystem influenceActions,
         OperatorScenarioEngine scenarioEngine,
         ScenarioDocument doc,
-        bool isNew)
+        bool isNew,
+        Func<ScenarioDocument, string, bool> tryStartScenario = null,
+        Func<bool> isScenarioRunning = null)
     {
       _influenceActions = influenceActions ?? throw new ArgumentNullException(nameof(influenceActions));
       _scenarioEngine = scenarioEngine ?? throw new ArgumentNullException(nameof(scenarioEngine));
       _isNew = isNew;
+      _tryStartScenario = tryStartScenario;
+      _isScenarioRunning = isScenarioRunning;
+      _reportOutputFolder = AppConfig.ScenarioReportsFolderPath;
       Document = doc ?? throw new ArgumentNullException(nameof(doc));
 
       _title = doc.Header.Title ?? "";
@@ -103,8 +113,46 @@ namespace AIStudio.ViewModels.Research
 
       SaveCommand = new RelayCommand(_ => Save(requestCloseAfterSuccess: true));
       MassFillExpectationsCommand = new RelayCommand(_ => MassFillExpectations());
+      BrowseReportFolderCommand = new RelayCommand(_ => BrowseReportFolder());
+      RunScenarioCommand = new RelayCommand(_ => RunScenario(), _ => _tryStartScenario != null && !(_isScenarioRunning?.Invoke() ?? false));
 
       HasUnsavedChanges = false;
+    }
+
+    public string ReportOutputFolder
+    {
+      get => _reportOutputFolder;
+      set
+      {
+        if (_reportOutputFolder == value) return;
+        _reportOutputFolder = value ?? "";
+        OnPropertyChanged();
+      }
+    }
+
+    public ICommand BrowseReportFolderCommand { get; }
+    public ICommand RunScenarioCommand { get; }
+
+    private void BrowseReportFolder()
+    {
+      var dialog = new VistaFolderBrowserDialog
+      {
+        Description = "Каталог для сохранения HTML-отчёта",
+        UseDescriptionForTitle = true,
+        SelectedPath = Directory.Exists(ReportOutputFolder) ? ReportOutputFolder : ""
+      };
+      if (dialog.ShowDialog() == true)
+        ReportOutputFolder = dialog.SelectedPath;
+    }
+
+    private void RunScenario()
+    {
+      if (_tryStartScenario == null)
+        return;
+      if (!Save(requestCloseAfterSuccess: false))
+        return;
+      var doc = BuildDocument();
+      _tryStartScenario(doc, string.IsNullOrWhiteSpace(ReportOutputFolder) ? AppConfig.ScenarioReportsFolderPath : ReportOutputFolder.Trim());
     }
 
     public ScenarioDocument Document { get; }
@@ -214,7 +262,7 @@ namespace AIStudio.ViewModels.Research
     }
 
     private static string NormalizeExpectedCell(string s) =>
-        string.IsNullOrWhiteSpace(s) ? "-" : s.Trim();
+        s == null ? "-" : s.Trim();
 
     private void LoadExpectationsFromDocument()
     {
