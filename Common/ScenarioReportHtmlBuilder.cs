@@ -115,8 +115,7 @@ namespace AIStudio.Common
       {
         foreach (var line in doc.Lines.OrderBy(l => l.StepIndex))
         {
-          agg.TryGetValue(anchor + line.PulseWithinScenario, out var snap);
-          snap = snap ?? new ScenarioLogComparer.AggregatedLogSnapshot();
+          var snap = ScenarioLogComparer.ResolveSnapshot(anchor + line.PulseWithinScenario, agg);
           expByStep.TryGetValue(line.StepIndex, out var exp);
           exp = exp ?? new ScenarioLogExpectationRow();
 

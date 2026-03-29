@@ -221,6 +221,7 @@ namespace AIStudio
       _scenarioRunner.Finished += OnScenarioRunFinished;
       _scenarioRunner.RunningStateChanged += OnScenarioRunningStateChanged;
       _scenarioRunner.StepProgress += OnScenarioStepProgress;
+      _scenarioRunner.WaitingForActivation += OnScenarioWaitingForActivation;
       _wasPulsatingForScenario = GlobalTimer.IsPulsationRunning;
       GlobalTimer.PulsationStateChanged += OnPulsationStateChangedForScenario;
 
@@ -591,6 +592,23 @@ namespace AIStudio
       }));
     }
 
+    private void OnScenarioWaitingForActivation(int currentPulse, int targetPulse)
+    {
+      Application.Current?.Dispatcher.BeginInvoke(new Action(() =>
+      {
+        try
+        {
+          if (_scenarioRunProgressWindow != null)
+            _scenarioRunProgressWindow.SetStatus(
+                $"Ожидание активации психики… (пульс {currentPulse}, старт на пульсе {targetPulse})");
+        }
+        catch (Exception ex)
+        {
+          Logger.Error(ex.Message);
+        }
+      }));
+    }
+
     /// <summary>Запуск сценария из реестра или редактора: проверки, переход на стадию, старт раннера.</summary>
     public bool TryStartScenario(ScenarioDocument doc, string reportOutputFolder)
     {
@@ -647,17 +665,35 @@ namespace AIStudio
     private bool TryApplyPreRunStageForScenario(ScenarioDocument doc)
     {
       int target = doc.Header.PreRunTargetStage;
-      if (target < 0 || target > 5)
+      bool wantStageChange = target >= 0 && target <= 5;
+      if (!doc.Header.PreRunClearAgentData && !wantStageChange)
         return true;
+
       var agent = _gomeostas.GetAgentState();
       if (agent == null)
       {
         MessageBox.Show("Состояние агента недоступно.", "Запуск сценария", MessageBoxButton.OK, MessageBoxImage.Warning);
         return false;
       }
+
       int current = agent.EvolutionStage;
+
+      if (doc.Header.PreRunClearAgentData)
+      {
+        var clearRes = _gomeostas.ClearEvolutionStageDataForScenarioPreRun();
+        if (!clearRes.Success)
+        {
+          MessageBox.Show(clearRes.Message ?? "Не удалось очистить данные стадии перед запуском сценария.",
+              "Запуск сценария", MessageBoxButton.OK, MessageBoxImage.Warning);
+          return false;
+        }
+      }
+
+      if (!wantStageChange)
+        return true;
       if (target == current)
         return true;
+
       bool force = target < current || target > current + 1;
       bool skipClear = !doc.Header.PreRunClearAgentData;
       var result = _gomeostas.SetEvolutionStage(target, force, skipClear);

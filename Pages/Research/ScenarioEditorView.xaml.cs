@@ -38,6 +38,8 @@ namespace AIStudio.Pages.Research
         return;
       if (!(sender is DataGrid grid) || !(DataContext is ScenarioEditorViewModel vm))
         return;
+      if (Keyboard.FocusedElement is TextBox)
+        return;
       if (grid.SelectedItems.Count == 0)
         return;
       var rows = grid.SelectedItems.Cast<ScenarioLineRow>().ToList();
@@ -98,6 +100,28 @@ namespace AIStudio.Pages.Research
         return;
       if (DataContext is ScenarioEditorViewModel vm)
         vm.MarkDirty();
+    }
+
+    private void EditDescriptionButton_Click(object sender, RoutedEventArgs e)
+    {
+      if (!(DataContext is ScenarioEditorViewModel vm))
+        return;
+
+      var dialog = new TextInputDialog
+      {
+        Owner = Window.GetWindow(this),
+        Title = "Редактирование описания сценария",
+        Text = vm.Description ?? "",
+        Multiline = true,
+        Width = 700,
+        Height = 500
+      };
+
+      if (dialog.ShowDialog() == true)
+      {
+        var text = dialog.Text ?? "";
+        vm.Description = text.Replace("\\n", "\n");
+      }
     }
   }
 }

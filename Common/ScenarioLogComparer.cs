@@ -55,6 +55,34 @@ namespace AIStudio.Common
       return result;
     }
 
+    /// <summary>
+    /// Для пульса, на котором нет собственной записи в логе (например, шаг «только сброс ожидания»),
+    /// подтягивает непрерывные поля (State, Style) с ближайшего предшествующего пульса.
+    /// Событийные колонки (триггер, рефлекс, автоматизм, цепочки и т.д.) остаются «-».
+    /// </summary>
+    public static AggregatedLogSnapshot ResolveSnapshot(
+        int globalPulse,
+        IReadOnlyDictionary<int, AggregatedLogSnapshot> byGlobalPulse)
+    {
+      if (byGlobalPulse.TryGetValue(globalPulse, out var exact))
+        return exact;
+
+      var snap = new AggregatedLogSnapshot();
+
+      int nearest = -1;
+      foreach (var key in byGlobalPulse.Keys)
+      {
+        if (key < globalPulse && key > nearest)
+          nearest = key;
+      }
+      if (nearest >= 0 && byGlobalPulse.TryGetValue(nearest, out var prev))
+      {
+        snap.State = prev.State;
+        snap.Style = prev.Style;
+      }
+      return snap;
+    }
+
     /// <summary>Если кандидат не «-», подставляет его; иначе оставляет текущее значение.</summary>
     private static string MergeField(string current, string candidate)
     {
@@ -122,8 +150,7 @@ namespace AIStudio.Common
           continue;
         }
 
-        byGlobalPulse.TryGetValue(globalPulse, out var actual);
-        actual = actual ?? new AggregatedLogSnapshot();
+        var actual = ResolveSnapshot(globalPulse, byGlobalPulse);
 
         var mismatches = new List<string>();
 

@@ -408,7 +408,11 @@ namespace AIStudio.Common
     {
       if (string.IsNullOrEmpty(s))
         return "";
-      return s.Replace("\\", "\\\\").Replace("|", "\\|");
+      return s.Replace("\\", "\\\\")
+              .Replace("|", "\\|")
+              .Replace("\r\n", "\\n")
+              .Replace("\n", "\\n")
+              .Replace("\r", "\\n");
     }
 
     public static string Unescape(string s)
@@ -421,7 +425,10 @@ namespace AIStudio.Common
         if (s[i] == '\\' && i + 1 < s.Length)
         {
           i++;
-          sb.Append(s[i]);
+          if (s[i] == 'n')
+            sb.Append('\n');
+          else
+            sb.Append(s[i]);
         }
         else
           sb.Append(s[i]);

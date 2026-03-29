@@ -131,13 +131,13 @@
               </Style>
             </DataGridTextColumn.ElementStyle>
           </DataGridTextColumn>
-          <DataGridTextColumn Header="Описание" Binding="{Binding Description}" Width="2*">
+          <DataGridTextColumn Header="Описание" Binding="{Binding DescriptionShort}" Width="2*">
             <DataGridTextColumn.ElementStyle>
               <Style TargetType="TextBlock">
                 <Setter Property="Padding" Value="6,4"/>
                 <Setter Property="TextTrimming" Value="CharacterEllipsis"/>
-                <Setter Property="TextWrapping" Value="Wrap"/>
                 <Setter Property="VerticalAlignment" Value="Center"/>
+                <Setter Property="ToolTip" Value="{Binding Description}"/>
               </Style>
             </DataGridTextColumn.ElementStyle>
           </DataGridTextColumn>

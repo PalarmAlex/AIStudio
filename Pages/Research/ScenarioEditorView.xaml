@@ -97,8 +97,20 @@
                 </StackPanel>
                 <StackPanel Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="3" Margin="0,0,0,0">
                   <TextBlock Text="Описание" FontSize="12" FontWeight="SemiBold" Foreground="#FF0D47A1" Margin="0,0,0,4"/>
-                  <TextBox Text="{Binding Description, UpdateSourceTrigger=PropertyChanged}" MinHeight="80" MaxHeight="220"
-                           TextWrapping="Wrap" AcceptsReturn="True" VerticalScrollBarVisibility="Auto" Padding="4,3" FontSize="12"/>
+                  <Grid>
+                    <Grid.ColumnDefinitions>
+                      <ColumnDefinition Width="*"/>
+                      <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+                    <TextBox x:Name="DescriptionTextBox"
+                             Grid.Column="0"
+                             Text="{Binding DescriptionDisplay, Mode=OneWay}"
+                             IsReadOnly="True" Padding="4,3" FontSize="12"
+                             Background="#FFF5F5F5"
+                             ToolTip="{Binding Description}"/>
+                    <Button Grid.Column="1" Content="Редактировать…" Padding="10,4" Margin="8,0,0,0"
+                            VerticalAlignment="Center" Click="EditDescriptionButton_Click"/>
+                  </Grid>
                 </StackPanel>
               </Grid>
             </Border>

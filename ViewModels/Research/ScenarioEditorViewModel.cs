@@ -338,7 +338,23 @@ namespace AIStudio.ViewModels.Research
         if (_description == value) return;
         _description = value;
         OnPropertyChanged();
+        OnPropertyChanged(nameof(DescriptionDisplay));
         HasUnsavedChanges = true;
+      }
+    }
+
+    private const int DescriptionDisplayLimit = 100;
+
+    public string DescriptionDisplay
+    {
+      get
+      {
+        if (string.IsNullOrEmpty(_description))
+          return "";
+        var flat = _description.Replace("\r\n", " ").Replace("\n", " ").Replace("\r", " ");
+        return flat.Length <= DescriptionDisplayLimit
+            ? flat
+            : flat.Substring(0, DescriptionDisplayLimit) + "…";
       }
     }
 
