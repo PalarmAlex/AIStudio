@@ -5,6 +5,8 @@ using System.Linq;
 using System.Net;
 using System.Text;
 using ISIDA.Actions;
+using ISIDA.Psychic.Automatism;
+using ISIDA.Reflexes;
 using ISIDA.Scenarios;
 
 namespace AIStudio.Common
@@ -15,7 +17,8 @@ namespace AIStudio.Common
     public static string BuildHtml(
         ScenarioDocument doc,
         OperatorScenarioCompletedEventArgs completion,
-        InfluenceActionSystem influenceActions)
+        InfluenceActionSystem influenceActions,
+        PerceptionImagesSystem perceptionImages = null)
     {
       if (doc == null)
         return "<html><body><p>Нет данных сценария.</p></body></html>";
@@ -36,7 +39,8 @@ namespace AIStudio.Common
       sb.AppendLine("table.meta-table th.meta-label{width:15%;min-width:100px;max-width:160px;font-size:11px;font-weight:600;padding:6px 8px;vertical-align:top;background:#ECEFF1;}");
       sb.AppendLine("table.meta-table td.meta-value{width:85%;font-size:13px;padding:8px 12px;line-height:1.45;word-wrap:break-word;}");
       sb.AppendLine("table.compare-table{font-size:11px;}");
-      sb.AppendLine("table.compare-table th.col-exp-h,table.compare-table td.col-exp{background:#E8F5E9;}");
+      sb.AppendLine("table.compare-table th.col-exp-h{background:#E8F5E9;}");
+      sb.AppendLine("table.compare-table td.col-exp{background:transparent;}");
       sb.AppendLine("table.compare-table th.col-fact-h,table.compare-table td.col-fact{background:#E3F2FD;}");
       sb.AppendLine("table.compare-table td.col-fact.fact-mismatch{background:#FFEBEE;color:#B71C1C;border-color:#FFCDD2;}");
       sb.AppendLine(".summary-box{margin-top:20px;padding:14px 16px;border-radius:6px;border:1px solid #CFD8DC;background:#FAFAFA;}");
@@ -65,6 +69,8 @@ namespace AIStudio.Common
               ? doc.Header.PreRunTargetStage.ToString(CultureInfo.InvariantCulture)
               : "не менять"));
       AppendMetaRow(sb, "Очистка данных при переходе", Escape(doc.Header?.PreRunClearAgentData == true ? "да" : "нет"));
+      AppendMetaRow(sb, "Режим наблюдения при прогоне", Escape(doc.Header?.ScenarioObservationMode == true ? "да" : "нет"));
+      AppendMetaRow(sb, "Авторитарная запись при прогоне", Escape(doc.Header?.ScenarioAuthoritativeRecording == true ? "да" : "нет"));
       sb.AppendLine("</table>");
 
       sb.AppendLine("<h2>Шаги</h2>");
@@ -81,8 +87,8 @@ namespace AIStudio.Common
           sb.Append("<td>").Append(Escape(line.Kind == ScenarioLineKind.WaitClick ? "Ожидание" : "Пульт")).Append("</td>");
           sb.Append("<td>").Append(Escape(actions)).Append("</td>");
           sb.Append("<td>").Append(Escape(line.Phrase ?? "")).Append("</td>");
-          sb.Append("<td>").Append(Escape(line.ToneId.ToString(CultureInfo.InvariantCulture))).Append("</td>");
-          sb.Append("<td>").Append(Escape(line.MoodId.ToString(CultureInfo.InvariantCulture))).Append("</td>");
+          sb.Append("<td>").Append(Escape(FormatToneCell(line.ToneId))).Append("</td>");
+          sb.Append("<td>").Append(Escape(FormatMoodCell(line.MoodId))).Append("</td>");
           sb.Append("<td>").Append(line.ResetWaitingPeriod ? "да" : "нет").Append("</td>");
           sb.AppendLine("</tr>");
         }
@@ -91,6 +97,7 @@ namespace AIStudio.Common
 
       int anchor = completion?.AnchorGlobalPulse ?? 0;
       var agg = ScenarioLogComparer.AggregateByPulse(MemoryLogManager.Instance.LogEntries);
+      ScenarioReportLogDisplay.RewriteAggregatedStylesToCombinationCodes(agg, perceptionImages);
       var expByStep = (doc.LogExpectations ?? new List<ScenarioLogExpectationRow>())
           .GroupBy(e => e.StepIndex)
           .ToDictionary(g => g.Key, g => g.First());
@@ -98,8 +105,7 @@ namespace AIStudio.Common
       sb.AppendLine("<h2>Сравнение ожидаемых реакций и факта по логам</h2>");
       sb.AppendLine("<p class=\"muted\">Якорный глобальный пульс: ")
           .Append(Escape(anchor.ToString(CultureInfo.InvariantCulture)))
-          .Append(". Глобальный пульс шага = якорь + № пульса внутри сценария (якорь при старте может быть сдвинут, см. логи сценария). ")
-          .Append("Строки агента попадают в память UI после сброса буфера на конце пульса — отчёт строится с приоритетом ниже записи логов.</p>");
+          .Append(". Глобальный пульс шага = якорь + № пульса внутри сценария. ");
 
       sb.AppendLine("<table class=\"compare-table\"><tr><th>Шаг</th><th>№ пульса</th>");
       foreach (var col in ComparisonColumns)
@@ -109,7 +115,11 @@ namespace AIStudio.Common
       }
       sb.AppendLine("</tr>");
 
-      var compareList = ScenarioLogComparer.Compare(doc, anchor, agg);
+      var compareList = ScenarioLogComparer.Compare(doc, anchor, agg,
+          new ScenarioLogComparer.CompareMessageFormatting
+          {
+            FormatStateFact = ScenarioReportLogDisplay.FormatStateCell
+          });
 
       if (doc.Lines != null)
       {
@@ -124,11 +134,18 @@ namespace AIStudio.Common
           sb.Append("<td>").Append(Escape(line.PulseWithinScenario.ToString(CultureInfo.InvariantCulture))).Append("</td>");
           foreach (var col in ComparisonColumns)
           {
-            var expStr = col.GetExpected(exp);
-            var actStr = col.GetActual(snap);
-            sb.Append("<td class=\"col-exp\">").Append(Escape(expStr)).Append("</td>");
-            var factClass = "col-fact" + (IsFieldMismatch(expStr, actStr) ? " fact-mismatch" : "");
-            sb.Append("<td class=\"").Append(factClass).Append("\">").Append(Escape(actStr)).Append("</td>");
+            var expRaw = col.GetExpected(exp);
+            var actRaw = col.GetActual(snap);
+            var expDisp = expRaw;
+            var actDisp = actRaw;
+            if (col.Label == "Состояние")
+            {
+              expDisp = ScenarioReportLogDisplay.FormatStateCell(expRaw);
+              actDisp = ScenarioReportLogDisplay.FormatStateCell(actRaw);
+            }
+            sb.Append("<td class=\"col-exp\">").Append(Escape(expDisp)).Append("</td>");
+            var factClass = "col-fact" + (IsFieldMismatch(expRaw, actRaw) ? " fact-mismatch" : "");
+            sb.Append("<td class=\"").Append(factClass).Append("\">").Append(Escape(actDisp)).Append("</td>");
           }
           sb.AppendLine("</tr>");
         }
@@ -214,5 +231,21 @@ namespace AIStudio.Common
     }
 
     private static string Escape(string s) => WebUtility.HtmlEncode(s ?? "");
+
+    private static string FormatToneCell(int toneId)
+    {
+      var t = ActionsImagesSystem.GetToneText(toneId);
+      return string.IsNullOrEmpty(t)
+          ? toneId.ToString(CultureInfo.InvariantCulture)
+          : t + " (" + toneId.ToString(CultureInfo.InvariantCulture) + ")";
+    }
+
+    private static string FormatMoodCell(int moodId)
+    {
+      var t = ActionsImagesSystem.GetMoodText(moodId);
+      return string.IsNullOrEmpty(t)
+          ? moodId.ToString(CultureInfo.InvariantCulture)
+          : t + " (" + moodId.ToString(CultureInfo.InvariantCulture) + ")";
+    }
   }
 }

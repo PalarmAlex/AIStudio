@@ -117,13 +117,15 @@
 
             <Border Margin="0,10,0,0" BorderBrush="#FFBBDEFB" BorderThickness="1" CornerRadius="4" Padding="10,8" Background="#FFE8EAF6">
               <StackPanel>
-                <TextBlock Text="Выполнить действия перед запуском" FontSize="13" FontWeight="SemiBold" Foreground="#FF283593" Margin="0,0,0,8"/>
+                <TextBlock Text="Выполнить действие перед запуском" FontSize="13" FontWeight="SemiBold" Foreground="#FF283593" Margin="0,0,0,8"/>
                 <Grid>
                   <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="Auto"/>
                     <ColumnDefinition Width="*"/>
                   </Grid.ColumnDefinitions>
                   <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
                     <RowDefinition Height="Auto"/>
                     <RowDefinition Height="Auto"/>
                   </Grid.RowDefinitions>
@@ -141,11 +143,39 @@
                               DisplayMemberPath="Description"
                               ItemContainerStyle="{StaticResource StageItemContainerStyle}"/>
                   </Grid>
-                  <TextBlock Grid.Row="1" Grid.Column="0" Text="Очистить данные" VerticalAlignment="Center" Margin="0,0,12,0"
+                  <TextBlock Grid.Row="1" Grid.Column="0" Text="Очистить данные" VerticalAlignment="Center" Margin="0,0,12,8"
                              FontSize="12" FontWeight="SemiBold" Foreground="#FF0D47A1"/>
-                  <CheckBox Grid.Row="1" Grid.Column="1" VerticalAlignment="Center"
-                            IsChecked="{Binding PreRunClearAgentData, UpdateSourceTrigger=PropertyChanged}"
-                            Content="Очищать данные для текущей стадии"/>
+                  <CheckBox Grid.Row="1" Grid.Column="1" VerticalAlignment="Center" Margin="0,0,0,8"
+                            IsChecked="{Binding PreRunClearAgentData, UpdateSourceTrigger=PropertyChanged}">
+                    <CheckBox.ToolTip>
+                      <ToolTip>
+                        <TextBlock MaxWidth="360" TextWrapping="Wrap"
+                                   Text="Очищать данные для текущей стадии (как при смене стадии в свойствах агента)."/>
+                      </ToolTip>
+                    </CheckBox.ToolTip>
+                  </CheckBox>
+                  <TextBlock Grid.Row="2" Grid.Column="0" Text="Режим наблюдения" VerticalAlignment="Center" Margin="0,0,12,8"
+                             FontSize="12" FontWeight="SemiBold" Foreground="#FF0D47A1"/>
+                  <CheckBox Grid.Row="2" Grid.Column="1" VerticalAlignment="Center" Margin="0,0,0,8"
+                            IsChecked="{Binding ScenarioObservationMode, UpdateSourceTrigger=PropertyChanged}">
+                    <CheckBox.ToolTip>
+                      <ToolTip>
+                        <TextBlock MaxWidth="360" TextWrapping="Wrap"
+                                   Text="Режим наблюдения при прогоне: не применять воздействия к гомеостазу на шагах сценария (как флажок на пульте)."/>
+                      </ToolTip>
+                    </CheckBox.ToolTip>
+                  </CheckBox>
+                  <TextBlock Grid.Row="3" Grid.Column="0" Text="Авторитарная запись" VerticalAlignment="Center" Margin="0,0,12,0"
+                             FontSize="12" FontWeight="SemiBold" Foreground="#FF0D47A1"/>
+                  <CheckBox Grid.Row="3" Grid.Column="1" VerticalAlignment="Center"
+                            IsChecked="{Binding ScenarioAuthoritativeRecording, UpdateSourceTrigger=PropertyChanged}">
+                    <CheckBox.ToolTip>
+                      <ToolTip>
+                        <TextBlock MaxWidth="360" TextWrapping="Wrap"
+                                   Text="Авторитарная запись при прогоне: усл. рефлексы с первого раза; вербал сразу в деревья (как на пульте)."/>
+                      </ToolTip>
+                    </CheckBox.ToolTip>
+                  </CheckBox>
                 </Grid>
               </StackPanel>
             </Border>
@@ -155,6 +185,29 @@
       <TabItem Header="Шаги и ожидаемый результат">
     <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
       <StackPanel>
+      <StackPanel Orientation="Horizontal" Margin="0,0,0,8" VerticalAlignment="Center">
+        <TextBlock Text="Приращение пульса на шаге:"
+                   VerticalAlignment="Center"
+                   Margin="0,0,10,0"
+                   FontSize="12"
+                   FontWeight="SemiBold"
+                   Foreground="#FF37474F"/>
+        <ComboBox Width="340"
+                  Padding="4,3"
+                  FontSize="12"
+                  VerticalAlignment="Center"
+                  ItemsSource="{Binding PulseStepIncrementChoices}"
+                  SelectedValue="{Binding PulseStepIncrement, UpdateSourceTrigger=PropertyChanged}"
+                  DisplayMemberPath="Label"
+                  SelectedValuePath="Code">
+          <ComboBox.ToolTip>
+            <ToolTip>
+              <TextBlock MaxWidth="400" TextWrapping="Wrap"
+                         Text="Влияет только на подстановку «№ пульса» при добавлении новой строки: следующий пульс = максимум среди уже введённых + зазор + 1, где зазор — +0, «Время удержания действий» или «Время удержания состояний» из настроек проекта. Уже введённые номера не меняются."/>
+            </ToolTip>
+          </ComboBox.ToolTip>
+        </ComboBox>
+      </StackPanel>
       <Border BorderBrush="#FFE0E0E0" BorderThickness="1" CornerRadius="4" MinHeight="200">
         <Grid>
           <Grid.RowDefinitions>
@@ -162,14 +215,18 @@
             <RowDefinition Height="*"/>
           </Grid.RowDefinitions>
           <Border Grid.Row="0" Background="#FFE8EAF6" BorderBrush="#FFE0E0E0" BorderThickness="0,0,0,1" Padding="10">
-            <TextBlock Text="ШАГИ СЦЕНАРИЯ" FontWeight="Bold" FontSize="15" Foreground="#FF3F51B5"/>
+            <Grid>
+              <TextBlock Text="ШАГИ СЦЕНАРИЯ" FontWeight="Bold" FontSize="15" Foreground="#FF3F51B5" VerticalAlignment="Center"/>
+              <Button Content="Добавить запись" HorizontalAlignment="Right" VerticalAlignment="Center"
+                      Padding="10,5" FontSize="12" Command="{Binding AddLineCommand}" Cursor="Hand"/>
+            </Grid>
           </Border>
           <DataGrid x:Name="LinesGrid"
                     Grid.Row="1"
                     ItemsSource="{Binding Lines}"
                     SelectedItem="{Binding SelectedLine}"
                     AutoGenerateColumns="False"
-                    CanUserAddRows="True"
+                    CanUserAddRows="False"
                     CanUserDeleteRows="False"
                     SelectionMode="Extended"
                     HeadersVisibility="Column"
@@ -192,12 +249,12 @@
                 </DataGridTextColumn.HeaderStyle>
               </DataGridTextColumn>
               <DataGridTextColumn Header="№ пульса"
-                                  Binding="{Binding PulseWithinScenario}"
+                                  Binding="{Binding PulseWithinScenario, UpdateSourceTrigger=PropertyChanged}"
                                   Width="80"
-                                  IsReadOnly="True">
+                                  IsReadOnly="False">
                 <DataGridTextColumn.HeaderStyle>
                   <Style TargetType="DataGridColumnHeader">
-                    <Setter Property="ToolTip" Value="Расчётный номер пульса внутри прогона."/>
+                    <Setter Property="ToolTip" Value="Номер пульса внутри прогона (можно править вручную). Для новой строки по-прежнему подставляется расчётное значение. При сохранении каждый следующий шаг должен иметь пульс строго больше, чем у предыдущего."/>
                     <Setter Property="FontSize" Value="12"/>
                     <Setter Property="FontWeight" Value="SemiBold"/>
                   </Style>
@@ -229,22 +286,42 @@
                   </Style>
                 </DataGridTextColumn.HeaderStyle>
               </DataGridTextColumn>
-              <DataGridTextColumn Header="Тон" Binding="{Binding ToneId}" Width="56">
-                <DataGridTextColumn.HeaderStyle>
+              <DataGridTemplateColumn Header="Тон" Width="130">
+                <DataGridTemplateColumn.HeaderStyle>
                   <Style TargetType="DataGridColumnHeader">
                     <Setter Property="FontSize" Value="12"/>
                     <Setter Property="FontWeight" Value="SemiBold"/>
                   </Style>
-                </DataGridTextColumn.HeaderStyle>
-              </DataGridTextColumn>
-              <DataGridTextColumn Header="Настроение" Binding="{Binding MoodId}" Width="88">
-                <DataGridTextColumn.HeaderStyle>
+                </DataGridTemplateColumn.HeaderStyle>
+                <DataGridTemplateColumn.CellTemplate>
+                  <DataTemplate>
+                    <ComboBox ItemsSource="{Binding DataContext.ToneChoiceOptions, ElementName=EditorRoot}"
+                              SelectedValue="{Binding ToneId, UpdateSourceTrigger=PropertyChanged}"
+                              DisplayMemberPath="Label"
+                              SelectedValuePath="Id"
+                              Padding="2,1"
+                              FontSize="12"/>
+                  </DataTemplate>
+                </DataGridTemplateColumn.CellTemplate>
+              </DataGridTemplateColumn>
+              <DataGridTemplateColumn Header="Настроение" Width="150">
+                <DataGridTemplateColumn.HeaderStyle>
                   <Style TargetType="DataGridColumnHeader">
                     <Setter Property="FontSize" Value="12"/>
                     <Setter Property="FontWeight" Value="SemiBold"/>
                   </Style>
-                </DataGridTextColumn.HeaderStyle>
-              </DataGridTextColumn>
+                </DataGridTemplateColumn.HeaderStyle>
+                <DataGridTemplateColumn.CellTemplate>
+                  <DataTemplate>
+                    <ComboBox ItemsSource="{Binding DataContext.MoodChoiceOptions, ElementName=EditorRoot}"
+                              SelectedValue="{Binding MoodId, UpdateSourceTrigger=PropertyChanged}"
+                              DisplayMemberPath="Label"
+                              SelectedValuePath="Id"
+                              Padding="2,1"
+                              FontSize="12"/>
+                  </DataTemplate>
+                </DataGridTemplateColumn.CellTemplate>
+              </DataGridTemplateColumn>
               <DataGridCheckBoxColumn Header="Сброс ожидания" Binding="{Binding ResetWaitingPeriod}" Width="120">
                 <DataGridCheckBoxColumn.HeaderStyle>
                   <Style TargetType="DataGridColumnHeader">

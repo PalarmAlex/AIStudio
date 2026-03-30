@@ -65,10 +65,12 @@ namespace AIStudio
     private readonly AutomatizmFileLoader _automatizmFileLoader;
     private readonly Stage2PrimitivesLoader _stage2PrimitivesLoader;
     private readonly OperatorScenarioRunner _scenarioRunner = new OperatorScenarioRunner();
-    private OperatorScenarioEngine _operatorScenarioEngine;
     private bool _wasPulsatingForScenario;
     private ScenarioRunProgressWindow _scenarioRunProgressWindow;
     private string _pendingScenarioReportFolder;
+    private bool _scenarioPultModesSaved;
+    private bool _savedObservationModeBeforeScenario;
+    private bool _savedAuthoritativeRecordingBeforeScenario;
 
     public event PropertyChangedEventHandler PropertyChanged;
     private AgentViewModel _agentViewModel;
@@ -194,7 +196,6 @@ namespace AIStudio
         _automatizmChains = _isidaContext.AutomatizmChainsSystem;
         _automatizmFileLoader = _isidaContext.AutomatizmFileLoader;
         _stage2PrimitivesLoader = _isidaContext.Stage2PrimitivesLoader;
-        _operatorScenarioEngine = new OperatorScenarioEngine(_actionsSystem);
 
         _stepInzialized = 4;
       }
@@ -523,7 +524,6 @@ namespace AIStudio
       var viewModel = new ScenarioRegistryViewModel(
           _influenceActionSystem,
           _scenarioRunner,
-          _operatorScenarioEngine,
           openEditorEmbedded: vm =>
           {
             vm.CloseAction = ShowScenarioRegistry;
@@ -649,6 +649,13 @@ namespace AIStudio
 
       _pendingScenarioReportFolder = folder;
 
+      var pult = _agentViewModel.AgentPultViewModel;
+      _savedObservationModeBeforeScenario = AppGlobalState.ObservationMode;
+      _savedAuthoritativeRecordingBeforeScenario = pult.AuthoritativeMode;
+      _scenarioPultModesSaved = true;
+      pult.ObservationMode = doc.Header.ScenarioObservationMode;
+      pult.AuthoritativeMode = doc.Header.ScenarioAuthoritativeRecording;
+
       try
       {
         _scenarioRunner.Start(doc, () => _agentViewModel?.AgentPultViewModel,
@@ -656,10 +663,30 @@ namespace AIStudio
       }
       catch (Exception ex)
       {
+        RestorePultModesAfterScenarioIfNeeded();
         MessageBox.Show(ex.Message, "Запуск", MessageBoxButton.OK, MessageBoxImage.Error);
         return false;
       }
       return true;
+    }
+
+    private void RestorePultModesAfterScenarioIfNeeded()
+    {
+      if (!_scenarioPultModesSaved || _agentViewModel?.AgentPultViewModel == null)
+      {
+        _scenarioPultModesSaved = false;
+        return;
+      }
+      try
+      {
+        _agentViewModel.AgentPultViewModel.ObservationMode = _savedObservationModeBeforeScenario;
+        _agentViewModel.AgentPultViewModel.AuthoritativeMode = _savedAuthoritativeRecordingBeforeScenario;
+      }
+      catch (Exception ex)
+      {
+        Logger.Error(ex.Message);
+      }
+      _scenarioPultModesSaved = false;
     }
 
     private bool TryApplyPreRunStageForScenario(ScenarioDocument doc)
@@ -689,26 +716,30 @@ namespace AIStudio
         }
       }
 
-      if (!wantStageChange)
-        return true;
-      if (target == current)
-        return true;
-
-      bool force = target < current || target > current + 1;
-      bool skipClear = !doc.Header.PreRunClearAgentData;
-      var result = _gomeostas.SetEvolutionStage(target, force, skipClear);
-      if (!result.Success)
+      bool saveAfterPreRun = false;
+      if (wantStageChange && target != current)
       {
-        MessageBox.Show(result.Message ?? "Не удалось перейти на выбранную стадию.",
-            "Запуск сценария", MessageBoxButton.OK, MessageBoxImage.Warning);
-        return false;
+        bool force = target < current || target > current + 1;
+        bool skipClear = !doc.Header.PreRunClearAgentData;
+        var result = _gomeostas.SetEvolutionStage(target, force, skipClear);
+        if (!result.Success)
+        {
+          MessageBox.Show(result.Message ?? "Не удалось перейти на выбранную стадию.",
+              "Запуск сценария", MessageBoxButton.OK, MessageBoxImage.Warning);
+          return false;
+        }
+        saveAfterPreRun = true;
       }
-      _gomeostas.SaveAgentProperties();
+
+      if (saveAfterPreRun)
+        _gomeostas.SaveAgentProperties();
+
       return true;
     }
 
     private void OnScenarioRunFinished(object sender, OperatorScenarioCompletedEventArgs e)
     {
+      RestorePultModesAfterScenarioIfNeeded();
       // SystemIdle: после FlushBufferedAgentRowToMemoryNow на том же пульсе записи ещё ставятся в MemoryLogManager
       // через BeginInvoke(Background); отчёт должен собраться позже очереди Background, иначе фантомное расхождение на последнем шаге.
       Application.Current?.Dispatcher.BeginInvoke(new Action(() =>
@@ -732,7 +763,7 @@ namespace AIStudio
             Directory.CreateDirectory(folder);
             var fname = $"scenario_{e.Document.Header?.Id ?? 0}_{DateTime.Now:yyyyMMdd_HHmmss}.html";
             reportPath = Path.Combine(folder, fname);
-            var html = ScenarioReportHtmlBuilder.BuildHtml(e.Document, e, _influenceActionSystem);
+            var html = ScenarioReportHtmlBuilder.BuildHtml(e.Document, e, _influenceActionSystem, _perceptionImagesSystem);
             File.WriteAllText(reportPath, html, Encoding.UTF8);
           }
           catch (Exception ex)

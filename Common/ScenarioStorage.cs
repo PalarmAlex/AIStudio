@@ -119,6 +119,21 @@ namespace AIStudio.Common
               doc.Header.PreRunClearAgentData =
                   int.TryParse(meta[7].Trim(), NumberStyles.Integer, CultureInfo.InvariantCulture, out int cl)
                   && cl != 0;
+              if (meta.Length >= 10)
+              {
+                doc.Header.ScenarioObservationMode =
+                    int.TryParse(meta[8].Trim(), NumberStyles.Integer, CultureInfo.InvariantCulture, out int om)
+                    && om != 0;
+                doc.Header.ScenarioAuthoritativeRecording =
+                    int.TryParse(meta[9].Trim(), NumberStyles.Integer, CultureInfo.InvariantCulture, out int ar)
+                    && ar != 0;
+              }
+              if (meta.Length >= 12
+                  && int.TryParse(meta[11].Trim(), NumberStyles.Integer, CultureInfo.InvariantCulture, out int psi)
+                  && (psi == 1 || psi == 2 || psi == 3))
+              {
+                doc.Header.PulseStepIncrement = psi;
+              }
             }
             else
             {
@@ -319,9 +334,9 @@ namespace AIStudio.Common
       {
         "# Строки сценария оператора",
         $"{LinesFormatHeader}{ScenarioDocument.LinesFileFormatVersion}",
-        $"# SCENARIO_META|{Escape(doc.Header.Title ?? "")}|{Escape(doc.Header.Description ?? "")}|{Escape(doc.Header.DateText ?? "")}|{Escape(doc.Header.InitialHomeostasisValues ?? "")}|{doc.Header.GroupNumber.ToString(CultureInfo.InvariantCulture)}|{doc.Header.SortOrderInGroup.ToString(CultureInfo.InvariantCulture)}|{doc.Header.PreRunTargetStage.ToString(CultureInfo.InvariantCulture)}|{(doc.Header.PreRunClearAgentData ? "1" : "0")}",
+        $"# SCENARIO_META|{Escape(doc.Header.Title ?? "")}|{Escape(doc.Header.Description ?? "")}|{Escape(doc.Header.DateText ?? "")}|{Escape(doc.Header.InitialHomeostasisValues ?? "")}|{doc.Header.GroupNumber.ToString(CultureInfo.InvariantCulture)}|{doc.Header.SortOrderInGroup.ToString(CultureInfo.InvariantCulture)}|{doc.Header.PreRunTargetStage.ToString(CultureInfo.InvariantCulture)}|{(doc.Header.PreRunClearAgentData ? "1" : "0")}|{(doc.Header.ScenarioObservationMode ? "1" : "0")}|{(doc.Header.ScenarioAuthoritativeRecording ? "1" : "0")}|0|{doc.Header.PulseStepIncrement.ToString(CultureInfo.InvariantCulture)}",
         "# Step|Pulse|Kind(P|W)|ToneId|MoodId|ActionIds|Phrase|ResetWait",
-        "# Kind=W — только клик по плашке ожидания; P — воздействия с пульта. Пульс — расчётный (задержка между шагами = период ожидания ответа оператора, пульсов)."
+        "# Kind=W — только клик по плашке ожидания; P — воздействия с пульта. Пульс — по шагам и режиму приращения из метаданных (см. настройки проекта)."
       };
 
       foreach (var row in doc.Lines.OrderBy(r => r.StepIndex))

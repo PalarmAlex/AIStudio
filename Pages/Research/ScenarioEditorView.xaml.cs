@@ -91,7 +91,10 @@ namespace AIStudio.Pages.Research
       if (e.EditAction != DataGridEditAction.Commit)
         return;
       if (DataContext is ScenarioEditorViewModel vm)
+      {
         vm.MarkDirty();
+        vm.SyncExpectationRowsWithLinesFromEditor();
+      }
     }
 
     private void ExpectGrid_OnCellEditEnding(object sender, DataGridCellEditEndingEventArgs e)

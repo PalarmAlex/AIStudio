@@ -117,10 +117,17 @@ namespace AIStudio.Common
       public string Details { get; set; } = "";
     }
 
+    /// <summary>Человекочитаемый фрагмент «факт» в тексте расхождений для блока итогов.</summary>
+    public sealed class CompareMessageFormatting
+    {
+      public Func<string, string> FormatStateFact { get; set; }
+    }
+
     public static List<StepCompareResult> Compare(
         ScenarioDocument doc,
         int anchorGlobalPulse,
-        IReadOnlyDictionary<int, AggregatedLogSnapshot> byGlobalPulse)
+        IReadOnlyDictionary<int, AggregatedLogSnapshot> byGlobalPulse,
+        CompareMessageFormatting messageFormatting = null)
     {
       var list = new List<StepCompareResult>();
       if (doc?.Lines == null || doc.LogExpectations == null)
@@ -162,7 +169,18 @@ namespace AIStudio.Common
           var e = expectedRaw.Trim();
           var a = NormalizeDisplay(actualVal);
           if (!string.Equals(e, a, StringComparison.Ordinal))
-            mismatches.Add($"{label}: ожид. «{e}», факт «{a}»");
+          {
+            var expPhrase = e;
+            var factPhrase = a;
+            if (label == "Состояние")
+            {
+              expPhrase = ScenarioReportLogDisplay.FormatStateCell(e);
+              factPhrase = messageFormatting?.FormatStateFact != null
+                  ? messageFormatting.FormatStateFact(actualVal ?? "")
+                  : ScenarioReportLogDisplay.FormatStateCell(actualVal ?? "");
+            }
+            mismatches.Add($"{label}: ожид. «{expPhrase}», факт «{factPhrase}»");
+          }
         }
 
         Check("Состояние", exp.StateText, actual.State);

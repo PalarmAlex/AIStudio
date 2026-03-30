@@ -250,7 +250,7 @@
 
       <!-- Время удержания рефлексов -->
       <StackPanel Grid.Column="0" Grid.Row="3" Orientation="Horizontal" Margin="100,0,0,5">
-        <TextBlock Text="Время удержания рефлексов (пульсов):" 
+        <TextBlock Text="Время удержания действий (пульсов):" 
           Width="250"
           VerticalAlignment="Center"/>
 

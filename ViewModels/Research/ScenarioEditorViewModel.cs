@@ -3,6 +3,7 @@ using AIStudio.Common;
 using AIStudio.ViewModels;
 
 using ISIDA.Actions;
+using ISIDA.Psychic.Automatism;
 using ISIDA.Scenarios;
 
 using System;
@@ -22,7 +23,6 @@ namespace AIStudio.ViewModels.Research
   public sealed class ScenarioEditorViewModel : INotifyPropertyChanged
   {
     private readonly InfluenceActionSystem _influenceActions;
-    private readonly OperatorScenarioEngine _scenarioEngine;
     private readonly bool _isNew;
 
     private string _title = "";
@@ -32,7 +32,10 @@ namespace AIStudio.ViewModels.Research
     private int _sortOrderInGroup;
     private int _preRunTargetStage = -1;
     private bool _preRunClearAgentData;
+    private bool _scenarioObservationMode;
+    private bool _scenarioAuthoritativeRecording;
     private string _massFillMode = "Unknown";
+    private int _pulseStepIncrement = (int)ScenarioPulseStepIncrement.ActionHoldPlusOne;
 
     public List<ScenarioExpectationChoiceItem> MassFillOptions { get; } = new List<ScenarioExpectationChoiceItem>
     {
@@ -46,14 +49,12 @@ namespace AIStudio.ViewModels.Research
 
     public ScenarioEditorViewModel(
         InfluenceActionSystem influenceActions,
-        OperatorScenarioEngine scenarioEngine,
         ScenarioDocument doc,
         bool isNew,
         Func<ScenarioDocument, string, bool> tryStartScenario = null,
         Func<bool> isScenarioRunning = null)
     {
       _influenceActions = influenceActions ?? throw new ArgumentNullException(nameof(influenceActions));
-      _scenarioEngine = scenarioEngine ?? throw new ArgumentNullException(nameof(scenarioEngine));
       _isNew = isNew;
       _tryStartScenario = tryStartScenario;
       _isScenarioRunning = isScenarioRunning;
@@ -71,6 +72,25 @@ namespace AIStudio.ViewModels.Research
           ? doc.Header.PreRunTargetStage
           : -1;
       _preRunClearAgentData = doc.Header.PreRunClearAgentData;
+      _scenarioObservationMode = doc.Header.ScenarioObservationMode;
+      _scenarioAuthoritativeRecording = doc.Header.ScenarioAuthoritativeRecording;
+      _pulseStepIncrement = NormalizePulseStepIncrementCode(doc.Header.PulseStepIncrement);
+
+      PulseStepIncrementChoices = new List<ScenarioPulseIncrementChoiceItem>
+      {
+        new ScenarioPulseIncrementChoiceItem { Code = (int)ScenarioPulseStepIncrement.Sequential, Label = "Следующий по порядку" },
+        new ScenarioPulseIncrementChoiceItem { Code = (int)ScenarioPulseStepIncrement.ActionHoldPlusOne, Label = "Время удержания действий + 1" },
+        new ScenarioPulseIncrementChoiceItem { Code = (int)ScenarioPulseStepIncrement.StateHoldPlusOne, Label = "Время удержания состояний + 1" }
+      };
+
+      ToneChoiceOptions = ActionsImagesSystem.GetToneList()
+          .OrderBy(kv => kv.Key)
+          .Select(kv => new ScenarioToneMoodChoiceItem { Id = kv.Key, Label = kv.Value })
+          .ToList();
+      MoodChoiceOptions = ActionsImagesSystem.GetMoodList()
+          .OrderBy(kv => kv.Key)
+          .Select(kv => new ScenarioToneMoodChoiceItem { Id = kv.Key, Label = kv.Value })
+          .ToList();
 
       PreRunStageChoices = new ObservableCollection<EvolutionStageItem>();
       PreRunStageChoices.Add(new EvolutionStageItem { StageNumber = -1, Description = "Не менять стадию" });
@@ -87,7 +107,7 @@ namespace AIStudio.ViewModels.Research
       StyleChoiceOptions = ScenarioExpectationChoiceLists.LoadStyleChoices(combPath);
 
       Lines = new BindingList<ScenarioLineRow>();
-      Lines.AllowNew = true;
+      Lines.AllowNew = false;
       Lines.AllowRemove = true;
       Lines.AllowEdit = true;
       Lines.RaiseListChangedEvents = false;
@@ -98,7 +118,6 @@ namespace AIStudio.ViewModels.Research
         row.RefreshActionNames(_influenceActions);
       }
       Lines.RaiseListChangedEvents = true;
-      Lines.AddingNew += (_, e) => e.NewObject = CreateNewLineRow();
 
       ScenarioPulseSchedule.EnsureSequentialStepIndices(Lines);
       foreach (var l in Lines)
@@ -111,7 +130,8 @@ namespace AIStudio.ViewModels.Research
 
       Lines.ListChanged += OnLinesListChanged;
 
-      SaveCommand = new RelayCommand(_ => Save(requestCloseAfterSuccess: true));
+      SaveCommand = new RelayCommand(_ => Save(requestCloseAfterSuccess: false, showSuccessMessage: true));
+      AddLineCommand = new RelayCommand(_ => AddLine());
       MassFillExpectationsCommand = new RelayCommand(_ => MassFillExpectations());
       BrowseReportFolderCommand = new RelayCommand(_ => BrowseReportFolder());
       RunScenarioCommand = new RelayCommand(_ => RunScenario(), _ => _tryStartScenario != null && !(_isScenarioRunning?.Invoke() ?? false));
@@ -162,9 +182,44 @@ namespace AIStudio.ViewModels.Research
 
     public ObservableCollection<EvolutionStageItem> PreRunStageChoices { get; }
 
+    public List<ScenarioToneMoodChoiceItem> ToneChoiceOptions { get; }
+    public List<ScenarioToneMoodChoiceItem> MoodChoiceOptions { get; }
+
     public List<ScenarioExpectationChoiceItem> StateChoiceOptions { get; }
     public List<ScenarioExpectationChoiceItem> StyleChoiceOptions { get; }
     public List<ScenarioExpectationChoiceItem> OrUmChoiceOptions { get; }
+
+    public List<ScenarioPulseIncrementChoiceItem> PulseStepIncrementChoices { get; }
+
+    public int PulseStepIncrement
+    {
+      get => _pulseStepIncrement;
+      set
+      {
+        int v = NormalizePulseStepIncrementCode(value);
+        if (_pulseStepIncrement == v)
+          return;
+        _pulseStepIncrement = v;
+        OnPropertyChanged();
+        HasUnsavedChanges = true;
+      }
+    }
+
+    private static int NormalizePulseStepIncrementCode(int code) =>
+        code == (int)ScenarioPulseStepIncrement.Sequential
+        || code == (int)ScenarioPulseStepIncrement.ActionHoldPlusOne
+        || code == (int)ScenarioPulseStepIncrement.StateHoldPlusOne
+            ? code
+            : (int)ScenarioPulseStepIncrement.ActionHoldPlusOne;
+
+    private int CurrentPulseStepDelay()
+    {
+      var mode = (ScenarioPulseStepIncrement)_pulseStepIncrement;
+      return ScenarioPulseSchedule.ResolveDelayBetweenSteps(
+          mode,
+          Math.Max(0, AppConfig.ReflexActionDisplayDuration),
+          Math.Max(0, AppConfig.DynamicTime));
+    }
 
     public string MassFillMode
     {
@@ -296,6 +351,12 @@ namespace AIStudio.ViewModels.Research
       SyncExpectationRowsWithLines();
     }
 
+    /// <summary>Синхронизирует шаг/пульс в таблице ожидаемого лога с гридом шагов (после правки пульса и т.п.).</summary>
+    public void SyncExpectationRowsWithLinesFromEditor()
+    {
+      SyncExpectationRowsWithLines();
+    }
+
     private void SyncExpectationRowsWithLines()
     {
       while (ExpectationRows.Count < Lines.Count)
@@ -418,6 +479,30 @@ namespace AIStudio.ViewModels.Research
       }
     }
 
+    public bool ScenarioObservationMode
+    {
+      get => _scenarioObservationMode;
+      set
+      {
+        if (_scenarioObservationMode == value) return;
+        _scenarioObservationMode = value;
+        OnPropertyChanged();
+        HasUnsavedChanges = true;
+      }
+    }
+
+    public bool ScenarioAuthoritativeRecording
+    {
+      get => _scenarioAuthoritativeRecording;
+      set
+      {
+        if (_scenarioAuthoritativeRecording == value) return;
+        _scenarioAuthoritativeRecording = value;
+        OnPropertyChanged();
+        HasUnsavedChanges = true;
+      }
+    }
+
     public ScenarioLineRow SelectedLine
     {
       get => _selectedLine;
@@ -430,6 +515,7 @@ namespace AIStudio.ViewModels.Research
     }
 
     public ICommand SaveCommand { get; }
+    public ICommand AddLineCommand { get; }
 
     public event EventHandler<bool> RequestClose;
 
@@ -452,7 +538,7 @@ namespace AIStudio.ViewModels.Research
 
     private ScenarioLineRow CreateNewLineRow()
     {
-      var gap = _scenarioEngine.PulseGapBetweenSteps;
+      var gap = CurrentPulseStepDelay();
       int maxPulse = Lines.Count == 0 ? 0 : Lines.Max(l => l.PulseWithinScenario);
       int nextPulse = maxPulse <= 0 ? 1 : maxPulse + gap + 1;
 
@@ -466,6 +552,13 @@ namespace AIStudio.ViewModels.Research
       };
       row.RefreshActionNames(_influenceActions);
       return row;
+    }
+
+    private void AddLine()
+    {
+      var row = CreateNewLineRow();
+      Lines.Add(row);
+      SelectedLine = row;
     }
 
     public void DeleteSelectedLines(IEnumerable<ScenarioLineRow> rows)
@@ -489,7 +582,7 @@ namespace AIStudio.ViewModels.Research
       HasUnsavedChanges = true;
     }
 
-    public bool Save(bool requestCloseAfterSuccess = true)
+    public bool Save(bool requestCloseAfterSuccess = true, bool showSuccessMessage = false)
     {
       var doc = BuildDocument();
       var err = OperatorScenarioValidator.ValidateDocument(doc, _influenceActions);
@@ -510,6 +603,9 @@ namespace AIStudio.ViewModels.Research
       doc.Header.SortOrderInGroup = SortOrderInGroup;
       doc.Header.PreRunTargetStage = PreRunTargetStage;
       doc.Header.PreRunClearAgentData = PreRunClearAgentData;
+      doc.Header.ScenarioObservationMode = ScenarioObservationMode;
+      doc.Header.ScenarioAuthoritativeRecording = ScenarioAuthoritativeRecording;
+      doc.Header.PulseStepIncrement = PulseStepIncrement;
 
       var (okLines, errLines) = ScenarioStorage.SaveScenarioLines(doc);
       if (!okLines)
@@ -540,6 +636,9 @@ namespace AIStudio.ViewModels.Research
       }
 
       HasUnsavedChanges = false;
+      if (showSuccessMessage)
+        MessageBox.Show("Все успешно сохранено.", "Сохранение",
+            MessageBoxButton.OK, MessageBoxImage.Information);
       if (requestCloseAfterSuccess)
         RequestClose?.Invoke(this, true);
       return true;
@@ -561,7 +660,10 @@ namespace AIStudio.ViewModels.Research
           GroupNumber = GroupNumber,
           SortOrderInGroup = SortOrderInGroup,
           PreRunTargetStage = PreRunTargetStage,
-          PreRunClearAgentData = PreRunClearAgentData
+          PreRunClearAgentData = PreRunClearAgentData,
+          ScenarioObservationMode = ScenarioObservationMode,
+          ScenarioAuthoritativeRecording = ScenarioAuthoritativeRecording,
+          PulseStepIncrement = PulseStepIncrement
         },
         Lines = Lines.Select(l => l.Clone()).ToList(),
         LogExpectationColumnSkips = Document.LogExpectationColumnSkips?.Clone() ?? new ScenarioLogExpectationColumnSkips(),

@@ -328,7 +328,10 @@
     <Compile Include="Common\ScenarioStorage.cs" />
     <Compile Include="Common\ScenarioExpectationChoiceLists.cs" />
     <Compile Include="Common\ScenarioReportHtmlBuilder.cs" />
+    <Compile Include="Common\ScenarioReportLogDisplay.cs" />
     <Compile Include="ViewModels\Research\ScenarioEditorViewModel.cs" />
+    <Compile Include="ViewModels\Research\ScenarioToneMoodChoiceItem.cs" />
+    <Compile Include="ViewModels\Research\ScenarioPulseIncrementChoiceItem.cs" />
     <Compile Include="ViewModels\Research\ScenarioRegistryViewModel.cs" />
     <Compile Include="Pages\Research\ScenarioRegistryView.xaml.cs">
       <DependentUpon>ScenarioRegistryView.xaml</DependentUpon>

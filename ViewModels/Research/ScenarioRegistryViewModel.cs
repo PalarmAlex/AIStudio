@@ -24,7 +24,6 @@ namespace AIStudio.ViewModels.Research
   {
     private readonly InfluenceActionSystem _influenceActions;
     private readonly OperatorScenarioRunner _runner;
-    private readonly OperatorScenarioEngine _scenarioEngine;
     private readonly Action<ScenarioEditorViewModel> _openEditorEmbedded;
     private readonly Func<ScenarioDocument, string, bool> _tryStartScenario;
 
@@ -55,13 +54,11 @@ namespace AIStudio.ViewModels.Research
     public ScenarioRegistryViewModel(
         InfluenceActionSystem influenceActions,
         OperatorScenarioRunner runner,
-        OperatorScenarioEngine scenarioEngine,
         Action<ScenarioEditorViewModel> openEditorEmbedded = null,
         Func<ScenarioDocument, string, bool> tryStartScenario = null)
     {
       _influenceActions = influenceActions ?? throw new ArgumentNullException(nameof(influenceActions));
       _runner = runner ?? throw new ArgumentNullException(nameof(runner));
-      _scenarioEngine = scenarioEngine ?? throw new ArgumentNullException(nameof(scenarioEngine));
       _openEditorEmbedded = openEditorEmbedded;
       _tryStartScenario = tryStartScenario ?? throw new ArgumentNullException(nameof(tryStartScenario));
 
@@ -188,7 +185,6 @@ namespace AIStudio.ViewModels.Research
     {
       return new ScenarioEditorViewModel(
           _influenceActions,
-          _scenarioEngine,
           doc,
           isNew,
           _tryStartScenario,
