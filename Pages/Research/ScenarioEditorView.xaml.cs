@@ -32,6 +32,14 @@ namespace AIStudio.Pages.Research
 
     private void BackButton_Click(object sender, RoutedEventArgs e) => CloseButton_Click(sender, e);
 
+    private void RepeatBlockButton_Click(object sender, RoutedEventArgs e)
+    {
+      if (!(DataContext is ScenarioEditorViewModel vm))
+        return;
+      var selected = LinesGrid.SelectedItems.Cast<ScenarioLineRow>().ToList();
+      vm.RepeatSelectedLinesBlock(selected);
+    }
+
     private void LinesGrid_OnPreviewKeyDown(object sender, KeyEventArgs e)
     {
       if (e.Key != Key.Delete)

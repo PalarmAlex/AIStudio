@@ -69,6 +69,7 @@ namespace AIStudio.Common
               ? doc.Header.PreRunTargetStage.ToString(CultureInfo.InvariantCulture)
               : "не менять"));
       AppendMetaRow(sb, "Очистка данных при переходе", Escape(doc.Header?.PreRunClearAgentData == true ? "да" : "нет"));
+      AppendMetaRow(sb, "Сброс параметров в «норму» перед запуском", Escape(doc.Header?.PreRunNormalHomeostasisState == true ? "да" : "нет"));
       AppendMetaRow(sb, "Режим наблюдения при прогоне", Escape(doc.Header?.ScenarioObservationMode == true ? "да" : "нет"));
       AppendMetaRow(sb, "Авторитарная запись при прогоне", Escape(doc.Header?.ScenarioAuthoritativeRecording == true ? "да" : "нет"));
       sb.AppendLine("</table>");

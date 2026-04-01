@@ -644,22 +644,18 @@ namespace AIStudio
         return false;
       }
 
-      if (!TryApplyPreRunStageForScenario(doc))
+      if (!TryApplyPreRunStageForScenario(doc, out bool homeostasisNormSettlePending))
         return false;
 
-      _pendingScenarioReportFolder = folder;
-
-      var pult = _agentViewModel.AgentPultViewModel;
-      _savedObservationModeBeforeScenario = AppGlobalState.ObservationMode;
-      _savedAuthoritativeRecordingBeforeScenario = pult.AuthoritativeMode;
-      _scenarioPultModesSaved = true;
-      pult.ObservationMode = doc.Header.ScenarioObservationMode;
-      pult.AuthoritativeMode = doc.Header.ScenarioAuthoritativeRecording;
+      if (homeostasisNormSettlePending)
+      {
+        BeginHomeostasisNormSettleWaitThenStartScenario(doc, folder);
+        return true;
+      }
 
       try
       {
-        _scenarioRunner.Start(doc, () => _agentViewModel?.AgentPultViewModel,
-            () => _isidaContext.CancelWaitingPeriodAndResetMirror());
+        ApplyScenarioPultModesAndStartRunner(doc, folder);
       }
       catch (Exception ex)
       {
@@ -668,6 +664,104 @@ namespace AIStudio
         return false;
       }
       return true;
+    }
+
+    /// <summary>После сброса параметров в «норму»: ждать (время удержания состояний + 1) пульсов, затем старт раннера.</summary>
+    private void BeginHomeostasisNormSettleWaitThenStartScenario(ScenarioDocument doc, string reportOutputFolder)
+    {
+      int totalPulses = Math.Max(1, AppConfig.DynamicTime + 1);
+      int startPulse = GlobalTimer.GlobalPulsCount;
+      int targetPulse = startPulse + totalPulses;
+
+      Application.Current?.Dispatcher.BeginInvoke(new Action(() =>
+      {
+        if (_scenarioRunProgressWindow == null)
+        {
+          _scenarioRunProgressWindow = new ScenarioRunProgressWindow
+          {
+            Owner = Application.Current?.MainWindow
+          };
+          _scenarioRunProgressWindow.Show();
+        }
+        _scenarioRunProgressWindow.SetStatus(
+            $"Стабилизация после сброса в норму… пульс 0/{totalPulses}",
+            compactFont: true);
+      }));
+
+      Action<int> handler = null;
+      handler = pulseCount =>
+      {
+        if (!GlobalTimer.IsPulsationRunning)
+        {
+          GlobalTimer.OnPulseAfterGomeostasisBeforePsychic -= handler;
+          Application.Current?.Dispatcher.BeginInvoke(new Action(() =>
+          {
+            if (_scenarioRunProgressWindow != null)
+            {
+              try { _scenarioRunProgressWindow.Close(); } catch { /* ignore */ }
+              _scenarioRunProgressWindow = null;
+            }
+            MessageBox.Show(
+                "Пульсация остановлена во время паузы стабилизации гомеостаза.",
+                "Запуск сценария",
+                MessageBoxButton.OK,
+                MessageBoxImage.Warning);
+          }));
+          return;
+        }
+
+        if (pulseCount < targetPulse)
+        {
+          int elapsed = pulseCount - startPulse;
+          Application.Current?.Dispatcher.BeginInvoke(new Action(() =>
+          {
+            if (_scenarioRunProgressWindow != null)
+            {
+              _scenarioRunProgressWindow.SetStatus(
+                  $"Стабилизация после сброса в норму… пульс {elapsed}/{totalPulses}",
+                  compactFont: true);
+            }
+          }));
+          return;
+        }
+
+        GlobalTimer.OnPulseAfterGomeostasisBeforePsychic -= handler;
+        Application.Current?.Dispatcher.BeginInvoke(new Action(() =>
+        {
+          try
+          {
+            if (_scenarioRunProgressWindow != null)
+              _scenarioRunProgressWindow.SetStatus("Запуск сценария…", compactFont: false);
+            ApplyScenarioPultModesAndStartRunner(doc, reportOutputFolder);
+          }
+          catch (Exception ex)
+          {
+            if (_scenarioRunProgressWindow != null)
+            {
+              try { _scenarioRunProgressWindow.Close(); } catch { /* ignore */ }
+              _scenarioRunProgressWindow = null;
+            }
+            RestorePultModesAfterScenarioIfNeeded();
+            MessageBox.Show(ex.Message, "Запуск", MessageBoxButton.OK, MessageBoxImage.Error);
+          }
+        }));
+      };
+
+      GlobalTimer.OnPulseAfterGomeostasisBeforePsychic += handler;
+    }
+
+    private void ApplyScenarioPultModesAndStartRunner(ScenarioDocument doc, string reportOutputFolder)
+    {
+      _pendingScenarioReportFolder = reportOutputFolder;
+      var pult = _agentViewModel.AgentPultViewModel;
+      _savedObservationModeBeforeScenario = AppGlobalState.ObservationMode;
+      _savedAuthoritativeRecordingBeforeScenario = pult.AuthoritativeMode;
+      _scenarioPultModesSaved = true;
+      pult.ObservationMode = doc.Header.ScenarioObservationMode;
+      pult.AuthoritativeMode = doc.Header.ScenarioAuthoritativeRecording;
+
+      _scenarioRunner.Start(doc, () => _agentViewModel?.AgentPultViewModel,
+          () => _isidaContext.CancelWaitingPeriodAndResetMirror());
     }
 
     private void RestorePultModesAfterScenarioIfNeeded()
@@ -689,11 +783,13 @@ namespace AIStudio
       _scenarioPultModesSaved = false;
     }
 
-    private bool TryApplyPreRunStageForScenario(ScenarioDocument doc)
+    /// <param name="homeostasisNormSettlePending">Нужна пауза стабилизации после программного сброса параметров в «норму».</param>
+    private bool TryApplyPreRunStageForScenario(ScenarioDocument doc, out bool homeostasisNormSettlePending)
     {
+      homeostasisNormSettlePending = false;
       int target = doc.Header.PreRunTargetStage;
       bool wantStageChange = target >= 0 && target <= 5;
-      if (!doc.Header.PreRunClearAgentData && !wantStageChange)
+      if (!doc.Header.PreRunClearAgentData && !wantStageChange && !doc.Header.PreRunNormalHomeostasisState)
         return true;
 
       var agent = _gomeostas.GetAgentState();
@@ -729,6 +825,24 @@ namespace AIStudio
           return false;
         }
         saveAfterPreRun = true;
+      }
+
+      if (doc.Header.PreRunNormalHomeostasisState)
+      {
+        try
+        {
+          _gomeostas.ApplySpeedOrientedNormalHomeostasisForScenarioPreRun();
+        }
+        catch (Exception ex)
+        {
+          MessageBox.Show(
+              ex.Message,
+              "Запуск сценария: начальное состояние Норма",
+              MessageBoxButton.OK, MessageBoxImage.Warning);
+          return false;
+        }
+        saveAfterPreRun = true;
+        homeostasisNormSettlePending = true;
       }
 
       if (saveAfterPreRun)

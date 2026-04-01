@@ -128,6 +128,7 @@
                     <RowDefinition Height="Auto"/>
                     <RowDefinition Height="Auto"/>
                     <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
                   </Grid.RowDefinitions>
                   <TextBlock Grid.Row="0" Grid.Column="0" Text="Перейти на стадию" VerticalAlignment="Center" Margin="0,0,12,8"
                              FontSize="12" FontWeight="SemiBold" Foreground="#FF0D47A1"/>
@@ -154,9 +155,20 @@
                       </ToolTip>
                     </CheckBox.ToolTip>
                   </CheckBox>
-                  <TextBlock Grid.Row="2" Grid.Column="0" Text="Режим наблюдения" VerticalAlignment="Center" Margin="0,0,12,8"
+                  <TextBlock Grid.Row="2" Grid.Column="0" Text="Начальное состояние Норма" VerticalAlignment="Center" Margin="0,0,12,8"
                              FontSize="12" FontWeight="SemiBold" Foreground="#FF0D47A1"/>
                   <CheckBox Grid.Row="2" Grid.Column="1" VerticalAlignment="Center" Margin="0,0,0,8"
+                            IsChecked="{Binding PreRunNormalHomeostasisState, UpdateSourceTrigger=PropertyChanged}">
+                    <CheckBox.ToolTip>
+                      <ToolTip>
+                        <TextBlock MaxWidth="360" TextWrapping="Wrap"
+                                   Text="Перед запуском: дефицит (Speed &lt; 0) → 100, избыток (Speed &gt; 0) → 0 с усечением по критическим границам; затем пауза на время удержания состояний + 1 пульс для стабилизации перед первым шагом."/>
+                      </ToolTip>
+                    </CheckBox.ToolTip>
+                  </CheckBox>
+                  <TextBlock Grid.Row="3" Grid.Column="0" Text="Режим наблюдения" VerticalAlignment="Center" Margin="0,0,12,8"
+                             FontSize="12" FontWeight="SemiBold" Foreground="#FF0D47A1"/>
+                  <CheckBox Grid.Row="3" Grid.Column="1" VerticalAlignment="Center" Margin="0,0,0,8"
                             IsChecked="{Binding ScenarioObservationMode, UpdateSourceTrigger=PropertyChanged}">
                     <CheckBox.ToolTip>
                       <ToolTip>
@@ -165,9 +177,9 @@
                       </ToolTip>
                     </CheckBox.ToolTip>
                   </CheckBox>
-                  <TextBlock Grid.Row="3" Grid.Column="0" Text="Авторитарная запись" VerticalAlignment="Center" Margin="0,0,12,0"
+                  <TextBlock Grid.Row="4" Grid.Column="0" Text="Авторитарная запись" VerticalAlignment="Center" Margin="0,0,12,0"
                              FontSize="12" FontWeight="SemiBold" Foreground="#FF0D47A1"/>
-                  <CheckBox Grid.Row="3" Grid.Column="1" VerticalAlignment="Center"
+                  <CheckBox Grid.Row="4" Grid.Column="1" VerticalAlignment="Center"
                             IsChecked="{Binding ScenarioAuthoritativeRecording, UpdateSourceTrigger=PropertyChanged}">
                     <CheckBox.ToolTip>
                       <ToolTip>
@@ -216,9 +228,26 @@
           </Grid.RowDefinitions>
           <Border Grid.Row="0" Background="#FFE8EAF6" BorderBrush="#FFE0E0E0" BorderThickness="0,0,0,1" Padding="10">
             <Grid>
-              <TextBlock Text="ШАГИ СЦЕНАРИЯ" FontWeight="Bold" FontSize="15" Foreground="#FF3F51B5" VerticalAlignment="Center"/>
-              <Button Content="Добавить запись" HorizontalAlignment="Right" VerticalAlignment="Center"
-                      Padding="10,5" FontSize="12" Command="{Binding AddLineCommand}" Cursor="Hand"/>
+              <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+              </Grid.ColumnDefinitions>
+              <TextBlock Grid.Column="0" Text="ШАГИ СЦЕНАРИЯ" FontWeight="Bold" FontSize="15" Foreground="#FF3F51B5" VerticalAlignment="Center"/>
+              <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                <TextBlock Text="Повторить, раз:" VerticalAlignment="Center" Margin="0,0,6,0" FontSize="12"/>
+                <TextBox Width="52" Padding="4,3" FontSize="12" VerticalContentAlignment="Center"
+                         Text="{Binding RepeatBlockCountText, UpdateSourceTrigger=PropertyChanged}">
+                  <TextBox.ToolTip>
+                    <ToolTip>
+                      <TextBlock MaxWidth="380" TextWrapping="Wrap"
+                                 Text="Целое число &gt; 0. Выделите подряд идущие строки блока и нажмите «Повторить» — копии вставятся сразу после блока; шаг пульса между концом блока и началом копии — по выбранному выше режиму приращения."/>
+                    </ToolTip>
+                  </TextBox.ToolTip>
+                </TextBox>
+                <Button Content="Повторить" Padding="10,5" FontSize="12" Margin="10,0,10,0" Cursor="Hand"
+                        Click="RepeatBlockButton_Click"/>
+                <Button Content="Добавить запись" Padding="10,5" FontSize="12" Command="{Binding AddLineCommand}" Cursor="Hand"/>
+              </StackPanel>
             </Grid>
           </Border>
           <DataGrid x:Name="LinesGrid"

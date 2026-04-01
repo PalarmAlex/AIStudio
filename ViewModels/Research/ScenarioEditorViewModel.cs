@@ -10,6 +10,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
@@ -32,6 +33,7 @@ namespace AIStudio.ViewModels.Research
     private int _sortOrderInGroup;
     private int _preRunTargetStage = -1;
     private bool _preRunClearAgentData;
+    private bool _preRunNormalHomeostasisState;
     private bool _scenarioObservationMode;
     private bool _scenarioAuthoritativeRecording;
     private string _massFillMode = "Unknown";
@@ -46,6 +48,7 @@ namespace AIStudio.ViewModels.Research
     private readonly Func<ScenarioDocument, string, bool> _tryStartScenario;
     private readonly Func<bool> _isScenarioRunning;
     private string _reportOutputFolder = "";
+    private string _repeatBlockCountText = "1";
 
     public ScenarioEditorViewModel(
         InfluenceActionSystem influenceActions,
@@ -72,6 +75,7 @@ namespace AIStudio.ViewModels.Research
           ? doc.Header.PreRunTargetStage
           : -1;
       _preRunClearAgentData = doc.Header.PreRunClearAgentData;
+      _preRunNormalHomeostasisState = doc.Header.PreRunNormalHomeostasisState;
       _scenarioObservationMode = doc.Header.ScenarioObservationMode;
       _scenarioAuthoritativeRecording = doc.Header.ScenarioAuthoritativeRecording;
       _pulseStepIncrement = NormalizePulseStepIncrementCode(doc.Header.PulseStepIncrement);
@@ -479,6 +483,18 @@ namespace AIStudio.ViewModels.Research
       }
     }
 
+    public bool PreRunNormalHomeostasisState
+    {
+      get => _preRunNormalHomeostasisState;
+      set
+      {
+        if (_preRunNormalHomeostasisState == value) return;
+        _preRunNormalHomeostasisState = value;
+        OnPropertyChanged();
+        HasUnsavedChanges = true;
+      }
+    }
+
     public bool ScenarioObservationMode
     {
       get => _scenarioObservationMode;
@@ -516,6 +532,125 @@ namespace AIStudio.ViewModels.Research
 
     public ICommand SaveCommand { get; }
     public ICommand AddLineCommand { get; }
+
+    /// <summary>Количество повторов выделенного блока строк (ввод в поле рядом с кнопкой «Повторить»).</summary>
+    public string RepeatBlockCountText
+    {
+      get => _repeatBlockCountText;
+      set
+      {
+        if (_repeatBlockCountText == value) return;
+        _repeatBlockCountText = value ?? "";
+        OnPropertyChanged();
+      }
+    }
+
+    /// <summary>
+    /// Вставляет подряд N копий непрерывно выделенного блока строк сразу после него (N — поле <see cref="RepeatBlockCountText"/>).
+    /// Между концом предыдущего фрагмента и первой строкой копии пульс увеличивается как при «Добавить запись»
+    /// (зазор из режима приращения пульса); внутри копии сохраняются относительные интервалы пульсов исходного блока.
+    /// </summary>
+    public void RepeatSelectedLinesBlock(IReadOnlyList<ScenarioLineRow> selectedItems)
+    {
+      if (!int.TryParse((RepeatBlockCountText ?? "").Trim(), NumberStyles.Integer, CultureInfo.InvariantCulture, out int repeatCount) || repeatCount < 1)
+      {
+        MessageBox.Show(
+            "Укажите количество повторов целым числом больше нуля.",
+            "Повтор блока",
+            MessageBoxButton.OK,
+            MessageBoxImage.Warning);
+        return;
+      }
+
+      if (selectedItems == null || selectedItems.Count == 0)
+      {
+        MessageBox.Show(
+            "Не выбраны строки для повтора.",
+            "Повтор блока",
+            MessageBoxButton.OK,
+            MessageBoxImage.Information);
+        return;
+      }
+
+      var uniqueRows = selectedItems.Where(r => r != null).Distinct().ToList();
+      if (uniqueRows.Count == 0)
+      {
+        MessageBox.Show(
+            "Не выбраны строки для повтора.",
+            "Повтор блока",
+            MessageBoxButton.OK,
+            MessageBoxImage.Information);
+        return;
+      }
+
+      var indices = uniqueRows.Select(r => Lines.IndexOf(r)).Where(i => i >= 0).OrderBy(i => i).ToList();
+      if (indices.Count != uniqueRows.Count)
+      {
+        MessageBox.Show(
+            "Выделение содержит строки, которых нет в таблице шагов.",
+            "Повтор блока",
+            MessageBoxButton.OK,
+            MessageBoxImage.Warning);
+        return;
+      }
+
+      int minIx = indices[0];
+      int maxIx = indices[indices.Count - 1];
+      if (indices.Count != maxIx - minIx + 1)
+      {
+        MessageBox.Show(
+            "Выберите только подряд идущие строки таблицы: непрерывный диапазон без пропусков.",
+            "Повтор блока",
+            MessageBoxButton.OK,
+            MessageBoxImage.Warning);
+        return;
+      }
+
+      if (ExpectationRows.Count != Lines.Count)
+        SyncExpectationRowsWithLines();
+
+      int blockStart = minIx;
+      int blockEnd = maxIx;
+      int blockLen = blockEnd - blockStart + 1;
+      int gap = CurrentPulseStepDelay();
+
+      Lines.ListChanged -= OnLinesListChanged;
+      try
+      {
+        int insertAfter = blockEnd;
+        for (int rep = 0; rep < repeatCount; rep++)
+        {
+          int anchorPulse = Lines[insertAfter].PulseWithinScenario;
+          int basePulse = anchorPulse + gap + 1;
+          int blockFirstPulse = Lines[blockStart].PulseWithinScenario;
+          for (int k = 0; k < blockLen; k++)
+          {
+            var srcLine = Lines[blockStart + k];
+            var lineClone = srcLine.Clone();
+            lineClone.PulseWithinScenario = basePulse + (srcLine.PulseWithinScenario - blockFirstPulse);
+            var expClone = ExpectationRows[blockStart + k].Clone();
+            Lines.Insert(insertAfter + 1 + k, lineClone);
+            ExpectationRows.Insert(insertAfter + 1 + k, expClone);
+            AttachExpectationRow(expClone);
+            lineClone.RefreshActionNames(_influenceActions);
+          }
+          insertAfter += blockLen;
+        }
+      }
+      finally
+      {
+        Lines.ListChanged += OnLinesListChanged;
+      }
+
+      ScenarioPulseSchedule.EnsureSequentialStepIndices(Lines);
+      foreach (var l in Lines)
+        l.RefreshActionNames(_influenceActions);
+      SyncExpectationRowsWithLines();
+      if (blockEnd + 1 < Lines.Count)
+        SelectedLine = Lines[blockEnd + 1];
+      HasUnsavedChanges = true;
+      CommandManager.InvalidateRequerySuggested();
+    }
 
     public event EventHandler<bool> RequestClose;
 
@@ -603,6 +738,7 @@ namespace AIStudio.ViewModels.Research
       doc.Header.SortOrderInGroup = SortOrderInGroup;
       doc.Header.PreRunTargetStage = PreRunTargetStage;
       doc.Header.PreRunClearAgentData = PreRunClearAgentData;
+      doc.Header.PreRunNormalHomeostasisState = PreRunNormalHomeostasisState;
       doc.Header.ScenarioObservationMode = ScenarioObservationMode;
       doc.Header.ScenarioAuthoritativeRecording = ScenarioAuthoritativeRecording;
       doc.Header.PulseStepIncrement = PulseStepIncrement;
@@ -637,7 +773,7 @@ namespace AIStudio.ViewModels.Research
 
       HasUnsavedChanges = false;
       if (showSuccessMessage)
-        MessageBox.Show("Все успешно сохранено.", "Сохранение",
+        MessageBox.Show("Сценарий успешно сохранен", "Сохранение",
             MessageBoxButton.OK, MessageBoxImage.Information);
       if (requestCloseAfterSuccess)
         RequestClose?.Invoke(this, true);
@@ -661,6 +797,7 @@ namespace AIStudio.ViewModels.Research
           SortOrderInGroup = SortOrderInGroup,
           PreRunTargetStage = PreRunTargetStage,
           PreRunClearAgentData = PreRunClearAgentData,
+          PreRunNormalHomeostasisState = PreRunNormalHomeostasisState,
           ScenarioObservationMode = ScenarioObservationMode,
           ScenarioAuthoritativeRecording = ScenarioAuthoritativeRecording,
           PulseStepIncrement = PulseStepIncrement
