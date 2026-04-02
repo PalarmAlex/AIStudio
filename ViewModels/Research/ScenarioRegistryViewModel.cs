@@ -67,7 +67,6 @@ namespace AIStudio.ViewModels.Research
       NewCommand = new RelayCommand(_ => OpenEditor(null, true), _ => !_runner.IsRunning);
       EditCommand = new RelayCommand(_ => OpenEditor(Selected, false), _ => Selected != null && !_runner.IsRunning);
       LaunchCommand = new RelayCommand(_ => Launch(), _ => Selected != null && !_runner.IsRunning);
-      DeleteCommand = new RelayCommand(_ => Delete(), _ => Selected != null && !_runner.IsRunning);
       DuplicateCommand = new RelayCommand(_ => Duplicate(), _ => Selected != null && !_runner.IsRunning);
       ImportCommand = new RelayCommand(_ => Import(), _ => !_runner.IsRunning);
       StopScenarioCommand = new RelayCommand(_ => _runner.StopUser(), _ => _runner.IsRunning);
@@ -100,7 +99,6 @@ namespace AIStudio.ViewModels.Research
     public ICommand NewCommand { get; }
     public ICommand EditCommand { get; }
     public ICommand LaunchCommand { get; }
-    public ICommand DeleteCommand { get; }
     public ICommand DuplicateCommand { get; }
     public ICommand ImportCommand { get; }
     public ICommand StopScenarioCommand { get; }
@@ -178,15 +176,14 @@ namespace AIStudio.ViewModels.Research
         }
       }
 
-      OpenEditorWithViewModel(CreateEditorViewModel(doc, isNew));
+      OpenEditorWithViewModel(CreateEditorViewModel(doc));
     }
 
-    private ScenarioEditorViewModel CreateEditorViewModel(ScenarioDocument doc, bool isNew)
+    private ScenarioEditorViewModel CreateEditorViewModel(ScenarioDocument doc)
     {
       return new ScenarioEditorViewModel(
           _influenceActions,
           doc,
-          isNew,
           _tryStartScenario,
           () => _runner.IsRunning);
     }
@@ -234,20 +231,32 @@ namespace AIStudio.ViewModels.Research
       _tryStartScenario(doc, AppConfig.ScenarioReportsFolderPath);
     }
 
-    private void Delete()
+    public bool TryDeleteSelected(IReadOnlyList<ScenarioHeader> headers)
     {
-      if (Selected == null)
-        return;
-      if (MessageBox.Show($"Удалить сценарий «{Selected.Title}» (ID={Selected.Id})?", "Подтверждение",
-            MessageBoxButton.YesNo, MessageBoxImage.Question) != MessageBoxResult.Yes)
-        return;
+      if (headers == null || headers.Count == 0)
+        return false;
+      if (_runner.IsRunning)
+      {
+        MessageBox.Show("Дождитесь завершения сценария.", "Сценарий", MessageBoxButton.OK, MessageBoxImage.Information);
+        return true;
+      }
 
-      ScenarioStorage.DeleteScenarioFiles(Selected.Id);
-      var reg = ScenarioStorage.LoadRegistry().Where(h => h.Id != Selected.Id).ToList();
+      var ids = new HashSet<int>(headers.Select(h => h.Id));
+      string confirm = ids.Count == 1
+          ? $"Удалить сценарий «{headers[0].Title}» (ID={headers[0].Id})?"
+          : $"Удалить выбранные сценарии ({ids.Count} шт.)?";
+      if (MessageBox.Show(confirm, "Подтверждение",
+            MessageBoxButton.YesNo, MessageBoxImage.Question) != MessageBoxResult.Yes)
+        return true;
+
+      foreach (var id in ids)
+        ScenarioStorage.DeleteScenarioFiles(id);
+      var reg = ScenarioStorage.LoadRegistry().Where(h => !ids.Contains(h.Id)).ToList();
       var (ok, msg) = ScenarioStorage.SaveRegistry(reg);
       if (!ok)
         MessageBox.Show(msg, "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
       Refresh();
+      return true;
     }
 
     private void Duplicate()
@@ -310,7 +319,7 @@ namespace AIStudio.ViewModels.Research
           MessageBox.Show(verr, "Проверка", MessageBoxButton.OK, MessageBoxImage.Warning);
           return;
         }
-        OpenEditorWithViewModel(CreateEditorViewModel(doc, true));
+        OpenEditorWithViewModel(CreateEditorViewModel(doc));
       }
       catch (Exception ex)
       {

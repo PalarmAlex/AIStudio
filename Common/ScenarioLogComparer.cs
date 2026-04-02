@@ -130,12 +130,10 @@ namespace AIStudio.Common
         CompareMessageFormatting messageFormatting = null)
     {
       var list = new List<StepCompareResult>();
-      if (doc?.Lines == null || doc.LogExpectations == null)
+      if (doc?.Lines == null)
         return list;
 
-      var expByStep = (doc.LogExpectations ?? new List<ScenarioLogExpectationRow>())
-          .GroupBy(e => e.StepIndex)
-          .ToDictionary(g => g.Key, g => g.First());
+      var expectations = doc.LogExpectations ?? new List<ScenarioLogExpectationRow>();
 
       foreach (var line in doc.Lines.OrderBy(l => l.StepIndex))
       {
@@ -143,7 +141,8 @@ namespace AIStudio.Common
         var pulseWithin = line.PulseWithinScenario;
         var globalPulse = anchorGlobalPulse + pulseWithin;
 
-        expByStep.TryGetValue(step, out var exp);
+        var exp = expectations.FirstOrDefault(e => e.StepIndex == step && e.PulseWithinScenario == pulseWithin)
+            ?? expectations.FirstOrDefault(e => e.StepIndex == step);
         if (exp == null)
         {
           list.Add(new StepCompareResult

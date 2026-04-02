@@ -89,11 +89,12 @@
                 SelectedItem="{Binding Selected, Mode=TwoWay}"
                 AutoGenerateColumns="False"
                 IsReadOnly="True"
-                SelectionMode="Single"
+                SelectionMode="Extended"
                 HeadersVisibility="Column"
                 Style="{StaticResource ScenarioRegistryDataGridStyle}"
                 RowStyle="{StaticResource ScenarioRegistryRowStyle}"
-                MouseDoubleClick="DataGrid_OnMouseDoubleClick">
+                MouseDoubleClick="DataGrid_OnMouseDoubleClick"
+                PreviewKeyDown="DataGrid_OnPreviewKeyDown">
         <DataGrid.ColumnHeaderStyle>
           <Style TargetType="DataGridColumnHeader" BasedOn="{StaticResource ScenarioRegistryHeaderStyle}"/>
         </DataGrid.ColumnHeaderStyle>
@@ -148,8 +149,7 @@
     <Border Grid.Row="4" BorderBrush="#FFE0E0E0" BorderThickness="1" CornerRadius="4" Padding="8,6" Background="#FFF5F5F5">
       <StackPanel Orientation="Horizontal">
         <Button Content="Редактировать" Padding="10,6" Margin="0,0,8,0" Command="{Binding EditCommand}" Cursor="Hand"/>
-        <Button Content="Копировать" Padding="10,6" Margin="0,0,8,0" Command="{Binding DuplicateCommand}" Cursor="Hand"/>
-        <Button Content="Удалить" Padding="10,6" Command="{Binding DeleteCommand}" Cursor="Hand"/>
+        <Button Content="Копировать" Padding="10,6" Command="{Binding DuplicateCommand}" Cursor="Hand"/>
       </StackPanel>
     </Border>
   </Grid>

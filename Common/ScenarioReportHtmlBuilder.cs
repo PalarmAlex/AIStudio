@@ -99,9 +99,7 @@ namespace AIStudio.Common
       int anchor = completion?.AnchorGlobalPulse ?? 0;
       var agg = ScenarioLogComparer.AggregateByPulse(MemoryLogManager.Instance.LogEntries);
       ScenarioReportLogDisplay.RewriteAggregatedStylesToCombinationCodes(agg, perceptionImages);
-      var expByStep = (doc.LogExpectations ?? new List<ScenarioLogExpectationRow>())
-          .GroupBy(e => e.StepIndex)
-          .ToDictionary(g => g.Key, g => g.First());
+      var expectations = doc.LogExpectations ?? new List<ScenarioLogExpectationRow>();
 
       sb.AppendLine("<h2>Сравнение ожидаемых реакций и факта по логам</h2>");
       sb.AppendLine("<p class=\"muted\">Якорный глобальный пульс: ")
@@ -109,7 +107,7 @@ namespace AIStudio.Common
           .Append(". Глобальный пульс шага = якорь + № пульса внутри сценария. ");
 
       sb.AppendLine("<table class=\"compare-table\"><tr><th>Шаг</th><th>№ пульса</th>");
-      foreach (var col in ComparisonColumns)
+      foreach (var col in ComparisonColumnSpecs)
       {
         sb.Append("<th class=\"col-exp-h\">").Append(Escape(col.Label + " (ожид.)")).Append("</th>");
         sb.Append("<th class=\"col-fact-h\">").Append(Escape(col.Label + " (факт)")).Append("</th>");
@@ -127,15 +125,16 @@ namespace AIStudio.Common
         foreach (var line in doc.Lines.OrderBy(l => l.StepIndex))
         {
           var snap = ScenarioLogComparer.ResolveSnapshot(anchor + line.PulseWithinScenario, agg);
-          expByStep.TryGetValue(line.StepIndex, out var exp);
-          exp = exp ?? new ScenarioLogExpectationRow();
+          var exp = expectations.FirstOrDefault(e => e.StepIndex == line.StepIndex && e.PulseWithinScenario == line.PulseWithinScenario)
+              ?? expectations.FirstOrDefault(e => e.StepIndex == line.StepIndex)
+              ?? new ScenarioLogExpectationRow();
 
           sb.AppendLine("<tr>");
           sb.Append("<td>").Append(Escape(line.StepIndex.ToString(CultureInfo.InvariantCulture))).Append("</td>");
           sb.Append("<td>").Append(Escape(line.PulseWithinScenario.ToString(CultureInfo.InvariantCulture))).Append("</td>");
-          foreach (var col in ComparisonColumns)
+          foreach (var col in ComparisonColumnSpecs)
           {
-            var expRaw = col.GetExpected(exp);
+            var expRaw = col.GetExpectedMain(exp);
             var actRaw = col.GetActual(snap);
             var expDisp = expRaw;
             var actDisp = actRaw;
@@ -195,19 +194,26 @@ namespace AIStudio.Common
       sb.AppendLine("</div>");
     }
 
-    private static readonly (string Label, Func<ScenarioLogExpectationRow, string> GetExpected, Func<ScenarioLogComparer.AggregatedLogSnapshot, string> GetActual)[] ComparisonColumns =
+    private sealed class ComparisonColumnSpec
     {
-      ("Состояние", e => e.StateText ?? "", a => a.State),
-      ("Стиль", e => e.StyleText ?? "", a => a.Style),
-      ("Тема", e => e.ThemeText ?? "", a => a.Theme),
-      ("Триггер", e => e.TriggerText ?? "", a => a.Trigger),
-      ("ОР/УМ", e => e.OrUmText ?? "", a => a.OrUm),
-      ("Б/у рефлекс", e => e.GeneticReflexText ?? "", a => a.GeneticReflex),
-      ("Усл. рефлекс", e => e.ConditionReflexText ?? "", a => a.ConditionReflex),
-      ("Автоматизм", e => e.AutomatizmText ?? "", a => a.Automatizm),
-      ("Цепочка РФ", e => e.ReflexChainText ?? "", a => a.ReflexChain),
-      ("Цепочка АВ", e => e.AutomatizmChainText ?? "", a => a.AutomatizmChain),
-      ("Цикл М", e => e.MainCycleText ?? "", a => a.MainCycle)
+      public string Label { get; set; }
+      public Func<ScenarioLogExpectationRow, string> GetExpectedMain { get; set; }
+      public Func<ScenarioLogComparer.AggregatedLogSnapshot, string> GetActual { get; set; }
+    }
+
+    private static readonly ComparisonColumnSpec[] ComparisonColumnSpecs =
+    {
+      new ComparisonColumnSpec { Label = "Состояние", GetExpectedMain = e => e.StateText ?? "", GetActual = a => a.State },
+      new ComparisonColumnSpec { Label = "Стиль", GetExpectedMain = e => e.StyleText ?? "", GetActual = a => a.Style },
+      new ComparisonColumnSpec { Label = "Тема", GetExpectedMain = e => e.ThemeText ?? "", GetActual = a => a.Theme },
+      new ComparisonColumnSpec { Label = "Триггер", GetExpectedMain = e => e.TriggerText ?? "", GetActual = a => a.Trigger },
+      new ComparisonColumnSpec { Label = "ОР/УМ", GetExpectedMain = e => e.OrUmText ?? "", GetActual = a => a.OrUm },
+      new ComparisonColumnSpec { Label = "Б/у рефлекс", GetExpectedMain = e => e.GeneticReflexText ?? "", GetActual = a => a.GeneticReflex },
+      new ComparisonColumnSpec { Label = "Усл. рефлекс", GetExpectedMain = e => e.ConditionReflexText ?? "", GetActual = a => a.ConditionReflex },
+      new ComparisonColumnSpec { Label = "Автоматизм", GetExpectedMain = e => e.AutomatizmText ?? "", GetActual = a => a.Automatizm },
+      new ComparisonColumnSpec { Label = "Цепочка РФ", GetExpectedMain = e => e.ReflexChainText ?? "", GetActual = a => a.ReflexChain },
+      new ComparisonColumnSpec { Label = "Цепочка АВ", GetExpectedMain = e => e.AutomatizmChainText ?? "", GetActual = a => a.AutomatizmChain },
+      new ComparisonColumnSpec { Label = "Цикл М", GetExpectedMain = e => e.MainCycleText ?? "", GetActual = a => a.MainCycle }
     };
 
     private static void AppendMetaRow(StringBuilder sb, string name, string valueHtmlEscaped)

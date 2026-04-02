@@ -24,7 +24,6 @@ namespace AIStudio.ViewModels.Research
   public sealed class ScenarioEditorViewModel : INotifyPropertyChanged
   {
     private readonly InfluenceActionSystem _influenceActions;
-    private readonly bool _isNew;
 
     private string _title = "";
     private string _description = "";
@@ -45,6 +44,7 @@ namespace AIStudio.ViewModels.Research
       new ScenarioExpectationChoiceItem { Label = "Пусто (прочерк)", Code = "Dash" }
     };
     private ScenarioLineRow _selectedLine;
+    private ScenarioLogExpectationRow _selectedExpectationRow;
     private readonly Func<ScenarioDocument, string, bool> _tryStartScenario;
     private readonly Func<bool> _isScenarioRunning;
     private string _reportOutputFolder = "";
@@ -53,12 +53,10 @@ namespace AIStudio.ViewModels.Research
     public ScenarioEditorViewModel(
         InfluenceActionSystem influenceActions,
         ScenarioDocument doc,
-        bool isNew,
         Func<ScenarioDocument, string, bool> tryStartScenario = null,
         Func<bool> isScenarioRunning = null)
     {
       _influenceActions = influenceActions ?? throw new ArgumentNullException(nameof(influenceActions));
-      _isNew = isNew;
       _tryStartScenario = tryStartScenario;
       _isScenarioRunning = isScenarioRunning;
       _reportOutputFolder = AppConfig.ScenarioReportsFolderPath;
@@ -83,6 +81,7 @@ namespace AIStudio.ViewModels.Research
       PulseStepIncrementChoices = new List<ScenarioPulseIncrementChoiceItem>
       {
         new ScenarioPulseIncrementChoiceItem { Code = (int)ScenarioPulseStepIncrement.Sequential, Label = "Следующий по порядку" },
+        new ScenarioPulseIncrementChoiceItem { Code = (int)ScenarioPulseStepIncrement.ActionHold, Label = "Время удержания действий" },
         new ScenarioPulseIncrementChoiceItem { Code = (int)ScenarioPulseStepIncrement.ActionHoldPlusOne, Label = "Время удержания действий + 1" },
         new ScenarioPulseIncrementChoiceItem { Code = (int)ScenarioPulseStepIncrement.StateHoldPlusOne, Label = "Время удержания состояний + 1" }
       };
@@ -184,6 +183,18 @@ namespace AIStudio.ViewModels.Research
 
     public ObservableCollection<ScenarioLogExpectationRow> ExpectationRows { get; }
 
+    public ScenarioLogExpectationRow SelectedExpectationRow
+    {
+      get => _selectedExpectationRow;
+      set
+      {
+        if (_selectedExpectationRow == value) return;
+        _selectedExpectationRow = value;
+        OnPropertyChanged();
+        CommandManager.InvalidateRequerySuggested();
+      }
+    }
+
     public ObservableCollection<EvolutionStageItem> PreRunStageChoices { get; }
 
     public List<ScenarioToneMoodChoiceItem> ToneChoiceOptions { get; }
@@ -211,15 +222,16 @@ namespace AIStudio.ViewModels.Research
 
     private static int NormalizePulseStepIncrementCode(int code) =>
         code == (int)ScenarioPulseStepIncrement.Sequential
+        || code == (int)ScenarioPulseStepIncrement.ActionHold
         || code == (int)ScenarioPulseStepIncrement.ActionHoldPlusOne
         || code == (int)ScenarioPulseStepIncrement.StateHoldPlusOne
             ? code
             : (int)ScenarioPulseStepIncrement.ActionHoldPlusOne;
 
-    private int CurrentPulseStepDelay()
+    private int CurrentPulseStepDelta()
     {
       var mode = (ScenarioPulseStepIncrement)_pulseStepIncrement;
-      return ScenarioPulseSchedule.ResolveDelayBetweenSteps(
+      return ScenarioPulseSchedule.PulseDeltaBetweenConsecutiveSteps(
           mode,
           Math.Max(0, AppConfig.ReflexActionDisplayDuration),
           Math.Max(0, AppConfig.DynamicTime));
@@ -612,7 +624,7 @@ namespace AIStudio.ViewModels.Research
       int blockStart = minIx;
       int blockEnd = maxIx;
       int blockLen = blockEnd - blockStart + 1;
-      int gap = CurrentPulseStepDelay();
+      int pulseDelta = CurrentPulseStepDelta();
 
       Lines.ListChanged -= OnLinesListChanged;
       try
@@ -621,7 +633,7 @@ namespace AIStudio.ViewModels.Research
         for (int rep = 0; rep < repeatCount; rep++)
         {
           int anchorPulse = Lines[insertAfter].PulseWithinScenario;
-          int basePulse = anchorPulse + gap + 1;
+          int basePulse = anchorPulse + pulseDelta;
           int blockFirstPulse = Lines[blockStart].PulseWithinScenario;
           for (int k = 0; k < blockLen; k++)
           {
@@ -673,9 +685,9 @@ namespace AIStudio.ViewModels.Research
 
     private ScenarioLineRow CreateNewLineRow()
     {
-      var gap = CurrentPulseStepDelay();
+      int delta = CurrentPulseStepDelta();
       int maxPulse = Lines.Count == 0 ? 0 : Lines.Max(l => l.PulseWithinScenario);
-      int nextPulse = maxPulse <= 0 ? 1 : maxPulse + gap + 1;
+      int nextPulse = maxPulse <= 0 ? 1 : maxPulse + delta;
 
       var row = new ScenarioLineRow
       {
@@ -728,7 +740,7 @@ namespace AIStudio.ViewModels.Research
       }
 
       ScenarioStorage.EnsureFolder();
-      if (_isNew)
+      if (doc.Header.Id == 0)
         doc.Header.Id = ScenarioStorage.NextScenarioId();
 
       doc.Header.Title = Title?.Trim() ?? "";
@@ -770,6 +782,8 @@ namespace AIStudio.ViewModels.Research
         MessageBox.Show(errReg, "Ошибка сохранения реестра", MessageBoxButton.OK, MessageBoxImage.Error);
         return false;
       }
+
+      Document.Header.Id = doc.Header.Id;
 
       HasUnsavedChanges = false;
       if (showSuccessMessage)

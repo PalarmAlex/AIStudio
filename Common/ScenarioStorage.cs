@@ -136,7 +136,7 @@ namespace AIStudio.Common
               }
               if (meta.Length >= 12
                   && int.TryParse(meta[11].Trim(), NumberStyles.Integer, CultureInfo.InvariantCulture, out int psi)
-                  && (psi == 1 || psi == 2 || psi == 3))
+                  && (psi == 1 || psi == 2 || psi == 3 || psi == 4))
               {
                 doc.Header.PulseStepIncrement = psi;
               }

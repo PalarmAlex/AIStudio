@@ -215,7 +215,7 @@
           <ComboBox.ToolTip>
             <ToolTip>
               <TextBlock MaxWidth="400" TextWrapping="Wrap"
-                         Text="Влияет только на подстановку «№ пульса» при добавлении новой строки: следующий пульс = максимум среди уже введённых + зазор + 1, где зазор — +0, «Время удержания действий» или «Время удержания состояний» из настроек проекта. Уже введённые номера не меняются."/>
+                         Text="Влияет только на подстановку «№ пульса» при добавлении новой строки и при повторе блока: приращение = зазор из настроек проекта (+0; время удержания действий; время удержания состояний) плюс, кроме режима «Время удержания действий», ещё 1 пульс; при нулевом зазоре минимум +1. Уже введённые номера не меняются."/>
             </ToolTip>
           </ComboBox.ToolTip>
         </ComboBox>
@@ -365,13 +365,13 @@
       </Border>
 
     <StackPanel Margin="0,10,0,6">
-      <TextBlock Text="Ожидаемые логи (как в «Системных логах»)"
+      <TextBlock Text="Ожидаемые логи"
                  FontWeight="Bold" FontSize="14" Foreground="#FF37474F"/>
       <TextBlock TextWrapping="Wrap" FontSize="11" Foreground="#FF616161" Margin="0,2,0,0"
                  Text="«Пусто» — в логе ожидается прочерк. «Неизвестно» — столбец не проверяется. Иное — точное совпадение."/>
     </StackPanel>
 
-    <Border BorderBrush="#FFE0E0E0" BorderThickness="1" CornerRadius="4" MinHeight="180">
+    <Border BorderBrush="#FFE0E0E0" BorderThickness="1" CornerRadius="4" MinHeight="220">
       <Grid>
         <Grid.RowDefinitions>
           <RowDefinition Height="Auto"/>
@@ -390,22 +390,24 @@
                         ItemsSource="{Binding MassFillOptions}"
                         SelectedValue="{Binding MassFillMode, UpdateSourceTrigger=PropertyChanged}"
                         DisplayMemberPath="Label" SelectedValuePath="Code"/>
-              <Button Content="ОК" Padding="12,4" Command="{Binding MassFillExpectationsCommand}"/>
+              <Button Content="ОК" Padding="12,4" Margin="0,0,8,0" Command="{Binding MassFillExpectationsCommand}"/>
             </StackPanel>
           </Grid>
         </Border>
         <DataGrid x:Name="ExpectGrid"
                   Grid.Row="1"
                   ItemsSource="{Binding ExpectationRows}"
+                  SelectedItem="{Binding SelectedExpectationRow, Mode=TwoWay}"
                   AutoGenerateColumns="False"
                   CanUserAddRows="False"
+                  SelectionMode="Single"
                   HeadersVisibility="Column"
                   Style="{StaticResource LinkDataGridStyle}"
                   RowStyle="{StaticResource HighlightedRowStyle}"
                   CellEditEnding="ExpectGrid_OnCellEditEnding">
           <DataGrid.Columns>
             <DataGridTextColumn Header="Шаг" Binding="{Binding StepIndex}" Width="48" IsReadOnly="True"/>
-            <DataGridTextColumn Header="№ пульса" Binding="{Binding PulseWithinScenario}" Width="72" IsReadOnly="True"/>
+            <DataGridTextColumn Header="№ пульса" Binding="{Binding PulseWithinScenario}" Width="68" IsReadOnly="True"/>
             <DataGridTemplateColumn Header="Состояние" Width="120">
               <DataGridTemplateColumn.CellTemplate>
                 <DataTemplate>
