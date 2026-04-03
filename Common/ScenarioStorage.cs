@@ -140,6 +140,12 @@ namespace AIStudio.Common
               {
                 doc.Header.PulseStepIncrement = psi;
               }
+              if (meta.Length >= 13
+                  && int.TryParse(meta[12].Trim(), NumberStyles.Integer, CultureInfo.InvariantCulture, out int ptc)
+                  && (ptc == 1 || ptc == 10 || ptc == 50 || ptc == 100))
+              {
+                doc.Header.RunPulseTimingCoefficient = ptc;
+              }
             }
             else
             {
@@ -340,7 +346,7 @@ namespace AIStudio.Common
       {
         "# Строки сценария оператора",
         $"{LinesFormatHeader}{ScenarioDocument.LinesFileFormatVersion}",
-        $"# SCENARIO_META|{Escape(doc.Header.Title ?? "")}|{Escape(doc.Header.Description ?? "")}|{Escape(doc.Header.DateText ?? "")}|{Escape(doc.Header.InitialHomeostasisValues ?? "")}|{doc.Header.GroupNumber.ToString(CultureInfo.InvariantCulture)}|{doc.Header.SortOrderInGroup.ToString(CultureInfo.InvariantCulture)}|{doc.Header.PreRunTargetStage.ToString(CultureInfo.InvariantCulture)}|{(doc.Header.PreRunClearAgentData ? "1" : "0")}|{(doc.Header.ScenarioObservationMode ? "1" : "0")}|{(doc.Header.ScenarioAuthoritativeRecording ? "1" : "0")}|{(doc.Header.PreRunNormalHomeostasisState ? "1" : "0")}|{doc.Header.PulseStepIncrement.ToString(CultureInfo.InvariantCulture)}",
+        $"# SCENARIO_META|{Escape(doc.Header.Title ?? "")}|{Escape(doc.Header.Description ?? "")}|{Escape(doc.Header.DateText ?? "")}|{Escape(doc.Header.InitialHomeostasisValues ?? "")}|{doc.Header.GroupNumber.ToString(CultureInfo.InvariantCulture)}|{doc.Header.SortOrderInGroup.ToString(CultureInfo.InvariantCulture)}|{doc.Header.PreRunTargetStage.ToString(CultureInfo.InvariantCulture)}|{(doc.Header.PreRunClearAgentData ? "1" : "0")}|{(doc.Header.ScenarioObservationMode ? "1" : "0")}|{(doc.Header.ScenarioAuthoritativeRecording ? "1" : "0")}|{(doc.Header.PreRunNormalHomeostasisState ? "1" : "0")}|{doc.Header.PulseStepIncrement.ToString(CultureInfo.InvariantCulture)}|{doc.Header.RunPulseTimingCoefficient.ToString(CultureInfo.InvariantCulture)}",
         "# Step|Pulse|Kind(P|W)|ToneId|MoodId|ActionIds|Phrase|ResetWait",
         "# Kind=W — только клик по плашке ожидания; P — воздействия с пульта. Пульс — по шагам и режиму приращения из метаданных (см. настройки проекта)."
       };

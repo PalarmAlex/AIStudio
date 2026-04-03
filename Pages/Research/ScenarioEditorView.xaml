@@ -129,6 +129,7 @@
                     <RowDefinition Height="Auto"/>
                     <RowDefinition Height="Auto"/>
                     <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
                   </Grid.RowDefinitions>
                   <TextBlock Grid.Row="0" Grid.Column="0" Text="Перейти на стадию" VerticalAlignment="Center" Margin="0,0,12,8"
                              FontSize="12" FontWeight="SemiBold" Foreground="#FF0D47A1"/>
@@ -144,9 +145,14 @@
                               DisplayMemberPath="Description"
                               ItemContainerStyle="{StaticResource StageItemContainerStyle}"/>
                   </Grid>
-                  <TextBlock Grid.Row="1" Grid.Column="0" Text="Очистить данные" VerticalAlignment="Center" Margin="0,0,12,8"
+                  <TextBlock Grid.Row="1" Grid.Column="0" Text="Коэфф. пульсации" VerticalAlignment="Center" Margin="0,0,12,8"
                              FontSize="12" FontWeight="SemiBold" Foreground="#FF0D47A1"/>
-                  <CheckBox Grid.Row="1" Grid.Column="1" VerticalAlignment="Center" Margin="0,0,0,8"
+                  <ComboBox Grid.Row="1" Grid.Column="1" Padding="4,3" FontSize="12" HorizontalAlignment="Left" MinWidth="100" Margin="0,0,0,8"
+                            ItemsSource="{Binding PulseTimingCoefficientChoices}"
+                            SelectedValue="{Binding RunPulseTimingCoefficient, UpdateSourceTrigger=PropertyChanged}"/>
+                  <TextBlock Grid.Row="2" Grid.Column="0" Text="Очистить данные" VerticalAlignment="Center" Margin="0,0,12,8"
+                             FontSize="12" FontWeight="SemiBold" Foreground="#FF0D47A1"/>
+                  <CheckBox Grid.Row="2" Grid.Column="1" VerticalAlignment="Center" Margin="0,0,0,8"
                             IsChecked="{Binding PreRunClearAgentData, UpdateSourceTrigger=PropertyChanged}">
                     <CheckBox.ToolTip>
                       <ToolTip>
@@ -155,9 +161,9 @@
                       </ToolTip>
                     </CheckBox.ToolTip>
                   </CheckBox>
-                  <TextBlock Grid.Row="2" Grid.Column="0" Text="Начальное состояние Норма" VerticalAlignment="Center" Margin="0,0,12,8"
+                  <TextBlock Grid.Row="3" Grid.Column="0" Text="Начальное состояние Норма" VerticalAlignment="Center" Margin="0,0,12,8"
                              FontSize="12" FontWeight="SemiBold" Foreground="#FF0D47A1"/>
-                  <CheckBox Grid.Row="2" Grid.Column="1" VerticalAlignment="Center" Margin="0,0,0,8"
+                  <CheckBox Grid.Row="3" Grid.Column="1" VerticalAlignment="Center" Margin="0,0,0,8"
                             IsChecked="{Binding PreRunNormalHomeostasisState, UpdateSourceTrigger=PropertyChanged}">
                     <CheckBox.ToolTip>
                       <ToolTip>
@@ -166,9 +172,9 @@
                       </ToolTip>
                     </CheckBox.ToolTip>
                   </CheckBox>
-                  <TextBlock Grid.Row="3" Grid.Column="0" Text="Режим наблюдения" VerticalAlignment="Center" Margin="0,0,12,8"
+                  <TextBlock Grid.Row="4" Grid.Column="0" Text="Режим наблюдения" VerticalAlignment="Center" Margin="0,0,12,8"
                              FontSize="12" FontWeight="SemiBold" Foreground="#FF0D47A1"/>
-                  <CheckBox Grid.Row="3" Grid.Column="1" VerticalAlignment="Center" Margin="0,0,0,8"
+                  <CheckBox Grid.Row="4" Grid.Column="1" VerticalAlignment="Center" Margin="0,0,0,8"
                             IsChecked="{Binding ScenarioObservationMode, UpdateSourceTrigger=PropertyChanged}">
                     <CheckBox.ToolTip>
                       <ToolTip>
@@ -177,9 +183,9 @@
                       </ToolTip>
                     </CheckBox.ToolTip>
                   </CheckBox>
-                  <TextBlock Grid.Row="4" Grid.Column="0" Text="Авторитарная запись" VerticalAlignment="Center" Margin="0,0,12,0"
+                  <TextBlock Grid.Row="5" Grid.Column="0" Text="Авторитарная запись" VerticalAlignment="Center" Margin="0,0,12,0"
                              FontSize="12" FontWeight="SemiBold" Foreground="#FF0D47A1"/>
-                  <CheckBox Grid.Row="4" Grid.Column="1" VerticalAlignment="Center"
+                  <CheckBox Grid.Row="5" Grid.Column="1" VerticalAlignment="Center"
                             IsChecked="{Binding ScenarioAuthoritativeRecording, UpdateSourceTrigger=PropertyChanged}">
                     <CheckBox.ToolTip>
                       <ToolTip>

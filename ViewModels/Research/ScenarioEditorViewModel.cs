@@ -37,6 +37,7 @@ namespace AIStudio.ViewModels.Research
     private bool _scenarioAuthoritativeRecording;
     private string _massFillMode = "Unknown";
     private int _pulseStepIncrement = (int)ScenarioPulseStepIncrement.ActionHoldPlusOne;
+    private int _runPulseTimingCoefficient = 1;
 
     public List<ScenarioExpectationChoiceItem> MassFillOptions { get; } = new List<ScenarioExpectationChoiceItem>
     {
@@ -77,6 +78,9 @@ namespace AIStudio.ViewModels.Research
       _scenarioObservationMode = doc.Header.ScenarioObservationMode;
       _scenarioAuthoritativeRecording = doc.Header.ScenarioAuthoritativeRecording;
       _pulseStepIncrement = NormalizePulseStepIncrementCode(doc.Header.PulseStepIncrement);
+      _runPulseTimingCoefficient = NormalizeRunPulseTimingCoefficient(doc.Header.RunPulseTimingCoefficient);
+
+      PulseTimingCoefficientChoices = new List<int> { 1, 10, 50, 100 };
 
       PulseStepIncrementChoices = new List<ScenarioPulseIncrementChoiceItem>
       {
@@ -205,6 +209,26 @@ namespace AIStudio.ViewModels.Research
     public List<ScenarioExpectationChoiceItem> OrUmChoiceOptions { get; }
 
     public List<ScenarioPulseIncrementChoiceItem> PulseStepIncrementChoices { get; }
+
+    /// <summary>Допустимые значения коэфф. пульсации для привязки ComboBox.</summary>
+    public List<int> PulseTimingCoefficientChoices { get; }
+
+    public int RunPulseTimingCoefficient
+    {
+      get => _runPulseTimingCoefficient;
+      set
+      {
+        int v = NormalizeRunPulseTimingCoefficient(value);
+        if (_runPulseTimingCoefficient == v)
+          return;
+        _runPulseTimingCoefficient = v;
+        OnPropertyChanged();
+        HasUnsavedChanges = true;
+      }
+    }
+
+    private static int NormalizeRunPulseTimingCoefficient(int v) =>
+        v == 1 || v == 10 || v == 50 || v == 100 ? v : 1;
 
     public int PulseStepIncrement
     {
@@ -754,6 +778,7 @@ namespace AIStudio.ViewModels.Research
       doc.Header.ScenarioObservationMode = ScenarioObservationMode;
       doc.Header.ScenarioAuthoritativeRecording = ScenarioAuthoritativeRecording;
       doc.Header.PulseStepIncrement = PulseStepIncrement;
+      doc.Header.RunPulseTimingCoefficient = RunPulseTimingCoefficient;
 
       var (okLines, errLines) = ScenarioStorage.SaveScenarioLines(doc);
       if (!okLines)
@@ -814,7 +839,8 @@ namespace AIStudio.ViewModels.Research
           PreRunNormalHomeostasisState = PreRunNormalHomeostasisState,
           ScenarioObservationMode = ScenarioObservationMode,
           ScenarioAuthoritativeRecording = ScenarioAuthoritativeRecording,
-          PulseStepIncrement = PulseStepIncrement
+          PulseStepIncrement = PulseStepIncrement,
+          RunPulseTimingCoefficient = RunPulseTimingCoefficient
         },
         Lines = Lines.Select(l => l.Clone()).ToList(),
         LogExpectationColumnSkips = Document.LogExpectationColumnSkips?.Clone() ?? new ScenarioLogExpectationColumnSkips(),

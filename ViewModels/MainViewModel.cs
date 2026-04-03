@@ -659,6 +659,7 @@ namespace AIStudio
       }
       catch (Exception ex)
       {
+        GlobalTimer.ClearPulseWallClockAcceleration();
         RestorePultModesAfterScenarioIfNeeded();
         MessageBox.Show(ex.Message, "Запуск", MessageBoxButton.OK, MessageBoxImage.Error);
         return false;
@@ -736,6 +737,7 @@ namespace AIStudio
           }
           catch (Exception ex)
           {
+            GlobalTimer.ClearPulseWallClockAcceleration();
             if (_scenarioRunProgressWindow != null)
             {
               try { _scenarioRunProgressWindow.Close(); } catch { /* ignore */ }
@@ -752,6 +754,11 @@ namespace AIStudio
 
     private void ApplyScenarioPultModesAndStartRunner(ScenarioDocument doc, string reportOutputFolder)
     {
+      int coeff = doc?.Header?.RunPulseTimingCoefficient ?? 1;
+      if (coeff != 1 && coeff != 10 && coeff != 50 && coeff != 100)
+        coeff = 1;
+      GlobalTimer.SetPulseWallClockAcceleration(coeff, suppressAnimation: coeff > 1);
+
       _pendingScenarioReportFolder = reportOutputFolder;
       var pult = _agentViewModel.AgentPultViewModel;
       _savedObservationModeBeforeScenario = AppGlobalState.ObservationMode;
@@ -853,6 +860,7 @@ namespace AIStudio
 
     private void OnScenarioRunFinished(object sender, OperatorScenarioCompletedEventArgs e)
     {
+      GlobalTimer.ClearPulseWallClockAcceleration();
       RestorePultModesAfterScenarioIfNeeded();
       // SystemIdle: после FlushBufferedAgentRowToMemoryNow на том же пульсе записи ещё ставятся в MemoryLogManager
       // через BeginInvoke(Background); отчёт должен собраться позже очереди Background, иначе фантомное расхождение на последнем шаге.
@@ -1659,6 +1667,8 @@ namespace AIStudio
     {
       GlobalTimer.OnPulseBrightnessChanged += brightness =>
       {
+        if (GlobalTimer.IsPulseAnimationSuppressed)
+          return;
         Application.Current.Dispatcher.Invoke(() =>
         {
           try
