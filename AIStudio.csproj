@@ -326,6 +326,8 @@
     <Compile Include="ViewModels\VerbalTreesViewModel.cs" />
     <Compile Include="Common\ScenarioPaths.cs" />
     <Compile Include="Common\ScenarioStorage.cs" />
+    <Compile Include="Common\ScenarioGroupModels.cs" />
+    <Compile Include="Common\ScenarioGroupStorage.cs" />
     <Compile Include="Common\ScenarioExpectationChoiceLists.cs" />
     <Compile Include="Common\ScenarioReportHtmlBuilder.cs" />
     <Compile Include="Common\ScenarioReportLogDisplay.cs" />
@@ -333,14 +335,30 @@
     <Compile Include="ViewModels\Research\ScenarioToneMoodChoiceItem.cs" />
     <Compile Include="ViewModels\Research\ScenarioPulseIncrementChoiceItem.cs" />
     <Compile Include="ViewModels\Research\ScenarioRegistryViewModel.cs" />
+    <Compile Include="ViewModels\Research\ScenariosHubViewModel.cs" />
+    <Compile Include="ViewModels\Research\ScenarioGroupRegistryViewModel.cs" />
+    <Compile Include="ViewModels\Research\ScenarioRegistryPickItem.cs" />
+    <Compile Include="ViewModels\Research\ScenarioGroupEditorViewModel.cs" />
     <Compile Include="Pages\Research\ScenarioRegistryView.xaml.cs">
       <DependentUpon>ScenarioRegistryView.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Pages\Research\ScenariosHubView.xaml.cs">
+      <DependentUpon>ScenariosHubView.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Pages\Research\ScenarioGroupRegistryView.xaml.cs">
+      <DependentUpon>ScenarioGroupRegistryView.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Pages\Research\ScenarioGroupEditorView.xaml.cs">
+      <DependentUpon>ScenarioGroupEditorView.xaml</DependentUpon>
     </Compile>
     <Compile Include="Pages\Research\ScenarioEditorView.xaml.cs">
       <DependentUpon>ScenarioEditorView.xaml</DependentUpon>
     </Compile>
     <Compile Include="Windows\ScenarioEditorWindow.xaml.cs">
       <DependentUpon>ScenarioEditorWindow.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Windows\ScenarioGroupEditorWindow.xaml.cs">
+      <DependentUpon>ScenarioGroupEditorWindow.xaml</DependentUpon>
     </Compile>
     <Compile Include="Windows\ScenarioRunProgressWindow.xaml.cs">
       <DependentUpon>ScenarioRunProgressWindow.xaml</DependentUpon>
@@ -566,11 +584,27 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
+    <Page Include="Pages\Research\ScenariosHubView.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Pages\Research\ScenarioGroupRegistryView.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Pages\Research\ScenarioGroupEditorView.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="Pages\Research\ScenarioEditorView.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="Windows\ScenarioEditorWindow.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Windows\ScenarioGroupEditorWindow.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

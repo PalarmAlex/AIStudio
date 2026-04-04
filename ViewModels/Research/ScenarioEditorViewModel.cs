@@ -28,8 +28,6 @@ namespace AIStudio.ViewModels.Research
     private string _title = "";
     private string _description = "";
     private string _dateText = "";
-    private int _groupNumber;
-    private int _sortOrderInGroup;
     private int _preRunTargetStage = -1;
     private bool _preRunClearAgentData;
     private bool _preRunNormalHomeostasisState;
@@ -46,7 +44,7 @@ namespace AIStudio.ViewModels.Research
     };
     private ScenarioLineRow _selectedLine;
     private ScenarioLogExpectationRow _selectedExpectationRow;
-    private readonly Func<ScenarioDocument, string, bool> _tryStartScenario;
+    private readonly Func<ScenarioDocument, string, ScenarioEditorViewModel, bool> _tryStartScenario;
     private readonly Func<bool> _isScenarioRunning;
     private string _reportOutputFolder = "";
     private string _repeatBlockCountText = "1";
@@ -54,7 +52,7 @@ namespace AIStudio.ViewModels.Research
     public ScenarioEditorViewModel(
         InfluenceActionSystem influenceActions,
         ScenarioDocument doc,
-        Func<ScenarioDocument, string, bool> tryStartScenario = null,
+        Func<ScenarioDocument, string, ScenarioEditorViewModel, bool> tryStartScenario = null,
         Func<bool> isScenarioRunning = null)
     {
       _influenceActions = influenceActions ?? throw new ArgumentNullException(nameof(influenceActions));
@@ -68,8 +66,6 @@ namespace AIStudio.ViewModels.Research
       _dateText = string.IsNullOrWhiteSpace(doc.Header.DateText)
           ? DateTime.Now.ToString("yyyy-MM-dd")
           : doc.Header.DateText;
-      _groupNumber = doc.Header.GroupNumber;
-      _sortOrderInGroup = doc.Header.SortOrderInGroup;
       _preRunTargetStage = doc.Header.PreRunTargetStage >= -1 && doc.Header.PreRunTargetStage <= 5
           ? doc.Header.PreRunTargetStage
           : -1;
@@ -80,7 +76,7 @@ namespace AIStudio.ViewModels.Research
       _pulseStepIncrement = NormalizePulseStepIncrementCode(doc.Header.PulseStepIncrement);
       _runPulseTimingCoefficient = NormalizeRunPulseTimingCoefficient(doc.Header.RunPulseTimingCoefficient);
 
-      PulseTimingCoefficientChoices = new List<int> { 1, 10, 50, 100 };
+      PulseTimingCoefficientChoices = new List<int> { 1, 5, 10, 20 };
 
       PulseStepIncrementChoices = new List<ScenarioPulseIncrementChoiceItem>
       {
@@ -179,7 +175,9 @@ namespace AIStudio.ViewModels.Research
       if (!Save(requestCloseAfterSuccess: false))
         return;
       var doc = BuildDocument();
-      _tryStartScenario(doc, string.IsNullOrWhiteSpace(ReportOutputFolder) ? AppConfig.ScenarioReportsFolderPath : ReportOutputFolder.Trim());
+      _tryStartScenario(doc,
+          string.IsNullOrWhiteSpace(ReportOutputFolder) ? AppConfig.ScenarioReportsFolderPath : ReportOutputFolder.Trim(),
+          this);
     }
 
     public ScenarioDocument Document { get; }
@@ -228,7 +226,7 @@ namespace AIStudio.ViewModels.Research
     }
 
     private static int NormalizeRunPulseTimingCoefficient(int v) =>
-        v == 1 || v == 10 || v == 50 || v == 100 ? v : 1;
+        v == 1 || v == 5 || v == 10 || v == 20 ? v : 1;
 
     public int PulseStepIncrement
     {
@@ -466,30 +464,6 @@ namespace AIStudio.ViewModels.Research
       {
         if (_dateText == value) return;
         _dateText = value;
-        OnPropertyChanged();
-        HasUnsavedChanges = true;
-      }
-    }
-
-    public int GroupNumber
-    {
-      get => _groupNumber;
-      set
-      {
-        if (_groupNumber == value) return;
-        _groupNumber = value;
-        OnPropertyChanged();
-        HasUnsavedChanges = true;
-      }
-    }
-
-    public int SortOrderInGroup
-    {
-      get => _sortOrderInGroup;
-      set
-      {
-        if (_sortOrderInGroup == value) return;
-        _sortOrderInGroup = value;
         OnPropertyChanged();
         HasUnsavedChanges = true;
       }
@@ -770,8 +744,6 @@ namespace AIStudio.ViewModels.Research
       doc.Header.Title = Title?.Trim() ?? "";
       doc.Header.Description = Description?.Trim() ?? "";
       doc.Header.DateText = DateText?.Trim() ?? "";
-      doc.Header.GroupNumber = GroupNumber;
-      doc.Header.SortOrderInGroup = SortOrderInGroup;
       doc.Header.PreRunTargetStage = PreRunTargetStage;
       doc.Header.PreRunClearAgentData = PreRunClearAgentData;
       doc.Header.PreRunNormalHomeostasisState = PreRunNormalHomeostasisState;
@@ -796,9 +768,7 @@ namespace AIStudio.ViewModels.Research
         Id = doc.Header.Id,
         Title = doc.Header.Title,
         Description = doc.Header.Description,
-        DateText = doc.Header.DateText,
-        GroupNumber = doc.Header.GroupNumber,
-        SortOrderInGroup = doc.Header.SortOrderInGroup
+        DateText = doc.Header.DateText
       });
 
       var (okReg, errReg) = ScenarioStorage.SaveRegistry(reg);
@@ -832,8 +802,6 @@ namespace AIStudio.ViewModels.Research
           Description = Description?.Trim() ?? "",
           DateText = DateText?.Trim() ?? "",
           InitialHomeostasisValues = Document.Header.InitialHomeostasisValues ?? "",
-          GroupNumber = GroupNumber,
-          SortOrderInGroup = SortOrderInGroup,
           PreRunTargetStage = PreRunTargetStage,
           PreRunClearAgentData = PreRunClearAgentData,
           PreRunNormalHomeostasisState = PreRunNormalHomeostasisState,

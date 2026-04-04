@@ -25,13 +25,12 @@ namespace AIStudio.ViewModels.Research
     private readonly InfluenceActionSystem _influenceActions;
     private readonly OperatorScenarioRunner _runner;
     private readonly Action<ScenarioEditorViewModel> _openEditorEmbedded;
-    private readonly Func<ScenarioDocument, string, bool> _tryStartScenario;
+    private readonly Func<ScenarioDocument, string, ScenarioEditorViewModel, bool> _tryStartScenario;
 
     private ScenarioHeader _selected;
     private readonly List<ScenarioHeader> _registryAll = new List<ScenarioHeader>();
     private string _filterIdText = "";
     private string _filterTitleText = "";
-    private string _filterGroupText = "";
 
     public string FilterIdText
     {
@@ -45,17 +44,11 @@ namespace AIStudio.ViewModels.Research
       set { if (_filterTitleText == value) return; _filterTitleText = value; OnPropertyChanged(); }
     }
 
-    public string FilterGroupText
-    {
-      get => _filterGroupText;
-      set { if (_filterGroupText == value) return; _filterGroupText = value; OnPropertyChanged(); }
-    }
-
     public ScenarioRegistryViewModel(
         InfluenceActionSystem influenceActions,
         OperatorScenarioRunner runner,
         Action<ScenarioEditorViewModel> openEditorEmbedded = null,
-        Func<ScenarioDocument, string, bool> tryStartScenario = null)
+        Func<ScenarioDocument, string, ScenarioEditorViewModel, bool> tryStartScenario = null)
     {
       _influenceActions = influenceActions ?? throw new ArgumentNullException(nameof(influenceActions));
       _runner = runner ?? throw new ArgumentNullException(nameof(runner));
@@ -117,14 +110,11 @@ namespace AIStudio.ViewModels.Research
     {
       var idF = (FilterIdText ?? "").Trim();
       var titleF = (FilterTitleText ?? "").Trim();
-      var groupF = (FilterGroupText ?? "").Trim();
       IEnumerable<ScenarioHeader> q = _registryAll;
       if (idF.Length > 0)
         q = q.Where(h => h.Id.ToString(CultureInfo.InvariantCulture).IndexOf(idF, StringComparison.OrdinalIgnoreCase) >= 0);
       if (titleF.Length > 0)
         q = q.Where(h => (h.Title ?? "").IndexOf(titleF, StringComparison.OrdinalIgnoreCase) >= 0);
-      if (groupF.Length > 0)
-        q = q.Where(h => h.GroupNumber.ToString(CultureInfo.InvariantCulture).IndexOf(groupF, StringComparison.OrdinalIgnoreCase) >= 0);
       var prevId = Selected?.Id;
       Items.Clear();
       foreach (var h in q.OrderBy(x => x.Id))
@@ -136,10 +126,8 @@ namespace AIStudio.ViewModels.Research
     {
       FilterIdText = "";
       FilterTitleText = "";
-      FilterGroupText = "";
       OnPropertyChanged(nameof(FilterIdText));
       OnPropertyChanged(nameof(FilterTitleText));
-      OnPropertyChanged(nameof(FilterGroupText));
       ApplyFilters();
     }
 
@@ -228,7 +216,7 @@ namespace AIStudio.ViewModels.Research
         return;
       }
 
-      _tryStartScenario(doc, AppConfig.ScenarioReportsFolderPath);
+      _tryStartScenario(doc, AppConfig.ScenarioReportsFolderPath, null);
     }
 
     public bool TryDeleteSelected(IReadOnlyList<ScenarioHeader> headers)
@@ -283,9 +271,7 @@ namespace AIStudio.ViewModels.Research
           Id = doc.Header.Id,
           Title = doc.Header.Title,
           Description = doc.Header.Description,
-          DateText = doc.Header.DateText,
-          GroupNumber = doc.Header.GroupNumber,
-          SortOrderInGroup = doc.Header.SortOrderInGroup
+          DateText = doc.Header.DateText
         });
         var (ok, msg) = ScenarioStorage.SaveRegistry(reg);
         if (!ok)
@@ -333,6 +319,19 @@ namespace AIStudio.ViewModels.Research
       {
         Header = new ScenarioHeader { Title = "Импорт", DateText = DateTime.Now.ToString("yyyy-MM-dd") }
       };
+      int formatVersion = 4;
+      foreach (var line in lines)
+      {
+        var t = line?.Trim();
+        if (t != null && t.StartsWith("# SCENARIO_LINES_FORMAT|", StringComparison.Ordinal))
+        {
+          var fv = t.Substring("# SCENARIO_LINES_FORMAT|".Length).Trim();
+          int.TryParse(fv, NumberStyles.Integer, CultureInfo.InvariantCulture, out int parsedV);
+          if (parsedV > 0)
+            formatVersion = parsedV;
+        }
+      }
+
       foreach (var line in lines)
       {
         var t = line?.Trim();
@@ -341,16 +340,7 @@ namespace AIStudio.ViewModels.Research
           if (t != null && t.StartsWith("# SCENARIO_META|", StringComparison.Ordinal))
           {
             var meta = t.Substring("# SCENARIO_META|".Length).Split('|');
-            if (meta.Length >= 3)
-            {
-              doc.Header.Title = ScenarioStorage.Unescape(meta[0]);
-              doc.Header.Description = ScenarioStorage.Unescape(meta[1]);
-              doc.Header.DateText = ScenarioStorage.Unescape(meta[2]);
-            }
-            if (meta.Length >= 6)
-              doc.Header.InitialHomeostasisValues = "";
-            else if (meta.Length >= 5)
-              doc.Header.InitialHomeostasisValues = ScenarioStorage.Unescape(meta[4]);
+            ScenarioStorage.ApplyScenarioMeta(doc.Header, meta, formatVersion);
           }
           continue;
         }

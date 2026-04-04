@@ -39,20 +39,12 @@ namespace AIStudio.Common
           continue;
         if (!int.TryParse(p[0], NumberStyles.Integer, CultureInfo.InvariantCulture, out int id))
           continue;
-        int group = 0, sortInGroup = 0;
-        if (p.Length >= 6)
-        {
-          int.TryParse(p[4].Trim(), NumberStyles.Integer, CultureInfo.InvariantCulture, out group);
-          int.TryParse(p[5].Trim(), NumberStyles.Integer, CultureInfo.InvariantCulture, out sortInGroup);
-        }
         list.Add(new ScenarioHeader
         {
           Id = id,
           Title = Unescape(p[1]),
           Description = Unescape(p[2]),
-          DateText = Unescape(p[3]),
-          GroupNumber = group,
-          SortOrderInGroup = sortInGroup
+          DateText = Unescape(p[3])
         });
       }
 
@@ -69,11 +61,21 @@ namespace AIStudio.Common
       doc.Header.Id = scenarioId;
 
       bool expectationMode = false;
+      int linesFileFormatVersion = 4;
       foreach (var line in File.ReadAllLines(path, Encoding.UTF8))
       {
         var t = line?.Trim();
         if (string.IsNullOrEmpty(t))
           continue;
+
+        if (t.StartsWith(LinesFormatHeader, StringComparison.Ordinal))
+        {
+          var fv = t.Substring(LinesFormatHeader.Length).Trim();
+          int.TryParse(fv, NumberStyles.Integer, CultureInfo.InvariantCulture, out int parsedV);
+          if (parsedV > 0)
+            linesFileFormatVersion = parsedV;
+          continue;
+        }
 
         if (expectationMode)
         {
@@ -101,61 +103,7 @@ namespace AIStudio.Common
           if (t.StartsWith("# SCENARIO_META|", StringComparison.Ordinal))
           {
             var meta = t.Substring("# SCENARIO_META|".Length).Split('|');
-            if (meta.Length >= 3)
-            {
-              doc.Header.Title = Unescape(meta[0]);
-              doc.Header.Description = Unescape(meta[1]);
-              doc.Header.DateText = Unescape(meta[2]);
-            }
-            if (meta.Length >= 8)
-            {
-              doc.Header.InitialHomeostasisValues = Unescape(meta[3]);
-              int.TryParse(meta[4].Trim(), NumberStyles.Integer, CultureInfo.InvariantCulture, out int gn);
-              int.TryParse(meta[5].Trim(), NumberStyles.Integer, CultureInfo.InvariantCulture, out int sg);
-              int.TryParse(meta[6].Trim(), NumberStyles.Integer, CultureInfo.InvariantCulture, out int pst);
-              doc.Header.GroupNumber = gn;
-              doc.Header.SortOrderInGroup = sg;
-              doc.Header.PreRunTargetStage = pst;
-              doc.Header.PreRunClearAgentData =
-                  int.TryParse(meta[7].Trim(), NumberStyles.Integer, CultureInfo.InvariantCulture, out int cl)
-                  && cl != 0;
-              if (meta.Length >= 10)
-              {
-                doc.Header.ScenarioObservationMode =
-                    int.TryParse(meta[8].Trim(), NumberStyles.Integer, CultureInfo.InvariantCulture, out int om)
-                    && om != 0;
-                doc.Header.ScenarioAuthoritativeRecording =
-                    int.TryParse(meta[9].Trim(), NumberStyles.Integer, CultureInfo.InvariantCulture, out int ar)
-                    && ar != 0;
-              }
-              if (meta.Length >= 11)
-              {
-                doc.Header.PreRunNormalHomeostasisState =
-                    int.TryParse(meta[10].Trim(), NumberStyles.Integer, CultureInfo.InvariantCulture, out int nh)
-                    && nh != 0;
-              }
-              if (meta.Length >= 12
-                  && int.TryParse(meta[11].Trim(), NumberStyles.Integer, CultureInfo.InvariantCulture, out int psi)
-                  && (psi == 1 || psi == 2 || psi == 3 || psi == 4))
-              {
-                doc.Header.PulseStepIncrement = psi;
-              }
-              if (meta.Length >= 13
-                  && int.TryParse(meta[12].Trim(), NumberStyles.Integer, CultureInfo.InvariantCulture, out int ptc)
-                  && (ptc == 1 || ptc == 10 || ptc == 50 || ptc == 100))
-              {
-                doc.Header.RunPulseTimingCoefficient = ptc;
-              }
-            }
-            else
-            {
-              if (meta.Length >= 6)
-                doc.Header.InitialHomeostasisValues = "";
-              else if (meta.Length >= 5)
-                doc.Header.InitialHomeostasisValues = Unescape(meta[4]);
-              else if (meta.Length >= 4)
-                doc.Header.InitialHomeostasisValues = Unescape(meta[3]);
-            }
+            ApplyScenarioMeta(doc.Header, meta, linesFileFormatVersion);
           }
           continue;
         }
@@ -172,6 +120,93 @@ namespace AIStudio.Common
     {
       row = ParseLineRow(line);
       return row != null;
+    }
+
+    /// <summary>Разбор <c># SCENARIO_META|…</c>: v5+ без полей группы; v4 и ниже — прежняя раскладка (номер группы и порядок в файле игнорируются).</summary>
+    public static void ApplyScenarioMeta(ScenarioHeader header, string[] meta, int linesFileFormatVersion)
+    {
+      if (header == null || meta == null)
+        return;
+      if (meta.Length >= 3)
+      {
+        header.Title = Unescape(meta[0]);
+        header.Description = Unescape(meta[1]);
+        header.DateText = Unescape(meta[2]);
+      }
+      if (linesFileFormatVersion >= 5 && meta.Length >= 4)
+      {
+        header.InitialHomeostasisValues = Unescape(meta[3]);
+        if (meta.Length >= 11)
+        {
+          int.TryParse(meta[4].Trim(), NumberStyles.Integer, CultureInfo.InvariantCulture, out int pst);
+          header.PreRunTargetStage = pst;
+          header.PreRunClearAgentData =
+              int.TryParse(meta[5].Trim(), NumberStyles.Integer, CultureInfo.InvariantCulture, out int cl)
+              && cl != 0;
+          header.ScenarioObservationMode =
+              int.TryParse(meta[6].Trim(), NumberStyles.Integer, CultureInfo.InvariantCulture, out int om)
+              && om != 0;
+          header.ScenarioAuthoritativeRecording =
+              int.TryParse(meta[7].Trim(), NumberStyles.Integer, CultureInfo.InvariantCulture, out int ar)
+              && ar != 0;
+          header.PreRunNormalHomeostasisState =
+              int.TryParse(meta[8].Trim(), NumberStyles.Integer, CultureInfo.InvariantCulture, out int nh)
+              && nh != 0;
+          if (int.TryParse(meta[9].Trim(), NumberStyles.Integer, CultureInfo.InvariantCulture, out int psi)
+              && (psi == 1 || psi == 2 || psi == 3 || psi == 4))
+            header.PulseStepIncrement = psi;
+          TryApplyRunPulseCoefficient(meta[10], header);
+        }
+        return;
+      }
+
+      if (meta.Length >= 8)
+      {
+        header.InitialHomeostasisValues = Unescape(meta[3]);
+        int.TryParse(meta[6].Trim(), NumberStyles.Integer, CultureInfo.InvariantCulture, out int pstLegacy);
+        header.PreRunTargetStage = pstLegacy;
+        header.PreRunClearAgentData =
+            int.TryParse(meta[7].Trim(), NumberStyles.Integer, CultureInfo.InvariantCulture, out int cl0)
+            && cl0 != 0;
+        if (meta.Length >= 10)
+        {
+          header.ScenarioObservationMode =
+              int.TryParse(meta[8].Trim(), NumberStyles.Integer, CultureInfo.InvariantCulture, out int om0)
+              && om0 != 0;
+          header.ScenarioAuthoritativeRecording =
+              int.TryParse(meta[9].Trim(), NumberStyles.Integer, CultureInfo.InvariantCulture, out int ar0)
+              && ar0 != 0;
+        }
+        if (meta.Length >= 11)
+        {
+          header.PreRunNormalHomeostasisState =
+              int.TryParse(meta[10].Trim(), NumberStyles.Integer, CultureInfo.InvariantCulture, out int nh0)
+              && nh0 != 0;
+        }
+        if (meta.Length >= 12
+            && int.TryParse(meta[11].Trim(), NumberStyles.Integer, CultureInfo.InvariantCulture, out int psi0)
+            && (psi0 == 1 || psi0 == 2 || psi0 == 3 || psi0 == 4))
+          header.PulseStepIncrement = psi0;
+        if (meta.Length >= 13)
+          TryApplyRunPulseCoefficient(meta[12], header);
+      }
+      else
+      {
+        if (meta.Length >= 6)
+          header.InitialHomeostasisValues = "";
+        else if (meta.Length >= 5)
+          header.InitialHomeostasisValues = Unescape(meta[4]);
+        else if (meta.Length >= 4)
+          header.InitialHomeostasisValues = Unescape(meta[3]);
+      }
+    }
+
+    private static void TryApplyRunPulseCoefficient(string raw, ScenarioHeader header)
+    {
+      if (!int.TryParse(raw.Trim(), NumberStyles.Integer, CultureInfo.InvariantCulture, out int ptc))
+        return;
+      if (ptc == 1 || ptc == 5 || ptc == 10 || ptc == 20 || ptc == 50 || ptc == 100)
+        header.RunPulseTimingCoefficient = ptc;
     }
 
     private static ScenarioLineRow ParseLineRow(string line)
@@ -305,7 +340,7 @@ namespace AIStudio.Common
       {
         "# Реестр сценариев оператора",
         $"{RegistryFormatHeader}{ScenarioDocument.FormatVersion}",
-        "# Id|Title|Description|Date|Group|SortInGroup"
+        "# Id|Title|Description|Date"
       };
       foreach (var h in headers.OrderBy(x => x.Id))
       {
@@ -313,9 +348,7 @@ namespace AIStudio.Common
             h.Id.ToString(CultureInfo.InvariantCulture),
             Escape(h.Title ?? ""),
             Escape(h.Description ?? ""),
-            Escape(h.DateText ?? ""),
-            h.GroupNumber.ToString(CultureInfo.InvariantCulture),
-            h.SortOrderInGroup.ToString(CultureInfo.InvariantCulture)));
+            Escape(h.DateText ?? "")));
       }
 
       return FileValidator.SafeSaveFile(
@@ -346,7 +379,7 @@ namespace AIStudio.Common
       {
         "# Строки сценария оператора",
         $"{LinesFormatHeader}{ScenarioDocument.LinesFileFormatVersion}",
-        $"# SCENARIO_META|{Escape(doc.Header.Title ?? "")}|{Escape(doc.Header.Description ?? "")}|{Escape(doc.Header.DateText ?? "")}|{Escape(doc.Header.InitialHomeostasisValues ?? "")}|{doc.Header.GroupNumber.ToString(CultureInfo.InvariantCulture)}|{doc.Header.SortOrderInGroup.ToString(CultureInfo.InvariantCulture)}|{doc.Header.PreRunTargetStage.ToString(CultureInfo.InvariantCulture)}|{(doc.Header.PreRunClearAgentData ? "1" : "0")}|{(doc.Header.ScenarioObservationMode ? "1" : "0")}|{(doc.Header.ScenarioAuthoritativeRecording ? "1" : "0")}|{(doc.Header.PreRunNormalHomeostasisState ? "1" : "0")}|{doc.Header.PulseStepIncrement.ToString(CultureInfo.InvariantCulture)}|{doc.Header.RunPulseTimingCoefficient.ToString(CultureInfo.InvariantCulture)}",
+        $"# SCENARIO_META|{Escape(doc.Header.Title ?? "")}|{Escape(doc.Header.Description ?? "")}|{Escape(doc.Header.DateText ?? "")}|{Escape(doc.Header.InitialHomeostasisValues ?? "")}|{doc.Header.PreRunTargetStage.ToString(CultureInfo.InvariantCulture)}|{(doc.Header.PreRunClearAgentData ? "1" : "0")}|{(doc.Header.ScenarioObservationMode ? "1" : "0")}|{(doc.Header.ScenarioAuthoritativeRecording ? "1" : "0")}|{(doc.Header.PreRunNormalHomeostasisState ? "1" : "0")}|{doc.Header.PulseStepIncrement.ToString(CultureInfo.InvariantCulture)}|{doc.Header.RunPulseTimingCoefficient.ToString(CultureInfo.InvariantCulture)}",
         "# Step|Pulse|Kind(P|W)|ToneId|MoodId|ActionIds|Phrase|ResetWait",
         "# Kind=W — только клик по плашке ожидания; P — воздействия с пульта. Пульс — по шагам и режиму приращения из метаданных (см. настройки проекта)."
       };

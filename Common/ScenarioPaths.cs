@@ -9,6 +9,10 @@ namespace AIStudio.Common
     public const string ScenarioLinesFilePrefix = "Scenario_";
     public const string ScenarioLinesFileSuffix = ".dat";
 
+    public const string GroupRegistryFileName = "ScenarioGroupRegistry.dat";
+    public const string GroupLinesFilePrefix = "ScenarioGroup_";
+    public const string GroupLinesFileSuffix = ".dat";
+
     public static string RootFolder =>
         Path.Combine(Path.GetDirectoryName(AppConfig.DataActionsFolderPath) ?? "", "Scenarios");
 
@@ -16,5 +20,10 @@ namespace AIStudio.Common
 
     public static string LinesPath(int scenarioId) =>
         Path.Combine(RootFolder, $"{ScenarioLinesFilePrefix}{scenarioId}{ScenarioLinesFileSuffix}");
+
+    public static string GroupRegistryPath => Path.Combine(RootFolder, GroupRegistryFileName);
+
+    public static string GroupLinesPath(int groupId) =>
+        Path.Combine(RootFolder, $"{GroupLinesFilePrefix}{groupId}{GroupLinesFileSuffix}");
   }
 }

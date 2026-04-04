@@ -72,30 +72,19 @@
                   <RowDefinition Height="Auto"/>
                   <RowDefinition Height="Auto"/>
                   <RowDefinition Height="Auto"/>
-                  <RowDefinition Height="Auto"/>
                 </Grid.RowDefinitions>
                 <Grid.ColumnDefinitions>
                   <ColumnDefinition Width="*"/>
-                  <ColumnDefinition Width="*"/>
-                  <ColumnDefinition Width="*"/>
                 </Grid.ColumnDefinitions>
-                <StackPanel Grid.Row="0" Grid.Column="0" Margin="0,0,8,8">
+                <StackPanel Grid.Row="0" Grid.Column="0" Margin="0,0,0,8">
                   <TextBlock Text="Дата" FontSize="12" FontWeight="SemiBold" Foreground="#FF0D47A1" Margin="0,0,0,4"/>
                   <TextBox Text="{Binding DateText, UpdateSourceTrigger=PropertyChanged}" Padding="4,3" FontSize="12"/>
                 </StackPanel>
-                <StackPanel Grid.Row="0" Grid.Column="1" Margin="4,0,4,8">
-                  <TextBlock Text="Номер группы" FontSize="12" FontWeight="SemiBold" Foreground="#FF0D47A1" Margin="0,0,0,4"/>
-                  <TextBox Text="{Binding GroupNumber, UpdateSourceTrigger=PropertyChanged}" Padding="4,3" FontSize="12"/>
-                </StackPanel>
-                <StackPanel Grid.Row="0" Grid.Column="2" Margin="8,0,0,8">
-                  <TextBlock Text="Сортировка в группе" FontSize="12" FontWeight="SemiBold" Foreground="#FF0D47A1" Margin="0,0,0,4"/>
-                  <TextBox Text="{Binding SortOrderInGroup, UpdateSourceTrigger=PropertyChanged}" Padding="4,3" FontSize="12"/>
-                </StackPanel>
-                <StackPanel Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="3" Margin="0,0,0,8">
+                <StackPanel Grid.Row="1" Grid.Column="0" Margin="0,0,0,8">
                   <TextBlock Text="Название" FontSize="12" FontWeight="SemiBold" Foreground="#FF0D47A1" Margin="0,0,0,4"/>
                   <TextBox Text="{Binding Title, UpdateSourceTrigger=PropertyChanged}" Padding="4,3" FontSize="12"/>
                 </StackPanel>
-                <StackPanel Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="3" Margin="0,0,0,0">
+                <StackPanel Grid.Row="2" Grid.Column="0" Margin="0,0,0,0">
                   <TextBlock Text="Описание" FontSize="12" FontWeight="SemiBold" Foreground="#FF0D47A1" Margin="0,0,0,4"/>
                   <Grid>
                     <Grid.ColumnDefinitions>
@@ -149,7 +138,11 @@
                              FontSize="12" FontWeight="SemiBold" Foreground="#FF0D47A1"/>
                   <ComboBox Grid.Row="1" Grid.Column="1" Padding="4,3" FontSize="12" HorizontalAlignment="Left" MinWidth="100" Margin="0,0,0,8"
                             ItemsSource="{Binding PulseTimingCoefficientChoices}"
-                            SelectedValue="{Binding RunPulseTimingCoefficient, UpdateSourceTrigger=PropertyChanged}"/>
+                            SelectedValue="{Binding RunPulseTimingCoefficient, UpdateSourceTrigger=PropertyChanged}">
+                    <ComboBox.ToolTip>
+                      <TextBlock MaxWidth="360" TextWrapping="Wrap">Сокращает паузы между фазами пульса в N раз. Фактическое ускорение ограничено временем вычислений агента (~15 пульс/сек), поэтому значения выше 20 не дают прироста.</TextBlock>
+                    </ComboBox.ToolTip>
+                  </ComboBox>
                   <TextBlock Grid.Row="2" Grid.Column="0" Text="Очистить данные" VerticalAlignment="Center" Margin="0,0,12,8"
                              FontSize="12" FontWeight="SemiBold" Foreground="#FF0D47A1"/>
                   <CheckBox Grid.Row="2" Grid.Column="1" VerticalAlignment="Center" Margin="0,0,0,8"

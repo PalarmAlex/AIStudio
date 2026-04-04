@@ -26,6 +26,85 @@ namespace AIStudio.Common
       var sb = new StringBuilder();
       sb.AppendLine("<!DOCTYPE html>");
       sb.AppendLine("<html><head><meta charset=\"utf-8\"/>");
+      AppendReportStyles(sb);
+      sb.AppendLine("</head><body>");
+
+      sb.AppendLine("<h1>Отчёт по прогону сценария оператора</h1>");
+      sb.AppendLine("<p>").Append(Escape(BuildSummaryParagraph(completion))).AppendLine("</p>");
+      AppendScenarioReportMainBody(sb, doc, completion, influenceActions, perceptionImages);
+
+      sb.AppendLine("<p class=\"muted\" style=\"margin-top:24px;font-size:11px;\">Сформировано AIStudio.</p>");
+      sb.AppendLine("</body></html>");
+      return sb.ToString();
+    }
+
+    /// <summary>Сводный HTML-отчёт по пакетному прогону группы сценариев.</summary>
+    public static string BuildGroupBatchHtml(
+        ScenarioGroupDocument groupDef,
+        IReadOnlyList<Tuple<ScenarioDocument, OperatorScenarioCompletedEventArgs>> runs,
+        InfluenceActionSystem influenceActions,
+        PerceptionImagesSystem perceptionImages = null)
+    {
+      if (groupDef == null || runs == null)
+        return "<html><body><p>Нет данных группы.</p></body></html>";
+
+      var sb = new StringBuilder();
+      sb.AppendLine("<!DOCTYPE html>");
+      sb.AppendLine("<html><head><meta charset=\"utf-8\"/>");
+      AppendReportStyles(sb);
+      sb.AppendLine("</head><body>");
+
+      sb.AppendLine("<h1>Отчёт по групповому прогону сценариев</h1>");
+      sb.AppendLine("<h2>Группа</h2>");
+      sb.AppendLine("<table class=\"meta-table\">");
+      AppendMetaRow(sb, "ID группы", Escape(groupDef.Id.ToString(CultureInfo.InvariantCulture)));
+      AppendMetaRow(sb, "Дата", Escape(groupDef.DateText ?? ""));
+      AppendMetaRow(sb, "Название", Escape(groupDef.Title ?? ""));
+      var gdesc = groupDef.Description ?? "";
+      var gdescHtml = WebUtility.HtmlEncode(gdesc).Replace("\r\n", "\n").Replace("\n", "<br/>");
+      sb.AppendLine("<tr><th class=\"meta-label\">").Append(Escape("Описание")).Append("</th><td class=\"meta-value\">").Append(gdescHtml).AppendLine("</td></tr>");
+      AppendMetaRow(sb, "Коэфф. пульсации (группа)", Escape(groupDef.RunPulseTimingCoefficient.ToString(CultureInfo.InvariantCulture)));
+      sb.AppendLine("</table>");
+
+      sb.AppendLine("<h2>Состав группы (порядок прогона)</h2>");
+      sb.AppendLine("<table class=\"steps-zebra\"><tr><th>Сорт.</th><th>ID сценария</th><th>Стадия</th><th>Очистка</th><th>Норма</th><th>Набл.</th><th>Авт.зап.</th></tr>");
+      foreach (var m in groupDef.Members.OrderBy(x => x.SortOrderInGroup).ThenBy(x => x.ScenarioId))
+      {
+        sb.AppendLine("<tr>");
+        sb.Append("<td>").Append(Escape(m.SortOrderInGroup.ToString(CultureInfo.InvariantCulture))).Append("</td>");
+        sb.Append("<td>").Append(Escape(m.ScenarioId.ToString(CultureInfo.InvariantCulture))).Append("</td>");
+        sb.Append("<td>").Append(Escape(ScenarioGroupDocument.FormatPreRunStageShort(m.PreRunTargetStage))).Append("</td>");
+        sb.Append("<td>").Append(m.PreRunClearAgentData ? "да" : "нет").Append("</td>");
+        sb.Append("<td>").Append(m.PreRunNormalHomeostasisState ? "да" : "нет").Append("</td>");
+        sb.Append("<td>").Append(m.ScenarioObservationMode ? "да" : "нет").Append("</td>");
+        sb.Append("<td>").Append(m.ScenarioAuthoritativeRecording ? "да" : "нет").Append("</td>");
+        sb.AppendLine("</tr>");
+      }
+      sb.AppendLine("</table>");
+
+      int n = 0;
+      foreach (var tuple in runs)
+      {
+        n++;
+        var doc = tuple.Item1;
+        var completion = tuple.Item2;
+        if (doc == null)
+          continue;
+        sb.AppendLine("<hr style=\"margin:28px 0;\"/>");
+        sb.Append("<h2>Сценарий ").Append(Escape(n.ToString(CultureInfo.InvariantCulture)))
+            .Append(": ID ").Append(Escape(doc.Header?.Id.ToString(CultureInfo.InvariantCulture) ?? ""))
+            .Append(" — ").Append(Escape(doc.Header?.Title ?? "")).AppendLine("</h2>");
+        sb.AppendLine("<p>").Append(Escape(BuildSummaryParagraph(completion))).AppendLine("</p>");
+        AppendScenarioReportMainBody(sb, doc, completion, influenceActions, perceptionImages);
+      }
+
+      sb.AppendLine("<p class=\"muted\" style=\"margin-top:24px;font-size:11px;\">Сформировано AIStudio.</p>");
+      sb.AppendLine("</body></html>");
+      return sb.ToString();
+    }
+
+    private static void AppendReportStyles(StringBuilder sb)
+    {
       sb.AppendLine("<style>");
       sb.AppendLine("body{font-family:Segoe UI,Tahoma,sans-serif;margin:16px;color:#222;}");
       sb.AppendLine("h1{font-size:18px;color:#1565C0;}");
@@ -49,17 +128,20 @@ namespace AIStudio.Common
       sb.AppendLine(".summary-bad{color:#C62828;font-size:13px;font-weight:600;margin:0 0 8px 0;}");
       sb.AppendLine(".summary-box ul{margin:6px 0 0 0;padding-left:20px;}");
       sb.AppendLine(".summary-box li{margin:8px 0;font-size:12px;line-height:1.45;}");
-      sb.AppendLine("</style></head><body>");
+      sb.AppendLine("</style>");
+    }
 
-      sb.AppendLine("<h1>Отчёт по прогону сценария оператора</h1>");
-      sb.AppendLine("<p>").Append(Escape(BuildSummaryParagraph(completion))).AppendLine("</p>");
-
+    public static void AppendScenarioReportMainBody(
+        StringBuilder sb,
+        ScenarioDocument doc,
+        OperatorScenarioCompletedEventArgs completion,
+        InfluenceActionSystem influenceActions,
+        PerceptionImagesSystem perceptionImages)
+    {
       sb.AppendLine("<h2>Данные сценария</h2>");
       sb.AppendLine("<table class=\"meta-table\">");
       AppendMetaRow(sb, "ID", Escape(doc.Header?.Id.ToString(CultureInfo.InvariantCulture) ?? ""));
       AppendMetaRow(sb, "Дата", Escape(doc.Header?.DateText ?? ""));
-      AppendMetaRow(sb, "Номер группы", Escape(doc.Header?.GroupNumber.ToString(CultureInfo.InvariantCulture) ?? ""));
-      AppendMetaRow(sb, "Сортировка в группе", Escape(doc.Header?.SortOrderInGroup.ToString(CultureInfo.InvariantCulture) ?? ""));
       AppendMetaRow(sb, "Название", Escape(doc.Header?.Title ?? ""));
       var descRaw = doc.Header?.Description ?? "";
       var descHtml = WebUtility.HtmlEncode(descRaw).Replace("\r\n", "\n").Replace("\n", "<br/>");
@@ -153,10 +235,6 @@ namespace AIStudio.Common
       sb.AppendLine("</table>");
 
       AppendComparisonSummary(sb, compareList);
-
-      sb.AppendLine("<p class=\"muted\" style=\"margin-top:24px;font-size:11px;\">Сформировано AIStudio.</p>");
-      sb.AppendLine("</body></html>");
-      return sb.ToString();
     }
 
     /// <summary>Та же логика, что <see cref="ScenarioLogComparer.Compare"/> (поле проверяется только если ожидание не пустое).</summary>
