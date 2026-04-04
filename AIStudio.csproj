@@ -64,12 +64,10 @@
     <Reference Include="WindowsBase" />
     <Reference Include="PresentationCore" />
     <Reference Include="PresentationFramework" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\..\isida\isida.csproj">
-      <Project>{CB9344B3-4697-428C-A1C7-46836E163E9C}</Project>
-      <Name>isida</Name>
-    </ProjectReference>
+    <Reference Include="isida">
+      <HintPath>..\..\isida\bin\$(Configuration)\isida.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
   </ItemGroup>
   <ItemGroup>
     <ApplicationDefinition Include="App.xaml">
@@ -663,4 +661,10 @@
     <Resource Include="Resources\Delete.ico" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <Target Name="CopyIsidaRuntimeAssemblies" AfterTargets="CopyFilesToOutputDirectory">
+    <ItemGroup>
+      <_IsidaBinaries Include="..\..\isida\bin\$(Configuration)\*.dll" />
+    </ItemGroup>
+    <Copy SourceFiles="@(_IsidaBinaries)" DestinationFolder="$(OutputPath)" SkipUnchangedFiles="true" Condition="Exists('..\..\isida\bin\$(Configuration)\isida.dll')" />
+  </Target>
 </Project>
