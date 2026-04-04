@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
@@ -71,7 +71,8 @@ namespace AIStudio.ViewModels
         ActivationThreshold = _conditionedReflexesSystem.Settings.ActivationThreshold,
         TimeWindowPulses = _conditionedReflexesSystem.Settings.TimeWindowPulses,
         MinAssociationStrength = _conditionedReflexesSystem.Settings.MinAssociationStrength,
-        MaxAssociationStrength = _conditionedReflexesSystem.Settings.MaxAssociationStrength
+        MaxAssociationStrength = _conditionedReflexesSystem.Settings.MaxAssociationStrength,
+        HigherOrderStrengthReductionCoefficient = _conditionedReflexesSystem.Settings.HigherOrderStrengthReductionCoefficient
       };
 
       OnPropertyChanged(nameof(Settings));
@@ -159,6 +160,11 @@ namespace AIStudio.ViewModels
       if (!minStrengthValidation.isValid)
         errors.Add(minStrengthValidation.errorMessage);
 
+      // Валидация коэффициента понижения крепости вторичных
+      var reductionCoeffValidation = SettingsValidator.ValidateHigherOrderStrengthReductionCoefficient(Settings.HigherOrderStrengthReductionCoefficient);
+      if (!reductionCoeffValidation.isValid)
+        errors.Add(reductionCoeffValidation.errorMessage);
+
       // Дополнительная валидация для MaxAssociationStrength
       if (Settings.MaxAssociationStrength != 1.0f)
         errors.Add("Максимальная крепость связи (MaxAssociationStrength) должна быть равна 1.0");
@@ -180,6 +186,7 @@ namespace AIStudio.ViewModels
       _conditionedReflexesSystem.Settings.ActivationThreshold = Math.Max(0.5f, Math.Min(Settings.ActivationThreshold, 0.7f));
       _conditionedReflexesSystem.Settings.TimeWindowPulses = Math.Max(1, Math.Min(Settings.TimeWindowPulses, 20));
       _conditionedReflexesSystem.Settings.MinAssociationStrength = Math.Max(0.01f, Math.Min(Settings.MinAssociationStrength, 0.3f));
+      _conditionedReflexesSystem.Settings.HigherOrderStrengthReductionCoefficient = Math.Max(1.2f, Math.Min(Settings.HigherOrderStrengthReductionCoefficient, 3.0f));
     }
 
     private void Cancel(object parameter)

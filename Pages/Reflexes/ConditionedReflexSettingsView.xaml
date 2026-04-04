@@ -1,4 +1,4 @@
-﻿<Window x:Class="AIStudio.Views.ConditionedReflexSettingsView"
+<Window x:Class="AIStudio.Views.ConditionedReflexSettingsView"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
@@ -184,6 +184,26 @@
                        Text="{Binding Settings.MinAssociationStrength, UpdateSourceTrigger=LostFocus, StringFormat=N2, ValidatesOnExceptions=True, NotifyOnValidationError=True}"/>
               <TextBlock Grid.Column="2" Style="{StaticResource SettingsRangeTextStyle}"
                          Text="(0.01 - 0.3)"/>
+            </Grid>
+
+            <!-- Коэффициент понижения крепости вторичных -->
+            <Grid Style="{StaticResource GridRowStyle}">
+              <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="Auto"/>
+              </Grid.ColumnDefinitions>
+
+              <TextBlock Grid.Column="0" Style="{StaticResource SettingsLabelStyle}"
+                         Text="Коэфф. понижения крепости вторичных (K):"/>
+              <TextBox Grid.Column="1" Style="{StaticResource SettingsTextBoxStyle}"
+                       GotFocus="TextBox_GotFocus"
+                       PreviewMouseLeftButtonDown="TextBox_PreviewMouseLeftButtonDown"
+                       LostFocus="TextBox_LostFocus"
+                       Text="{Binding Settings.HigherOrderStrengthReductionCoefficient, UpdateSourceTrigger=LostFocus, StringFormat=N2, ValidatesOnExceptions=True, NotifyOnValidationError=True}"
+                       ToolTip="Для третичных автоматически удваивается"/>
+              <TextBlock Grid.Column="2" Style="{StaticResource SettingsRangeTextStyle}"
+                         Text="(1.2 - 3.0)"/>
             </Grid>
 
             <!-- Максимальная крепость связи -->

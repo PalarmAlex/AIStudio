@@ -117,6 +117,7 @@
                 <Setter Property="Padding" Value="6,4"/>
                 <Setter Property="TextTrimming" Value="CharacterEllipsis"/>
                 <Setter Property="VerticalAlignment" Value="Center"/>
+                <Setter Property="ToolTip" Value="{Binding Title}"/>
               </Style>
             </DataGridTextColumn.ElementStyle>
           </DataGridTextColumn>
@@ -126,7 +127,6 @@
                 <Setter Property="Padding" Value="6,4"/>
                 <Setter Property="TextTrimming" Value="CharacterEllipsis"/>
                 <Setter Property="VerticalAlignment" Value="Center"/>
-                <Setter Property="ToolTip" Value="{Binding Description}"/>
               </Style>
             </DataGridTextColumn.ElementStyle>
           </DataGridTextColumn>
