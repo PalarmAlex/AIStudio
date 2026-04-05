@@ -95,8 +95,7 @@
                              Grid.Column="0"
                              Text="{Binding DescriptionDisplay, Mode=OneWay}"
                              IsReadOnly="True" Padding="4,3" FontSize="12"
-                             Background="#FFF5F5F5"
-                             ToolTip="{Binding Description}"/>
+                             Background="#FFF5F5F5"/>
                     <Button Grid.Column="1" Content="Редактировать…" Padding="10,4" Margin="8,0,0,0"
                             VerticalAlignment="Center" Click="EditDescriptionButton_Click"/>
                   </Grid>

@@ -68,6 +68,8 @@ namespace AIStudio
     private readonly OperatorScenarioRunner _scenarioRunner = new OperatorScenarioRunner();
     private bool _wasPulsatingForScenario;
     private ScenarioRunProgressWindow _scenarioRunProgressWindow;
+    private int _activeProgressScenarioId;
+    private int? _activeProgressGroupId;
     private string _pendingScenarioReportFolder;
     private ScenarioBatchRunState _scenarioBatchRun;
     private bool _scenarioPultModesSaved;
@@ -615,6 +617,18 @@ namespace AIStudio
       w.Closing += OnScenarioRunProgressWindowClosing;
     }
 
+    private void ApplyScenarioRunProgressWindowChrome(ScenarioRunProgressWindow w)
+    {
+      if (w == null)
+        return;
+      if (_activeProgressGroupId is int groupId)
+        w.SetRunChromeForScenarioGroup(groupId);
+      else if (_activeProgressScenarioId > 0)
+        w.SetRunChromeForScenario(_activeProgressScenarioId);
+      else
+        w.SetRunChromeDefault();
+    }
+
     private void OnScenarioRunProgressWindowClosing(object sender, System.ComponentModel.CancelEventArgs e)
     {
       if (sender is ScenarioRunProgressWindow w)
@@ -728,6 +742,7 @@ namespace AIStudio
                 Owner = Application.Current?.MainWindow
               };
               WireScenarioRunProgressWindow(_scenarioRunProgressWindow);
+              ApplyScenarioRunProgressWindowChrome(_scenarioRunProgressWindow);
               _scenarioRunProgressWindow.SetStatus("Запуск сценария…");
               _scenarioRunProgressWindow.Show();
             }
@@ -882,6 +897,11 @@ namespace AIStudio
 
       if (!TryApplyPreRunStageForScenario(doc, out bool homeostasisNormSettlePending))
         return false;
+
+      _activeProgressScenarioId = doc.Header?.Id ?? 0;
+      _activeProgressGroupId = _scenarioBatchRun?.GroupDefinition != null
+          ? (int?)_scenarioBatchRun.GroupDefinition.Id
+          : null;
 
       if (homeostasisNormSettlePending)
       {
@@ -1156,6 +1176,7 @@ namespace AIStudio
             Owner = Application.Current?.MainWindow
           };
           WireScenarioRunProgressWindow(_scenarioRunProgressWindow);
+          ApplyScenarioRunProgressWindowChrome(_scenarioRunProgressWindow);
           _scenarioRunProgressWindow.Show();
         }
         _scenarioRunProgressWindow.SetStatus(

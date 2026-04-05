@@ -76,7 +76,8 @@
         <StackPanel Grid.Row="2" Grid.ColumnSpan="2" Margin="0,0,0,0">
           <TextBlock Text="Описание" FontWeight="SemiBold" Margin="0,0,0,4"/>
           <TextBox Text="{Binding Description, UpdateSourceTrigger=PropertyChanged}" Padding="4,3" MinHeight="72"
-                   TextWrapping="Wrap" AcceptsReturn="True" VerticalScrollBarVisibility="Auto"/>
+                   TextWrapping="Wrap" AcceptsReturn="True" VerticalScrollBarVisibility="Auto"
+                   ToolTipService.IsEnabled="False"/>
         </StackPanel>
       </Grid>
     </Border>
@@ -88,13 +89,13 @@
       </Grid.RowDefinitions>
       <StackPanel Orientation="Horizontal" Margin="0,0,0,6">
         <Button Content="Добавить строку" Padding="8,4" Margin="0,0,8,0" Command="{Binding AddMemberCommand}" Cursor="Hand"/>
-        <Button Content="Удалить строку" Padding="8,4" Command="{Binding RemoveMemberCommand}" Cursor="Hand"/>
       </StackPanel>
       <DataGrid Grid.Row="1" ItemsSource="{Binding Members}" SelectedItem="{Binding SelectedMember, Mode=TwoWay}"
-                Style="{StaticResource GridStyle}" AutoGenerateColumns="False" SelectionUnit="FullRow">
+                Style="{StaticResource GridStyle}" AutoGenerateColumns="False" SelectionUnit="FullRow"
+                PreviewKeyDown="MembersDataGrid_OnPreviewKeyDown">
         <DataGrid.Columns>
           <DataGridTextColumn Header="Сорт." Binding="{Binding SortOrderInGroup, UpdateSourceTrigger=PropertyChanged}" Width="56"/>
-          <DataGridTemplateColumn Header="Сценарий" Width="260">
+          <DataGridTemplateColumn Header="Сценарий" Width="*">
             <DataGridTemplateColumn.CellTemplate>
               <DataTemplate>
                 <ComboBox Padding="2"

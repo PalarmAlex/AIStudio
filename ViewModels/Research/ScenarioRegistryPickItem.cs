@@ -1,6 +1,6 @@
 namespace AIStudio.ViewModels.Research
 {
-  /// <summary>Элемент списка выбора сценария: в списке — укороченное название, ToolTip — полное.</summary>
+  /// <summary>Элемент списка выбора сценария в редакторе группы (полное название в списке и подсказке пункта).</summary>
   public sealed class ScenarioRegistryPickItem
   {
     public int Id { get; }
@@ -11,8 +11,7 @@ namespace AIStudio.ViewModels.Research
     {
       Id = id;
       FullTitle = fullTitle ?? string.Empty;
-      var t = FullTitle;
-      DisplayTitle = t.Length <= 50 ? t : t.Substring(0, 50) + "…";
+      DisplayTitle = FullTitle;
     }
   }
 }
