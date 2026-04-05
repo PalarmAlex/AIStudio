@@ -4,6 +4,7 @@ using AIStudio.ViewModels;
 
 using ISIDA.Actions;
 using ISIDA.Psychic.Automatism;
+using ISIDA.Reflexes;
 using ISIDA.Scenarios;
 
 using System;
@@ -90,6 +91,11 @@ namespace AIStudio.ViewModels.Research
       MoodChoiceOptions = ActionsImagesSystem.GetMoodList()
           .OrderBy(kv => kv.Key)
           .Select(kv => new ScenarioToneMoodChoiceItem { Id = kv.Key, Label = kv.Value })
+          .ToList();
+
+      VisualColorChoiceOptions = Enumerable
+          .Range(AgentVisualColor.MinCode, AgentVisualColor.MaxCode - AgentVisualColor.MinCode + 1)
+          .Select(c => new ScenarioToneMoodChoiceItem { Id = c, Label = AgentVisualColor.GetDisplayName(c) })
           .ToList();
 
       PreRunStageChoices = new ObservableCollection<EvolutionStageItem>();
@@ -184,6 +190,7 @@ namespace AIStudio.ViewModels.Research
 
     public List<ScenarioToneMoodChoiceItem> ToneChoiceOptions { get; }
     public List<ScenarioToneMoodChoiceItem> MoodChoiceOptions { get; }
+    public List<ScenarioToneMoodChoiceItem> VisualColorChoiceOptions { get; }
 
     public List<ScenarioExpectationChoiceItem> StateChoiceOptions { get; }
     public List<ScenarioExpectationChoiceItem> StyleChoiceOptions { get; }
@@ -676,7 +683,8 @@ namespace AIStudio.ViewModels.Research
         PulseWithinScenario = nextPulse,
         Kind = ScenarioLineKind.Pult,
         ToneId = 0,
-        MoodId = 0
+        MoodId = 0,
+        VisualColorId = AgentVisualColor.White
       };
       row.RefreshActionNames(_influenceActions);
       return row;

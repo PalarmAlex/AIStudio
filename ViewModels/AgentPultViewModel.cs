@@ -871,6 +871,7 @@ namespace AIStudio.ViewModels
             AutomatismExecutionService.Instance.ApplyStimulusEffectAndAdvanceChain();
           // Обновляем состояние агента после воздействий
           UpdateAgentState();
+          SelectedVisualColorId = AgentVisualColor.White;
         }
       }
       catch (Exception ex)

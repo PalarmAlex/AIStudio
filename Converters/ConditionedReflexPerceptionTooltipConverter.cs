@@ -91,12 +91,15 @@ namespace AIStudio.Converters
 
         tooltip.AppendLine();
 
-        // Тон и настроение берём из условного рефлекса (ToneId, MoodId)
+        // Тон и настроение — из условного рефлекса (ToneId, MoodId); цвет — из образа восприятия (зрительный канал)
         string toneText = ActionsImagesSystem.IsInitialized ? ActionsImagesSystem.GetToneText(toneId) : null;
         string moodText = ActionsImagesSystem.IsInitialized ? ActionsImagesSystem.GetMoodText(moodId) : null;
         if (string.IsNullOrEmpty(toneText)) toneText = "Нормальный";
         if (string.IsNullOrEmpty(moodText)) moodText = "Нормальное";
-        tooltip.Append($"Тон/Настроение: {toneText} - {moodText}.");
+        tooltip.AppendLine($"Тон: {toneText}");
+        tooltip.AppendLine($"Настроение: {moodText}");
+        int colorCode = AgentVisualColor.IsValidCode(image.VisualColorId) ? image.VisualColorId : AgentVisualColor.White;
+        tooltip.Append($"Цвет: {AgentVisualColor.GetDisplayName(colorCode)} (код {colorCode})");
 
         return tooltip.ToString();
       }

@@ -1,4 +1,5 @@
 using ISIDA.Common;
+using ISIDA.Reflexes;
 using ISIDA.Scenarios;
 using System;
 using System.Collections.Generic;
@@ -233,6 +234,11 @@ namespace AIStudio.Common
         if (!int.TryParse(p[7], NumberStyles.Integer, CultureInfo.InvariantCulture, out int rw))
           return null;
 
+        int visualColor = AgentVisualColor.White;
+        if (p.Length > 8 && int.TryParse(p[8].Trim(), NumberStyles.Integer, CultureInfo.InvariantCulture, out int vc)
+            && AgentVisualColor.IsValidCode(vc))
+          visualColor = vc;
+
         return new ScenarioLineRow
         {
           StepIndex = step,
@@ -240,6 +246,7 @@ namespace AIStudio.Common
           Kind = kind,
           ToneId = tone,
           MoodId = mood,
+          VisualColorId = visualColor,
           ActionIds = actions,
           Phrase = phrase,
           ResetWaitingPeriod = rw != 0
@@ -265,6 +272,11 @@ namespace AIStudio.Common
       if (!int.TryParse(p[6], NumberStyles.Integer, CultureInfo.InvariantCulture, out int rwL))
         return null;
 
+      int visualLegacy = AgentVisualColor.White;
+      if (p.Length > 7 && int.TryParse(p[7].Trim(), NumberStyles.Integer, CultureInfo.InvariantCulture, out int vcL)
+          && AgentVisualColor.IsValidCode(vcL))
+        visualLegacy = vcL;
+
       return new ScenarioLineRow
       {
         StepIndex = 0,
@@ -272,6 +284,7 @@ namespace AIStudio.Common
         Kind = kindL,
         ToneId = toneL,
         MoodId = moodL,
+        VisualColorId = visualLegacy,
         ActionIds = actionsL,
         Phrase = phraseL,
         ResetWaitingPeriod = rwL != 0
@@ -380,8 +393,8 @@ namespace AIStudio.Common
         "# Строки сценария оператора",
         $"{LinesFormatHeader}{ScenarioDocument.LinesFileFormatVersion}",
         $"# SCENARIO_META|{Escape(doc.Header.Title ?? "")}|{Escape(doc.Header.Description ?? "")}|{Escape(doc.Header.DateText ?? "")}|{Escape(doc.Header.InitialHomeostasisValues ?? "")}|{doc.Header.PreRunTargetStage.ToString(CultureInfo.InvariantCulture)}|{(doc.Header.PreRunClearAgentData ? "1" : "0")}|{(doc.Header.ScenarioObservationMode ? "1" : "0")}|{(doc.Header.ScenarioAuthoritativeRecording ? "1" : "0")}|{(doc.Header.PreRunNormalHomeostasisState ? "1" : "0")}|{doc.Header.PulseStepIncrement.ToString(CultureInfo.InvariantCulture)}|{doc.Header.RunPulseTimingCoefficient.ToString(CultureInfo.InvariantCulture)}",
-        "# Step|Pulse|Kind(P|W)|ToneId|MoodId|ActionIds|Phrase|ResetWait",
-        "# Kind=W — только клик по плашке ожидания; P — воздействия с пульта. Пульс — по шагам и режиму приращения из метаданных (см. настройки проекта)."
+        "# Step|Pulse|Kind(P|W)|ToneId|MoodId|ActionIds|Phrase|ResetWait|VisualColorId",
+        "# Kind=W — только клик по плашке ожидания; P — воздействия с пульта. Пульс — по шагам и режиму приращения из метаданных (см. настройки проекта). VisualColorId — код зрительного канала (0…8), см. AgentVisualColor."
       };
 
       foreach (var row in doc.Lines.OrderBy(r => r.StepIndex))
@@ -390,6 +403,7 @@ namespace AIStudio.Common
         var ids = row.ActionIds == null || row.ActionIds.Count == 0
             ? ""
             : string.Join(",", row.ActionIds.Select(i => i.ToString(CultureInfo.InvariantCulture)));
+        int visualSave = AgentVisualColor.IsValidCode(row.VisualColorId) ? row.VisualColorId : AgentVisualColor.White;
         lines.Add(string.Join("|",
             row.StepIndex.ToString(CultureInfo.InvariantCulture),
             row.PulseWithinScenario.ToString(CultureInfo.InvariantCulture),
@@ -398,7 +412,8 @@ namespace AIStudio.Common
             row.MoodId.ToString(CultureInfo.InvariantCulture),
             ids,
             Escape(row.Phrase ?? ""),
-            row.ResetWaitingPeriod ? "1" : "0"));
+            row.ResetWaitingPeriod ? "1" : "0",
+            visualSave.ToString(CultureInfo.InvariantCulture)));
       }
 
       var skc = doc.LogExpectationColumnSkips ?? new ScenarioLogExpectationColumnSkips();

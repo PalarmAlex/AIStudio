@@ -157,7 +157,7 @@ namespace AIStudio.Common
       sb.AppendLine("</table>");
 
       sb.AppendLine("<h2>Шаги</h2>");
-      sb.AppendLine("<table class=\"steps-zebra\"><tr><th>Шаг</th><th>№ пульса</th><th>Тип</th><th>Воздействия</th><th>Фраза</th><th>Тон</th><th>Настр.</th><th>Сброс ожид.</th></tr>");
+      sb.AppendLine("<table class=\"steps-zebra\"><tr><th>Шаг</th><th>№ пульса</th><th>Тип</th><th>Воздействия</th><th>Фраза</th><th>Тон</th><th>Настр.</th><th>Цвет</th><th>Сброс ожид.</th></tr>");
       if (doc.Lines != null)
       {
         foreach (var line in doc.Lines.OrderBy(l => l.StepIndex))
@@ -172,6 +172,7 @@ namespace AIStudio.Common
           sb.Append("<td>").Append(Escape(line.Phrase ?? "")).Append("</td>");
           sb.Append("<td>").Append(Escape(FormatToneCell(line.ToneId))).Append("</td>");
           sb.Append("<td>").Append(Escape(FormatMoodCell(line.MoodId))).Append("</td>");
+          sb.Append("<td>").Append(Escape(FormatVisualColorCell(line.VisualColorId))).Append("</td>");
           sb.Append("<td>").Append(line.ResetWaitingPeriod ? "да" : "нет").Append("</td>");
           sb.AppendLine("</tr>");
         }
@@ -331,6 +332,12 @@ namespace AIStudio.Common
       return string.IsNullOrEmpty(t)
           ? moodId.ToString(CultureInfo.InvariantCulture)
           : t + " (" + moodId.ToString(CultureInfo.InvariantCulture) + ")";
+    }
+
+    private static string FormatVisualColorCell(int colorId)
+    {
+      int code = AgentVisualColor.IsValidCode(colorId) ? colorId : AgentVisualColor.White;
+      return AgentVisualColor.GetDisplayName(code) + " (" + code.ToString(CultureInfo.InvariantCulture) + ")";
     }
   }
 }

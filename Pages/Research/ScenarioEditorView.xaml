@@ -350,6 +350,25 @@
                   </DataTemplate>
                 </DataGridTemplateColumn.CellTemplate>
               </DataGridTemplateColumn>
+              <DataGridTemplateColumn Header="Цвет" Width="130">
+                <DataGridTemplateColumn.HeaderStyle>
+                  <Style TargetType="DataGridColumnHeader">
+                    <Setter Property="FontSize" Value="12"/>
+                    <Setter Property="FontWeight" Value="SemiBold"/>
+                    <Setter Property="ToolTip" Value="Зрительный канал (код цвета фона сцены в файле сценария)."/>
+                  </Style>
+                </DataGridTemplateColumn.HeaderStyle>
+                <DataGridTemplateColumn.CellTemplate>
+                  <DataTemplate>
+                    <ComboBox ItemsSource="{Binding DataContext.VisualColorChoiceOptions, ElementName=EditorRoot}"
+                              SelectedValue="{Binding VisualColorId, UpdateSourceTrigger=PropertyChanged}"
+                              DisplayMemberPath="Label"
+                              SelectedValuePath="Id"
+                              Padding="2,1"
+                              FontSize="12"/>
+                  </DataTemplate>
+                </DataGridTemplateColumn.CellTemplate>
+              </DataGridTemplateColumn>
               <DataGridCheckBoxColumn Header="Сброс ожидания" Binding="{Binding ResetWaitingPeriod}" Width="120">
                 <DataGridCheckBoxColumn.HeaderStyle>
                   <Style TargetType="DataGridColumnHeader">
