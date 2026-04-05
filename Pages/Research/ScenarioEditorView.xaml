@@ -464,17 +464,12 @@
           <ColumnDefinition Width="Auto"/>
           <ColumnDefinition Width="*"/>
           <ColumnDefinition Width="Auto"/>
-          <ColumnDefinition Width="Auto"/>
-          <ColumnDefinition Width="Auto"/>
         </Grid.ColumnDefinitions>
         <TextBlock Grid.Column="0" Text="Сохранять файл отчёта в:" VerticalAlignment="Center" Margin="0,0,10,0" FontSize="12"/>
         <TextBox Grid.Column="1" Text="{Binding ReportOutputFolder, UpdateSourceTrigger=PropertyChanged}"
                  Padding="4,3" FontSize="12" VerticalAlignment="Center" Margin="0,0,8,0"/>
-        <Button Grid.Column="2" Content="Обзор…" Padding="10,4" Margin="0,0,8,0"
+        <Button Grid.Column="2" Content="Обзор…" Padding="10,4" Margin="0,0,0,0"
                 Command="{Binding BrowseReportFolderCommand}" VerticalAlignment="Center"/>
-        <Button Grid.Column="3" Content="Запустить сценарий" Padding="12,6" Margin="0,0,8,0"
-                FontWeight="SemiBold" Command="{Binding RunScenarioCommand}" VerticalAlignment="Center"
-                Background="#FF2196F3" Foreground="White" BorderBrush="#FF1976D2"/>
       </Grid>
     </Border>
 

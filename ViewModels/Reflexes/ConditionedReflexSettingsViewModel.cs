@@ -72,7 +72,9 @@ namespace AIStudio.ViewModels
         TimeWindowPulses = _conditionedReflexesSystem.Settings.TimeWindowPulses,
         MinAssociationStrength = _conditionedReflexesSystem.Settings.MinAssociationStrength,
         MaxAssociationStrength = _conditionedReflexesSystem.Settings.MaxAssociationStrength,
-        HigherOrderStrengthReductionCoefficient = _conditionedReflexesSystem.Settings.HigherOrderStrengthReductionCoefficient
+        HigherOrderStrengthReductionCoefficient = _conditionedReflexesSystem.Settings.HigherOrderStrengthReductionCoefficient,
+        CompetitionStrengthRatioThreshold = _conditionedReflexesSystem.Settings.CompetitionStrengthRatioThreshold,
+        TieBreakPreferSmallerReflexId = _conditionedReflexesSystem.Settings.TieBreakPreferSmallerReflexId
       };
 
       OnPropertyChanged(nameof(Settings));
@@ -187,6 +189,9 @@ namespace AIStudio.ViewModels
       _conditionedReflexesSystem.Settings.TimeWindowPulses = Math.Max(1, Math.Min(Settings.TimeWindowPulses, 20));
       _conditionedReflexesSystem.Settings.MinAssociationStrength = Math.Max(0.01f, Math.Min(Settings.MinAssociationStrength, 0.3f));
       _conditionedReflexesSystem.Settings.HigherOrderStrengthReductionCoefficient = Math.Max(1.2f, Math.Min(Settings.HigherOrderStrengthReductionCoefficient, 3.0f));
+      _conditionedReflexesSystem.Settings.CompetitionStrengthRatioThreshold =
+          Math.Max(0.5f, Math.Min(Settings.CompetitionStrengthRatioThreshold, 0.9f));
+      _conditionedReflexesSystem.Settings.TieBreakPreferSmallerReflexId = Settings.TieBreakPreferSmallerReflexId;
     }
 
     private void Cancel(object parameter)

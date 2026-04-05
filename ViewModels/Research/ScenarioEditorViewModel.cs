@@ -45,19 +45,16 @@ namespace AIStudio.ViewModels.Research
     private ScenarioLineRow _selectedLine;
     private ScenarioLogExpectationRow _selectedExpectationRow;
     private readonly Func<ScenarioDocument, string, ScenarioEditorViewModel, bool> _tryStartScenario;
-    private readonly Func<bool> _isScenarioRunning;
     private string _reportOutputFolder = "";
     private string _repeatBlockCountText = "1";
 
     public ScenarioEditorViewModel(
         InfluenceActionSystem influenceActions,
         ScenarioDocument doc,
-        Func<ScenarioDocument, string, ScenarioEditorViewModel, bool> tryStartScenario = null,
-        Func<bool> isScenarioRunning = null)
+        Func<ScenarioDocument, string, ScenarioEditorViewModel, bool> tryStartScenario = null)
     {
       _influenceActions = influenceActions ?? throw new ArgumentNullException(nameof(influenceActions));
       _tryStartScenario = tryStartScenario;
-      _isScenarioRunning = isScenarioRunning;
       _reportOutputFolder = AppConfig.ScenarioReportsFolderPath;
       Document = doc ?? throw new ArgumentNullException(nameof(doc));
 
@@ -137,7 +134,6 @@ namespace AIStudio.ViewModels.Research
       AddLineCommand = new RelayCommand(_ => AddLine());
       MassFillExpectationsCommand = new RelayCommand(_ => MassFillExpectations());
       BrowseReportFolderCommand = new RelayCommand(_ => BrowseReportFolder());
-      RunScenarioCommand = new RelayCommand(_ => RunScenario(), _ => _tryStartScenario != null && !(_isScenarioRunning?.Invoke() ?? false));
 
       HasUnsavedChanges = false;
     }
@@ -154,7 +150,6 @@ namespace AIStudio.ViewModels.Research
     }
 
     public ICommand BrowseReportFolderCommand { get; }
-    public ICommand RunScenarioCommand { get; }
 
     private void BrowseReportFolder()
     {
@@ -166,18 +161,6 @@ namespace AIStudio.ViewModels.Research
       };
       if (dialog.ShowDialog() == true)
         ReportOutputFolder = dialog.SelectedPath;
-    }
-
-    private void RunScenario()
-    {
-      if (_tryStartScenario == null)
-        return;
-      if (!Save(requestCloseAfterSuccess: false))
-        return;
-      var doc = BuildDocument();
-      _tryStartScenario(doc,
-          string.IsNullOrWhiteSpace(ReportOutputFolder) ? AppConfig.ScenarioReportsFolderPath : ReportOutputFolder.Trim(),
-          this);
     }
 
     public ScenarioDocument Document { get; }

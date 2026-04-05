@@ -26,6 +26,9 @@ namespace AIStudio.ViewModels.Research
     private readonly OperatorScenarioRunner _runner;
     private readonly Action<ScenarioEditorViewModel> _openEditorEmbedded;
     private readonly Func<ScenarioDocument, string, ScenarioEditorViewModel, bool> _tryStartScenario;
+    private readonly Func<bool> _isScenarioRunSessionBusy;
+    private readonly Action _requestStopScenarioSession;
+    private readonly Func<bool> _canStopScenarioSession;
 
     private ScenarioHeader _selected;
     private readonly List<ScenarioHeader> _registryAll = new List<ScenarioHeader>();
@@ -48,21 +51,27 @@ namespace AIStudio.ViewModels.Research
         InfluenceActionSystem influenceActions,
         OperatorScenarioRunner runner,
         Action<ScenarioEditorViewModel> openEditorEmbedded = null,
-        Func<ScenarioDocument, string, ScenarioEditorViewModel, bool> tryStartScenario = null)
+        Func<ScenarioDocument, string, ScenarioEditorViewModel, bool> tryStartScenario = null,
+        Func<bool> isScenarioRunSessionBusy = null,
+        Action requestStopScenarioSession = null,
+        Func<bool> canStopScenarioSession = null)
     {
       _influenceActions = influenceActions ?? throw new ArgumentNullException(nameof(influenceActions));
       _runner = runner ?? throw new ArgumentNullException(nameof(runner));
       _openEditorEmbedded = openEditorEmbedded;
       _tryStartScenario = tryStartScenario ?? throw new ArgumentNullException(nameof(tryStartScenario));
+      _isScenarioRunSessionBusy = isScenarioRunSessionBusy ?? (() => runner.IsRunning);
+      _requestStopScenarioSession = requestStopScenarioSession ?? (() => _runner.StopUser());
+      _canStopScenarioSession = canStopScenarioSession ?? (() => _runner.IsRunning);
 
       Items = new ObservableCollection<ScenarioHeader>();
       RefreshCommand = new RelayCommand(_ => Refresh());
-      NewCommand = new RelayCommand(_ => OpenEditor(null, true), _ => !_runner.IsRunning);
-      EditCommand = new RelayCommand(_ => OpenEditor(Selected, false), _ => Selected != null && !_runner.IsRunning);
-      LaunchCommand = new RelayCommand(_ => Launch(), _ => Selected != null && !_runner.IsRunning);
-      DuplicateCommand = new RelayCommand(_ => Duplicate(), _ => Selected != null && !_runner.IsRunning);
-      ImportCommand = new RelayCommand(_ => Import(), _ => !_runner.IsRunning);
-      StopScenarioCommand = new RelayCommand(_ => _runner.StopUser(), _ => _runner.IsRunning);
+      NewCommand = new RelayCommand(_ => OpenEditor(null, true), _ => !_isScenarioRunSessionBusy());
+      EditCommand = new RelayCommand(_ => OpenEditor(Selected, false), _ => Selected != null && !_isScenarioRunSessionBusy());
+      LaunchCommand = new RelayCommand(_ => Launch(), _ => Selected != null && !_isScenarioRunSessionBusy());
+      DuplicateCommand = new RelayCommand(_ => Duplicate(), _ => Selected != null && !_isScenarioRunSessionBusy());
+      ImportCommand = new RelayCommand(_ => Import(), _ => !_isScenarioRunSessionBusy());
+      StopScenarioCommand = new RelayCommand(_ => _requestStopScenarioSession(), _ => _canStopScenarioSession());
       ApplyFiltersCommand = new RelayCommand(_ => ApplyFilters());
       ResetFiltersCommand = new RelayCommand(_ => ResetFilters());
 
@@ -133,9 +142,9 @@ namespace AIStudio.ViewModels.Research
 
     private void OpenEditor(ScenarioHeader header, bool isNew)
     {
-      if (_runner.IsRunning)
+      if (_isScenarioRunSessionBusy())
       {
-        MessageBox.Show("Дождитесь завершения сценария.", "Сценарий", MessageBoxButton.OK, MessageBoxImage.Information);
+        MessageBox.Show("Дождитесь завершения сценария или подготовки к запуску.", "Сценарий", MessageBoxButton.OK, MessageBoxImage.Information);
         return;
       }
 
@@ -172,8 +181,7 @@ namespace AIStudio.ViewModels.Research
       return new ScenarioEditorViewModel(
           _influenceActions,
           doc,
-          _tryStartScenario,
-          () => _runner.IsRunning);
+          _tryStartScenario);
     }
 
     private void OpenEditorWithViewModel(ScenarioEditorViewModel vm)
@@ -223,9 +231,9 @@ namespace AIStudio.ViewModels.Research
     {
       if (headers == null || headers.Count == 0)
         return false;
-      if (_runner.IsRunning)
+      if (_isScenarioRunSessionBusy())
       {
-        MessageBox.Show("Дождитесь завершения сценария.", "Сценарий", MessageBoxButton.OK, MessageBoxImage.Information);
+        MessageBox.Show("Дождитесь завершения сценария или подготовки к запуску.", "Сценарий", MessageBoxButton.OK, MessageBoxImage.Information);
         return true;
       }
 

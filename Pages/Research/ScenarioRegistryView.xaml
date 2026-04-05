@@ -85,7 +85,7 @@
                 SelectedItem="{Binding Selected, Mode=TwoWay}"
                 AutoGenerateColumns="False"
                 IsReadOnly="True"
-                SelectionMode="Extended"
+                SelectionMode="Single"
                 HeadersVisibility="Column"
                 Style="{StaticResource ScenarioRegistryDataGridStyle}"
                 RowStyle="{StaticResource ScenarioRegistryRowStyle}"

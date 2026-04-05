@@ -73,6 +73,9 @@ namespace AIStudio
     private bool _scenarioPultModesSaved;
     private bool _savedObservationModeBeforeScenario;
     private bool _savedAuthoritativeRecordingBeforeScenario;
+    private bool _homeostasisSettleWaitActive;
+    private Action<int> _homeostasisSettlePulseHandler;
+    private bool _scenarioLaunchCommitActive;
 
     public event PropertyChangedEventHandler PropertyChanged;
     private AgentViewModel _agentViewModel;
@@ -128,7 +131,15 @@ namespace AIStudio
       }
     }
 
-    public bool IsPulseButtonEnabled => !IsAgentDead;
+    public bool IsPulseButtonEnabled => !IsAgentDead && !IsScenarioRunSessionBlockingPulse;
+
+    /// <summary>Блокировка переключателя пульсации на время прогона, паузы стабилизации и группового пакета.</summary>
+    public bool IsScenarioRunSessionBlockingPulse =>
+        _homeostasisSettleWaitActive || _scenarioRunner.IsRunning || _scenarioBatchRun != null || _scenarioLaunchCommitActive;
+
+    /// <summary>Занятость реестра/редактора: сценарий, пауза перед стартом или групповой прогон.</summary>
+    public bool IsScenarioRunSessionBusy =>
+        _homeostasisSettleWaitActive || _scenarioRunner.IsRunning || _scenarioBatchRun != null || _scenarioLaunchCommitActive;
 
     #endregion
 
@@ -536,7 +547,10 @@ namespace AIStudio
           _influenceActionSystem,
           _scenarioRunner,
           openEditorEmbedded: OpenEditorEmbedded,
-          tryStartScenario: TryStartScenario);
+          tryStartScenario: TryStartScenario,
+          isScenarioRunSessionBusy: () => IsScenarioRunSessionBusy,
+          requestStopScenarioSession: RequestStopScenarioSession,
+          canStopScenarioSession: () => _scenarioRunner.IsRunning || _homeostasisSettleWaitActive || _scenarioBatchRun != null);
       CurrentContent = new ScenarioRegistryView { DataContext = scenariosVm };
     }
 
@@ -553,8 +567,125 @@ namespace AIStudio
           _scenarioRunner,
           TryStartScenarioGroup,
           OpenGroupEditorEmbedded,
-          GetScenarioGroupLaunchPrecheckError);
+          GetScenarioGroupLaunchPrecheckError,
+          isScenarioRunSessionBusy: () => IsScenarioRunSessionBusy,
+          requestStopScenarioSession: RequestStopScenarioSession,
+          canStopScenarioSession: () => _scenarioRunner.IsRunning || _homeostasisSettleWaitActive || _scenarioBatchRun != null);
       CurrentContent = new ScenarioGroupRegistryView { DataContext = groupRegistryVm };
+    }
+
+    private void NotifyScenarioRunSessionStateChanged()
+    {
+      OnPropertyChanged(nameof(IsPulseButtonEnabled));
+      OnPropertyChanged(nameof(IsScenarioRunSessionBlockingPulse));
+      OnPropertyChanged(nameof(IsScenarioRunSessionBusy));
+      Application.Current?.Dispatcher?.BeginInvoke(DispatcherPriority.Normal,
+          new Action(() => CommandManager.InvalidateRequerySuggested()));
+    }
+
+    /// <summary>Стоп сценария из реестра: во время прогона, паузы стабилизации или между членами группы.</summary>
+    public void RequestStopScenarioSession()
+    {
+      if (_scenarioRunner.IsRunning)
+      {
+        _scenarioRunner.StopUser();
+        return;
+      }
+      if (_homeostasisSettleWaitActive || _homeostasisSettlePulseHandler != null)
+        CancelHomeostasisSettleWait(userInitiated: true);
+      if (_scenarioBatchRun != null)
+        AbortScenarioBatchRun();
+    }
+
+    private void AbortScenarioBatchRun()
+    {
+      var st = _scenarioBatchRun;
+      if (st == null)
+        return;
+      _scenarioBatchRun = null;
+      FinishScenarioBatchReport(st, userAborted: true);
+      NotifyScenarioRunSessionStateChanged();
+    }
+
+    private void WireScenarioRunProgressWindow(ScenarioRunProgressWindow w)
+    {
+      if (w == null)
+        return;
+      w.Closing -= OnScenarioRunProgressWindowClosing;
+      w.Closing += OnScenarioRunProgressWindowClosing;
+    }
+
+    private void OnScenarioRunProgressWindowClosing(object sender, System.ComponentModel.CancelEventArgs e)
+    {
+      if (sender is ScenarioRunProgressWindow w)
+        w.Closing -= OnScenarioRunProgressWindowClosing;
+
+      if (_scenarioRunner.IsRunning)
+      {
+        _scenarioRunProgressWindow = null;
+        _scenarioRunner.StopUser();
+      }
+      else
+      {
+        bool wasSettle = _homeostasisSettleWaitActive || _homeostasisSettlePulseHandler != null;
+        TearDownHomeostasisSettle();
+        _scenarioRunProgressWindow = null;
+        if (_scenarioBatchRun != null)
+          AbortScenarioBatchRun();
+        else if (wasSettle)
+        {
+          MessageBox.Show("Запуск сценария прерван.", "Прогон сценария",
+              MessageBoxButton.OK, MessageBoxImage.Information);
+        }
+      }
+
+      NotifyScenarioRunSessionStateChanged();
+    }
+
+    private void TearDownHomeostasisSettle()
+    {
+      if (_homeostasisSettlePulseHandler != null)
+      {
+        GlobalTimer.OnPulseAfterGomeostasisBeforePsychic -= _homeostasisSettlePulseHandler;
+        _homeostasisSettlePulseHandler = null;
+      }
+      _homeostasisSettleWaitActive = false;
+      GlobalTimer.ClearPulseWallClockAcceleration();
+    }
+
+    private void CancelHomeostasisSettleWait(bool userInitiated)
+    {
+      if (!_homeostasisSettleWaitActive && _homeostasisSettlePulseHandler == null)
+        return;
+
+      TearDownHomeostasisSettle();
+
+      void closeProgress()
+      {
+        var win = _scenarioRunProgressWindow;
+        if (win == null)
+          return;
+        try
+        {
+          win.Closing -= OnScenarioRunProgressWindowClosing;
+          win.Close();
+        }
+        catch { /* ignore */ }
+        _scenarioRunProgressWindow = null;
+      }
+
+      if (Application.Current?.Dispatcher.CheckAccess() == true)
+        closeProgress();
+      else
+        Application.Current?.Dispatcher.Invoke(closeProgress);
+
+      if (userInitiated && _scenarioBatchRun == null)
+      {
+        MessageBox.Show("Запуск сценария отменён.", "Запуск сценария",
+            MessageBoxButton.OK, MessageBoxImage.Information);
+      }
+
+      NotifyScenarioRunSessionStateChanged();
     }
 
     /// <summary>Проверки среды до окна подтверждения группового запуска (пульсация, пульт и т.д.).</summary>
@@ -562,6 +693,8 @@ namespace AIStudio
     {
       if (_scenarioBatchRun != null)
         return "Уже выполняется групповой прогон.";
+      if (_homeostasisSettleWaitActive)
+        return "Дождитесь завершения подготовки к запуску сценария.";
       if (_scenarioRunner.IsRunning)
         return "Дождитесь завершения текущего сценария.";
       if (_agentViewModel?.AgentPultViewModel == null)
@@ -594,6 +727,7 @@ namespace AIStudio
               {
                 Owner = Application.Current?.MainWindow
               };
+              WireScenarioRunProgressWindow(_scenarioRunProgressWindow);
               _scenarioRunProgressWindow.SetStatus("Запуск сценария…");
               _scenarioRunProgressWindow.Show();
             }
@@ -602,10 +736,17 @@ namespace AIStudio
           {
             if (_scenarioRunProgressWindow != null)
             {
-              try { _scenarioRunProgressWindow.Close(); } catch { /* ignore */ }
+              try
+              {
+                _scenarioRunProgressWindow.Closing -= OnScenarioRunProgressWindowClosing;
+                _scenarioRunProgressWindow.Close();
+              }
+              catch { /* ignore */ }
               _scenarioRunProgressWindow = null;
             }
           }
+
+          NotifyScenarioRunSessionStateChanged();
         }
         catch (Exception ex)
         {
@@ -689,6 +830,17 @@ namespace AIStudio
       if (doc == null)
         return false;
 
+      if (_scenarioBatchRun == null &&
+          (_scenarioRunner.IsRunning || _homeostasisSettleWaitActive || _homeostasisSettlePulseHandler != null))
+      {
+        MessageBox.Show(
+            "Дождитесь завершения текущего сценария или подготовки к запуску.",
+            "Запуск сценария",
+            MessageBoxButton.OK,
+            MessageBoxImage.Information);
+        return false;
+      }
+
       if (IsSameScenarioOpenInAnotherEditor(doc, initiatingEditor))
       {
         MessageBox.Show(
@@ -759,6 +911,12 @@ namespace AIStudio
       if (_scenarioBatchRun != null)
       {
         MessageBox.Show("Уже выполняется групповой прогон.", "Группа сценариев",
+            MessageBoxButton.OK, MessageBoxImage.Information);
+        return false;
+      }
+      if (_homeostasisSettleWaitActive)
+      {
+        MessageBox.Show("Дождитесь завершения подготовки к запуску сценария.", "Группа сценариев",
             MessageBoxButton.OK, MessageBoxImage.Information);
         return false;
       }
@@ -840,10 +998,12 @@ namespace AIStudio
         CurrentIndex = 0,
         ReportOutputFolder = folder
       };
+      NotifyScenarioRunSessionStateChanged();
 
       if (!TryStartNextBatchScenario())
       {
         _scenarioBatchRun = null;
+        NotifyScenarioRunSessionStateChanged();
         return false;
       }
       return true;
@@ -940,6 +1100,7 @@ namespace AIStudio
       {
         _scenarioBatchRun = null;
         FinishScenarioBatchReport(st, userAborted: true);
+        NotifyScenarioRunSessionStateChanged();
         return;
       }
 
@@ -948,6 +1109,7 @@ namespace AIStudio
       {
         _scenarioBatchRun = null;
         FinishScenarioBatchReport(st, userAborted: false);
+        NotifyScenarioRunSessionStateChanged();
         return;
       }
 
@@ -965,11 +1127,16 @@ namespace AIStudio
         MessageBox.Show(ex.Message, "Группа сценариев", MessageBoxButton.OK, MessageBoxImage.Error);
         FinishScenarioBatchReport(st, userAborted: true);
       }
+
+      NotifyScenarioRunSessionStateChanged();
     }
 
     /// <summary>После сброса параметров в «норму»: ждать (время удержания состояний + 1) пульсов, затем старт раннера.</summary>
     private void BeginHomeostasisNormSettleWaitThenStartScenario(ScenarioDocument doc, string reportOutputFolder)
     {
+      _homeostasisSettleWaitActive = true;
+      NotifyScenarioRunSessionStateChanged();
+
       int coeff = doc?.Header?.RunPulseTimingCoefficient ?? 1;
       if (coeff != 1 && coeff != 5 && coeff != 10 && coeff != 20)
         coeff = 1;
@@ -988,6 +1155,7 @@ namespace AIStudio
           {
             Owner = Application.Current?.MainWindow
           };
+          WireScenarioRunProgressWindow(_scenarioRunProgressWindow);
           _scenarioRunProgressWindow.Show();
         }
         _scenarioRunProgressWindow.SetStatus(
@@ -1001,19 +1169,33 @@ namespace AIStudio
         if (!GlobalTimer.IsPulsationRunning)
         {
           GlobalTimer.OnPulseAfterGomeostasisBeforePsychic -= handler;
+          if (ReferenceEquals(_homeostasisSettlePulseHandler, handler))
+            _homeostasisSettlePulseHandler = null;
+          _homeostasisSettleWaitActive = false;
           GlobalTimer.ClearPulseWallClockAcceleration();
           Application.Current?.Dispatcher.BeginInvoke(new Action(() =>
           {
             if (_scenarioRunProgressWindow != null)
             {
-              try { _scenarioRunProgressWindow.Close(); } catch { /* ignore */ }
+              try
+              {
+                _scenarioRunProgressWindow.Closing -= OnScenarioRunProgressWindowClosing;
+                _scenarioRunProgressWindow.Close();
+              }
+              catch { /* ignore */ }
               _scenarioRunProgressWindow = null;
             }
-            MessageBox.Show(
-                "Пульсация остановлена во время паузы стабилизации гомеостаза.",
-                "Запуск сценария",
-                MessageBoxButton.OK,
-                MessageBoxImage.Warning);
+            if (_scenarioBatchRun != null)
+              AbortScenarioBatchRun();
+            else
+            {
+              MessageBox.Show(
+                  "Пульсация остановлена во время паузы стабилизации гомеостаза.",
+                  "Запуск сценария",
+                  MessageBoxButton.OK,
+                  MessageBoxImage.Warning);
+            }
+            NotifyScenarioRunSessionStateChanged();
           }));
           return;
         }
@@ -1034,8 +1216,12 @@ namespace AIStudio
         }
 
         GlobalTimer.OnPulseAfterGomeostasisBeforePsychic -= handler;
+        _homeostasisSettlePulseHandler = null;
+        _homeostasisSettleWaitActive = false;
+
         Application.Current?.Dispatcher.BeginInvoke(new Action(() =>
         {
+          NotifyScenarioRunSessionStateChanged();
           try
           {
             if (_scenarioRunProgressWindow != null)
@@ -1047,35 +1233,52 @@ namespace AIStudio
             GlobalTimer.ClearPulseWallClockAcceleration();
             if (_scenarioRunProgressWindow != null)
             {
-              try { _scenarioRunProgressWindow.Close(); } catch { /* ignore */ }
+              try
+              {
+                _scenarioRunProgressWindow.Closing -= OnScenarioRunProgressWindowClosing;
+                _scenarioRunProgressWindow.Close();
+              }
+              catch { /* ignore */ }
               _scenarioRunProgressWindow = null;
             }
             RestorePultModesAfterScenarioIfNeeded();
             MessageBox.Show(ex.Message, "Запуск", MessageBoxButton.OK, MessageBoxImage.Error);
+            NotifyScenarioRunSessionStateChanged();
           }
         }));
       };
 
+      _homeostasisSettlePulseHandler = handler;
       GlobalTimer.OnPulseAfterGomeostasisBeforePsychic += handler;
     }
 
     private void ApplyScenarioPultModesAndStartRunner(ScenarioDocument doc, string reportOutputFolder)
     {
-      int coeff = doc?.Header?.RunPulseTimingCoefficient ?? 1;
-      if (coeff != 1 && coeff != 5 && coeff != 10 && coeff != 20)
-        coeff = 1;
-      GlobalTimer.SetPulseWallClockAcceleration(coeff, suppressAnimation: coeff > 1);
+      _scenarioLaunchCommitActive = true;
+      NotifyScenarioRunSessionStateChanged();
+      try
+      {
+        int coeff = doc?.Header?.RunPulseTimingCoefficient ?? 1;
+        if (coeff != 1 && coeff != 5 && coeff != 10 && coeff != 20)
+          coeff = 1;
+        GlobalTimer.SetPulseWallClockAcceleration(coeff, suppressAnimation: coeff > 1);
 
-      _pendingScenarioReportFolder = reportOutputFolder;
-      var pult = _agentViewModel.AgentPultViewModel;
-      _savedObservationModeBeforeScenario = AppGlobalState.ObservationMode;
-      _savedAuthoritativeRecordingBeforeScenario = pult.AuthoritativeMode;
-      _scenarioPultModesSaved = true;
-      pult.ObservationMode = doc.Header.ScenarioObservationMode;
-      pult.AuthoritativeMode = doc.Header.ScenarioAuthoritativeRecording;
+        _pendingScenarioReportFolder = reportOutputFolder;
+        var pult = _agentViewModel.AgentPultViewModel;
+        _savedObservationModeBeforeScenario = AppGlobalState.ObservationMode;
+        _savedAuthoritativeRecordingBeforeScenario = pult.AuthoritativeMode;
+        _scenarioPultModesSaved = true;
+        pult.ObservationMode = doc.Header.ScenarioObservationMode;
+        pult.AuthoritativeMode = doc.Header.ScenarioAuthoritativeRecording;
 
-      _scenarioRunner.Start(doc, () => _agentViewModel?.AgentPultViewModel,
-          () => _isidaContext.CancelWaitingPeriodAndResetMirror());
+        _scenarioRunner.Start(doc, () => _agentViewModel?.AgentPultViewModel,
+            () => _isidaContext.CancelWaitingPeriodAndResetMirror());
+      }
+      finally
+      {
+        _scenarioLaunchCommitActive = false;
+        NotifyScenarioRunSessionStateChanged();
+      }
     }
 
     private void RestorePultModesAfterScenarioIfNeeded()

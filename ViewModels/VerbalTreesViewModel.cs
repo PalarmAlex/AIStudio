@@ -699,34 +699,40 @@ namespace AIStudio.ViewModels
         return;
       }
 
-      var filtered = new ObservableCollection<WordNode>();
       var searchLower = searchText.ToLower();
 
-      foreach (var letterNode in _allWordNodes)
+      // При поиске берём ВСЕ слова из дерева (игнорируя display limit),
+      // иначе слова за пределами лимита не находятся фильтром
+      var allWords = _verbalChannel.GetAllWords();
+      var filtered = new ObservableCollection<WordNode>();
+
+      var matchingWords = allWords
+          .Where(w => w.Value.ToLower().Contains(searchLower))
+          .OrderBy(w => w.Value)
+          .GroupBy(w => char.ToUpper(w.Value.FirstOrDefault()))
+          .OrderBy(g => g.Key);
+
+      foreach (var group in matchingWords)
       {
-        var filteredLetterNode = new WordNode
+        var letterNode = new WordNode
         {
-          Id = letterNode.Id,
-          Text = letterNode.Text,
-          IsLetter = letterNode.IsLetter,
-          HasChildren = letterNode.HasChildren
+          Id = 0,
+          Text = group.Key.ToString(),
+          IsLetter = true,
+          HasChildren = true
         };
 
-        // Фильтруем слова в этой буквенной группе
-        foreach (var wordNode in letterNode.Children)
+        foreach (var word in group)
         {
-          if (wordNode.Text.ToLower().Contains(searchLower))
+          letterNode.Children.Add(new WordNode
           {
-            filteredLetterNode.Children.Add(wordNode);
-            filteredLetterNode.HasChildren = true;
-          }
+            Id = word.Key,
+            Text = word.Value,
+            HasChildren = false
+          });
         }
 
-        // Добавляем буквенную группу только если в ней есть слова
-        if (filteredLetterNode.Children.Count > 0)
-        {
-          filtered.Add(filteredLetterNode);
-        }
+        filtered.Add(letterNode);
       }
 
       VisibleWordNodes = filtered;
@@ -740,10 +746,14 @@ namespace AIStudio.ViewModels
         return;
       }
 
+      // При поиске загружаем ВСЕ узлы фраз (без display limit),
+      // иначе узлы за пределами лимита не находятся фильтром
+      var allPhraseNodesForSearch = LoadInitialPhraseNodes(null);
+
       var filtered = new ObservableCollection<PhraseNode>();
       var searchLower = searchText.ToLower();
 
-      foreach (var rootNode in _allPhraseNodes)
+      foreach (var rootNode in allPhraseNodesForSearch)
       {
         var filteredRoot = FilterPhraseNodeRecursive(rootNode, searchLower);
         if (filteredRoot != null)

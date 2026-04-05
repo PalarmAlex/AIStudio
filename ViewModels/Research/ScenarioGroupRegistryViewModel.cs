@@ -26,6 +26,9 @@ namespace AIStudio.ViewModels.Research
     private readonly Func<ScenarioGroupDocument, string, bool> _tryStartGroup;
     private readonly Action<ScenarioGroupEditorViewModel> _openEditorEmbedded;
     private readonly Func<string> _getLaunchPrecheckError;
+    private readonly Func<bool> _isScenarioRunSessionBusy;
+    private readonly Action _requestStopScenarioSession;
+    private readonly Func<bool> _canStopScenarioSession;
 
     private ScenarioGroupHeader _selected;
     private readonly List<ScenarioGroupHeader> _registryAll = new List<ScenarioGroupHeader>();
@@ -37,23 +40,29 @@ namespace AIStudio.ViewModels.Research
         OperatorScenarioRunner runner,
         Func<ScenarioGroupDocument, string, bool> tryStartGroup,
         Action<ScenarioGroupEditorViewModel> openEditorEmbedded = null,
-        Func<string> getLaunchPrecheckError = null)
+        Func<string> getLaunchPrecheckError = null,
+        Func<bool> isScenarioRunSessionBusy = null,
+        Action requestStopScenarioSession = null,
+        Func<bool> canStopScenarioSession = null)
     {
       _runner = runner ?? throw new ArgumentNullException(nameof(runner));
       _tryStartGroup = tryStartGroup ?? throw new ArgumentNullException(nameof(tryStartGroup));
       _openEditorEmbedded = openEditorEmbedded;
       _getLaunchPrecheckError = getLaunchPrecheckError;
+      _isScenarioRunSessionBusy = isScenarioRunSessionBusy ?? (() => runner.IsRunning);
+      _requestStopScenarioSession = requestStopScenarioSession ?? (() => _runner.StopUser());
+      _canStopScenarioSession = canStopScenarioSession ?? (() => _runner.IsRunning);
 
       _reportOutputFolder = AppConfig.ScenarioReportsFolderPath ?? "";
 
       Items = new ObservableCollection<ScenarioGroupHeader>();
       RefreshCommand = new RelayCommand(_ => Refresh());
-      NewCommand = new RelayCommand(_ => NewGroup(), _ => !_runner.IsRunning);
-      EditCommand = new RelayCommand(_ => Edit(), _ => Selected != null && !_runner.IsRunning);
-      LaunchCommand = new RelayCommand(_ => Launch(), _ => Selected != null && !_runner.IsRunning);
-      DuplicateCommand = new RelayCommand(_ => Duplicate(), _ => Selected != null && !_runner.IsRunning);
-      ImportCommand = new RelayCommand(_ => Import(), _ => !_runner.IsRunning);
-      StopScenarioCommand = new RelayCommand(_ => _runner.StopUser(), _ => _runner.IsRunning);
+      NewCommand = new RelayCommand(_ => NewGroup(), _ => !_isScenarioRunSessionBusy());
+      EditCommand = new RelayCommand(_ => Edit(), _ => Selected != null && !_isScenarioRunSessionBusy());
+      LaunchCommand = new RelayCommand(_ => Launch(), _ => Selected != null && !_isScenarioRunSessionBusy());
+      DuplicateCommand = new RelayCommand(_ => Duplicate(), _ => Selected != null && !_isScenarioRunSessionBusy());
+      ImportCommand = new RelayCommand(_ => Import(), _ => !_isScenarioRunSessionBusy());
+      StopScenarioCommand = new RelayCommand(_ => _requestStopScenarioSession(), _ => _canStopScenarioSession());
       ApplyFiltersCommand = new RelayCommand(_ => ApplyFilters());
       ResetFiltersCommand = new RelayCommand(_ => ResetFilters());
       BrowseReportFolderCommand = new RelayCommand(_ => BrowseReportFolder());
@@ -161,9 +170,9 @@ namespace AIStudio.ViewModels.Research
 
     private void NewGroup()
     {
-      if (_runner.IsRunning)
+      if (_isScenarioRunSessionBusy())
       {
-        MessageBox.Show("Дождитесь завершения сценария.", "Группа", MessageBoxButton.OK, MessageBoxImage.Information);
+        MessageBox.Show("Дождитесь завершения сценария или подготовки к запуску.", "Группа", MessageBoxButton.OK, MessageBoxImage.Information);
         return;
       }
 

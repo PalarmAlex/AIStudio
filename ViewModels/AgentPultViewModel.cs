@@ -47,8 +47,10 @@ namespace AIStudio.ViewModels
 
     private int _selectedToneId = 0;
     private int _selectedMoodId = 0;
+    private int _selectedVisualColorId = AgentVisualColor.White;
     private Dictionary<int, string> _toneList;
     private Dictionary<int, string> _moodList;
+    private Dictionary<int, string> _visualColorList;
 
     // Свойства для управления цепочкой
     private bool _chainStepSuccess = true;
@@ -212,6 +214,31 @@ namespace AIStudio.ViewModels
         if (_selectedMoodId != value)
         {
           _selectedMoodId = value;
+          OnPropertyChanged();
+        }
+      }
+    }
+
+    /// <summary>Список кодов зрительного канала (фон для пускового образа).</summary>
+    public Dictionary<int, string> VisualColorList
+    {
+      get => _visualColorList;
+      private set
+      {
+        _visualColorList = value;
+        OnPropertyChanged();
+      }
+    }
+
+    /// <summary>Выбранный код цвета (0 — белый по умолчанию).</summary>
+    public int SelectedVisualColorId
+    {
+      get => _selectedVisualColorId;
+      set
+      {
+        if (_selectedVisualColorId != value)
+        {
+          _selectedVisualColorId = value;
           OnPropertyChanged();
         }
       }
@@ -393,6 +420,7 @@ namespace AIStudio.ViewModels
       UpdateRecognitionDisplay();
 
       InitializeToneAndMoodLists();
+      InitializeVisualColorList();
       InitializeChainStatusPolling();
 
       GlobalTimer.PulsationStateChanged += OnPulsationStateChanged;
@@ -425,6 +453,15 @@ namespace AIStudio.ViewModels
         ToneList = new Dictionary<int, string> { { 0, "Нормальный" } };
         MoodList = new Dictionary<int, string> { { 0, "Нормальное" } };
       }
+    }
+
+    private void InitializeVisualColorList()
+    {
+      var d = new Dictionary<int, string>();
+      for (int c = AgentVisualColor.MinCode; c <= AgentVisualColor.MaxCode; c++)
+        d[c] = AgentVisualColor.GetDisplayName(c);
+      VisualColorList = d;
+      SelectedVisualColorId = AgentVisualColor.White;
     }
 
     /// <summary>
@@ -687,7 +724,8 @@ namespace AIStudio.ViewModels
         IReadOnlyList<int> actionIds,
         string phraseText,
         int toneId,
-        int moodId)
+        int moodId,
+        int visualColorId = 0)
     {
       if (IsAgentDead)
         return "Агент мёртв";
@@ -695,7 +733,8 @@ namespace AIStudio.ViewModels
         return "Пульсация выключена";
 
       var ids = actionIds == null ? new List<int>() : actionIds.Where(id => id > 0).Distinct().ToList();
-      if (ids.Count == 0 && string.IsNullOrWhiteSpace(phraseText))
+      int colorForStep = AgentVisualColor.IsValidCode(visualColorId) ? visualColorId : AgentVisualColor.White;
+      if (ids.Count == 0 && string.IsNullOrWhiteSpace(phraseText) && colorForStep == AgentVisualColor.White)
         return "Пустой шаг сценария";
 
       int prevTone = SelectedToneId;
@@ -710,18 +749,16 @@ namespace AIStudio.ViewModels
         {
           phraseIds = _sensorySystem.VerbalChannel.RecognizeText(
               phraseText,
-              AuthoritativeMode);
+              authoritativeWrite: true);
         }
-
-        if (!ids.Any() && !phraseIds.Any())
-          return "Не удалось распознать фразу и нет воздействий";
 
         var (success, errorMessage) = _influenceActionSystem.ApplyMultipleInfluenceActions(
             ids,
             phraseIds,
             AuthoritativeMode,
             SelectedToneId,
-            SelectedMoodId);
+            SelectedMoodId,
+            colorForStep);
 
         if (!success)
         {
@@ -769,9 +806,10 @@ namespace AIStudio.ViewModels
       }
 
       var selectedActions = GetSelectedInfluenceActions();
-      if (selectedActions.Count == 0 && string.IsNullOrWhiteSpace(MessageText))
+      if (selectedActions.Count == 0 && string.IsNullOrWhiteSpace(MessageText) &&
+          SelectedVisualColorId == AgentVisualColor.White)
       {
-        MessageBox.Show("Не выбрано ни одного воздействия и не введено сообщение",
+        MessageBox.Show("Не выбрано ни одного воздействия, не введено сообщение и цвет — белый (нет стимула)",
             "Внимание",
             MessageBoxButton.OK,
             MessageBoxImage.Information);
@@ -799,14 +837,15 @@ namespace AIStudio.ViewModels
           UpdateRecognitionDisplay(); // чтобы очистило текст распознавания
 
         // Применяем воздействия, если есть выбранные действия или фраза
-        if (selectedActions.Any() || phraseIds.Any())
+        if (selectedActions.Any() || phraseIds.Any() || SelectedVisualColorId != AgentVisualColor.White)
         {
           var (success, errorMessage) = _influenceActionSystem.ApplyMultipleInfluenceActions(
               selectedActions,
               phraseIds,
               AuthoritativeMode,
               SelectedToneId,
-              SelectedMoodId
+              SelectedMoodId,
+              SelectedVisualColorId
           );
 
           if (!success)
