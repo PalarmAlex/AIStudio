@@ -18,6 +18,7 @@ namespace AIStudio.ViewModels.Research
     private string _description = "";
     private string _dateText = "";
     private int _runPulseTimingCoefficient = 1;
+    private ScenarioGroupReportFormat _reportFormat = ScenarioGroupReportFormat.Detailed;
     private ScenarioGroupMemberRow _selectedMember;
     private bool _hasUnsavedChanges;
 
@@ -30,6 +31,9 @@ namespace AIStudio.ViewModels.Research
           ? DateTime.Now.ToString("yyyy-MM-dd")
           : doc.DateText;
       _runPulseTimingCoefficient = doc.RunPulseTimingCoefficient <= 0 ? 1 : doc.RunPulseTimingCoefficient;
+      _reportFormat = Enum.IsDefined(typeof(ScenarioGroupReportFormat), doc.ReportFormat)
+          ? doc.ReportFormat
+          : ScenarioGroupReportFormat.Detailed;
 
       ScenarioChoices = new ObservableCollection<ScenarioRegistryPickItem>(
           ScenarioStorage.LoadRegistry()
@@ -57,6 +61,12 @@ namespace AIStudio.ViewModels.Research
 
       PulseTimingCoefficientChoices = new ObservableCollection<int> { 1, 5, 10, 20 };
 
+      ReportFormatChoices = new ObservableCollection<ScenarioGroupReportFormatItem>
+      {
+        new ScenarioGroupReportFormatItem { Format = ScenarioGroupReportFormat.Detailed, Display = "Подробный" },
+        new ScenarioGroupReportFormatItem { Format = ScenarioGroupReportFormat.Compact, Display = "Сокращенный" }
+      };
+
       SaveCommand = new RelayCommand(_ => Save(invokeCloseAfterSuccess: true), _ => Members.Count > 0);
       AddMemberCommand = new RelayCommand(_ => AddMember());
       RemoveMemberCommand = new RelayCommand(_ => RemoveMember(), _ => SelectedMember != null);
@@ -69,6 +79,8 @@ namespace AIStudio.ViewModels.Research
     public ObservableCollection<ScenarioGroupMemberRow> Members { get; }
 
     public ObservableCollection<int> PulseTimingCoefficientChoices { get; }
+
+    public ObservableCollection<ScenarioGroupReportFormatItem> ReportFormatChoices { get; }
 
     public ObservableCollection<ScenarioRegistryPickItem> ScenarioChoices { get; }
 
@@ -133,6 +145,18 @@ namespace AIStudio.ViewModels.Research
       {
         if (_runPulseTimingCoefficient == value) return;
         _runPulseTimingCoefficient = value;
+        OnPropertyChanged();
+        MarkDirty();
+      }
+    }
+
+    public ScenarioGroupReportFormat ReportFormat
+    {
+      get => _reportFormat;
+      set
+      {
+        if (_reportFormat == value) return;
+        _reportFormat = value;
         OnPropertyChanged();
         MarkDirty();
       }
@@ -258,6 +282,7 @@ namespace AIStudio.ViewModels.Research
         Description = Description?.Trim() ?? "",
         DateText = DateText?.Trim() ?? "",
         RunPulseTimingCoefficient = coeff,
+        ReportFormat = ReportFormat,
         Members = Members.Select(m => m.Clone()).ToList()
       };
 

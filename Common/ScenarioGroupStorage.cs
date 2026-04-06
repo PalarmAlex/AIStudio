@@ -123,6 +123,12 @@ namespace AIStudio.Common
             if (coeff == 1 || coeff == 5 || coeff == 10 || coeff == 20 || coeff == 50 || coeff == 100)
               doc.RunPulseTimingCoefficient = coeff;
           }
+          if (meta.Length >= 5
+              && int.TryParse(meta[4].Trim(), NumberStyles.Integer, CultureInfo.InvariantCulture, out int rf)
+              && Enum.IsDefined(typeof(ScenarioGroupReportFormat), rf))
+          {
+            doc.ReportFormat = (ScenarioGroupReportFormat)rf;
+          }
           continue;
         }
 
@@ -167,11 +173,15 @@ namespace AIStudio.Common
       if (coeff != 1 && coeff != 5 && coeff != 10 && coeff != 20 && coeff != 50 && coeff != 100)
         coeff = 1;
 
+      int rf = (int)doc.ReportFormat;
+      if (!Enum.IsDefined(typeof(ScenarioGroupReportFormat), rf))
+        rf = (int)ScenarioGroupReportFormat.Detailed;
+
       var lines = new List<string>
       {
         "# Группа сценариев оператора",
         $"{GroupLinesFormatHeader}{ScenarioGroupDocument.GroupLinesFileFormatVersion}",
-        $"# SCENARIO_GROUP_META|{ScenarioStorage.Escape(doc.Title ?? "")}|{ScenarioStorage.Escape(doc.Description ?? "")}|{ScenarioStorage.Escape(doc.DateText ?? "")}|{coeff.ToString(CultureInfo.InvariantCulture)}",
+        $"# SCENARIO_GROUP_META|{ScenarioStorage.Escape(doc.Title ?? "")}|{ScenarioStorage.Escape(doc.Description ?? "")}|{ScenarioStorage.Escape(doc.DateText ?? "")}|{coeff.ToString(CultureInfo.InvariantCulture)}|{rf.ToString(CultureInfo.InvariantCulture)}",
         "# SCENARIO_GROUP_MEMBER|SortOrder|ScenarioId|PreRunStage|Clear|Norm|Obs|Auth"
       };
 

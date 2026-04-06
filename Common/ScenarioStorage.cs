@@ -40,16 +40,61 @@ namespace AIStudio.Common
           continue;
         if (!int.TryParse(p[0], NumberStyles.Integer, CultureInfo.InvariantCulture, out int id))
           continue;
+        int pst = -1;
+        if (p.Length >= 5 && int.TryParse(p[4].Trim(), NumberStyles.Integer, CultureInfo.InvariantCulture, out int parsedPst))
+          pst = parsedPst;
+        else
+          pst = TryReadPreRunTargetStageFromLinesFile(id);
         list.Add(new ScenarioHeader
         {
           Id = id,
           Title = Unescape(p[1]),
           Description = Unescape(p[2]),
-          DateText = Unescape(p[3])
+          DateText = Unescape(p[3]),
+          PreRunTargetStage = pst
         });
       }
 
       return list.OrderBy(h => h.Id).ToList();
+    }
+
+    private static int TryReadPreRunTargetStageFromLinesFile(int scenarioId)
+    {
+      try
+      {
+        var path = ScenarioPaths.LinesPath(scenarioId);
+        if (!File.Exists(path))
+          return -1;
+        int linesFileFormatVersion = 4;
+        foreach (var line in File.ReadLines(path))
+        {
+          var t = line?.Trim();
+          if (string.IsNullOrEmpty(t))
+            continue;
+          if (t.StartsWith(LinesFormatHeader, StringComparison.Ordinal))
+          {
+            var fv = t.Substring(LinesFormatHeader.Length).Trim();
+            int.TryParse(fv, NumberStyles.Integer, CultureInfo.InvariantCulture, out int parsedV);
+            if (parsedV > 0)
+              linesFileFormatVersion = parsedV;
+            continue;
+          }
+          if (t.StartsWith("# SCENARIO_META|", StringComparison.Ordinal))
+          {
+            var meta = t.Substring("# SCENARIO_META|".Length).Split('|');
+            var hdr = new ScenarioHeader();
+            ApplyScenarioMeta(hdr, meta, linesFileFormatVersion);
+            return hdr.PreRunTargetStage;
+          }
+          if (!t.StartsWith("#"))
+            break;
+        }
+      }
+      catch
+      {
+        // ignore
+      }
+      return -1;
     }
 
     public static ScenarioDocument LoadScenario(int scenarioId)
@@ -353,7 +398,7 @@ namespace AIStudio.Common
       {
         "# Реестр сценариев оператора",
         $"{RegistryFormatHeader}{ScenarioDocument.FormatVersion}",
-        "# Id|Title|Description|Date"
+        "# Id|Title|Description|Date|PreRunTargetStage"
       };
       foreach (var h in headers.OrderBy(x => x.Id))
       {
@@ -361,7 +406,8 @@ namespace AIStudio.Common
             h.Id.ToString(CultureInfo.InvariantCulture),
             Escape(h.Title ?? ""),
             Escape(h.Description ?? ""),
-            Escape(h.DateText ?? "")));
+            Escape(h.DateText ?? ""),
+            h.PreRunTargetStage.ToString(CultureInfo.InvariantCulture)));
       }
 
       return FileValidator.SafeSaveFile(

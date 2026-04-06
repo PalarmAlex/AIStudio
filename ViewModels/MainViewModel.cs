@@ -621,13 +621,21 @@ namespace AIStudio
     {
       if (w == null)
         return;
-      if (_activeProgressGroupId is int groupId)
-        w.SetRunChromeForScenarioGroup(groupId);
+      if (_activeProgressGroupId.HasValue)
+      {
+        int ord = _scenarioBatchRun != null ? _scenarioBatchRun.CurrentIndex + 1 : 1;
+        w.SetRunChromeForScenarioGroup(ord);
+      }
       else if (_activeProgressScenarioId > 0)
         w.SetRunChromeForScenario(_activeProgressScenarioId);
       else
         w.SetRunChromeDefault();
     }
+
+    private string GetScenarioRunProgressLaunchMessage() =>
+        _scenarioBatchRun != null
+            ? $"Запуск сценария №{_scenarioBatchRun.CurrentIndex + 1}…"
+            : "Запуск сценария…";
 
     private void OnScenarioRunProgressWindowClosing(object sender, System.ComponentModel.CancelEventArgs e)
     {
@@ -743,7 +751,7 @@ namespace AIStudio
               };
               WireScenarioRunProgressWindow(_scenarioRunProgressWindow);
               ApplyScenarioRunProgressWindowChrome(_scenarioRunProgressWindow);
-              _scenarioRunProgressWindow.SetStatus("Запуск сценария…");
+              _scenarioRunProgressWindow.SetStatus(GetScenarioRunProgressLaunchMessage());
               _scenarioRunProgressWindow.Show();
             }
           }
@@ -777,7 +785,15 @@ namespace AIStudio
         try
         {
           if (_scenarioRunProgressWindow != null)
-            _scenarioRunProgressWindow.SetStatus($"Выполняется: шаг №{e.StepIndex}…");
+          {
+            if (_scenarioBatchRun != null)
+            {
+              int sn = _scenarioBatchRun.CurrentIndex + 1;
+              _scenarioRunProgressWindow.SetStatus($"Выполняется сценарий №{sn}: шаг №{e.StepIndex}…");
+            }
+            else
+              _scenarioRunProgressWindow.SetStatus($"Выполняется: шаг №{e.StepIndex}…");
+          }
         }
         catch (Exception ex)
         {
@@ -793,8 +809,16 @@ namespace AIStudio
         try
         {
           if (_scenarioRunProgressWindow != null)
-            _scenarioRunProgressWindow.SetStatus(
-                $"Ожидание активации психики… (пульс {currentPulse}, старт на пульсе {targetPulse})");
+          {
+            var wait = $"Ожидание активации психики… (пульс {currentPulse}, старт на пульсе {targetPulse})";
+            if (_scenarioBatchRun != null)
+            {
+              int sn = _scenarioBatchRun.CurrentIndex + 1;
+              _scenarioRunProgressWindow.SetStatus($"Сценарий №{sn}: {wait}");
+            }
+            else
+              _scenarioRunProgressWindow.SetStatus(wait);
+          }
         }
         catch (Exception ex)
         {
@@ -1246,7 +1270,7 @@ namespace AIStudio
           try
           {
             if (_scenarioRunProgressWindow != null)
-              _scenarioRunProgressWindow.SetStatus("Запуск сценария…", compactFont: false);
+              _scenarioRunProgressWindow.SetStatus(GetScenarioRunProgressLaunchMessage(), compactFont: false);
             ApplyScenarioPultModesAndStartRunner(doc, reportOutputFolder);
           }
           catch (Exception ex)

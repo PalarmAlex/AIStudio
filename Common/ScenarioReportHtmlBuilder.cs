@@ -48,39 +48,20 @@ namespace AIStudio.Common
       if (groupDef == null || runs == null)
         return "<html><body><p>Нет данных группы.</p></body></html>";
 
+      if (groupDef.ReportFormat == ScenarioGroupReportFormat.Compact)
+        return BuildGroupBatchHtmlCompact(groupDef, runs, influenceActions, perceptionImages);
+
+      var titleById = BuildScenarioTitleByIdMap(runs);
+
       var sb = new StringBuilder();
       sb.AppendLine("<!DOCTYPE html>");
       sb.AppendLine("<html><head><meta charset=\"utf-8\"/>");
       AppendReportStyles(sb);
       sb.AppendLine("</head><body>");
 
-      sb.AppendLine("<h1>Отчёт по групповому прогону сценариев</h1>");
-      sb.AppendLine("<h2>Группа</h2>");
-      sb.AppendLine("<table class=\"meta-table\">");
-      AppendMetaRow(sb, "ID группы", Escape(groupDef.Id.ToString(CultureInfo.InvariantCulture)));
-      AppendMetaRow(sb, "Дата", Escape(groupDef.DateText ?? ""));
-      AppendMetaRow(sb, "Название", Escape(groupDef.Title ?? ""));
-      var gdesc = groupDef.Description ?? "";
-      var gdescHtml = WebUtility.HtmlEncode(gdesc).Replace("\r\n", "\n").Replace("\n", "<br/>");
-      sb.AppendLine("<tr><th class=\"meta-label\">").Append(Escape("Описание")).Append("</th><td class=\"meta-value\">").Append(gdescHtml).AppendLine("</td></tr>");
-      AppendMetaRow(sb, "Коэфф. пульсации (группа)", Escape(groupDef.RunPulseTimingCoefficient.ToString(CultureInfo.InvariantCulture)));
-      sb.AppendLine("</table>");
+      AppendGroupBatchReportHeader(sb, groupDef);
 
-      sb.AppendLine("<h2>Состав группы (порядок прогона)</h2>");
-      sb.AppendLine("<table class=\"steps-zebra\"><tr><th>Сорт.</th><th>ID сценария</th><th>Стадия</th><th>Очистка</th><th>Норма</th><th>Набл.</th><th>Авт.зап.</th></tr>");
-      foreach (var m in groupDef.Members.OrderBy(x => x.SortOrderInGroup).ThenBy(x => x.ScenarioId))
-      {
-        sb.AppendLine("<tr>");
-        sb.Append("<td>").Append(Escape(m.SortOrderInGroup.ToString(CultureInfo.InvariantCulture))).Append("</td>");
-        sb.Append("<td>").Append(Escape(m.ScenarioId.ToString(CultureInfo.InvariantCulture))).Append("</td>");
-        sb.Append("<td>").Append(Escape(ScenarioGroupDocument.FormatPreRunStageShort(m.PreRunTargetStage))).Append("</td>");
-        sb.Append("<td>").Append(m.PreRunClearAgentData ? "да" : "нет").Append("</td>");
-        sb.Append("<td>").Append(m.PreRunNormalHomeostasisState ? "да" : "нет").Append("</td>");
-        sb.Append("<td>").Append(m.ScenarioObservationMode ? "да" : "нет").Append("</td>");
-        sb.Append("<td>").Append(m.ScenarioAuthoritativeRecording ? "да" : "нет").Append("</td>");
-        sb.AppendLine("</tr>");
-      }
-      sb.AppendLine("</table>");
+      AppendGroupCompositionTable(sb, groupDef, titleById, compact: false, compareByIndex: null);
 
       int n = 0;
       foreach (var tuple in runs)
@@ -103,6 +84,173 @@ namespace AIStudio.Common
       return sb.ToString();
     }
 
+    private static void AppendGroupBatchReportHeader(StringBuilder sb, ScenarioGroupDocument groupDef)
+    {
+      sb.AppendLine("<h1>Отчёт по групповому прогону сценариев</h1>");
+      sb.AppendLine("<h2>Группа</h2>");
+      sb.AppendLine("<table class=\"meta-table\">");
+      AppendMetaRow(sb, "ID группы", Escape(groupDef.Id.ToString(CultureInfo.InvariantCulture)));
+      AppendMetaRow(sb, "Дата", Escape(groupDef.DateText ?? ""));
+      AppendMetaRow(sb, "Название", Escape(groupDef.Title ?? ""));
+      var gdesc = groupDef.Description ?? "";
+      var gdescHtml = WebUtility.HtmlEncode(gdesc).Replace("\r\n", "\n").Replace("\n", "<br/>");
+      sb.AppendLine("<tr><th class=\"meta-label\">").Append(Escape("Описание")).Append("</th><td class=\"meta-value\">").Append(gdescHtml).AppendLine("</td></tr>");
+      AppendMetaRow(sb, "Коэфф. пульсации (группа)", Escape(groupDef.RunPulseTimingCoefficient.ToString(CultureInfo.InvariantCulture)));
+      sb.AppendLine("</table>");
+    }
+
+    private static Dictionary<int, string> BuildScenarioTitleByIdMap(
+        IReadOnlyList<Tuple<ScenarioDocument, OperatorScenarioCompletedEventArgs>> runs)
+    {
+      var d = new Dictionary<int, string>();
+      foreach (var h in ScenarioStorage.LoadRegistry())
+      {
+        if (h.Id <= 0 || d.ContainsKey(h.Id))
+          continue;
+        d[h.Id] = h.Title ?? "";
+      }
+      if (runs != null)
+      {
+        foreach (var t in runs)
+        {
+          var id = t.Item1?.Header?.Id ?? 0;
+          if (id <= 0)
+            continue;
+          var tit = t.Item1.Header.Title;
+          if (!string.IsNullOrWhiteSpace(tit))
+            d[id] = tit;
+        }
+      }
+      return d;
+    }
+
+    private static string ScenarioTitleForMember(ScenarioGroupMemberRow m, Dictionary<int, string> titleById)
+    {
+      if (titleById.TryGetValue(m.ScenarioId, out var t) && !string.IsNullOrWhiteSpace(t))
+        return t;
+      return "Сценарий ID " + m.ScenarioId.ToString(CultureInfo.InvariantCulture);
+    }
+
+    private static void AppendGroupCompositionTable(
+        StringBuilder sb,
+        ScenarioGroupDocument groupDef,
+        Dictionary<int, string> titleById,
+        bool compact,
+        List<List<ScenarioLogComparer.StepCompareResult>> compareByIndex)
+    {
+      sb.AppendLine("<h2>Состав группы (порядок прогона)</h2>");
+      var tableClass = compact
+          ? "steps-zebra group-compose group-compose-compact"
+          : "steps-zebra group-compose";
+      sb.Append("<table class=\"").Append(tableClass).AppendLine("\"><colgroup>");
+      sb.AppendLine("<col style=\"width:2.8em\"/><col/>");
+      sb.AppendLine("<col style=\"width:3.6em\"/><col style=\"width:3.6em\"/><col style=\"width:3.2em\"/><col style=\"width:3.2em\"/><col style=\"width:3.8em\"/>");
+      if (compact)
+        sb.AppendLine("<col style=\"width:24em\"/>");
+      sb.AppendLine("</colgroup>");
+      sb.Append("<tr><th>Сорт.</th><th>Сценарий</th><th>Стадия</th><th>Очистка</th><th>Норма</th><th>Набл.</th><th>Авт.зап.</th>");
+      if (compact)
+        sb.Append("<th>Результат</th>");
+      sb.AppendLine("</tr>");
+
+      var ordered = groupDef.Members.OrderBy(x => x.SortOrderInGroup).ThenBy(x => x.ScenarioId).ToList();
+      for (int mi = 0; mi < ordered.Count; mi++)
+      {
+        var m = ordered[mi];
+        sb.AppendLine("<tr>");
+        sb.Append("<td>").Append(Escape(m.SortOrderInGroup.ToString(CultureInfo.InvariantCulture))).Append("</td>");
+        sb.Append("<td>").Append(Escape(ScenarioTitleForMember(m, titleById))).Append("</td>");
+        sb.Append("<td>").Append(Escape(ScenarioGroupDocument.FormatPreRunStageShort(m.PreRunTargetStage))).Append("</td>");
+        sb.Append("<td>").Append(m.PreRunClearAgentData ? "да" : "нет").Append("</td>");
+        sb.Append("<td>").Append(m.PreRunNormalHomeostasisState ? "да" : "нет").Append("</td>");
+        sb.Append("<td>").Append(m.ScenarioObservationMode ? "да" : "нет").Append("</td>");
+        sb.Append("<td>").Append(m.ScenarioAuthoritativeRecording ? "да" : "нет").Append("</td>");
+        if (compact)
+        {
+          sb.Append("<td>");
+          var cmp = compareByIndex[mi];
+          if (cmp == null)
+            sb.Append("<span class=\"muted\">Нет данных прогона</span>");
+          else if (cmp.Any(c => !c.Ok))
+            sb.Append("<span class=\"summary-bad\">Обнаружены расхождения</span>");
+          else
+            sb.Append("<span class=\"summary-ok\">Расхождений не обнаружено</span>");
+          sb.Append("</td>");
+        }
+        sb.AppendLine("</tr>");
+      }
+      sb.AppendLine("</table>");
+    }
+
+    private static List<ScenarioLogComparer.StepCompareResult> BuildCompareResultsForReport(
+        ScenarioDocument doc,
+        OperatorScenarioCompletedEventArgs completion,
+        PerceptionImagesSystem perceptionImages)
+    {
+      if (doc == null)
+        return new List<ScenarioLogComparer.StepCompareResult>();
+
+      int anchor = completion?.AnchorGlobalPulse ?? 0;
+      var agg = ScenarioLogComparer.AggregateByPulse(MemoryLogManager.Instance.LogEntries);
+      ScenarioReportLogDisplay.RewriteAggregatedStylesToCombinationCodes(agg, perceptionImages);
+      return ScenarioLogComparer.Compare(doc, anchor, agg,
+          new ScenarioLogComparer.CompareMessageFormatting
+          {
+            FormatStateFact = ScenarioReportLogDisplay.FormatStateCell
+          });
+    }
+
+    private static string BuildGroupBatchHtmlCompact(
+        ScenarioGroupDocument groupDef,
+        IReadOnlyList<Tuple<ScenarioDocument, OperatorScenarioCompletedEventArgs>> runs,
+        InfluenceActionSystem _influenceActions,
+        PerceptionImagesSystem perceptionImages)
+    {
+      var orderedMembers = groupDef.Members.OrderBy(x => x.SortOrderInGroup).ThenBy(x => x.ScenarioId).ToList();
+      var compareByIndex = new List<List<ScenarioLogComparer.StepCompareResult>>();
+      for (int i = 0; i < orderedMembers.Count; i++)
+      {
+        if (i < runs.Count && runs[i].Item1 != null)
+          compareByIndex.Add(BuildCompareResultsForReport(runs[i].Item1, runs[i].Item2, perceptionImages));
+        else
+          compareByIndex.Add(null);
+      }
+
+      var titleById = BuildScenarioTitleByIdMap(runs);
+
+      var sb = new StringBuilder();
+      sb.AppendLine("<!DOCTYPE html>");
+      sb.AppendLine("<html><head><meta charset=\"utf-8\"/>");
+      AppendReportStyles(sb);
+      sb.AppendLine("</head><body>");
+
+      AppendGroupBatchReportHeader(sb, groupDef);
+
+      AppendGroupCompositionTable(sb, groupDef, titleById, compact: true, compareByIndex);
+
+      for (int i = 0; i < orderedMembers.Count; i++)
+      {
+        var cmp = compareByIndex[i];
+        if (cmp == null || !cmp.Any(c => !c.Ok))
+          continue;
+        if (i >= runs.Count || runs[i].Item1 == null)
+          continue;
+
+        var doc = runs[i].Item1;
+        var completion = runs[i].Item2;
+        sb.AppendLine("<hr style=\"margin:28px 0;\"/>");
+        sb.Append("<h2>Сценарий ").Append(Escape((i + 1).ToString(CultureInfo.InvariantCulture)))
+            .Append(": ID ").Append(Escape(doc.Header?.Id.ToString(CultureInfo.InvariantCulture) ?? ""))
+            .Append(" — ").Append(Escape(doc.Header?.Title ?? "")).AppendLine("</h2>");
+        sb.AppendLine("<p>").Append(Escape(BuildSummaryParagraph(completion))).AppendLine("</p>");
+        AppendComparisonSummary(sb, cmp);
+      }
+
+      sb.AppendLine("<p class=\"muted\" style=\"margin-top:24px;font-size:11px;\">Сформировано AIStudio.</p>");
+      sb.AppendLine("</body></html>");
+      return sb.ToString();
+    }
+
     private static void AppendReportStyles(StringBuilder sb)
     {
       sb.AppendLine("<style>");
@@ -113,6 +261,12 @@ namespace AIStudio.Common
       sb.AppendLine("th,td{border:1px solid #CFD8DC;padding:6px 8px;text-align:left;vertical-align:top;}");
       sb.AppendLine("th{background:#ECEFF1;font-weight:600;}");
       sb.AppendLine("table.steps-zebra tr:nth-child(even){background:#FAFAFA;}");
+      sb.AppendLine("table.group-compose{table-layout:fixed;width:100%;}");
+      sb.AppendLine("table.group-compose td:nth-child(1),table.group-compose th:nth-child(1){text-align:center;white-space:nowrap;}");
+      sb.AppendLine("table.group-compose td:nth-child(2),table.group-compose th:nth-child(2){word-wrap:break-word;word-break:break-word;}");
+      sb.AppendLine("table.group-compose:not(.group-compose-compact) td:nth-child(n+3),table.group-compose:not(.group-compose-compact) th:nth-child(n+3){text-align:center;white-space:nowrap;}");
+      sb.AppendLine("table.group-compose.group-compose-compact td:nth-child(n+3):not(:last-child),table.group-compose.group-compose-compact th:nth-child(n+3):not(:last-child){text-align:center;white-space:nowrap;}");
+      sb.AppendLine("table.group-compose.group-compose-compact td:last-child,table.group-compose.group-compose-compact th:last-child{white-space:nowrap;text-align:left;}");
       sb.AppendLine(".muted{color:#78909C;}");
       sb.AppendLine("table.meta-table{width:100%;table-layout:fixed;}");
       sb.AppendLine("table.meta-table th.meta-label{width:15%;min-width:100px;max-width:160px;font-size:11px;font-weight:600;padding:6px 8px;vertical-align:top;background:#ECEFF1;}");

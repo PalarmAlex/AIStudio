@@ -5,6 +5,22 @@ using System.Runtime.CompilerServices;
 
 namespace AIStudio.Common
 {
+  /// <summary>Формат HTML-отчёта после группового прогона.</summary>
+  public enum ScenarioGroupReportFormat
+  {
+    /// <summary>Полные данные и сравнение по каждому сценарию.</summary>
+    Detailed = 0,
+    /// <summary>Состав группы с колонкой «Результат» и блоки расхождений только при несовпадениях.</summary>
+    Compact = 1
+  }
+
+  /// <summary>Пункт выбора формата отчёта в комбобоксе редактора группы.</summary>
+  public sealed class ScenarioGroupReportFormatItem
+  {
+    public ScenarioGroupReportFormat Format { get; set; }
+    public string Display { get; set; } = "";
+  }
+
   /// <summary>Запись реестра групп сценариев (как у сценария — только идентификация в списке).</summary>
   public sealed class ScenarioGroupHeader
   {
@@ -147,6 +163,9 @@ namespace AIStudio.Common
     /// <summary>Коэфф. ускорения пульса для всех сценариев группы (как в одиночном сценарии).</summary>
     public int RunPulseTimingCoefficient { get; set; } = 1;
 
+    /// <summary>Вид сводного отчёта после группового прогона.</summary>
+    public ScenarioGroupReportFormat ReportFormat { get; set; } = ScenarioGroupReportFormat.Detailed;
+
     public List<ScenarioGroupMemberRow> Members { get; set; } = new List<ScenarioGroupMemberRow>();
 
     public ScenarioGroupDocument Clone()
@@ -158,6 +177,7 @@ namespace AIStudio.Common
         Description = Description ?? "",
         DateText = DateText ?? "",
         RunPulseTimingCoefficient = RunPulseTimingCoefficient,
+        ReportFormat = ReportFormat,
         Members = Members == null ? new List<ScenarioGroupMemberRow>() : Members.ConvertAll(m => m.Clone())
       };
     }

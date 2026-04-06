@@ -28,11 +28,12 @@ namespace AIStudio.Windows
           $"Выполняется сценарий №{scenarioId} — не закрывайте приложение до завершения.";
     }
 
-    public void SetRunChromeForScenarioGroup(int groupId)
+    /// <param name="scenarioOrdinalInGroup">Номер сценария в порядке прогона группы (1-based).</param>
+    public void SetRunChromeForScenarioGroup(int scenarioOrdinalInGroup)
     {
-      Title = $"Выполняется группа сценариев №{groupId}";
+      Title = $"Выполняется сценарий №{scenarioOrdinalInGroup}";
       FooterTextBlock.Text =
-          $"Выполняется группа сценариев №{groupId} — не закрывайте приложение до завершения.";
+          $"Выполняется сценарий №{scenarioOrdinalInGroup} — не закрывайте приложение до завершения.";
     }
 
     public void SetStatus(string text, bool compactFont = false)

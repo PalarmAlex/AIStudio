@@ -759,7 +759,8 @@ namespace AIStudio.ViewModels.Research
         Id = doc.Header.Id,
         Title = doc.Header.Title,
         Description = doc.Header.Description,
-        DateText = doc.Header.DateText
+        DateText = doc.Header.DateText,
+        PreRunTargetStage = doc.Header.PreRunTargetStage
       });
 
       var (okReg, errReg) = ScenarioStorage.SaveRegistry(reg);

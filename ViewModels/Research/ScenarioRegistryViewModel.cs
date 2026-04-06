@@ -34,6 +34,7 @@ namespace AIStudio.ViewModels.Research
     private readonly List<ScenarioHeader> _registryAll = new List<ScenarioHeader>();
     private string _filterIdText = "";
     private string _filterTitleText = "";
+    private string _filterStageText = "";
 
     public string FilterIdText
     {
@@ -45,6 +46,12 @@ namespace AIStudio.ViewModels.Research
     {
       get => _filterTitleText;
       set { if (_filterTitleText == value) return; _filterTitleText = value; OnPropertyChanged(); }
+    }
+
+    public string FilterStageText
+    {
+      get => _filterStageText;
+      set { if (_filterStageText == value) return; _filterStageText = value; OnPropertyChanged(); }
     }
 
     public ScenarioRegistryViewModel(
@@ -119,11 +126,20 @@ namespace AIStudio.ViewModels.Research
     {
       var idF = (FilterIdText ?? "").Trim();
       var titleF = (FilterTitleText ?? "").Trim();
+      var stageF = (FilterStageText ?? "").Trim();
       IEnumerable<ScenarioHeader> q = _registryAll;
       if (idF.Length > 0)
         q = q.Where(h => h.Id.ToString(CultureInfo.InvariantCulture).IndexOf(idF, StringComparison.OrdinalIgnoreCase) >= 0);
       if (titleF.Length > 0)
         q = q.Where(h => (h.Title ?? "").IndexOf(titleF, StringComparison.OrdinalIgnoreCase) >= 0);
+      if (stageF.Length > 0)
+      {
+        if (int.TryParse(stageF, NumberStyles.Integer, CultureInfo.InvariantCulture, out int stageNum))
+          q = q.Where(h => h.PreRunTargetStage == stageNum);
+        else
+          q = q.Where(h => (h.PreRunStageNumberDisplay ?? "").IndexOf(stageF, StringComparison.OrdinalIgnoreCase) >= 0
+              || h.PreRunTargetStage.ToString(CultureInfo.InvariantCulture).IndexOf(stageF, StringComparison.OrdinalIgnoreCase) >= 0);
+      }
       var prevId = Selected?.Id;
       Items.Clear();
       foreach (var h in q.OrderBy(x => x.Id))
@@ -135,8 +151,10 @@ namespace AIStudio.ViewModels.Research
     {
       FilterIdText = "";
       FilterTitleText = "";
+      FilterStageText = "";
       OnPropertyChanged(nameof(FilterIdText));
       OnPropertyChanged(nameof(FilterTitleText));
+      OnPropertyChanged(nameof(FilterStageText));
       ApplyFilters();
     }
 
@@ -279,7 +297,8 @@ namespace AIStudio.ViewModels.Research
           Id = doc.Header.Id,
           Title = doc.Header.Title,
           Description = doc.Header.Description,
-          DateText = doc.Header.DateText
+          DateText = doc.Header.DateText,
+          PreRunTargetStage = doc.Header.PreRunTargetStage
         });
         var (ok, msg) = ScenarioStorage.SaveRegistry(reg);
         if (!ok)
