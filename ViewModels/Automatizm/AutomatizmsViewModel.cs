@@ -705,6 +705,7 @@ namespace AIStudio.ViewModels
             ToneMoodID = treeNode?.ToneMoodID ?? 0,
             SimbolID = treeNode?.SimbolID ?? 0,
             VerbID = treeNode?.VerbID ?? 0,
+            VisualID = treeNode?.VisualID ?? 0,
 
             // Текстовые описания для tooltip
             BaseConditionText = GetBaseConditionText(treeNode?.BaseID ?? 0),
@@ -919,7 +920,8 @@ namespace AIStudio.ViewModels
           InfluenceActionsText = GetInfluenceActionsText(influenceActionIds),
           ToneMoodText = toneMoodText,
           VerbalText = verbalText,
-          SimbolID = treeNode.SimbolID
+          SimbolID = treeNode.SimbolID,
+          VisualID = treeNode.VisualID
         };
 
         var sb = new System.Text.StringBuilder();
@@ -952,6 +954,11 @@ namespace AIStudio.ViewModels
         }
         else
           sb.AppendLine("Первый символ: Нет");
+
+        int visualCode = AgentVisualColor.IsValidCode(treeNode.VisualID)
+            ? treeNode.VisualID
+            : AgentVisualColor.White;
+        sb.AppendLine($"Цветовой фон: {AgentVisualColor.GetDisplayName(visualCode)}");
 
         // Блок «Образ действия» — из первого автоматизма с данным BranchID
         var automatizm = _automatizmSystem?.GetAllAutomatizms()?.FirstOrDefault(a => a.BranchID == branchId);
@@ -1343,6 +1350,8 @@ namespace AIStudio.ViewModels
       public int ToneMoodID { get; set; }
       public int SimbolID { get; set; }
       public int VerbID { get; set; }
+      /// <summary>Код зрительного канала узла дерева (<see cref="AgentVisualColor"/>).</summary>
+      public int VisualID { get; set; }
 
       // Текстовые описания для tooltip
       public string BaseConditionText { get; set; }

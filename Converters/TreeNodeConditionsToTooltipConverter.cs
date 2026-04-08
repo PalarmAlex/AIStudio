@@ -1,4 +1,5 @@
-﻿using AIStudio.ViewModels;
+using AIStudio.ViewModels;
+using ISIDA.Reflexes;
 using System;
 using System.Globalization;
 using System.Text;
@@ -39,6 +40,11 @@ namespace AIStudio.Converters
           sb.AppendLine($"Первый символ: ID {automatizm.SimbolID}");
         else
           sb.AppendLine("Первый символ: Нет");
+
+        int visualCode = AgentVisualColor.IsValidCode(automatizm.VisualID)
+            ? automatizm.VisualID
+            : AgentVisualColor.White;
+        sb.AppendLine($"Цветовой фон: {AgentVisualColor.GetDisplayName(visualCode)}");
 
         return sb.ToString();
       }

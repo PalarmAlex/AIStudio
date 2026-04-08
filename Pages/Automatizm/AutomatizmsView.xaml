@@ -238,7 +238,7 @@
             <DataGridTemplateColumn.HeaderStyle>
               <Style TargetType="DataGridColumnHeader">
                 <Setter Property="ToolTip"
-                  Value="ID условий запуска дерева автоматизмов: состояние, эмоции, действия, фразы, тон, настроение"/>
+                  Value="ID условий запуска дерева автоматизмов: состояние, эмоции, действия, фразы, тон, настроение, цветовой фон. "/>
               </Style>
             </DataGridTemplateColumn.HeaderStyle>
             <DataGridTemplateColumn.CellTemplate>
