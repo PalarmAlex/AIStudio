@@ -360,13 +360,41 @@ namespace AIStudio.Common
       sk.SkipMainCycle = Skip(10);
     }
 
+    /// <summary>Делит строку ожиданий по «|», не экранированным обратным слэшем (поля могут содержать \| после записи Escape).</summary>
+    private static List<string> SplitLogExpectationLine(string line)
+    {
+      var parts = new List<string>();
+      var cur = new StringBuilder(line.Length);
+      for (int i = 0; i < line.Length; i++)
+      {
+        char c = line[i];
+        if (c != '|')
+        {
+          cur.Append(c);
+          continue;
+        }
+        int backslashes = 0;
+        for (int j = i - 1; j >= 0 && line[j] == '\\'; j--)
+          backslashes++;
+        if ((backslashes % 2) == 1)
+        {
+          cur.Append('|');
+          continue;
+        }
+        parts.Add(cur.ToString());
+        cur.Clear();
+      }
+      parts.Add(cur.ToString());
+      return parts;
+    }
+
     private static void TryParseLogExpectationRow(string line, ScenarioDocument doc)
     {
       if (doc.LogExpectations == null)
         doc.LogExpectations = new List<ScenarioLogExpectationRow>();
 
-      var p = line.Split('|');
-      if (p.Length < 13)
+      var p = SplitLogExpectationLine(line);
+      if (p.Count < 13)
         return;
       if (!int.TryParse(p[0].Trim(), NumberStyles.Integer, CultureInfo.InvariantCulture, out int step))
         return;

@@ -397,9 +397,8 @@ namespace AIStudio.Common
     {
       if (string.IsNullOrWhiteSpace(expectedRaw))
         return false;
-      var e = expectedRaw.Trim();
       var a = ScenarioLogComparer.NormalizeDisplay(actualVal ?? "");
-      return !string.Equals(e, a, StringComparison.Ordinal);
+      return !ScenarioLogComparer.ExpectationCellMatches(expectedRaw, a);
     }
 
     private static void AppendComparisonSummary(StringBuilder sb, List<ScenarioLogComparer.StepCompareResult> compareList)

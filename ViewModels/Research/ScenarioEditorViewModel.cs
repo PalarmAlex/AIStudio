@@ -549,6 +549,8 @@ namespace AIStudio.ViewModels.Research
     /// Вставляет подряд N копий непрерывно выделенного блока строк сразу после него (N — поле <see cref="RepeatBlockCountText"/>).
     /// Между концом предыдущего фрагмента и первой строкой копии пульс увеличивается как при «Добавить запись»
     /// (зазор из режима приращения пульса); внутри копии сохраняются относительные интервалы пульсов исходного блока.
+    /// Если после блока были строки, их номера пульсов увеличиваются на суммарный размах вставленного по временной шкале
+    /// (последний пульс вставки минус пульс на последней строке исходного блока до вставки).
     /// </summary>
     public void RepeatSelectedLinesBlock(IReadOnlyList<ScenarioLineRow> selectedItems)
     {
@@ -613,6 +615,7 @@ namespace AIStudio.ViewModels.Research
       int blockEnd = maxIx;
       int blockLen = blockEnd - blockStart + 1;
       int pulseDelta = CurrentPulseStepDelta();
+      int pulseAtBlockEndBeforeInsert = Lines[blockEnd].PulseWithinScenario;
 
       Lines.ListChanged -= OnLinesListChanged;
       try
@@ -635,6 +638,18 @@ namespace AIStudio.ViewModels.Research
             lineClone.RefreshActionNames(_influenceActions);
           }
           insertAfter += blockLen;
+        }
+
+        int lastInsertedIndex = blockEnd + repeatCount * blockLen;
+        if (lastInsertedIndex + 1 < Lines.Count)
+        {
+          int lastInsertedPulse = Lines[lastInsertedIndex].PulseWithinScenario;
+          int pulseShift = lastInsertedPulse - pulseAtBlockEndBeforeInsert;
+          if (pulseShift != 0)
+          {
+            for (int i = lastInsertedIndex + 1; i < Lines.Count; i++)
+              Lines[i].PulseWithinScenario += pulseShift;
+          }
         }
       }
       finally
@@ -701,16 +716,46 @@ namespace AIStudio.ViewModels.Research
     {
       if (rows == null)
         return;
-      var list = rows.Where(r => r != null && Lines.Contains(r)).Distinct().OrderByDescending(r => Lines.IndexOf(r)).ToList();
-      if (list.Count == 0)
+      var victims = rows.Where(r => r != null && Lines.Contains(r)).Distinct().ToList();
+      if (victims.Count == 0)
         return;
-      foreach (var r in list)
-        Lines.Remove(r);
+
+      var deleteIndices = victims.Select(r => Lines.IndexOf(r)).Distinct().OrderBy(i => i).ToList();
+      var pulseSnapshot = Lines.Select(l => l.PulseWithinScenario).ToList();
+      int n = Lines.Count;
+      var deleteRanges = MergeContiguousSortedIndices(deleteIndices);
+      var deleteSet = new HashSet<int>(deleteIndices);
+      var indexByVictim = victims.ToDictionary(r => r, r => Lines.IndexOf(r));
+
+      Lines.ListChanged -= OnLinesListChanged;
+      try
+      {
+        foreach (var r in victims.OrderByDescending(r => indexByVictim[r]))
+          Lines.Remove(r);
+
+        int k = 0;
+        for (int oldIx = 0; oldIx < n; oldIx++)
+        {
+          if (deleteSet.Contains(oldIx))
+            continue;
+          int removedSpan = PulseSpanRemovedBeforeIndex(oldIx, pulseSnapshot, deleteRanges);
+          int p = pulseSnapshot[oldIx] - removedSpan;
+          Lines[k].PulseWithinScenario = Math.Max(1, p);
+          k++;
+        }
+      }
+      finally
+      {
+        Lines.ListChanged += OnLinesListChanged;
+      }
+
       ScenarioPulseSchedule.EnsureSequentialStepIndices(Lines);
       foreach (var l in Lines)
         l.RefreshActionNames(_influenceActions);
+      SyncExpectationRowsWithLines();
       SelectedLine = Lines.FirstOrDefault();
       HasUnsavedChanges = true;
+      CommandManager.InvalidateRequerySuggested();
     }
 
     public void MarkDirty()
@@ -819,6 +864,44 @@ namespace AIStudio.ViewModels.Research
     private void OnPropertyChanged([CallerMemberName] string name = null)
     {
       PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
+    }
+
+    /// <summary>Сливает отсортированные индексы удаляемых строк в непрерывные отрезки.</summary>
+    private static List<(int Start, int End)> MergeContiguousSortedIndices(IReadOnlyList<int> sortedDistinct)
+    {
+      var ranges = new List<(int Start, int End)>();
+      foreach (int i in sortedDistinct)
+      {
+        if (ranges.Count == 0 || i > ranges[ranges.Count - 1].End + 1)
+          ranges.Add((i, i));
+        else
+        {
+          int li = ranges.Count - 1;
+          var last = ranges[li];
+          ranges[li] = (last.Start, i);
+        }
+      }
+      return ranges;
+    }
+
+    /// <summary>
+    /// Суммарный размах пульсов по шкале сценария, «освобождённый» удалёнными строками, полностью лежащими выше
+    /// указанного старого индекса: для каждого отрезка удаления [s,e] — (пульс на e) − (пульс на строке перед s), для s=0 — минус 0.
+    /// </summary>
+    private static int PulseSpanRemovedBeforeIndex(
+        int oldLineIndex,
+        IReadOnlyList<int> pulses,
+        IReadOnlyList<(int Start, int End)> deleteRanges)
+    {
+      int sum = 0;
+      foreach (var (s, e) in deleteRanges)
+      {
+        if (e >= oldLineIndex)
+          continue;
+        int leftPulse = s > 0 ? pulses[s - 1] : 0;
+        sum += pulses[e] - leftPulse;
+      }
+      return sum;
     }
   }
 }

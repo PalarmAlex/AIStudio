@@ -108,6 +108,28 @@ namespace AIStudio.Common
       return t.Length == 0 ? "-" : t;
     }
 
+    /// <summary>
+    /// Сравнение ячейки ожидания с нормализованным значением из лога (как в <see cref="NormalizeDisplay"/>).
+    /// Если ожидание содержит «|», перечислены допустимые альтернативы: достаточно совпадения с любым непустым вариантом (после Trim).
+    /// Литеральный символ «|» внутри одного варианта в файле сценария задаётся как \| (см. <see cref="ScenarioStorage.Escape"/>).
+    /// </summary>
+    public static bool ExpectationCellMatches(string expectedRaw, string actualDisplayNormalized)
+    {
+      if (string.IsNullOrWhiteSpace(expectedRaw))
+        return true;
+      var e = expectedRaw.Trim();
+      var a = actualDisplayNormalized ?? "-";
+      if (e.IndexOf('|') < 0)
+        return string.Equals(e, a, StringComparison.Ordinal);
+      foreach (var part in e.Split('|'))
+      {
+        var t = part.Trim();
+        if (t.Length > 0 && string.Equals(t, a, StringComparison.Ordinal))
+          return true;
+      }
+      return false;
+    }
+
     public sealed class StepCompareResult
     {
       public int StepIndex { get; set; }
@@ -167,7 +189,7 @@ namespace AIStudio.Common
             return;
           var e = expectedRaw.Trim();
           var a = NormalizeDisplay(actualVal);
-          if (!string.Equals(e, a, StringComparison.Ordinal))
+          if (!ExpectationCellMatches(expectedRaw, a))
           {
             var expPhrase = e;
             var factPhrase = a;
