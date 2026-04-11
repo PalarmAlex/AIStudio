@@ -291,6 +291,7 @@ namespace AIStudio.ViewModels.Research
         var doc = ScenarioGroupStorage.LoadGroup(Selected.Id);
         doc.Id = ScenarioGroupStorage.NextGroupId();
         doc.Title = (Selected.Title ?? "Группа") + "_copy1";
+        doc.DateText = DateTime.Now.ToString("yyyy-MM-dd");
 
         var reg = ScenarioGroupStorage.LoadGroupRegistry();
         reg.Add(new ScenarioGroupHeader

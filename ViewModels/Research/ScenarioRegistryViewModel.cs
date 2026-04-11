@@ -283,6 +283,7 @@ namespace AIStudio.ViewModels.Research
         ScenarioPulseSchedule.EnsureSequentialStepIndices(doc.Lines);
         doc.Header.Id = ScenarioStorage.NextScenarioId();
         doc.Header.Title = (Selected.Title ?? "Сценарий") + "_copy1";
+        doc.Header.DateText = DateTime.Now.ToString("yyyy-MM-dd");
 
         var (okLines, errLines) = ScenarioStorage.SaveScenarioLines(doc);
         if (!okLines)
