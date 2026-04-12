@@ -361,6 +361,7 @@
     <Compile Include="Windows\ScenarioRunProgressWindow.xaml.cs">
       <DependentUpon>ScenarioRunProgressWindow.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Windows\WideYesNoDialog.cs" />
     <Page Include="MainWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>

@@ -320,28 +320,26 @@ namespace AIStudio.ViewModels
         var conditionedReflex = _conditionedReflexesSystem.GetAllConditionedReflexes()
           .FirstOrDefault(r => r.Id == reflexId);
 
+        if (conditionedReflex == null)
+          return "Нет данных о действиях рефлекса";
+
         var conditionReflexesActions = GetActionsForGeneticReflexes(conditionedReflex.SourceGeneticReflexId);
 
-        if (conditionedReflex != null)
-        {
-          var tooltipParts = new List<string>();
-          var allActions = _adaptiveActionsSystem.GetAllAdaptiveActions();
-          var actionNames = conditionReflexesActions
-              .Select(actionId => allActions.FirstOrDefault(a => a.Id == actionId)?.Name ?? $"Действие {actionId}")
-              .Where(name => !string.IsNullOrEmpty(name));
+        var tooltipParts = new List<string>();
+        var allActions = _adaptiveActionsSystem.GetAllAdaptiveActions();
+        var actionNames = conditionReflexesActions
+            .Select(actionId => allActions.FirstOrDefault(a => a.Id == actionId)?.Name ?? $"Действие {actionId}")
+            .Where(name => !string.IsNullOrEmpty(name));
 
-          if (actionNames.Any())
-            tooltipParts.Add($"Действия: {string.Join(", ", actionNames)}");
+        if (actionNames.Any())
+          tooltipParts.Add($"Действия: {string.Join(", ", actionNames)}");
 
-          return tooltipParts.Any() ? string.Join("\n", tooltipParts) : "Пустой образ действий рефлекса";
-        }
+        return tooltipParts.Any() ? string.Join("\n", tooltipParts) : "Пустой образ действий рефлекса";
       }
       catch (Exception ex)
       {
         return $"Ошибка загрузки действий рефлекса: {ex.Message}";
       }
-
-      return "Нет данных о действиях рефлекса";
     }
 
     /// <summary>

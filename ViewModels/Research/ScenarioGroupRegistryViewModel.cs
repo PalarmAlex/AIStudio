@@ -254,7 +254,7 @@ namespace AIStudio.ViewModels.Research
 
         var ordered = groupDoc.Members.OrderBy(m => m.SortOrderInGroup).ThenBy(m => m.ScenarioId).ToList();
         var sb = new StringBuilder();
-        sb.AppendLine("Будут запущены сценарии в таком порядке (коэфф. пульсации группы: ")
+        sb.Append("Будут запущены сценарии в таком порядке (коэфф. пульсации группы: ")
             .Append(groupDoc.RunPulseTimingCoefficient.ToString(CultureInfo.InvariantCulture)).AppendLine("):");
         foreach (var m in ordered)
         {
@@ -267,8 +267,8 @@ namespace AIStudio.ViewModels.Research
         }
         sb.AppendLine().AppendLine("Продолжить?");
 
-        if (MessageBox.Show(sb.ToString(), "Подтверждение группового запуска",
-                MessageBoxButton.YesNo, MessageBoxImage.Question) != MessageBoxResult.Yes)
+        var owner = Application.Current?.MainWindow as Window;
+        if (!WideYesNoDialog.Show(owner, sb.ToString(), "Подтверждение группового запуска"))
           return;
 
         var folder = string.IsNullOrWhiteSpace(ReportOutputFolder)
