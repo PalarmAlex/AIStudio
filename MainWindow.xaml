@@ -170,7 +170,12 @@
               Style="{StaticResource MenuButtonStyle}"
               Command="{Binding VerticalMenuItemClickedCommand}"
               CommandParameter="11"/>
-            
+
+            <Button Content="Моторные правила" Margin="20,2,5,2" 
+              Style="{StaticResource MenuButtonStyle}"
+              Command="{Binding VerticalMenuItemClickedCommand}"
+              CommandParameter="17"/>
+
             <Button Content="Темы мышления" Margin="20,2,5,2"
               Style="{StaticResource MenuButtonStyle}"
               Command="{Binding VerticalMenuItemClickedCommand}"
@@ -190,12 +195,7 @@
               Style="{StaticResource MenuButtonStyle}"
               Command="{Binding VerticalMenuItemClickedCommand}"
               CommandParameter="16"/>
-
-            <Button Content="Значимость образов" Margin="20,2,5,2" 
-              Style="{StaticResource MenuButtonStyle}"
-              Command="{Binding VerticalMenuItemClickedCommand}"
-              CommandParameter="17"/>
-      
+            
           </StackPanel>
         </Expander>
 

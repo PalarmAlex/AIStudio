@@ -1,0 +1,333 @@
+<UserControl x:Class="AIStudio.Pages.Episodic.MotorRulesView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:converters="clr-namespace:AIStudio.Converters"
+             mc:Ignorable="d"
+             d:DesignHeight="520" d:DesignWidth="1000">
+
+  <UserControl.Resources>
+    <converters:InverseBooleanToVisibilityConverter x:Key="InverseBooleanToVisibilityConverter"/>
+    <converters:Level1ToTextConverter x:Key="Level1ToTextConverter"/>
+    <converters:IdListToNamesConverter x:Key="IdListToNamesConverter"/>
+    <converters:UsefulnessToColorConverter x:Key="UsefulnessToColorConverter"/>
+  </UserControl.Resources>
+
+  <Grid Margin="12">
+    <Grid.RowDefinitions>
+      <RowDefinition Height="Auto"/>
+      <RowDefinition Height="Auto"/>
+      <RowDefinition Height="Auto"/>
+      <RowDefinition Height="Auto"/>
+      <RowDefinition Height="*"/>
+      <RowDefinition Height="Auto"/>
+    </Grid.RowDefinitions>
+
+    <TextBlock Grid.Row="0"
+               Text="{Binding CurrentAgentTitle}"
+               FontSize="18"
+               FontWeight="SemiBold"
+               HorizontalAlignment="Center"
+               Margin="0,0,0,8"
+               Foreground="#FF333333"/>
+
+    <Border Grid.Row="1"
+            BorderBrush="#FFFFE082"
+            BorderThickness="1"
+            CornerRadius="4"
+            Padding="8,6"
+            Margin="0,0,0,8"
+            Background="#FFFFF8E1"
+            Visibility="{Binding IsMotorRulesAvailable, Converter={StaticResource InverseBooleanToVisibilityConverter}}">
+      <TextBlock TextWrapping="Wrap" Foreground="#FF5D4037"
+                 Text="Таблица и история кадров доступны при инициализированной эпизодической памяти и этапе эволюции не ниже 4."/>
+    </Border>
+
+    <!-- Лента кадров (тот же формат, что на странице дерева эпизодической памяти) -->
+    <Border Grid.Row="2" BorderBrush="#FFE0E0E0" BorderThickness="1" CornerRadius="4"
+            Margin="0,0,0,10" Padding="8,6" Background="#FFF9F9F9">
+      <StackPanel>
+        <Grid Margin="0,0,0,6">
+          <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*"/>
+            <ColumnDefinition Width="Auto"/>
+          </Grid.ColumnDefinitions>
+          <TextBlock Grid.Column="0"
+                     Text="Историческая последовательность 100 последних кадров эпизодической памяти:"
+                     FontSize="13" FontWeight="SemiBold" Foreground="#FF333333" VerticalAlignment="Center"/>
+          <Button Grid.Column="1" Content="Обновить"
+                  Command="{Binding RefreshCommand}"
+                  Style="{StaticResource AgentButtonStyle}"
+                  Height="28" MinWidth="100" Cursor="Hand"
+                  ToolTip="Перечитать правила и историю кадров" Margin="0,0,0,0"/>
+        </Grid>
+        <ItemsControl ItemsSource="{Binding HistoryFrames}">
+          <ItemsControl.ItemsPanel>
+            <ItemsPanelTemplate>
+              <WrapPanel Orientation="Horizontal"/>
+            </ItemsPanelTemplate>
+          </ItemsControl.ItemsPanel>
+          <ItemsControl.ItemTemplate>
+            <DataTemplate>
+              <Border Background="{Binding BackgroundBrush}" CornerRadius="3" Padding="6,4"
+                      Margin="0,0,3,3" BorderBrush="#FFCCCCCC" BorderThickness="1"
+                      ToolTip="{Binding TooltipText}">
+                <TextBlock Text="{Binding DisplayText}" FontSize="14" Foreground="#FF333333"/>
+              </Border>
+            </DataTemplate>
+          </ItemsControl.ItemTemplate>
+        </ItemsControl>
+      </StackPanel>
+    </Border>
+
+    <!-- Фильтры -->
+    <Border Grid.Row="3"
+            BorderBrush="#FFE0E0E0"
+            BorderThickness="1"
+            CornerRadius="4"
+            Margin="0,0,0,10"
+            Padding="5"
+            Background="#FFF5F5F5">
+      <Grid>
+        <Grid.ColumnDefinitions>
+          <ColumnDefinition Width="Auto"/>
+          <ColumnDefinition Width="*"/>
+          <ColumnDefinition Width="Auto"/>
+        </Grid.ColumnDefinitions>
+        <TextBlock Grid.Column="0"
+                   Text="Фильтры:"
+                   VerticalAlignment="Top"
+                   Margin="0,6,12,0"
+                   FontWeight="Bold"/>
+        <StackPanel Grid.Column="1" Orientation="Vertical" HorizontalAlignment="Left">
+          <StackPanel Orientation="Horizontal" Margin="0,0,0,6">
+            <StackPanel Orientation="Vertical" Width="150">
+              <TextBlock Text="Состояние" FontSize="12" Margin="0,0,0,2"/>
+              <ComboBox Style="{StaticResource AgentComboBoxStyle}"
+                        ItemsSource="{Binding BaseConditionFilterOptions}"
+                        SelectedValue="{Binding SelectedBaseConditionFilter}"
+                        DisplayMemberPath="Value"
+                        SelectedValuePath="Key"
+                        Height="25" Cursor="Hand" Margin="0,0,10,0"/>
+            </StackPanel>
+            <StackPanel Orientation="Vertical" Width="150">
+              <TextBlock Text="Контексты реагирования" FontSize="12" Margin="0,0,0,2"/>
+              <ComboBox Style="{StaticResource AgentComboBoxStyle}"
+                        ItemsSource="{Binding Level2FilterOptions}"
+                        SelectedValue="{Binding SelectedLevel2Filter}"
+                        DisplayMemberPath="Value"
+                        SelectedValuePath="Key"
+                        Height="25" Margin="0,0,10,0"/>
+            </StackPanel>
+            <StackPanel Orientation="Vertical" Margin="0,0,10,0" Width="70">
+              <TextBlock Text="NodePID" FontSize="12" Margin="0,0,0,2"/>
+              <TextBox Style="{StaticResource AgentFilterTextBoxStyle}" Text="{Binding FilterNodePid, UpdateSourceTrigger=PropertyChanged}" Height="25" Width="70"/>
+            </StackPanel>
+            <StackPanel Orientation="Vertical" Margin="0,0,10,0" Width="70">
+              <TextBlock Text="Эффект" FontSize="12" Margin="0,0,0,2"/>
+              <TextBox Style="{StaticResource AgentFilterTextBoxStyle}" Text="{Binding FilterEffect, UpdateSourceTrigger=PropertyChanged}" Height="25" Width="70"/>
+            </StackPanel>
+            <StackPanel Orientation="Vertical" Margin="0,0,10,0" Width="70">
+              <TextBlock Text="Count" FontSize="12" Margin="0,0,0,2"/>
+              <TextBox Style="{StaticResource AgentFilterTextBoxStyle}" Text="{Binding FilterCount, UpdateSourceTrigger=PropertyChanged}" Height="25"/>
+            </StackPanel>
+            <StackPanel Orientation="Vertical" Margin="0,0,10,0" Width="70">
+              <TextBlock Text="Значимость" FontSize="12" Margin="0,0,0,2"/>
+              <TextBox Style="{StaticResource AgentFilterTextBoxStyle}" Text="{Binding FilterStimulsEffect, UpdateSourceTrigger=PropertyChanged}" Height="25"/>
+            </StackPanel>
+            <StackPanel Orientation="Vertical" Margin="0,0,10,0" Width="150">
+              <TextBlock Text="Записей на страницу" FontSize="12" Margin="0,0,0,2"/>
+              <ComboBox Style="{StaticResource AgentComboBoxStyle}"
+                        ItemsSource="{Binding PageSizeOptions}"
+                        SelectedValue="{Binding SelectedPageSize, Mode=TwoWay}"
+                        DisplayMemberPath="Value"
+                        SelectedValuePath="Key"
+                        Height="25"
+                        ToolTip="Ограничить количество отображаемых записей"/>
+            </StackPanel>
+          </StackPanel>
+          <StackPanel Orientation="Horizontal">
+            <StackPanel Orientation="Vertical" Width="150">
+              <TextBlock Text="Действие триггера" FontSize="12" Margin="0,0,0,2"/>
+              <ComboBox Style="{StaticResource AgentComboBoxStyle}"
+                        ItemsSource="{Binding PerceptionActionFilterOptions}"
+                        SelectedValue="{Binding SelectedPerceptionActionFilterId}"
+                        DisplayMemberPath="Value"
+                        SelectedValuePath="Key"
+                        Height="25" Margin="0,0,10,0"/>
+            </StackPanel>
+            <StackPanel Orientation="Vertical" Width="150">
+              <TextBlock Text="Действие Акции" FontSize="12" Margin="0,0,0,2"/>
+              <ComboBox Style="{StaticResource AgentComboBoxStyle}"
+                        ItemsSource="{Binding ActionFilterOptions}"
+                        SelectedValue="{Binding SelectedActionFilterId}"
+                        DisplayMemberPath="Value"
+                        SelectedValuePath="Key"
+                        Height="25" Margin="0,0,10,0"/>
+            </StackPanel>
+            <StackPanel Orientation="Vertical" Margin="0,0,10,0" Width="150">
+              <TextBlock Text="Фраза триггера" FontSize="12" Margin="0,0,0,2"/>
+              <TextBox Style="{StaticResource AgentFilterTextBoxStyle}"
+                       Text="{Binding FilterPhrasePerceptionInput, UpdateSourceTrigger=PropertyChanged}"
+                       Height="25" Width="150"
+                       ToolTip="Поиск по вхождению текста в фразу образа триггера. Нажмите «Применить»."/>
+            </StackPanel>
+            <StackPanel Orientation="Vertical" Margin="0,0,10,0" Width="150">
+              <TextBlock Text="Фраза акции" FontSize="12" Margin="0,0,0,2"/>
+              <TextBox Style="{StaticResource AgentFilterTextBoxStyle}"
+                       Text="{Binding FilterPhraseActionInput, UpdateSourceTrigger=PropertyChanged}"
+                       Height="25" Width="150"
+                       ToolTip="Поиск по вхождению текста в фразу образа действия. Нажмите «Применить»."/>
+            </StackPanel>
+          </StackPanel>
+        </StackPanel>
+        <Grid Grid.Column="2" VerticalAlignment="Stretch" Width="100" Margin="12,0,0,0">
+          <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+          </Grid.RowDefinitions>
+          <Button Grid.Row="0" Content="Применить"
+                  Command="{Binding ApplyFiltersCommand}"
+                  Style="{StaticResource AgentButtonStyle}"
+                  Margin="0,15,0,6"
+                  Height="30"
+                  Width="100"
+                  Cursor="Hand"
+                  HorizontalAlignment="Right"
+                  ToolTip="Применить фильтры"/>
+          <Button Grid.Row="2" Content="Сброс"
+                  Command="{Binding ClearFiltersCommand}"
+                  Style="{StaticResource AgentButtonStyle}"
+                  Height="30"
+                  Width="100"
+                  Cursor="Hand"
+                  HorizontalAlignment="Right" Margin="0,0,0,0"/>
+        </Grid>
+      </Grid>
+    </Border>
+
+    <Border Grid.Row="4"
+            BorderBrush="#FFE0E0E0"
+            BorderThickness="1"
+            CornerRadius="4"
+            Margin="0,0,0,5">
+      <DataGrid ItemsSource="{Binding Rules}"
+                AutoGenerateColumns="False"
+                IsReadOnly="True"
+                CanUserAddRows="False"
+                CanUserDeleteRows="False"
+                SelectionMode="Single"
+                HeadersVisibility="Column"
+                GridLinesVisibility="Horizontal"
+                AlternatingRowBackground="#FFF9F9F9"
+                BorderThickness="0"
+                Background="White">
+        <DataGrid.Columns>
+          <DataGridTextColumn Header="ID" Binding="{Binding Id}" Width="56"/>
+
+          <DataGridTemplateColumn Header="Состояние" Width="Auto">
+            <DataGridTemplateColumn.HeaderStyle>
+              <Style TargetType="DataGridColumnHeader">
+                <Setter Property="ToolTip" Value="Интегральное базовое состояние гомеостаза: Плохо, Норма, Хорошо."/>
+              </Style>
+            </DataGridTemplateColumn.HeaderStyle>
+            <DataGridTemplateColumn.CellTemplate>
+              <DataTemplate>
+                <TextBlock Text="{Binding BaseId, Converter={StaticResource Level1ToTextConverter}}"/>
+              </DataTemplate>
+            </DataGridTemplateColumn.CellTemplate>
+          </DataGridTemplateColumn>
+
+          <DataGridTemplateColumn Header="Эмоция" Width="300">
+            <DataGridTemplateColumn.HeaderStyle>
+              <Style TargetType="DataGridColumnHeader">
+                <Setter Property="ToolTip" Value="Базовые эмоции (контексты реагирования)."/>
+              </Style>
+            </DataGridTemplateColumn.HeaderStyle>
+            <DataGridTemplateColumn.CellTemplate>
+              <DataTemplate>
+                <TextBlock Text="{Binding EmotionContextIds, Converter={StaticResource IdListToNamesConverter}, ConverterParameter=Level2}"
+                           TextTrimming="CharacterEllipsis"/>
+              </DataTemplate>
+            </DataGridTemplateColumn.CellTemplate>
+          </DataGridTemplateColumn>
+
+          <DataGridTemplateColumn Header="NodePID" Width="72" SortMemberPath="NodePid">
+            <DataGridTemplateColumn.HeaderStyle>
+              <Style TargetType="DataGridColumnHeader">
+                <Setter Property="ToolTip"
+                        Value="ID узла дерева проблем; по AutTreeID — условия узла дерева автоматизмов (как «ID дерева условий» в таблице автоматизмов)."/>
+              </Style>
+            </DataGridTemplateColumn.HeaderStyle>
+            <DataGridTemplateColumn.CellTemplate>
+              <DataTemplate>
+                <TextBlock Text="{Binding NodePid}"
+                           ToolTip="{Binding NodePidTooltipText}"
+                           TextTrimming="CharacterEllipsis"/>
+              </DataTemplate>
+            </DataGridTemplateColumn.CellTemplate>
+          </DataGridTemplateColumn>
+
+          <DataGridTemplateColumn Header="Триггер" Width="72">
+            <DataGridTemplateColumn.HeaderStyle>
+              <Style TargetType="DataGridColumnHeader">
+                <Setter Property="ToolTip" Value="Образ триггера: действия восприятия, фразы; тон и настроение выводятся в подсказке отдельными строками."/>
+              </Style>
+            </DataGridTemplateColumn.HeaderStyle>
+            <DataGridTemplateColumn.CellTemplate>
+              <DataTemplate>
+                <TextBlock Text="{Binding TriggerId}"
+                           ToolTip="{Binding TriggerTooltipText}"
+                           TextTrimming="CharacterEllipsis"/>
+              </DataTemplate>
+            </DataGridTemplateColumn.CellTemplate>
+          </DataGridTemplateColumn>
+
+          <DataGridTemplateColumn Header="Акция" Width="64">
+            <DataGridTemplateColumn.HeaderStyle>
+              <Style TargetType="DataGridColumnHeader">
+                <Setter Property="ToolTip" Value="Образ ответного действия: действия, фразы; тон и настроение в подсказке — отдельные строки."/>
+              </Style>
+            </DataGridTemplateColumn.HeaderStyle>
+            <DataGridTemplateColumn.CellTemplate>
+              <DataTemplate>
+                <TextBlock Text="{Binding ActionId}"
+                           ToolTip="{Binding ActionTooltipText}"
+                           TextTrimming="CharacterEllipsis"/>
+              </DataTemplate>
+            </DataGridTemplateColumn.CellTemplate>
+          </DataGridTemplateColumn>
+
+          <DataGridTemplateColumn Header="Эффект" Width="64" SortMemberPath="Effect">
+            <DataGridTemplateColumn.CellTemplate>
+              <DataTemplate>
+                <TextBlock Text="{Binding Effect}"
+                           Foreground="{Binding Effect, Converter={StaticResource UsefulnessToColorConverter}}"
+                           FontWeight="Bold"/>
+              </DataTemplate>
+            </DataGridTemplateColumn.CellTemplate>
+          </DataGridTemplateColumn>
+          <DataGridTextColumn Header="Count" Binding="{Binding Count}" Width="56"/>
+          <DataGridTemplateColumn Header="Значимость" Width="120" SortMemberPath="StimulsEffect">
+            <DataGridTemplateColumn.CellTemplate>
+              <DataTemplate>
+                <TextBlock Text="{Binding StimulsEffect}"
+                           Foreground="{Binding StimulsEffect, Converter={StaticResource UsefulnessToColorConverter}}"
+                           FontWeight="Bold"/>
+              </DataTemplate>
+            </DataGridTemplateColumn.CellTemplate>
+          </DataGridTemplateColumn>
+        </DataGrid.Columns>
+      </DataGrid>
+    </Border>
+
+    <TextBlock Grid.Row="5"
+               Text="{Binding DisplayCountText}"
+               Margin="0,4,0,0"
+               VerticalAlignment="Center"
+               FontWeight="SemiBold"
+               Foreground="#FF333333"/>
+  </Grid>
+</UserControl>

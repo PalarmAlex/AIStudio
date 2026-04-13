@@ -383,8 +383,8 @@ namespace AIStudio
           case "16": // Циклы осмысления
             ShowThinkingCycles();
             break;
-          case "17": // Значимость элементов восприятия
-            ShowStub("Значимость элементов восприятия");
+          case "17": // Моторные правила (эпизодика)
+            ShowMotorRules();
             break;
           case "18": // Информационная среда
             ShowStub("Информационная среда");
@@ -495,7 +495,28 @@ namespace AIStudio
           _isidaContext?.ProblemTree,
           _influenceActionsImagesSystem,
           _actionsImagesSystem,
-          _sensorySystem);
+          _sensorySystem,
+          _automatizmTreeSystem,
+          _verbalBrocaImages);
+      view.DataContext = viewModel;
+      CurrentContent = view;
+    }
+
+    private void ShowMotorRules()
+    {
+      var view = new MotorRulesView();
+      var viewModel = new MotorRulesViewModel(
+          _isidaContext?.EpisodicMemory,
+          _gomeostas,
+          _emotionsImageSystem,
+          _influenceActionSystem,
+          _actionsSystem,
+          _isidaContext?.ProblemTree,
+          _influenceActionsImagesSystem,
+          _actionsImagesSystem,
+          _sensorySystem,
+          _automatizmTreeSystem,
+          _verbalBrocaImages);
       view.DataContext = viewModel;
       CurrentContent = view;
     }

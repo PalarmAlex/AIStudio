@@ -107,6 +107,7 @@ namespace AIStudio.ViewModels.Episodic
     private readonly InfluenceActionsImagesSystem _influenceActionsImages;
     private readonly ActionsImagesSystem _actionsImages;
     private readonly SensorySystem _sensorySystem;
+    private readonly EpisodicMemoryNodePresentation _nodePresentation;
 
     private string _filterPhrasePerception = string.Empty;
     private string _filterPhrase = string.Empty;
@@ -142,17 +143,6 @@ namespace AIStudio.ViewModels.Episodic
     {
       get => _treeGood;
       set { _treeGood = value; OnPropertyChanged(nameof(TreeGood)); }
-    }
-
-    #endregion
-
-    #region Историческая последовательность 100 кадров
-
-    private ObservableCollection<HistoryFrameItem> _historyFrames = new ObservableCollection<HistoryFrameItem>();
-    public ObservableCollection<HistoryFrameItem> HistoryFrames
-    {
-      get => _historyFrames;
-      set { _historyFrames = value; OnPropertyChanged(nameof(HistoryFrames)); }
     }
 
     #endregion
@@ -248,7 +238,9 @@ namespace AIStudio.ViewModels.Episodic
       ProblemTreeSystem problemTree,
       InfluenceActionsImagesSystem influenceActionsImages = null,
       ActionsImagesSystem actionsImages = null,
-      SensorySystem sensorySystem = null)
+      SensorySystem sensorySystem = null,
+      AutomatizmTreeSystem automatizmTree = null,
+      VerbalBrocaImagesSystem verbalBroca = null)
     {
       _episodicMemory = episodicMemory;
       _gomeostas = gomeostas;
@@ -259,6 +251,10 @@ namespace AIStudio.ViewModels.Episodic
       _influenceActionsImages = influenceActionsImages;
       _actionsImages = actionsImages;
       _sensorySystem = sensorySystem;
+      _nodePresentation = new EpisodicMemoryNodePresentation(
+        _gomeostas, _emotionsImage, _influenceAction, _adaptiveActions, _problemTree,
+        _influenceActionsImages, _actionsImages, _sensorySystem,
+        automatizmTree, verbalBroca);
 
       PerceptionActionFilterOptions.Add(new KeyValuePair<int, string>(0, "Все действия"));
       var influenceActions = _influenceAction?.GetAllInfluenceActions();
@@ -317,7 +313,6 @@ namespace AIStudio.ViewModels.Episodic
         TreeBad = new ObservableCollection<EpisodicTreeNodeItem>();
         TreeNormal = new ObservableCollection<EpisodicTreeNodeItem>();
         TreeGood = new ObservableCollection<EpisodicTreeNodeItem>();
-        HistoryFrames = new ObservableCollection<HistoryFrameItem>();
         return;
       }
 
@@ -348,7 +343,6 @@ namespace AIStudio.ViewModels.Episodic
           TreeNormal = empty;
           TreeGood = BuildTreeFromChildren(root.Children, 1, ref limitSingle, 0, true);
         }
-        LoadHistoryFrames();
         return;
       }
 
@@ -358,81 +352,6 @@ namespace AIStudio.ViewModels.Episodic
       TreeNormal = BuildTreeFromChildren(root.Children, 0, ref limitNorm, 0, true);
       int limitGood = limit;
       TreeGood = BuildTreeFromChildren(root.Children, 1, ref limitGood, 0, true);
-
-      LoadHistoryFrames();
-    }
-
-    /// <summary>Строит полное описание кадра для подсказки плашки — те же строки, что и в дереве (унификация с GetNodeDisplayAndTooltip).</summary>
-    private string BuildFullFrameTooltip(EpisodicMemoryNode node)
-    {
-      if (node == null) return "—";
-      var lines = new List<string>();
-      for (int depth = 0; depth <= 4; depth++)
-      {
-        var (text, _, _) = GetNodeDisplayAndTooltip(node, depth);
-        if (depth == 0)
-          lines.Add("Состояние: " + text);
-        else
-          lines.Add(text);
-      }
-      return string.Join("\n", lines);
-    }
-
-    /// <summary>Загружает цепочку последних 100 кадров эпизодической памяти без фильтрации (панель фильтров не влияет на эту ленту).</summary>
-    private void LoadHistoryFrames()
-    {
-      var list = new ObservableCollection<HistoryFrameItem>();
-      var history = _episodicMemory?.History;
-      if (history == null) { HistoryFrames = list; return; }
-
-      var entries = history.GetLastEntries(100);
-      // Разбиваем на цепочки (между пустыми кадрами NodeId == -1). Показываем все кадры без фильтрации.
-      var chains = SplitIntoChains(entries);
-      // Слева — самая последняя: выводим цепочки и кадры в обратном порядке (newest first)
-      for (int i = chains.Count - 1; i >= 0; i--)
-      {
-        var chain = chains[i];
-        for (int j = chain.Count - 1; j >= 0; j--)
-        {
-          var e = chain[j];
-          if (e.NodeId == -1)
-          {
-            list.Add(new HistoryFrameItem("—", Brushes.White, "Пустой кадр (разрыв цепочки правил)"));
-            continue;
-          }
-          var node = _episodicMemory.GetNodeById(e.NodeId);
-          int effect = node?.Params?.Effect ?? 0;
-          Brush brush = effect < 0 ? Brushes.LightCoral : (effect > 0 ? Brushes.LightGreen : new SolidColorBrush(Color.FromRgb(0xE8, 0xC2, 0x00)));
-          string tooltip = BuildFullFrameTooltip(node);
-          list.Add(new HistoryFrameItem(e.NodeId.ToString(), brush, tooltip));
-        }
-      }
-      HistoryFrames = list;
-    }
-
-    /// <summary>Разбивает последовательность записей на цепочки по пустым кадрам (NodeId == -1).</summary>
-    private static List<List<EpisodicHistoryEntry>> SplitIntoChains(List<EpisodicHistoryEntry> entries)
-    {
-      var chains = new List<List<EpisodicHistoryEntry>>();
-      if (entries == null || entries.Count == 0) return chains;
-      var current = new List<EpisodicHistoryEntry>();
-      foreach (var e in entries)
-      {
-        if (e.NodeId == -1)
-        {
-          if (current.Count > 0)
-          {
-            chains.Add(current);
-            current = new List<EpisodicHistoryEntry>();
-          }
-          chains.Add(new List<EpisodicHistoryEntry> { e });
-        }
-        else
-          current.Add(e);
-      }
-      if (current.Count > 0)
-        chains.Add(current);
-      return chains;
     }
 
     /// <summary>Ключ группировки узлов на уровне (чтобы один узел «Эмоция: X» не дублировался — ветки объединяются, как в BOT).</summary>
@@ -489,7 +408,7 @@ namespace AIStudio.ViewModels.Episodic
             continue;
           }
 
-          var (text, tooltip, effectBrush) = GetNodeDisplayAndTooltip(first, depth);
+          var (text, tooltip, effectBrush) = _nodePresentation.GetNodeDisplayAndTooltip(first, depth);
           var item = new EpisodicTreeNodeItem(first, text, tooltip, effectBrush, isActionRow: depth == 4, level: depth);
           remainingLimit--;
           if (sub != null)
@@ -521,7 +440,7 @@ namespace AIStudio.ViewModels.Episodic
           continue;
         }
 
-        var (text, tooltip, effectBrush) = GetNodeDisplayAndTooltip(child, depth);
+        var (text, tooltip, effectBrush) = _nodePresentation.GetNodeDisplayAndTooltip(child, depth);
         var item = new EpisodicTreeNodeItem(child, text, tooltip, effectBrush, isActionRow: depth == 4, level: depth);
         remainingLimit--;
 
@@ -583,7 +502,7 @@ namespace AIStudio.ViewModels.Episodic
       if (!string.IsNullOrWhiteSpace(_filterPhrasePerception))
       {
         if (node.TriggerId == 0) return false;
-        string phrase = GetTriggerPhraseText(node.TriggerId);
+        string phrase = _nodePresentation.GetTriggerPhraseText(node.TriggerId);
         if (string.IsNullOrEmpty(phrase) || phrase.IndexOf(_filterPhrasePerception, StringComparison.OrdinalIgnoreCase) < 0)
           return false;
       }
@@ -592,208 +511,12 @@ namespace AIStudio.ViewModels.Episodic
       if (!string.IsNullOrWhiteSpace(_filterPhrase))
       {
         if (node.ActionId == 0) return false;
-        string phrase = GetActionPhraseText(node.ActionId);
+        string phrase = _nodePresentation.GetActionPhraseText(node.ActionId);
         if (string.IsNullOrEmpty(phrase) || phrase.IndexOf(_filterPhrase, StringComparison.OrdinalIgnoreCase) < 0)
           return false;
       }
 
       return true;
-    }
-
-    private string GetTriggerPhraseText(int triggerId)
-    {
-      var img = _actionsImages?.GetActionsImage(triggerId);
-      if (img?.PhraseIdList == null || img.PhraseIdList.Count == 0) return null;
-      return GetPhraseTextFromImage(img);
-    }
-
-    private string GetActionPhraseText(int actionId)
-    {
-      var img = _actionsImages?.GetActionsImage(actionId);
-      if (img?.PhraseIdList == null || img.PhraseIdList.Count == 0) return null;
-      return GetPhraseTextFromImage(img);
-    }
-
-    private string GetPhraseTextFromImage(ActionsImagesSystem.ActionsImage img)
-    {
-      if (_sensorySystem?.VerbalChannel == null) return null;
-      var vc = _sensorySystem.VerbalChannel;
-      var list = img.PhraseIdList.Select(pid => vc.GetPhraseFromPhraseId(pid)).Where(s => !string.IsNullOrEmpty(s)).ToList();
-      return list.Any() ? string.Join(" ", list) : null;
-    }
-
-    private (string text, string tooltip, Brush effectBrush) GetNodeDisplayAndTooltip(EpisodicMemoryNode node, int depth)
-    {
-      if (node == null) return ("—", "—", null);
-
-      string text;
-      string tooltip;
-      Brush effectBrush = null;
-
-      switch (depth)
-      {
-        case 0:
-          text = GetBaseIdText(node.BaseID);
-          tooltip = $"BaseID: {node.BaseID}";
-          break;
-        case 1:
-          string emotionText = GetEmotionText(node.EmotionID);
-          if (emotionText == "—" && node.Children != null && node.Children.Count > 0)
-          {
-            var firstWithEmotion = node.Children.FirstOrDefault(c => c.EmotionID > 0);
-            if (firstWithEmotion != null)
-              emotionText = GetEmotionText(firstWithEmotion.EmotionID);
-          }
-          text = "Эмоция: " + emotionText;
-          tooltip = emotionText + $"\nEmotionID: {node.EmotionID}";
-          break;
-        case 2:
-          text = $"NodePID: {node.NodePID}";
-          tooltip = GetNodePidTooltip(node.NodePID);
-          break;
-        case 3:
-          text = $"Тригггер: {node.TriggerId}";
-          tooltip = GetTriggerTooltip(node.TriggerId);
-          break;
-        case 4:
-          text = node.Params != null
-            ? $"Акция: {node.ActionId}, Эффект: {FormatEffect(node.Params.Effect)}"
-            : $"Акция: {node.ActionId}";
-          tooltip = GetActionTooltip(node.ActionId);
-          if (node.Params != null)
-            tooltip += $"\nЭффект: {node.Params.Effect}, Count: {node.Params.Count}";
-          if (node.Params != null)
-            effectBrush = node.Params.Effect > 0 ? Brushes.DarkGreen : (node.Params.Effect < 0 ? Brushes.DarkRed : Brushes.DarkGoldenrod);
-          break;
-        default:
-          text = BuildCompositeLabel(node);
-          tooltip = $"ID: {node.ID}";
-          break;
-      }
-
-      return (text ?? $"ID:{node.ID}", tooltip ?? text, effectBrush);
-    }
-
-    private static string FormatEffect(int effect)
-    {
-      if (effect > 0) return "+" + effect;
-      return effect.ToString();
-    }
-
-    private string GetBaseIdText(int baseId)
-    {
-      switch (baseId)
-      {
-        case -1: return "Плохо";
-        case 0: return "Норма";
-        case 1: return "Хорошо";
-        default: return $"BaseID:{baseId}";
-      }
-    }
-
-    private string BuildCompositeLabel(EpisodicMemoryNode node)
-    {
-      if (node.NodePID != 0) return $"NodePID: {node.NodePID}";
-      if (node.EmotionID != 0) return "Эмоция: " + GetEmotionText(node.EmotionID);
-      if (node.TriggerId != 0) return $"Тригггер: {node.TriggerId}";
-      if (node.ActionId != 0) return $"Акция: {node.ActionId}";
-      return GetBaseIdText(node.BaseID);
-    }
-
-    private string GetEmotionText(int emotionId)
-    {
-      if (emotionId <= 0) return "—";
-      try
-      {
-        var img = _emotionsImage?.GetEmotionsImage(emotionId);
-        if (img?.BaseStylesList == null || !img.BaseStylesList.Any()) return emotionId.ToString();
-        var styles = _gomeostas?.GetAllBehaviorStyles();
-        if (styles == null) return emotionId.ToString();
-        var names = img.BaseStylesList.Where(id => styles.ContainsKey(id)).Select(id => styles[id].Name).ToList();
-        return names.Any() ? string.Join(", ", names) : emotionId.ToString();
-      }
-      catch { return emotionId.ToString(); }
-    }
-
-    private string GetNodePidTooltip(int nodePid)
-    {
-      if (nodePid <= 0) return $"NodePID: {nodePid}";
-      var pn = FindProblemNodeById(_problemTree?.Tree, nodePid);
-      if (pn == null) return $"NodePID: {nodePid}";
-      return $"NodePID: {nodePid}\nAutTreeID: {pn.AutTreeID}\nSituationTreeID: {pn.SituationTreeID}\nThemeID: {pn.ThemeID}\nPurposeID: {pn.PurposeID}";
-    }
-
-    private ProblemTreeNode FindProblemNodeById(ProblemTreeNode root, int id)
-    {
-      if (root == null) return null;
-      if (root.ID == id) return root;
-      foreach (var c in root.Children ?? Enumerable.Empty<ProblemTreeNode>())
-      {
-        var found = FindProblemNodeById(c, id);
-        if (found != null) return found;
-      }
-      return null;
-    }
-
-    private string GetTriggerTooltip(int triggerId)
-    {
-      if (triggerId <= 0) return "—";
-      var actImg = _actionsImages?.GetActionsImage(triggerId);
-      if (actImg != null)
-        return BuildImageTooltip(actImg);
-      var infImg = _influenceActionsImages?.GetInfluenceActionsImage(triggerId);
-      if (infImg?.ActIdList != null && infImg.ActIdList.Count > 0 && _influenceAction != null)
-      {
-        var names = infImg.ActIdList
-          .Where(id => _influenceAction.GetAllInfluenceActions().Any(a => a.Id == id))
-          .Select(id => _influenceAction.GetAllInfluenceActions().First(a => a.Id == id).Name)
-          .ToList();
-        return $"Действие: {(names.Any() ? string.Join(", ", names) : "Нет")}\nФраза: Нет\nТон/Настроение: —";
-      }
-      return $"Триггер ID: {triggerId}";
-    }
-
-    private string GetActionTooltip(int actionId)
-    {
-      if (actionId <= 0) return "—";
-      var actImg = _actionsImages?.GetActionsImage(actionId);
-      return actImg != null ? BuildImageTooltip(actImg) : $"Акция ID: {actionId}";
-    }
-
-    private string BuildImageTooltip(ActionsImagesSystem.ActionsImage actImg)
-    {
-      var sb = new System.Text.StringBuilder();
-      string actionText = "Нет";
-      if (actImg.ActIdList != null && actImg.ActIdList.Count > 0 && _adaptiveActions != null)
-      {
-        var names = actImg.ActIdList
-          .Where(id => _adaptiveActions.GetAllAdaptiveActions().Any(a => a.Id == id))
-          .Select(id => _adaptiveActions.GetAllAdaptiveActions().First(a => a.Id == id).Name)
-          .ToList();
-        actionText = names.Any() ? string.Join(", ", names) : "Нет";
-      }
-      else if (actImg.ActIdList != null && actImg.ActIdList.Count > 0 && _influenceAction != null)
-      {
-        var names = actImg.ActIdList
-          .Where(id => _influenceAction.GetAllInfluenceActions().Any(a => a.Id == id))
-          .Select(id => _influenceAction.GetAllInfluenceActions().First(a => a.Id == id).Name)
-          .ToList();
-        actionText = names.Any() ? string.Join(", ", names) : "Нет";
-      }
-      sb.AppendLine($"Действие: {actionText}");
-
-      string phraseText = "Нет";
-      if (actImg.PhraseIdList != null && actImg.PhraseIdList.Count > 0 && _sensorySystem?.VerbalChannel != null)
-      {
-        var phrases = actImg.PhraseIdList.Select(pid => _sensorySystem.VerbalChannel.GetPhraseFromPhraseId(pid)).Where(s => !string.IsNullOrEmpty(s)).ToList();
-        phraseText = phrases.Any() ? string.Join(" ", phrases) : "Нет";
-      }
-      sb.AppendLine($"Фраза: {phraseText}");
-
-      string tone = ActionsImagesSystem.GetToneText(actImg.ToneId);
-      string mood = ActionsImagesSystem.GetMoodText(actImg.MoodId);
-      sb.AppendLine(string.IsNullOrEmpty(tone) && string.IsNullOrEmpty(mood) ? "Тон/Настроение: —" : $"Тон/Настроение: {tone ?? "—"} - {mood ?? "—"}");
-      return sb.ToString().TrimEnd();
     }
   }
 }
