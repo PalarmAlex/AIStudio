@@ -323,7 +323,7 @@
 
     <!-- Таблица логов -->
     <Border Grid.Row="1" Margin="5" BorderBrush="#00FF00" BorderThickness="1" Background="#080808">
-      <DataGrid ItemsSource="{Binding LogEntries}"
+      <DataGrid ItemsSource="{Binding AgentDisplayLogEntries}"
                         x:Name="LogDataGrid"
                         Style="{StaticResource MatrixDataGridStyle}"
                         AutoGenerateColumns="False"

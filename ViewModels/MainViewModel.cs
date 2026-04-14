@@ -186,6 +186,10 @@ namespace AIStudio
 
         _isidaContext = IsidaEngine.Create(config);
 
+        var agentDisplayCoalescer = new CoalescingAgentLogWriter(MemoryLogManager.Instance.CreateAgentDisplayLogSink());
+        MemoryLogManager.SetAgentDisplayCoalescerResetHandler(() => agentDisplayCoalescer.ResetPending());
+        _isidaContext.ResearchLogger.SetDisplayLogWriter(agentDisplayCoalescer);
+
         _stepInzialized = 3;
 
         _gomeostas = _isidaContext.Gomeostas;

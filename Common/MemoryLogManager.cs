@@ -2,6 +2,7 @@ using System;
 using System.Collections.ObjectModel;
 using System.Windows;
 using System.Windows.Threading;
+using ISIDA.Common;
 
 namespace AIStudio.Common
 {
@@ -34,6 +35,7 @@ namespace AIStudio.Common
     #region Private Fields
 
     private readonly ObservableCollection<LogEntry> _logEntries = new ObservableCollection<LogEntry>();
+    private readonly ObservableCollection<LogEntry> _agentDisplayLogEntries = new ObservableCollection<LogEntry>();
     private readonly ObservableCollection<StyleLogEntry> _styleLogEntries = new ObservableCollection<StyleLogEntry>();
     private readonly ObservableCollection<ParameterLogEntry> _parameterLogEntries = new ObservableCollection<ParameterLogEntry>();
     private readonly ObservableCollection<StyleParameterActivationEntry> _styleParameterActivationEntries = new ObservableCollection<StyleParameterActivationEntry>();
@@ -50,6 +52,19 @@ namespace AIStudio.Common
     /// Коллекция записей системных логов в режиме только для чтения
     /// </summary>
     public ReadOnlyObservableCollection<LogEntry> LogEntries { get; }
+
+    /// <summary>
+    /// Агентный лог для UI: по одному снимку на глобальный пульс (слияние как в отчёте сценария).
+    /// </summary>
+    public ReadOnlyObservableCollection<LogEntry> AgentDisplayLogEntries { get; }
+
+    /// <summary>Сброс накопленного состояния <see cref="CoalescingAgentLogWriter"/> при очистке логов.</summary>
+    private static Action _agentDisplayCoalescerResetHandler;
+
+    public static void SetAgentDisplayCoalescerResetHandler(Action handler)
+    {
+      _agentDisplayCoalescerResetHandler = handler;
+    }
 
     /// <summary>
     /// Коллекция записей логов стилей поведения в режиме только для чтения
@@ -81,6 +96,7 @@ namespace AIStudio.Common
     private MemoryLogManager()
     {
       LogEntries = new ReadOnlyObservableCollection<LogEntry>(_logEntries);
+      AgentDisplayLogEntries = new ReadOnlyObservableCollection<LogEntry>(_agentDisplayLogEntries);
       StyleLogEntries = new ReadOnlyObservableCollection<StyleLogEntry>(_styleLogEntries);
       ParameterLogEntries = new ReadOnlyObservableCollection<ParameterLogEntry>(_parameterLogEntries);
       StyleParameterActivationEntries = new ReadOnlyObservableCollection<StyleParameterActivationEntry>(_styleParameterActivationEntries);
@@ -177,7 +193,27 @@ namespace AIStudio.Common
     {
       if (_disposed) return;
 
-      var entry = new LogEntry
+      var entry = CreateAgentLogEntry(className, method, pulse, baseId, baseStyleId, triggerStimulusId,
+          orientationReflexType, geneticReflexId, conditionedReflexId, automatizmId, reflexChainInfo,
+          automatizmChainInfo, thinkingLevel, thinkingLevelSuccess, thinkingThemeTypeId,
+          thinkingThemeTooltip, mainThinkingCycleId, mainThinkingCycleTooltip, mainThinkingCycleTaskStatus);
+
+      AddLogEntry(entry);
+    }
+
+    /// <summary>Приёмник для <see cref="CoalescingAgentLogWriter"/>: заменяет верхнюю строку, если пульс совпадает.</summary>
+    public ILogWriter CreateAgentDisplayLogSink()
+    {
+      return new AgentDisplayLogSink(this);
+    }
+
+    private static LogEntry CreateAgentLogEntry(string className, string method, int? pulse, int? baseId,
+        int? baseStyleId, int? triggerStimulusId, int? orientationReflexType, int? geneticReflexId,
+        int? conditionedReflexId, int? automatizmId, string reflexChainInfo, string automatizmChainInfo,
+        int? thinkingLevel, bool? thinkingLevelSuccess, int? thinkingThemeTypeId, string thinkingThemeTooltip,
+        int? mainThinkingCycleId, string mainThinkingCycleTooltip, string mainThinkingCycleTaskStatus)
+    {
+      return new LogEntry
       {
         ClassName = className ?? string.Empty,
         Method = method ?? string.Empty,
@@ -200,8 +236,88 @@ namespace AIStudio.Common
         MainThinkingCycleTaskStatus = string.IsNullOrEmpty(mainThinkingCycleTaskStatus) ? null : mainThinkingCycleTaskStatus,
         Timestamp = DateTime.Now
       };
+    }
 
-      AddLogEntry(entry);
+    private sealed class AgentDisplayLogSink : ILogWriter
+    {
+      private readonly MemoryLogManager _owner;
+
+      public AgentDisplayLogSink(MemoryLogManager owner)
+      {
+        _owner = owner;
+      }
+
+      public void WriteLog(string className, string method, int? pulse, int? baseId, int? baseStyleId,
+          int? triggerStimulusId, int? orientationReflexType, int? geneticReflexId, int? conditionedReflexId,
+          int? automatizmId = null, string reflexChainInfo = null, string automatizmChainInfo = null,
+          int? thinkingLevel = null, bool? thinkingLevelSuccess = null, int? thinkingThemeTypeId = null,
+          string thinkingThemeTooltip = null, int? mainThinkingCycleId = null,
+          string mainThinkingCycleTooltip = null, string mainThinkingCycleTaskStatus = null)
+      {
+        if (_owner._disposed)
+          return;
+        var entry = CreateAgentLogEntry(className, method, pulse, baseId, baseStyleId, triggerStimulusId,
+            orientationReflexType, geneticReflexId, conditionedReflexId, automatizmId, reflexChainInfo,
+            automatizmChainInfo, thinkingLevel, thinkingLevelSuccess, thinkingThemeTypeId,
+            thinkingThemeTooltip, mainThinkingCycleId, mainThinkingCycleTooltip, mainThinkingCycleTaskStatus);
+        _owner.UpsertAgentDisplayLogEntry(entry);
+      }
+
+      public void WriteParameterLog(int pulse, int paramId, string paramName, int weight, int normaWell, int speed,
+          float value, float urgencyFunction, string parameterState, string activationZone)
+      {
+      }
+
+      public void WriteStyleLog(int pulse, string stage, int styleId, string styleName)
+      {
+      }
+
+      public void WriteStyleParameterActivation(int pulse, string stage, int parameterId, string parameterName,
+          int zoneId, string zoneDescription, int styleId, string styleName, string activationDetails)
+      {
+      }
+    }
+
+    private void UpsertAgentDisplayLogEntry(LogEntry entry)
+    {
+      if (Application.Current != null && Application.Current.Dispatcher.CheckAccess())
+      {
+        UpsertAgentDisplayLogEntryInternal(entry);
+      }
+      else if (Application.Current != null)
+      {
+        Application.Current.Dispatcher.BeginInvoke(new Action<LogEntry>(UpsertAgentDisplayLogEntryInternal),
+            DispatcherPriority.Background, entry);
+      }
+      else
+      {
+        UpsertAgentDisplayLogEntryInternal(entry);
+      }
+    }
+
+    private void UpsertAgentDisplayLogEntryInternal(LogEntry entry)
+    {
+      lock (_lock)
+      {
+        if (entry.Pulse.HasValue)
+        {
+          for (int i = 0; i < _agentDisplayLogEntries.Count; i++)
+          {
+            if (_agentDisplayLogEntries[i].Pulse == entry.Pulse)
+            {
+              _agentDisplayLogEntries[i] = entry;
+              return;
+            }
+          }
+        }
+
+        _agentDisplayLogEntries.Insert(0, entry);
+
+        while (_agentDisplayLogEntries.Count > _maxLogEntries)
+        {
+          _agentDisplayLogEntries.RemoveAt(_agentDisplayLogEntries.Count - 1);
+        }
+      }
     }
 
     /// <summary>
@@ -558,14 +674,18 @@ namespace AIStudio.Common
 
     private void ClearInternal()
     {
+      var reset = _agentDisplayCoalescerResetHandler;
       lock (_lock)
       {
         _logEntries.Clear();
+        _agentDisplayLogEntries.Clear();
         _styleLogEntries.Clear();
         _parameterLogEntries.Clear();
         _styleParameterActivationEntries.Clear();
         _chainLogEntries.Clear();
       }
+
+      reset?.Invoke();
     }
 
     private void ClearStyleLogsInternal()
@@ -605,6 +725,7 @@ namespace AIStudio.Common
       lock (_lock)
       {
         _logEntries.Clear();
+        _agentDisplayLogEntries.Clear();
         _styleLogEntries.Clear();
         _parameterLogEntries.Clear();
         _styleParameterActivationEntries.Clear();

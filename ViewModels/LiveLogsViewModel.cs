@@ -44,9 +44,14 @@ namespace AIStudio.ViewModels
     private readonly ActionsImagesSystem _actionsImagesSystem;
 
     /// <summary>
-    /// Коллекция записей логов только для чтения
+    /// Полный агентный лог (для отчётов сценариев и отладки).
     /// </summary>
     public ReadOnlyObservableCollection<LogEntry> LogEntries => MemoryLogManager.Instance.LogEntries;
+
+    /// <summary>
+    /// Агентный лог для таблицы: одна строка на глобальный пульс после слияния снимков в движке.
+    /// </summary>
+    public ReadOnlyObservableCollection<LogEntry> AgentDisplayLogEntries => MemoryLogManager.Instance.AgentDisplayLogEntries;
 
     /// <summary>
     /// Коллекция записей логов цепочек рефлексов и автоматизмов только для чтения
@@ -102,6 +107,7 @@ namespace AIStudio.ViewModels
 
       // Принудительно обновляем привязку (автообновление всегда включено)
       OnPropertyChanged(nameof(LogEntries));
+      OnPropertyChanged(nameof(AgentDisplayLogEntries));
       OnPropertyChanged(nameof(ChainLogEntries));
     }
 
@@ -114,6 +120,7 @@ namespace AIStudio.ViewModels
 
       MemoryLogManager.Instance.Clear();
       OnPropertyChanged(nameof(LogEntries));
+      OnPropertyChanged(nameof(AgentDisplayLogEntries));
       OnPropertyChanged(nameof(ChainLogEntries));
     }
 
