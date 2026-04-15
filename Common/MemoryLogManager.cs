@@ -189,14 +189,16 @@ namespace AIStudio.Common
                        int? thinkingLevel = null, bool? thinkingLevelSuccess = null,
                        int? thinkingThemeTypeId = null, string thinkingThemeTooltip = null,
                        int? mainThinkingCycleId = null, string mainThinkingCycleTooltip = null,
-                       string mainThinkingCycleTaskStatus = null)
+                       string mainThinkingCycleTaskStatus = null,
+                       bool informationEnvironmentDanger = false)
     {
       if (_disposed) return;
 
       var entry = CreateAgentLogEntry(className, method, pulse, baseId, baseStyleId, triggerStimulusId,
           orientationReflexType, geneticReflexId, conditionedReflexId, automatizmId, reflexChainInfo,
           automatizmChainInfo, thinkingLevel, thinkingLevelSuccess, thinkingThemeTypeId,
-          thinkingThemeTooltip, mainThinkingCycleId, mainThinkingCycleTooltip, mainThinkingCycleTaskStatus);
+          thinkingThemeTooltip, mainThinkingCycleId, mainThinkingCycleTooltip, mainThinkingCycleTaskStatus,
+          informationEnvironmentDanger);
 
       AddLogEntry(entry);
     }
@@ -211,7 +213,8 @@ namespace AIStudio.Common
         int? baseStyleId, int? triggerStimulusId, int? orientationReflexType, int? geneticReflexId,
         int? conditionedReflexId, int? automatizmId, string reflexChainInfo, string automatizmChainInfo,
         int? thinkingLevel, bool? thinkingLevelSuccess, int? thinkingThemeTypeId, string thinkingThemeTooltip,
-        int? mainThinkingCycleId, string mainThinkingCycleTooltip, string mainThinkingCycleTaskStatus)
+        int? mainThinkingCycleId, string mainThinkingCycleTooltip, string mainThinkingCycleTaskStatus,
+        bool informationEnvironmentDanger)
     {
       return new LogEntry
       {
@@ -234,6 +237,7 @@ namespace AIStudio.Common
         MainThinkingCycleId = mainThinkingCycleId.HasValue && mainThinkingCycleId.Value > 0 ? mainThinkingCycleId : null,
         MainThinkingCycleTooltip = string.IsNullOrEmpty(mainThinkingCycleTooltip) ? null : mainThinkingCycleTooltip,
         MainThinkingCycleTaskStatus = string.IsNullOrEmpty(mainThinkingCycleTaskStatus) ? null : mainThinkingCycleTaskStatus,
+        InformationEnvironmentDanger = informationEnvironmentDanger,
         Timestamp = DateTime.Now
       };
     }
@@ -252,14 +256,16 @@ namespace AIStudio.Common
           int? automatizmId = null, string reflexChainInfo = null, string automatizmChainInfo = null,
           int? thinkingLevel = null, bool? thinkingLevelSuccess = null, int? thinkingThemeTypeId = null,
           string thinkingThemeTooltip = null, int? mainThinkingCycleId = null,
-          string mainThinkingCycleTooltip = null, string mainThinkingCycleTaskStatus = null)
+          string mainThinkingCycleTooltip = null, string mainThinkingCycleTaskStatus = null,
+          bool informationEnvironmentDanger = false)
       {
         if (_owner._disposed)
           return;
         var entry = CreateAgentLogEntry(className, method, pulse, baseId, baseStyleId, triggerStimulusId,
             orientationReflexType, geneticReflexId, conditionedReflexId, automatizmId, reflexChainInfo,
             automatizmChainInfo, thinkingLevel, thinkingLevelSuccess, thinkingThemeTypeId,
-            thinkingThemeTooltip, mainThinkingCycleId, mainThinkingCycleTooltip, mainThinkingCycleTaskStatus);
+            thinkingThemeTooltip, mainThinkingCycleId, mainThinkingCycleTooltip, mainThinkingCycleTaskStatus,
+            informationEnvironmentDanger);
         _owner.UpsertAgentDisplayLogEntry(entry);
       }
 
@@ -915,6 +921,15 @@ namespace AIStudio.Common
 
       /// <summary>Статус задачи главного цикла для фона ячейки: Awaiting / NoSolution / Solved.</summary>
       public string MainThinkingCycleTaskStatus { get; set; }
+
+      /// <summary>Признак опасной ситуации в информационной среде (для столбца «Опасно»).</summary>
+      public bool InformationEnvironmentDanger { get; set; }
+
+      /// <summary>Для файлов лога и агрегации сравнения: «1» или «0».</summary>
+      public string DisplayDanger => InformationEnvironmentDanger ? "1" : "0";
+
+      /// <summary>Текст ячейки живых логов: «-» если не опасно, пусто если опасно (фон — в стиле).</summary>
+      public string DisplayDangerCell => InformationEnvironmentDanger ? "" : "-";
 
       /// <summary>
       /// Строковое представление результата УМ для привязок в шаблоне (избегаем bool? в XAML): "True", "False" или ""

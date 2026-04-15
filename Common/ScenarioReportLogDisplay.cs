@@ -35,6 +35,15 @@ namespace AIStudio.Common
       }
     }
 
+    /// <summary>Колонка «Опасно» в отчёте: только «1» при опасности, иначе «-».</summary>
+    public static string FormatDangerComparisonCell(string raw)
+    {
+      var a = NormalizeCell(raw ?? "");
+      if (a == "1")
+        return "1";
+      return "-";
+    }
+
     /// <summary>
     /// В лог в поле стиля попадает Id образа стиля (<see cref="PerceptionImagesSystem.BehaviorStyleImage"/>).
     /// Для отчёта и сравнения с ожиданиями сценария нужны те же коды, что в StyleCombinations.comb: «1,2,3» (Id стилей по возрастанию).

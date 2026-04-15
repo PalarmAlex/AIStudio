@@ -224,6 +224,20 @@
       </Setter>
     </Style>
 
+    <!-- Стиль для ячейки «Опасно» (информационная среда): при опасности только красный фон, без цифры в ячейке -->
+    <Style x:Key="DangerCellStyle" TargetType="DataGridCell" BasedOn="{StaticResource MatrixCellStyle}">
+      <Style.Triggers>
+        <DataTrigger Binding="{Binding InformationEnvironmentDanger}" Value="True">
+          <Setter Property="Background" Value="#80FF0000"/>
+          <Setter Property="ToolTip" Value="Опасная ситуация"/>
+        </DataTrigger>
+        <DataTrigger Binding="{Binding InformationEnvironmentDanger}" Value="False">
+          <Setter Property="Background" Value="Transparent"/>
+          <Setter Property="ToolTip" Value="Ситуация не опасна"/>
+        </DataTrigger>
+      </Style.Triggers>
+    </Style>
+
     <!-- Стиль для ячейки ОР/УМ (ориентировка на стадиях ≤3; с 4-й — уровни 1–2 мышления) -->
     <Style x:Key="OrUmCellStyle" TargetType="DataGridCell" BasedOn="{StaticResource MatrixCellStyle}">
       <Setter Property="Foreground" Value="#00FF00"/>
@@ -396,7 +410,17 @@
             <DataGridTextColumn.Header>
               <DataGridColumnHeader Style="{StaticResource MatrixHeaderStyle}" 
                     Content="ОР/УМ"
-                    ToolTip="До 4-й стадии — ориентировочный рефлекс; с 4-й — уровни мышления вместо ОР."/>
+                    ToolTip="До 4-й стадии — ориентировочный рефлекс; с 4-й — уровни мышления."/>
+            </DataGridTextColumn.Header>
+          </DataGridTextColumn>
+
+          <DataGridTextColumn Binding="{Binding DisplayDangerCell}"
+                    Width="52"
+                    CellStyle="{StaticResource DangerCellStyle}">
+            <DataGridTextColumn.Header>
+              <DataGridColumnHeader Style="{StaticResource MatrixHeaderStyle}"
+                    Content="Опасно"
+                    ToolTip="Признак опасной ситуации"/>
             </DataGridTextColumn.Header>
           </DataGridTextColumn>
 

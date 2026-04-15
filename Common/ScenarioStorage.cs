@@ -358,6 +358,8 @@ namespace AIStudio.Common
       sk.SkipReflexChain = Skip(8);
       sk.SkipAutomatizmChain = Skip(9);
       sk.SkipMainCycle = Skip(10);
+      if (p.Length >= 12)
+        sk.SkipDanger = Skip(11);
     }
 
     /// <summary>Делит строку ожиданий по «|», не экранированным обратным слэшем (поля могут содержать \| после записи Escape).</summary>
@@ -401,22 +403,46 @@ namespace AIStudio.Common
       if (!int.TryParse(p[1].Trim(), NumberStyles.Integer, CultureInfo.InvariantCulture, out int pulse))
         return;
 
-      doc.LogExpectations.Add(new ScenarioLogExpectationRow
+      if (p.Count >= 14)
       {
-        StepIndex = step,
-        PulseWithinScenario = pulse,
-        StateText = Unescape(p[2]),
-        StyleText = Unescape(p[3]),
-        ThemeText = Unescape(p[4]),
-        TriggerText = Unescape(p[5]),
-        OrUmText = Unescape(p[6]),
-        GeneticReflexText = Unescape(p[7]),
-        ConditionReflexText = Unescape(p[8]),
-        AutomatizmText = Unescape(p[9]),
-        ReflexChainText = Unescape(p[10]),
-        AutomatizmChainText = Unescape(p[11]),
-        MainCycleText = Unescape(p[12])
-      });
+        doc.LogExpectations.Add(new ScenarioLogExpectationRow
+        {
+          StepIndex = step,
+          PulseWithinScenario = pulse,
+          StateText = Unescape(p[2]),
+          StyleText = Unescape(p[3]),
+          ThemeText = Unescape(p[4]),
+          TriggerText = Unescape(p[5]),
+          OrUmText = Unescape(p[6]),
+          DangerText = Unescape(p[7]),
+          GeneticReflexText = Unescape(p[8]),
+          ConditionReflexText = Unescape(p[9]),
+          AutomatizmText = Unescape(p[10]),
+          ReflexChainText = Unescape(p[11]),
+          AutomatizmChainText = Unescape(p[12]),
+          MainCycleText = Unescape(p[13])
+        });
+      }
+      else
+      {
+        doc.LogExpectations.Add(new ScenarioLogExpectationRow
+        {
+          StepIndex = step,
+          PulseWithinScenario = pulse,
+          StateText = Unescape(p[2]),
+          StyleText = Unescape(p[3]),
+          ThemeText = Unescape(p[4]),
+          TriggerText = Unescape(p[5]),
+          OrUmText = Unescape(p[6]),
+          DangerText = "-",
+          GeneticReflexText = Unescape(p[7]),
+          ConditionReflexText = Unescape(p[8]),
+          AutomatizmText = Unescape(p[9]),
+          ReflexChainText = Unescape(p[10]),
+          AutomatizmChainText = Unescape(p[11]),
+          MainCycleText = Unescape(p[12])
+        });
+      }
     }
 
     public static (bool Success, string Error) SaveRegistry(IEnumerable<ScenarioHeader> headers)
@@ -503,8 +529,9 @@ namespace AIStudio.Common
           skc.SkipAutomatizm ? "1" : "0",
           skc.SkipReflexChain ? "1" : "0",
           skc.SkipAutomatizmChain ? "1" : "0",
-          skc.SkipMainCycle ? "1" : "0"));
-      lines.Add("# Step|Pulse|State|Style|Theme|Trigger|OrUm|GenRef|CondRef|Aut|RefChain|AutChain|Cycle");
+          skc.SkipMainCycle ? "1" : "0",
+          skc.SkipDanger ? "1" : "0"));
+      lines.Add("# Step|Pulse|State|Style|Theme|Trigger|OrUm|Opasno|GenRef|CondRef|Aut|RefChain|AutChain|Cycle");
       foreach (var exp in (doc.LogExpectations ?? new List<ScenarioLogExpectationRow>()).OrderBy(e => e.StepIndex))
       {
         lines.Add(string.Join("|",
@@ -515,6 +542,7 @@ namespace AIStudio.Common
             Escape(exp.ThemeText ?? ""),
             Escape(exp.TriggerText ?? ""),
             Escape(exp.OrUmText ?? ""),
+            Escape(exp.DangerText ?? ""),
             Escape(exp.GeneticReflexText ?? ""),
             Escape(exp.ConditionReflexText ?? ""),
             Escape(exp.AutomatizmText ?? ""),

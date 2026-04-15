@@ -16,6 +16,7 @@ namespace AIStudio.Common
       public string Theme { get; set; } = "-";
       public string Trigger { get; set; } = "-";
       public string OrUm { get; set; } = "-";
+      public string Danger { get; set; } = "-";
       public string GeneticReflex { get; set; } = "-";
       public string ConditionReflex { get; set; } = "-";
       public string Automatizm { get; set; } = "-";
@@ -43,6 +44,7 @@ namespace AIStudio.Common
           snap.Theme = MergeField(snap.Theme, e.DisplayThinkingThemeId);
           snap.Trigger = MergeField(snap.Trigger, e.DisplayTriggerStimulusID);
           snap.OrUm = MergeField(snap.OrUm, e.DisplayOrUm);
+          snap.Danger = MergeField(snap.Danger, e.DisplayDanger);
           snap.GeneticReflex = MergeField(snap.GeneticReflex, e.DisplayGeneticReflexID);
           snap.ConditionReflex = MergeField(snap.ConditionReflex, e.DisplayConditionReflexID);
           snap.Automatizm = MergeField(snap.Automatizm, e.DisplayAutomatizmID);
@@ -79,6 +81,7 @@ namespace AIStudio.Common
       {
         snap.State = prev.State;
         snap.Style = prev.Style;
+        snap.Danger = prev.Danger;
       }
       return snap;
     }
@@ -129,6 +132,31 @@ namespace AIStudio.Common
       }
       return false;
     }
+
+    /// <summary>Ожидание «Опасно»: «1» — опасно; «-», «0» или пусто — не опасно (как в отчёте).</summary>
+    public static bool DangerExpectationMatches(string expectedRaw, string actualFromLog)
+    {
+      if (string.IsNullOrWhiteSpace(expectedRaw))
+        return true;
+      var a = NormalizeDisplay(actualFromLog);
+      var aCanon = a == "1" ? "1" : "0";
+      return DangerExpectationMatchesCanon(expectedRaw.Trim(), aCanon);
+    }
+
+    private static bool DangerExpectationMatchesCanon(string expectedTrimmed, string actualCanon01)
+    {
+      if (expectedTrimmed.IndexOf('|') < 0)
+        return DangerTokenToCanon(expectedTrimmed) == actualCanon01;
+      foreach (var part in expectedTrimmed.Split('|'))
+      {
+        var t = part.Trim();
+        if (t.Length > 0 && DangerTokenToCanon(t) == actualCanon01)
+          return true;
+      }
+      return false;
+    }
+
+    private static string DangerTokenToCanon(string token) => token == "1" ? "1" : "0";
 
     public sealed class StepCompareResult
     {
@@ -189,6 +217,17 @@ namespace AIStudio.Common
             return;
           var e = expectedRaw.Trim();
           var a = NormalizeDisplay(actualVal);
+          if (label == "Опасно")
+          {
+            var aCanon = a == "1" ? "1" : "0";
+            if (!DangerExpectationMatchesCanon(e, aCanon))
+            {
+              var expPhrase = ScenarioReportLogDisplay.FormatDangerComparisonCell(e);
+              var factPhrase = ScenarioReportLogDisplay.FormatDangerComparisonCell(aCanon);
+              mismatches.Add($"{label}: ожид. «{expPhrase}», факт «{factPhrase}»");
+            }
+            return;
+          }
           if (!ExpectationCellMatches(expectedRaw, a))
           {
             var expPhrase = e;
@@ -209,6 +248,7 @@ namespace AIStudio.Common
         Check("Тема", exp.ThemeText, actual.Theme);
         Check("Триггер", exp.TriggerText, actual.Trigger);
         Check("ОР/УМ", exp.OrUmText, actual.OrUm);
+        Check("Опасно", exp.DangerText, actual.Danger);
         Check("Б/у рефлекс", exp.GeneticReflexText, actual.GeneticReflex);
         Check("Усл. рефлекс", exp.ConditionReflexText, actual.ConditionReflex);
         Check("Автоматизм", exp.AutomatizmText, actual.Automatizm);

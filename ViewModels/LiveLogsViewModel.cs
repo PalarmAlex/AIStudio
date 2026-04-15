@@ -2,6 +2,7 @@ using AIStudio.Common;
 using ISIDA.Actions;
 using ISIDA.Common;
 using ISIDA.Gomeostas;
+using ISIDA.Psychic;
 using ISIDA.Psychic.Automatism;
 using ISIDA.Reflexes;
 using ISIDA.Sensors;
@@ -241,33 +242,54 @@ namespace AIStudio.ViewModels
 
         if (perceptionImage != null)
         {
-          var tooltipParts = new List<string>();
-
-          // Получаем названия внешних воздействий
-          if (perceptionImage.InfluenceActionsList.Any())
+          string influenceLine;
+          if (perceptionImage.InfluenceActionsList?.Any() == true)
           {
             var allInfluences = _influenceActionSystem.GetAllInfluenceActions();
-
             var influenceNames = perceptionImage.InfluenceActionsList
                 .Select(actionId => allInfluences.FirstOrDefault(a => a.Id == actionId)?.Name ?? $"Воздействие {actionId}")
                 .Where(name => !string.IsNullOrEmpty(name));
-
-            if (influenceNames.Any())
-              tooltipParts.Add($"Воздействия: {string.Join(", ", influenceNames)}");
+            influenceLine = influenceNames.Any() ? string.Join(", ", influenceNames) : "нет";
           }
+          else
+            influenceLine = "нет";
 
-          // Получаем фразы
-          if (perceptionImage.PhraseIdList.Any())
+          string phrasesLine;
+          if (perceptionImage.PhraseIdList?.Any() == true)
           {
             var phraseNames = perceptionImage.PhraseIdList
                 .Select(phraseId => _verbalSensor?.GetPhraseFromPhraseId(phraseId) ?? $"Фраза {phraseId}")
                 .Where(phrase => !string.IsNullOrEmpty(phrase));
+            phrasesLine = phraseNames.Any() ? string.Join(", ", phraseNames) : "нет";
+          }
+          else
+            phrasesLine = "нет";
 
-            if (phraseNames.Any())
-              tooltipParts.Add($"Фразы: {string.Join(", ", phraseNames)}");
+          string toneLine = "—";
+          string moodLine = "—";
+          if (VerbalBrocaImagesSystem.IsInitialized && perceptionImage.PhraseIdList?.Any() == true)
+          {
+            var broca = VerbalBrocaImagesSystem.Instance.GetAllVerbalBrocaImagesList()
+                .FirstOrDefault(v => AddUtils.AreListsEqual(v.PhraseIdList, perceptionImage.PhraseIdList));
+            if (broca != null)
+            {
+              var t = ActionsImagesSystem.GetToneText(broca.ToneId);
+              toneLine = string.IsNullOrEmpty(t) ? broca.ToneId.ToString() : $"{t} ({broca.ToneId})";
+              var m = ActionsImagesSystem.GetMoodText(broca.MoodId);
+              moodLine = string.IsNullOrEmpty(m) ? broca.MoodId.ToString() : $"{m} ({broca.MoodId})";
+            }
           }
 
-          return tooltipParts.Any() ? string.Join("\n", tooltipParts) : "Пустой образ восприятия";
+          int colorCode = AgentVisualColor.IsValidCode(perceptionImage.VisualColorId)
+              ? perceptionImage.VisualColorId
+              : AgentVisualColor.White;
+          string colorLine = AgentVisualColor.GetDisplayName(colorCode);
+
+          return "Воздействие: " + influenceLine
+              + "\nФразы: " + phrasesLine
+              + "\nТон: " + toneLine
+              + "\nНастроение: " + moodLine
+              + "\nЦветовой фон: " + colorLine;
         }
       }
       catch (Exception ex)

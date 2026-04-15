@@ -380,8 +380,13 @@ namespace AIStudio.Common
               expDisp = ScenarioReportLogDisplay.FormatStateCell(expRaw);
               actDisp = ScenarioReportLogDisplay.FormatStateCell(actRaw);
             }
+            else if (col.Label == "Опасно")
+            {
+              expDisp = ScenarioReportLogDisplay.FormatDangerComparisonCell(expRaw);
+              actDisp = ScenarioReportLogDisplay.FormatDangerComparisonCell(actRaw);
+            }
             sb.Append("<td class=\"col-exp\">").Append(Escape(expDisp)).Append("</td>");
-            var factClass = "col-fact" + (IsFieldMismatch(expRaw, actRaw) ? " fact-mismatch" : "");
+            var factClass = "col-fact" + (IsFieldMismatch(expRaw, actRaw, col.Label) ? " fact-mismatch" : "");
             sb.Append("<td class=\"").Append(factClass).Append("\">").Append(Escape(actDisp)).Append("</td>");
           }
           sb.AppendLine("</tr>");
@@ -393,10 +398,12 @@ namespace AIStudio.Common
     }
 
     /// <summary>Та же логика, что <see cref="ScenarioLogComparer.Compare"/> (поле проверяется только если ожидание не пустое).</summary>
-    private static bool IsFieldMismatch(string expectedRaw, string actualVal)
+    private static bool IsFieldMismatch(string expectedRaw, string actualVal, string columnLabel)
     {
       if (string.IsNullOrWhiteSpace(expectedRaw))
         return false;
+      if (columnLabel == "Опасно")
+        return !ScenarioLogComparer.DangerExpectationMatches(expectedRaw, actualVal);
       var a = ScenarioLogComparer.NormalizeDisplay(actualVal ?? "");
       return !ScenarioLogComparer.ExpectationCellMatches(expectedRaw, a);
     }
@@ -440,6 +447,7 @@ namespace AIStudio.Common
       new ComparisonColumnSpec { Label = "Тема", GetExpectedMain = e => e.ThemeText ?? "", GetActual = a => a.Theme },
       new ComparisonColumnSpec { Label = "Триггер", GetExpectedMain = e => e.TriggerText ?? "", GetActual = a => a.Trigger },
       new ComparisonColumnSpec { Label = "ОР/УМ", GetExpectedMain = e => e.OrUmText ?? "", GetActual = a => a.OrUm },
+      new ComparisonColumnSpec { Label = "Опасно", GetExpectedMain = e => e.DangerText ?? "", GetActual = a => a.Danger },
       new ComparisonColumnSpec { Label = "Б/у рефлекс", GetExpectedMain = e => e.GeneticReflexText ?? "", GetActual = a => a.GeneticReflex },
       new ComparisonColumnSpec { Label = "Усл. рефлекс", GetExpectedMain = e => e.ConditionReflexText ?? "", GetActual = a => a.ConditionReflex },
       new ComparisonColumnSpec { Label = "Автоматизм", GetExpectedMain = e => e.AutomatizmText ?? "", GetActual = a => a.Automatizm },

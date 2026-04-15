@@ -276,6 +276,7 @@ namespace AIStudio.ViewModels.Research
         r.ThemeText = target;
         r.TriggerText = target;
         r.OrUmText = target;
+        r.DangerText = target;
         r.GeneticReflexText = target;
         r.ConditionReflexText = target;
         r.AutomatizmText = target;
@@ -327,6 +328,7 @@ namespace AIStudio.ViewModels.Research
       r.StateText = NormalizeCodeCell(r.StateText);
       r.StyleText = NormalizeCodeCell(r.StyleText);
       r.OrUmText = NormalizeCodeCell(r.OrUmText);
+      r.DangerText = NormalizeExpectedCell(r.DangerText);
       r.ThemeText = NormalizeExpectedCell(r.ThemeText);
       r.TriggerText = NormalizeExpectedCell(r.TriggerText);
       r.GeneticReflexText = NormalizeExpectedCell(r.GeneticReflexText);
