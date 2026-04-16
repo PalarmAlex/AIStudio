@@ -44,6 +44,9 @@ namespace AIStudio.Common
       return "-";
     }
 
+    /// <summary>Колонка «Актуально» в отчёте: та же визуализация, что у «Опасно» («1» / «-»).</summary>
+    public static string FormatVeryActualComparisonCell(string raw) => FormatDangerComparisonCell(raw);
+
     /// <summary>
     /// В лог в поле стиля попадает Id образа стиля (<see cref="PerceptionImagesSystem.BehaviorStyleImage"/>).
     /// Для отчёта и сравнения с ожиданиями сценария нужны те же коды, что в StyleCombinations.comb: «1,2,3» (Id стилей по возрастанию).

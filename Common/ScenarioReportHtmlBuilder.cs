@@ -385,6 +385,11 @@ namespace AIStudio.Common
               expDisp = ScenarioReportLogDisplay.FormatDangerComparisonCell(expRaw);
               actDisp = ScenarioReportLogDisplay.FormatDangerComparisonCell(actRaw);
             }
+            else if (col.Label == "Актуально")
+            {
+              expDisp = ScenarioReportLogDisplay.FormatVeryActualComparisonCell(expRaw);
+              actDisp = ScenarioReportLogDisplay.FormatVeryActualComparisonCell(actRaw);
+            }
             sb.Append("<td class=\"col-exp\">").Append(Escape(expDisp)).Append("</td>");
             var factClass = "col-fact" + (IsFieldMismatch(expRaw, actRaw, col.Label) ? " fact-mismatch" : "");
             sb.Append("<td class=\"").Append(factClass).Append("\">").Append(Escape(actDisp)).Append("</td>");
@@ -404,6 +409,8 @@ namespace AIStudio.Common
         return false;
       if (columnLabel == "Опасно")
         return !ScenarioLogComparer.DangerExpectationMatches(expectedRaw, actualVal);
+      if (columnLabel == "Актуально")
+        return !ScenarioLogComparer.VeryActualExpectationMatches(expectedRaw, actualVal);
       var a = ScenarioLogComparer.NormalizeDisplay(actualVal ?? "");
       return !ScenarioLogComparer.ExpectationCellMatches(expectedRaw, a);
     }
@@ -448,6 +455,7 @@ namespace AIStudio.Common
       new ComparisonColumnSpec { Label = "Триггер", GetExpectedMain = e => e.TriggerText ?? "", GetActual = a => a.Trigger },
       new ComparisonColumnSpec { Label = "ОР/УМ", GetExpectedMain = e => e.OrUmText ?? "", GetActual = a => a.OrUm },
       new ComparisonColumnSpec { Label = "Опасно", GetExpectedMain = e => e.DangerText ?? "", GetActual = a => a.Danger },
+      new ComparisonColumnSpec { Label = "Актуально", GetExpectedMain = e => e.VeryActualText ?? "", GetActual = a => a.VeryActual },
       new ComparisonColumnSpec { Label = "Б/у рефлекс", GetExpectedMain = e => e.GeneticReflexText ?? "", GetActual = a => a.GeneticReflex },
       new ComparisonColumnSpec { Label = "Усл. рефлекс", GetExpectedMain = e => e.ConditionReflexText ?? "", GetActual = a => a.ConditionReflex },
       new ComparisonColumnSpec { Label = "Автоматизм", GetExpectedMain = e => e.AutomatizmText ?? "", GetActual = a => a.Automatizm },

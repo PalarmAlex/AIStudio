@@ -132,7 +132,7 @@ namespace AIStudio.Common
           }
           if (t.StartsWith("#"))
             continue;
-          TryParseLogExpectationRow(t, doc);
+          TryParseLogExpectationRow(t, doc, linesFileFormatVersion);
           continue;
         }
 
@@ -360,6 +360,8 @@ namespace AIStudio.Common
       sk.SkipMainCycle = Skip(10);
       if (p.Length >= 12)
         sk.SkipDanger = Skip(11);
+      if (p.Length >= 13)
+        sk.SkipVeryActual = Skip(12);
     }
 
     /// <summary>Делит строку ожиданий по «|», не экранированным обратным слэшем (поля могут содержать \| после записи Escape).</summary>
@@ -390,7 +392,7 @@ namespace AIStudio.Common
       return parts;
     }
 
-    private static void TryParseLogExpectationRow(string line, ScenarioDocument doc)
+    private static void TryParseLogExpectationRow(string line, ScenarioDocument doc, int linesFileFormatVersion)
     {
       if (doc.LogExpectations == null)
         doc.LogExpectations = new List<ScenarioLogExpectationRow>();
@@ -403,7 +405,8 @@ namespace AIStudio.Common
       if (!int.TryParse(p[1].Trim(), NumberStyles.Integer, CultureInfo.InvariantCulture, out int pulse))
         return;
 
-      if (p.Count >= 14)
+      // v8+: после «Опасно» — «Актуально», затем рефлексы… (15 полей данных: шаг, пульс, 13 колонок).
+      if (linesFileFormatVersion >= 8 && p.Count >= 15)
       {
         doc.LogExpectations.Add(new ScenarioLogExpectationRow
         {
@@ -415,6 +418,28 @@ namespace AIStudio.Common
           TriggerText = Unescape(p[5]),
           OrUmText = Unescape(p[6]),
           DangerText = Unescape(p[7]),
+          VeryActualText = Unescape(p[8]),
+          GeneticReflexText = Unescape(p[9]),
+          ConditionReflexText = Unescape(p[10]),
+          AutomatizmText = Unescape(p[11]),
+          ReflexChainText = Unescape(p[12]),
+          AutomatizmChainText = Unescape(p[13]),
+          MainCycleText = Unescape(p[14])
+        });
+      }
+      else if (p.Count >= 14)
+      {
+        doc.LogExpectations.Add(new ScenarioLogExpectationRow
+        {
+          StepIndex = step,
+          PulseWithinScenario = pulse,
+          StateText = Unescape(p[2]),
+          StyleText = Unescape(p[3]),
+          ThemeText = Unescape(p[4]),
+          TriggerText = Unescape(p[5]),
+          OrUmText = Unescape(p[6]),
+          DangerText = Unescape(p[7]),
+          VeryActualText = "-",
           GeneticReflexText = Unescape(p[8]),
           ConditionReflexText = Unescape(p[9]),
           AutomatizmText = Unescape(p[10]),
@@ -435,6 +460,7 @@ namespace AIStudio.Common
           TriggerText = Unescape(p[5]),
           OrUmText = Unescape(p[6]),
           DangerText = "-",
+          VeryActualText = "-",
           GeneticReflexText = Unescape(p[7]),
           ConditionReflexText = Unescape(p[8]),
           AutomatizmText = Unescape(p[9]),
@@ -530,8 +556,9 @@ namespace AIStudio.Common
           skc.SkipReflexChain ? "1" : "0",
           skc.SkipAutomatizmChain ? "1" : "0",
           skc.SkipMainCycle ? "1" : "0",
-          skc.SkipDanger ? "1" : "0"));
-      lines.Add("# Step|Pulse|State|Style|Theme|Trigger|OrUm|Opasno|GenRef|CondRef|Aut|RefChain|AutChain|Cycle");
+          skc.SkipDanger ? "1" : "0",
+          skc.SkipVeryActual ? "1" : "0"));
+      lines.Add("# Step|Pulse|State|Style|Theme|Trigger|OrUm|Opasno|Actualno|GenRef|CondRef|Aut|RefChain|AutChain|Cycle");
       foreach (var exp in (doc.LogExpectations ?? new List<ScenarioLogExpectationRow>()).OrderBy(e => e.StepIndex))
       {
         lines.Add(string.Join("|",
@@ -543,6 +570,7 @@ namespace AIStudio.Common
             Escape(exp.TriggerText ?? ""),
             Escape(exp.OrUmText ?? ""),
             Escape(exp.DangerText ?? ""),
+            Escape(exp.VeryActualText ?? ""),
             Escape(exp.GeneticReflexText ?? ""),
             Escape(exp.ConditionReflexText ?? ""),
             Escape(exp.AutomatizmText ?? ""),

@@ -238,6 +238,20 @@
       </Style.Triggers>
     </Style>
 
+    <!-- Стиль для ячейки «Актуально»: при актуальной ситуации красный фон, без цифры в ячейке -->
+    <Style x:Key="VeryActualCellStyle" TargetType="DataGridCell" BasedOn="{StaticResource MatrixCellStyle}">
+      <Style.Triggers>
+        <DataTrigger Binding="{Binding InformationEnvironmentVeryActual}" Value="True">
+          <Setter Property="Background" Value="#80FF0000"/>
+          <Setter Property="ToolTip" Value="Актуальная ситуация"/>
+        </DataTrigger>
+        <DataTrigger Binding="{Binding InformationEnvironmentVeryActual}" Value="False">
+          <Setter Property="Background" Value="Transparent"/>
+          <Setter Property="ToolTip" Value="Ситуация не актуальна"/>
+        </DataTrigger>
+      </Style.Triggers>
+    </Style>
+
     <!-- Стиль для ячейки ОР/УМ (ориентировка на стадиях ≤3; с 4-й — уровни 1–2 мышления) -->
     <Style x:Key="OrUmCellStyle" TargetType="DataGridCell" BasedOn="{StaticResource MatrixCellStyle}">
       <Setter Property="Foreground" Value="#00FF00"/>
@@ -421,6 +435,16 @@
               <DataGridColumnHeader Style="{StaticResource MatrixHeaderStyle}"
                     Content="Опасно"
                     ToolTip="Признак опасной ситуации"/>
+            </DataGridTextColumn.Header>
+          </DataGridTextColumn>
+
+          <DataGridTextColumn Binding="{Binding DisplayVeryActualCell}"
+                    Width="52"
+                    CellStyle="{StaticResource VeryActualCellStyle}">
+            <DataGridTextColumn.Header>
+              <DataGridColumnHeader Style="{StaticResource MatrixHeaderStyle}"
+                    Content="Актуально"
+                    ToolTip="Признак актуальной ситуации"/>
             </DataGridTextColumn.Header>
           </DataGridTextColumn>
 

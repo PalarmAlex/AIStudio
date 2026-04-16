@@ -190,7 +190,8 @@ namespace AIStudio.Common
                        int? thinkingThemeTypeId = null, string thinkingThemeTooltip = null,
                        int? mainThinkingCycleId = null, string mainThinkingCycleTooltip = null,
                        string mainThinkingCycleTaskStatus = null,
-                       bool informationEnvironmentDanger = false)
+                       bool informationEnvironmentDanger = false,
+                       bool informationEnvironmentVeryActual = false)
     {
       if (_disposed) return;
 
@@ -198,7 +199,7 @@ namespace AIStudio.Common
           orientationReflexType, geneticReflexId, conditionedReflexId, automatizmId, reflexChainInfo,
           automatizmChainInfo, thinkingLevel, thinkingLevelSuccess, thinkingThemeTypeId,
           thinkingThemeTooltip, mainThinkingCycleId, mainThinkingCycleTooltip, mainThinkingCycleTaskStatus,
-          informationEnvironmentDanger);
+          informationEnvironmentDanger, informationEnvironmentVeryActual);
 
       AddLogEntry(entry);
     }
@@ -214,7 +215,7 @@ namespace AIStudio.Common
         int? conditionedReflexId, int? automatizmId, string reflexChainInfo, string automatizmChainInfo,
         int? thinkingLevel, bool? thinkingLevelSuccess, int? thinkingThemeTypeId, string thinkingThemeTooltip,
         int? mainThinkingCycleId, string mainThinkingCycleTooltip, string mainThinkingCycleTaskStatus,
-        bool informationEnvironmentDanger)
+        bool informationEnvironmentDanger, bool informationEnvironmentVeryActual)
     {
       return new LogEntry
       {
@@ -238,6 +239,7 @@ namespace AIStudio.Common
         MainThinkingCycleTooltip = string.IsNullOrEmpty(mainThinkingCycleTooltip) ? null : mainThinkingCycleTooltip,
         MainThinkingCycleTaskStatus = string.IsNullOrEmpty(mainThinkingCycleTaskStatus) ? null : mainThinkingCycleTaskStatus,
         InformationEnvironmentDanger = informationEnvironmentDanger,
+        InformationEnvironmentVeryActual = informationEnvironmentVeryActual,
         Timestamp = DateTime.Now
       };
     }
@@ -257,7 +259,7 @@ namespace AIStudio.Common
           int? thinkingLevel = null, bool? thinkingLevelSuccess = null, int? thinkingThemeTypeId = null,
           string thinkingThemeTooltip = null, int? mainThinkingCycleId = null,
           string mainThinkingCycleTooltip = null, string mainThinkingCycleTaskStatus = null,
-          bool informationEnvironmentDanger = false)
+          bool informationEnvironmentDanger = false, bool informationEnvironmentVeryActual = false)
       {
         if (_owner._disposed)
           return;
@@ -265,7 +267,7 @@ namespace AIStudio.Common
             orientationReflexType, geneticReflexId, conditionedReflexId, automatizmId, reflexChainInfo,
             automatizmChainInfo, thinkingLevel, thinkingLevelSuccess, thinkingThemeTypeId,
             thinkingThemeTooltip, mainThinkingCycleId, mainThinkingCycleTooltip, mainThinkingCycleTaskStatus,
-            informationEnvironmentDanger);
+            informationEnvironmentDanger, informationEnvironmentVeryActual);
         _owner.UpsertAgentDisplayLogEntry(entry);
       }
 
@@ -925,11 +927,20 @@ namespace AIStudio.Common
       /// <summary>Признак опасной ситуации в информационной среде (для столбца «Опасно»).</summary>
       public bool InformationEnvironmentDanger { get; set; }
 
+      /// <summary>Признак актуальной ситуации в информационной среде (столбец «Актуально»).</summary>
+      public bool InformationEnvironmentVeryActual { get; set; }
+
       /// <summary>Для файлов лога и агрегации сравнения: «1» или «0».</summary>
       public string DisplayDanger => InformationEnvironmentDanger ? "1" : "0";
 
       /// <summary>Текст ячейки живых логов: «-» если не опасно, пусто если опасно (фон — в стиле).</summary>
       public string DisplayDangerCell => InformationEnvironmentDanger ? "" : "-";
+
+      /// <summary>Для файлов лога: «1» или «0».</summary>
+      public string DisplayVeryActual => InformationEnvironmentVeryActual ? "1" : "0";
+
+      /// <summary>Текст ячейки: «-» если не актуально, пусто если актуально (красный фон в стиле).</summary>
+      public string DisplayVeryActualCell => InformationEnvironmentVeryActual ? "" : "-";
 
       /// <summary>
       /// Строковое представление результата УМ для привязок в шаблоне (избегаем bool? в XAML): "True", "False" или ""

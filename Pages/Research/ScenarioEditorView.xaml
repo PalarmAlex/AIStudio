@@ -455,6 +455,7 @@
               </DataGridTemplateColumn.CellTemplate>
             </DataGridTemplateColumn>
             <DataGridTextColumn Header="Опасно" Binding="{Binding DangerText, UpdateSourceTrigger=PropertyChanged}" Width="56"/>
+            <DataGridTextColumn Header="Актуально" Binding="{Binding VeryActualText, UpdateSourceTrigger=PropertyChanged}" Width="56"/>
             <DataGridTextColumn Header="Б/у рефлекс" Binding="{Binding GeneticReflexText, UpdateSourceTrigger=PropertyChanged}" Width="88"/>
             <DataGridTextColumn Header="Усл. рефлекс" Binding="{Binding ConditionReflexText, UpdateSourceTrigger=PropertyChanged}" Width="88"/>
             <DataGridTextColumn Header="Автоматизм" Binding="{Binding AutomatizmText, UpdateSourceTrigger=PropertyChanged}" Width="88"/>

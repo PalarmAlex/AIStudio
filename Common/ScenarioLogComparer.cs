@@ -17,6 +17,7 @@ namespace AIStudio.Common
       public string Trigger { get; set; } = "-";
       public string OrUm { get; set; } = "-";
       public string Danger { get; set; } = "-";
+      public string VeryActual { get; set; } = "-";
       public string GeneticReflex { get; set; } = "-";
       public string ConditionReflex { get; set; } = "-";
       public string Automatizm { get; set; } = "-";
@@ -45,6 +46,7 @@ namespace AIStudio.Common
           snap.Trigger = MergeField(snap.Trigger, e.DisplayTriggerStimulusID);
           snap.OrUm = MergeField(snap.OrUm, e.DisplayOrUm);
           snap.Danger = MergeField(snap.Danger, e.DisplayDanger);
+          snap.VeryActual = MergeField(snap.VeryActual, e.DisplayVeryActual);
           snap.GeneticReflex = MergeField(snap.GeneticReflex, e.DisplayGeneticReflexID);
           snap.ConditionReflex = MergeField(snap.ConditionReflex, e.DisplayConditionReflexID);
           snap.Automatizm = MergeField(snap.Automatizm, e.DisplayAutomatizmID);
@@ -82,6 +84,7 @@ namespace AIStudio.Common
         snap.State = prev.State;
         snap.Style = prev.Style;
         snap.Danger = prev.Danger;
+        snap.VeryActual = prev.VeryActual;
       }
       return snap;
     }
@@ -142,6 +145,10 @@ namespace AIStudio.Common
       var aCanon = a == "1" ? "1" : "0";
       return DangerExpectationMatchesCanon(expectedRaw.Trim(), aCanon);
     }
+
+    /// <summary>Та же логика, что <see cref="DangerExpectationMatches"/>, для столбца «Актуально».</summary>
+    public static bool VeryActualExpectationMatches(string expectedRaw, string actualFromLog) =>
+        DangerExpectationMatches(expectedRaw, actualFromLog);
 
     private static bool DangerExpectationMatchesCanon(string expectedTrimmed, string actualCanon01)
     {
@@ -217,7 +224,7 @@ namespace AIStudio.Common
             return;
           var e = expectedRaw.Trim();
           var a = NormalizeDisplay(actualVal);
-          if (label == "Опасно")
+          if (label == "Опасно" || label == "Актуально")
           {
             var aCanon = a == "1" ? "1" : "0";
             if (!DangerExpectationMatchesCanon(e, aCanon))
@@ -249,6 +256,7 @@ namespace AIStudio.Common
         Check("Триггер", exp.TriggerText, actual.Trigger);
         Check("ОР/УМ", exp.OrUmText, actual.OrUm);
         Check("Опасно", exp.DangerText, actual.Danger);
+        Check("Актуально", exp.VeryActualText, actual.VeryActual);
         Check("Б/у рефлекс", exp.GeneticReflexText, actual.GeneticReflex);
         Check("Усл. рефлекс", exp.ConditionReflexText, actual.ConditionReflex);
         Check("Автоматизм", exp.AutomatizmText, actual.Automatizm);
