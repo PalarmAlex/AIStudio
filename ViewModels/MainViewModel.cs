@@ -23,6 +23,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
 using System.Diagnostics;
+using System.Globalization;
 using System.IO;
 using System.Text;
 using System.Windows;
@@ -1111,6 +1112,34 @@ namespace AIStudio
       return true;
     }
 
+    private static string FormatGroupActualPulseSpeedDialogSuffix(
+        List<Tuple<ScenarioDocument, OperatorScenarioCompletedEventArgs>> completed)
+    {
+      var sb = new StringBuilder();
+      sb.Append("\n\n");
+      double totalSec = 0;
+      int totalPulses = 0;
+      if (completed != null)
+      {
+        foreach (var t in completed)
+        {
+          var e = t.Item2;
+          if (e == null)
+            continue;
+          if (e.ElapsedWallTime.TotalMilliseconds > 0 && e.ElapsedPulses > 0)
+          {
+            totalSec += e.ElapsedWallTime.TotalSeconds;
+            totalPulses += e.ElapsedPulses;
+          }
+        }
+      }
+      if (totalSec > 0)
+        sb.Append("Фактическая скорость: ").Append((totalPulses / totalSec).ToString("F1", CultureInfo.InvariantCulture)).Append(" пульсов/сек");
+      else
+        sb.Append("Фактическая скорость: —");
+      return sb.ToString();
+    }
+
     private void FinishScenarioBatchReport(ScenarioBatchRunState state, bool userAborted)
     {
       if (state?.GroupDefinition == null)
@@ -1133,6 +1162,7 @@ namespace AIStudio
         var msg = userAborted
             ? "Групповой прогон прерван или не завершён."
             : "Групповой прогон завершён.";
+        msg += FormatGroupActualPulseSpeedDialogSuffix(state.Completed);
         msg += "\n\nОтчёт сохранён:\n" + reportPath + "\n\nОткрыть отчёт в браузере?";
         var result = MessageBox.Show(msg, "Группа сценариев",
             MessageBoxButton.YesNo, MessageBoxImage.Information);
@@ -1487,12 +1517,14 @@ namespace AIStudio
                   : e.AbortedByPulsationStop ? "Сценарий прерван: остановлена пульсация."
                   : (!string.IsNullOrEmpty(e.ErrorMessage) ? "Ошибка: " + e.ErrorMessage : "Сценарий завершён."));
 
+          msg += "\n\n";
           if (e.ElapsedWallTime.TotalMilliseconds > 0 && e.ElapsedPulses > 0)
           {
-            double pulsesPerSec = e.ElapsedPulses / e.ElapsedWallTime.TotalSeconds;
-            msg += $"\n\nДиагностика: {e.ElapsedPulses} пульсов за {e.ElapsedWallTime.TotalSeconds:F1} сек" +
-                   $" ({pulsesPerSec:F1} пульс/сек, фактическое ускорение ×{pulsesPerSec:F1}).";
+            double actual = e.ElapsedPulses / e.ElapsedWallTime.TotalSeconds;
+            msg += $"Фактическая скорость: {actual.ToString("F1", CultureInfo.InvariantCulture)} пульсов/сек";
           }
+          else
+            msg += "Фактическая скорость: —";
 
           var saved = reportPath != null && File.Exists(reportPath);
           if (saved)

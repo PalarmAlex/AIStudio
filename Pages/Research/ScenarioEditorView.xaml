@@ -71,20 +71,15 @@
                 <Grid.RowDefinitions>
                   <RowDefinition Height="Auto"/>
                   <RowDefinition Height="Auto"/>
-                  <RowDefinition Height="Auto"/>
                 </Grid.RowDefinitions>
                 <Grid.ColumnDefinitions>
                   <ColumnDefinition Width="*"/>
                 </Grid.ColumnDefinitions>
                 <StackPanel Grid.Row="0" Grid.Column="0" Margin="0,0,0,8">
-                  <TextBlock Text="Дата" FontSize="12" FontWeight="SemiBold" Foreground="#FF0D47A1" Margin="0,0,0,4"/>
-                  <TextBox Text="{Binding DateText, UpdateSourceTrigger=PropertyChanged}" Padding="4,3" FontSize="12"/>
-                </StackPanel>
-                <StackPanel Grid.Row="1" Grid.Column="0" Margin="0,0,0,8">
                   <TextBlock Text="Название" FontSize="12" FontWeight="SemiBold" Foreground="#FF0D47A1" Margin="0,0,0,4"/>
                   <TextBox Text="{Binding Title, UpdateSourceTrigger=PropertyChanged}" Padding="4,3" FontSize="12"/>
                 </StackPanel>
-                <StackPanel Grid.Row="2" Grid.Column="0" Margin="0,0,0,0">
+                <StackPanel Grid.Row="1" Grid.Column="0" Margin="0,0,0,0">
                   <TextBlock Text="Описание" FontSize="12" FontWeight="SemiBold" Foreground="#FF0D47A1" Margin="0,0,0,4"/>
                   <Grid>
                     <Grid.ColumnDefinitions>

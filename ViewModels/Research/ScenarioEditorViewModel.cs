@@ -28,7 +28,6 @@ namespace AIStudio.ViewModels.Research
 
     private string _title = "";
     private string _description = "";
-    private string _dateText = "";
     private int _preRunTargetStage = -1;
     private bool _preRunClearAgentData;
     private bool _preRunNormalHomeostasisState;
@@ -61,9 +60,6 @@ namespace AIStudio.ViewModels.Research
 
       _title = doc.Header.Title ?? "";
       _description = doc.Header.Description ?? "";
-      _dateText = string.IsNullOrWhiteSpace(doc.Header.DateText)
-          ? DateTime.Now.ToString("yyyy-MM-dd")
-          : doc.Header.DateText;
       _preRunTargetStage = doc.Header.PreRunTargetStage >= -1 && doc.Header.PreRunTargetStage <= 5
           ? doc.Header.PreRunTargetStage
           : -1;
@@ -451,18 +447,6 @@ namespace AIStudio.ViewModels.Research
       }
     }
 
-    public string DateText
-    {
-      get => _dateText;
-      set
-      {
-        if (_dateText == value) return;
-        _dateText = value;
-        OnPropertyChanged();
-        HasUnsavedChanges = true;
-      }
-    }
-
     public int PreRunTargetStage
     {
       get => _preRunTargetStage;
@@ -783,7 +767,6 @@ namespace AIStudio.ViewModels.Research
 
       doc.Header.Title = Title?.Trim() ?? "";
       doc.Header.Description = Description?.Trim() ?? "";
-      doc.Header.DateText = DateText?.Trim() ?? "";
       doc.Header.PreRunTargetStage = PreRunTargetStage;
       doc.Header.PreRunClearAgentData = PreRunClearAgentData;
       doc.Header.PreRunNormalHomeostasisState = PreRunNormalHomeostasisState;
@@ -808,7 +791,6 @@ namespace AIStudio.ViewModels.Research
         Id = doc.Header.Id,
         Title = doc.Header.Title,
         Description = doc.Header.Description,
-        DateText = doc.Header.DateText,
         PreRunTargetStage = doc.Header.PreRunTargetStage
       });
 
@@ -841,7 +823,6 @@ namespace AIStudio.ViewModels.Research
           Id = Document.Header.Id,
           Title = Title?.Trim() ?? "",
           Description = Description?.Trim() ?? "",
-          DateText = DateText?.Trim() ?? "",
           InitialHomeostasisValues = Document.Header.InitialHomeostasisValues ?? "",
           PreRunTargetStage = PreRunTargetStage,
           PreRunClearAgentData = PreRunClearAgentData,

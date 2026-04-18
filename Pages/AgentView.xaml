@@ -56,13 +56,24 @@
                            HorizontalAlignment="Center"
                            Margin="0,2,0,2"/>
 
-      <!--Заголовок параметров -->
-      <TextBlock Text="{Binding AgentBaseSost}"
-               Foreground="{Binding HomeostasisStatusColor}"
-               FontSize="18"
-               FontWeight="DemiBold"
-               HorizontalAlignment="Center"
-               Margin="0,2,0,2"/>
+      <!--Заголовок параметров и ручной сброс в «норму» (как при запуске сценария с флажком «Начальное состояние Норма») -->
+      <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,2,0,2">
+        <TextBlock Text="{Binding AgentBaseSost}"
+                   Foreground="{Binding HomeostasisStatusColor}"
+                   FontSize="18"
+                   FontWeight="DemiBold"
+                   VerticalAlignment="Center"
+                   Margin="0,0,10,0"/>
+        <Button Content="Норма"
+                Command="{Binding SetNormalHomeostasisCommand}"
+                VerticalAlignment="Center"
+                Padding="12,3"
+                FontSize="14"
+                FontWeight="DemiBold"
+                Background="#FFFFE082"
+                BorderBrush="#FFD4A017"
+                ToolTip="Установить значения жизненных параметров для состояния Норма»"/>
+      </StackPanel>
 
       <local:AgentParametersView DataContext="{Binding ParametersViewModel}" Margin="0,2,0,2"/>
 

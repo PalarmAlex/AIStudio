@@ -43,7 +43,6 @@ namespace AIStudio.Common
       }
     }
 
-    public string DateText { get; set; } = "";
   }
 
   /// <summary>Один сценарий в составе группы: порядок, id и параметры предзапуска для группового прогона.</summary>
@@ -173,7 +172,6 @@ namespace AIStudio.Common
     public int Id { get; set; }
     public string Title { get; set; } = "";
     public string Description { get; set; } = "";
-    public string DateText { get; set; } = "";
     /// <summary>Коэфф. ускорения пульса для всех сценариев группы (как в одиночном сценарии).</summary>
     public int RunPulseTimingCoefficient { get; set; } = 1;
 
@@ -189,7 +187,6 @@ namespace AIStudio.Common
         Id = Id,
         Title = Title ?? "",
         Description = Description ?? "",
-        DateText = DateText ?? "",
         RunPulseTimingCoefficient = RunPulseTimingCoefficient,
         ReportFormat = ReportFormat,
         Members = Members == null ? new List<ScenarioGroupMemberRow>() : Members.ConvertAll(m => m.Clone())

@@ -39,7 +39,7 @@ namespace AIStudio.ViewModels.Research
     {
       Items = new ObservableCollection<ScenarioGroupScenarioPickerRow>();
       ApplyFiltersCommand = new RelayCommand(_ => ApplyFilters());
-      ResetFiltersCommand = new RelayCommand(_ => ResetFilters());
+      ResetFiltersCommand = new RelayCommand(_ => ClearFilters());
       Reload();
     }
 
@@ -99,7 +99,8 @@ namespace AIStudio.ViewModels.Research
         Items.Add(new ScenarioGroupScenarioPickerRow(h.Id, h.Title, StageCaptionFor(h)));
     }
 
-    private void ResetFilters()
+    /// <summary>Сбрасывает фильтры списка (в т.ч. перед предвыделением по id из таблицы группы).</summary>
+    public void ClearFilters()
     {
       FilterIdText = "";
       FilterTitleText = "";

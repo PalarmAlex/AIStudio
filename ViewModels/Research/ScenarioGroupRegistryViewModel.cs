@@ -181,7 +181,6 @@ namespace AIStudio.ViewModels.Research
       {
         Id = ScenarioGroupStorage.NextGroupId(),
         Title = "Новая группа",
-        DateText = DateTime.Now.ToString("yyyy-MM-dd"),
         RunPulseTimingCoefficient = 1
       };
       OpenEditor(doc);
@@ -196,7 +195,6 @@ namespace AIStudio.ViewModels.Research
         var doc = ScenarioGroupStorage.LoadGroup(Selected.Id);
         doc.Title = Selected.Title;
         doc.Description = Selected.Description;
-        doc.DateText = Selected.DateText;
         OpenEditor(doc);
       }
       catch (Exception ex)
@@ -234,7 +232,6 @@ namespace AIStudio.ViewModels.Research
         var groupDoc = ScenarioGroupStorage.LoadGroup(Selected.Id);
         groupDoc.Title = Selected.Title;
         groupDoc.Description = Selected.Description;
-        groupDoc.DateText = Selected.DateText;
 
         if (groupDoc.Members == null || groupDoc.Members.Count == 0)
         {
@@ -291,15 +288,13 @@ namespace AIStudio.ViewModels.Research
         var doc = ScenarioGroupStorage.LoadGroup(Selected.Id);
         doc.Id = ScenarioGroupStorage.NextGroupId();
         doc.Title = (Selected.Title ?? "Группа") + "_copy1";
-        doc.DateText = DateTime.Now.ToString("yyyy-MM-dd");
 
         var reg = ScenarioGroupStorage.LoadGroupRegistry();
         reg.Add(new ScenarioGroupHeader
         {
           Id = doc.Id,
           Title = doc.Title,
-          Description = doc.Description,
-          DateText = doc.DateText
+          Description = doc.Description
         });
         var (okReg, errReg) = ScenarioGroupStorage.SaveGroupRegistry(reg);
         if (!okReg)

@@ -59,7 +59,7 @@ namespace AIStudio.Common
       AppendReportStyles(sb);
       sb.AppendLine("</head><body>");
 
-      AppendGroupBatchReportHeader(sb, groupDef);
+      AppendGroupBatchReportHeader(sb, groupDef, runs);
 
       AppendGroupCompositionTable(sb, groupDef, titleById, compact: false, compareByIndex: null);
 
@@ -84,18 +84,22 @@ namespace AIStudio.Common
       return sb.ToString();
     }
 
-    private static void AppendGroupBatchReportHeader(StringBuilder sb, ScenarioGroupDocument groupDef)
+    private static void AppendGroupBatchReportHeader(
+        StringBuilder sb,
+        ScenarioGroupDocument groupDef,
+        IReadOnlyList<Tuple<ScenarioDocument, OperatorScenarioCompletedEventArgs>> runs)
     {
       sb.AppendLine("<h1>Отчёт по групповому прогону сценариев</h1>");
       sb.AppendLine("<h2>Группа</h2>");
       sb.AppendLine("<table class=\"meta-table\">");
       AppendMetaRow(sb, "ID группы", Escape(groupDef.Id.ToString(CultureInfo.InvariantCulture)));
-      AppendMetaRow(sb, "Дата", Escape(groupDef.DateText ?? ""));
       AppendMetaRow(sb, "Название", Escape(groupDef.Title ?? ""));
       var gdesc = groupDef.Description ?? "";
       var gdescHtml = WebUtility.HtmlEncode(gdesc).Replace("\r\n", "\n").Replace("\n", "<br/>");
       sb.AppendLine("<tr><th class=\"meta-label\">").Append(Escape("Описание")).Append("</th><td class=\"meta-value\">").Append(gdescHtml).AppendLine("</td></tr>");
-      AppendMetaRow(sb, "Коэфф. пульсации (группа)", Escape(groupDef.RunPulseTimingCoefficient.ToString(CultureInfo.InvariantCulture)));
+      int gCoeff = NormalizeScenarioRunPulseCoeff(groupDef.RunPulseTimingCoefficient);
+      AppendMetaRow(sb, "Коэфф. пульсации (группа)", Escape(gCoeff.ToString(CultureInfo.InvariantCulture)));
+      AppendMetaRow(sb, "Фактическая скорость", Escape(FormatActualPulseSpeedTextAggregate(runs)));
       sb.AppendLine("</table>");
     }
 
@@ -224,7 +228,7 @@ namespace AIStudio.Common
       AppendReportStyles(sb);
       sb.AppendLine("</head><body>");
 
-      AppendGroupBatchReportHeader(sb, groupDef);
+      AppendGroupBatchReportHeader(sb, groupDef, runs);
 
       AppendGroupCompositionTable(sb, groupDef, titleById, compact: true, compareByIndex);
 
@@ -295,7 +299,6 @@ namespace AIStudio.Common
       sb.AppendLine("<h2>Данные сценария</h2>");
       sb.AppendLine("<table class=\"meta-table\">");
       AppendMetaRow(sb, "ID", Escape(doc.Header?.Id.ToString(CultureInfo.InvariantCulture) ?? ""));
-      AppendMetaRow(sb, "Дата", Escape(doc.Header?.DateText ?? ""));
       AppendMetaRow(sb, "Название", Escape(doc.Header?.Title ?? ""));
       var descRaw = doc.Header?.Description ?? "";
       var descHtml = WebUtility.HtmlEncode(descRaw).Replace("\r\n", "\n").Replace("\n", "<br/>");
@@ -308,6 +311,9 @@ namespace AIStudio.Common
       AppendMetaRow(sb, "Сброс параметров в «норму» перед запуском", Escape(doc.Header?.PreRunNormalHomeostasisState == true ? "да" : "нет"));
       AppendMetaRow(sb, "Режим наблюдения при прогоне", Escape(doc.Header?.ScenarioObservationMode == true ? "да" : "нет"));
       AppendMetaRow(sb, "Авторитарная запись при прогоне", Escape(doc.Header?.ScenarioAuthoritativeRecording == true ? "да" : "нет"));
+      int pulseCoeff = NormalizeScenarioRunPulseCoeff(doc.Header?.RunPulseTimingCoefficient ?? 1);
+      AppendMetaRow(sb, "Коэфф. пульсации", Escape(pulseCoeff.ToString(CultureInfo.InvariantCulture)));
+      AppendMetaRow(sb, "Фактическая скорость", Escape(FormatActualPulseSpeedText(completion)));
       sb.AppendLine("</table>");
 
       sb.AppendLine("<h2>Шаги</h2>");
@@ -483,6 +489,52 @@ namespace AIStudio.Common
       if (!string.IsNullOrEmpty(e.ErrorMessage))
         return "Ошибка: " + e.ErrorMessage;
       return "Прогон завершён с нестандартным исходом.";
+    }
+
+    /// <summary>Допустимые значения коэфф. пульсации в UI/прогоне (как в MainViewModel).</summary>
+    private static int NormalizeScenarioRunPulseCoeff(int c)
+    {
+      if (c != 1 && c != 5 && c != 10 && c != 20)
+        return 1;
+      return c;
+    }
+
+    private static double? TryComputeActualPulsesPerSec(OperatorScenarioCompletedEventArgs e)
+    {
+      if (e == null || e.ElapsedWallTime.TotalMilliseconds <= 0 || e.ElapsedPulses <= 0)
+        return null;
+      return e.ElapsedPulses / e.ElapsedWallTime.TotalSeconds;
+    }
+
+    private static string FormatActualPulseSpeedText(OperatorScenarioCompletedEventArgs completion)
+    {
+      var a = TryComputeActualPulsesPerSec(completion);
+      return a.HasValue
+          ? $"{a.Value.ToString("F1", CultureInfo.InvariantCulture)} пульсов/сек"
+          : "—";
+    }
+
+    private static string FormatActualPulseSpeedTextAggregate(
+        IReadOnlyList<Tuple<ScenarioDocument, OperatorScenarioCompletedEventArgs>> runs)
+    {
+      if (runs == null || runs.Count == 0)
+        return "—";
+      double totalSec = 0;
+      int totalPulses = 0;
+      foreach (var t in runs)
+      {
+        var e = t.Item2;
+        if (e == null)
+          continue;
+        if (e.ElapsedWallTime.TotalMilliseconds > 0 && e.ElapsedPulses > 0)
+        {
+          totalSec += e.ElapsedWallTime.TotalSeconds;
+          totalPulses += e.ElapsedPulses;
+        }
+      }
+      if (totalSec <= 0)
+        return "—";
+      return $"{(totalPulses / totalSec).ToString("F1", CultureInfo.InvariantCulture)} пульсов/сек";
     }
 
     private static string Escape(string s) => WebUtility.HtmlEncode(s ?? "");

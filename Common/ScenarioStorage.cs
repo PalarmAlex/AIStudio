@@ -41,60 +41,18 @@ namespace AIStudio.Common
         if (!int.TryParse(p[0], NumberStyles.Integer, CultureInfo.InvariantCulture, out int id))
           continue;
         int pst = -1;
-        if (p.Length >= 5 && int.TryParse(p[4].Trim(), NumberStyles.Integer, CultureInfo.InvariantCulture, out int parsedPst))
+        if (int.TryParse(p[3].Trim(), NumberStyles.Integer, CultureInfo.InvariantCulture, out int parsedPst))
           pst = parsedPst;
-        else
-          pst = TryReadPreRunTargetStageFromLinesFile(id);
         list.Add(new ScenarioHeader
         {
           Id = id,
           Title = Unescape(p[1]),
           Description = Unescape(p[2]),
-          DateText = Unescape(p[3]),
           PreRunTargetStage = pst
         });
       }
 
       return list.OrderBy(h => h.Id).ToList();
-    }
-
-    private static int TryReadPreRunTargetStageFromLinesFile(int scenarioId)
-    {
-      try
-      {
-        var path = ScenarioPaths.LinesPath(scenarioId);
-        if (!File.Exists(path))
-          return -1;
-        int linesFileFormatVersion = 4;
-        foreach (var line in File.ReadLines(path))
-        {
-          var t = line?.Trim();
-          if (string.IsNullOrEmpty(t))
-            continue;
-          if (t.StartsWith(LinesFormatHeader, StringComparison.Ordinal))
-          {
-            var fv = t.Substring(LinesFormatHeader.Length).Trim();
-            int.TryParse(fv, NumberStyles.Integer, CultureInfo.InvariantCulture, out int parsedV);
-            if (parsedV > 0)
-              linesFileFormatVersion = parsedV;
-            continue;
-          }
-          if (t.StartsWith("# SCENARIO_META|", StringComparison.Ordinal))
-          {
-            var meta = t.Substring("# SCENARIO_META|".Length).Split('|');
-            var hdr = new ScenarioHeader();
-            ApplyScenarioMeta(hdr, meta, linesFileFormatVersion);
-            return hdr.PreRunTargetStage;
-          }
-          if (!t.StartsWith("#"))
-            break;
-        }
-      }
-      catch
-      {
-        // ignore
-      }
-      return -1;
     }
 
     public static ScenarioDocument LoadScenario(int scenarioId)
@@ -107,7 +65,6 @@ namespace AIStudio.Common
       doc.Header.Id = scenarioId;
 
       bool expectationMode = false;
-      int linesFileFormatVersion = 4;
       foreach (var line in File.ReadAllLines(path, Encoding.UTF8))
       {
         var t = line?.Trim();
@@ -115,13 +72,7 @@ namespace AIStudio.Common
           continue;
 
         if (t.StartsWith(LinesFormatHeader, StringComparison.Ordinal))
-        {
-          var fv = t.Substring(LinesFormatHeader.Length).Trim();
-          int.TryParse(fv, NumberStyles.Integer, CultureInfo.InvariantCulture, out int parsedV);
-          if (parsedV > 0)
-            linesFileFormatVersion = parsedV;
           continue;
-        }
 
         if (expectationMode)
         {
@@ -132,7 +83,7 @@ namespace AIStudio.Common
           }
           if (t.StartsWith("#"))
             continue;
-          TryParseLogExpectationRow(t, doc, linesFileFormatVersion);
+          TryParseLogExpectationRow(t, doc);
           continue;
         }
 
@@ -149,7 +100,7 @@ namespace AIStudio.Common
           if (t.StartsWith("# SCENARIO_META|", StringComparison.Ordinal))
           {
             var meta = t.Substring("# SCENARIO_META|".Length).Split('|');
-            ApplyScenarioMeta(doc.Header, meta, linesFileFormatVersion);
+            ApplyScenarioMeta(doc.Header, meta);
           }
           continue;
         }
@@ -168,83 +119,41 @@ namespace AIStudio.Common
       return row != null;
     }
 
-    /// <summary>Разбор <c># SCENARIO_META|…</c>: v5+ без полей группы; v4 и ниже — прежняя раскладка (номер группы и порядок в файле игнорируются).</summary>
-    public static void ApplyScenarioMeta(ScenarioHeader header, string[] meta, int linesFileFormatVersion)
+    /// <summary>Разбор <c># SCENARIO_META|…</c> текущего формата: Title|Description|InitialHomeostasis|…</summary>
+    public static void ApplyScenarioMeta(ScenarioHeader header, string[] meta)
     {
       if (header == null || meta == null)
         return;
-      if (meta.Length >= 3)
+      if (meta.Length >= 2)
       {
         header.Title = Unescape(meta[0]);
         header.Description = Unescape(meta[1]);
-        header.DateText = Unescape(meta[2]);
       }
-      if (linesFileFormatVersion >= 5 && meta.Length >= 4)
-      {
-        header.InitialHomeostasisValues = Unescape(meta[3]);
-        if (meta.Length >= 11)
-        {
-          int.TryParse(meta[4].Trim(), NumberStyles.Integer, CultureInfo.InvariantCulture, out int pst);
-          header.PreRunTargetStage = pst;
-          header.PreRunClearAgentData =
-              int.TryParse(meta[5].Trim(), NumberStyles.Integer, CultureInfo.InvariantCulture, out int cl)
-              && cl != 0;
-          header.ScenarioObservationMode =
-              int.TryParse(meta[6].Trim(), NumberStyles.Integer, CultureInfo.InvariantCulture, out int om)
-              && om != 0;
-          header.ScenarioAuthoritativeRecording =
-              int.TryParse(meta[7].Trim(), NumberStyles.Integer, CultureInfo.InvariantCulture, out int ar)
-              && ar != 0;
-          header.PreRunNormalHomeostasisState =
-              int.TryParse(meta[8].Trim(), NumberStyles.Integer, CultureInfo.InvariantCulture, out int nh)
-              && nh != 0;
-          if (int.TryParse(meta[9].Trim(), NumberStyles.Integer, CultureInfo.InvariantCulture, out int psi)
-              && (psi == 1 || psi == 2 || psi == 3 || psi == 4))
-            header.PulseStepIncrement = psi;
-          TryApplyRunPulseCoefficient(meta[10], header);
-        }
+      if (meta.Length < 3)
         return;
-      }
-
-      if (meta.Length >= 8)
-      {
-        header.InitialHomeostasisValues = Unescape(meta[3]);
-        int.TryParse(meta[6].Trim(), NumberStyles.Integer, CultureInfo.InvariantCulture, out int pstLegacy);
-        header.PreRunTargetStage = pstLegacy;
-        header.PreRunClearAgentData =
-            int.TryParse(meta[7].Trim(), NumberStyles.Integer, CultureInfo.InvariantCulture, out int cl0)
-            && cl0 != 0;
-        if (meta.Length >= 10)
-        {
-          header.ScenarioObservationMode =
-              int.TryParse(meta[8].Trim(), NumberStyles.Integer, CultureInfo.InvariantCulture, out int om0)
-              && om0 != 0;
-          header.ScenarioAuthoritativeRecording =
-              int.TryParse(meta[9].Trim(), NumberStyles.Integer, CultureInfo.InvariantCulture, out int ar0)
-              && ar0 != 0;
-        }
-        if (meta.Length >= 11)
-        {
-          header.PreRunNormalHomeostasisState =
-              int.TryParse(meta[10].Trim(), NumberStyles.Integer, CultureInfo.InvariantCulture, out int nh0)
-              && nh0 != 0;
-        }
-        if (meta.Length >= 12
-            && int.TryParse(meta[11].Trim(), NumberStyles.Integer, CultureInfo.InvariantCulture, out int psi0)
-            && (psi0 == 1 || psi0 == 2 || psi0 == 3 || psi0 == 4))
-          header.PulseStepIncrement = psi0;
-        if (meta.Length >= 13)
-          TryApplyRunPulseCoefficient(meta[12], header);
-      }
-      else
-      {
-        if (meta.Length >= 6)
-          header.InitialHomeostasisValues = "";
-        else if (meta.Length >= 5)
-          header.InitialHomeostasisValues = Unescape(meta[4]);
-        else if (meta.Length >= 4)
-          header.InitialHomeostasisValues = Unescape(meta[3]);
-      }
+      const int homeoValuesIndex = 2;
+      header.InitialHomeostasisValues = Unescape(meta[homeoValuesIndex]);
+      if (meta.Length < homeoValuesIndex + 8)
+        return;
+      int i = homeoValuesIndex;
+      int.TryParse(meta[i + 1].Trim(), NumberStyles.Integer, CultureInfo.InvariantCulture, out int pst);
+      header.PreRunTargetStage = pst;
+      header.PreRunClearAgentData =
+          int.TryParse(meta[i + 2].Trim(), NumberStyles.Integer, CultureInfo.InvariantCulture, out int cl)
+          && cl != 0;
+      header.ScenarioObservationMode =
+          int.TryParse(meta[i + 3].Trim(), NumberStyles.Integer, CultureInfo.InvariantCulture, out int om)
+          && om != 0;
+      header.ScenarioAuthoritativeRecording =
+          int.TryParse(meta[i + 4].Trim(), NumberStyles.Integer, CultureInfo.InvariantCulture, out int ar)
+          && ar != 0;
+      header.PreRunNormalHomeostasisState =
+          int.TryParse(meta[i + 5].Trim(), NumberStyles.Integer, CultureInfo.InvariantCulture, out int nh)
+          && nh != 0;
+      if (int.TryParse(meta[i + 6].Trim(), NumberStyles.Integer, CultureInfo.InvariantCulture, out int psi)
+          && (psi == 1 || psi == 2 || psi == 3 || psi == 4))
+        header.PulseStepIncrement = psi;
+      TryApplyRunPulseCoefficient(meta[i + 7], header);
     }
 
     private static void TryApplyRunPulseCoefficient(string raw, ScenarioHeader header)
@@ -298,42 +207,7 @@ namespace AIStudio.Common
         };
       }
 
-      if (p.Length < 7)
-        return null;
-      if (!int.TryParse(p[0], NumberStyles.Integer, CultureInfo.InvariantCulture, out int pulseLegacy))
-        return null;
-      var kindL = p[1].Trim().Equals("W", StringComparison.OrdinalIgnoreCase)
-          ? ScenarioLineKind.WaitClick
-          : ScenarioLineKind.Pult;
-      if (!int.TryParse(p[2], NumberStyles.Integer, CultureInfo.InvariantCulture, out int toneL))
-        return null;
-      if (!int.TryParse(p[3], NumberStyles.Integer, CultureInfo.InvariantCulture, out int moodL))
-        return null;
-      var actionsL = string.IsNullOrWhiteSpace(p[4])
-          ? new List<int>()
-          : p[4].Split(',').Select(s => s.Trim()).Where(s => s.Length > 0)
-              .Select(s => int.Parse(s, CultureInfo.InvariantCulture)).ToList();
-      var phraseL = Unescape(p[5]);
-      if (!int.TryParse(p[6], NumberStyles.Integer, CultureInfo.InvariantCulture, out int rwL))
-        return null;
-
-      int visualLegacy = AgentVisualColor.White;
-      if (p.Length > 7 && int.TryParse(p[7].Trim(), NumberStyles.Integer, CultureInfo.InvariantCulture, out int vcL)
-          && AgentVisualColor.IsValidCode(vcL))
-        visualLegacy = vcL;
-
-      return new ScenarioLineRow
-      {
-        StepIndex = 0,
-        PulseWithinScenario = pulseLegacy,
-        Kind = kindL,
-        ToneId = toneL,
-        MoodId = moodL,
-        VisualColorId = visualLegacy,
-        ActionIds = actionsL,
-        Phrase = phraseL,
-        ResetWaitingPeriod = rwL != 0
-      };
+      return null;
     }
 
     private static void ParseLogExpectationColSkip(string line, ScenarioDocument doc)
@@ -392,83 +266,37 @@ namespace AIStudio.Common
       return parts;
     }
 
-    private static void TryParseLogExpectationRow(string line, ScenarioDocument doc, int linesFileFormatVersion)
+    private static void TryParseLogExpectationRow(string line, ScenarioDocument doc)
     {
       if (doc.LogExpectations == null)
         doc.LogExpectations = new List<ScenarioLogExpectationRow>();
 
       var p = SplitLogExpectationLine(line);
-      if (p.Count < 13)
+      if (p.Count < 15)
         return;
       if (!int.TryParse(p[0].Trim(), NumberStyles.Integer, CultureInfo.InvariantCulture, out int step))
         return;
       if (!int.TryParse(p[1].Trim(), NumberStyles.Integer, CultureInfo.InvariantCulture, out int pulse))
         return;
 
-      // v8+: после «Опасно» — «Актуально», затем рефлексы… (15 полей данных: шаг, пульс, 13 колонок).
-      if (linesFileFormatVersion >= 8 && p.Count >= 15)
+      doc.LogExpectations.Add(new ScenarioLogExpectationRow
       {
-        doc.LogExpectations.Add(new ScenarioLogExpectationRow
-        {
-          StepIndex = step,
-          PulseWithinScenario = pulse,
-          StateText = Unescape(p[2]),
-          StyleText = Unescape(p[3]),
-          ThemeText = Unescape(p[4]),
-          TriggerText = Unescape(p[5]),
-          OrUmText = Unescape(p[6]),
-          DangerText = Unescape(p[7]),
-          VeryActualText = Unescape(p[8]),
-          GeneticReflexText = Unescape(p[9]),
-          ConditionReflexText = Unescape(p[10]),
-          AutomatizmText = Unescape(p[11]),
-          ReflexChainText = Unescape(p[12]),
-          AutomatizmChainText = Unescape(p[13]),
-          MainCycleText = Unescape(p[14])
-        });
-      }
-      else if (p.Count >= 14)
-      {
-        doc.LogExpectations.Add(new ScenarioLogExpectationRow
-        {
-          StepIndex = step,
-          PulseWithinScenario = pulse,
-          StateText = Unescape(p[2]),
-          StyleText = Unescape(p[3]),
-          ThemeText = Unescape(p[4]),
-          TriggerText = Unescape(p[5]),
-          OrUmText = Unescape(p[6]),
-          DangerText = Unescape(p[7]),
-          VeryActualText = "-",
-          GeneticReflexText = Unescape(p[8]),
-          ConditionReflexText = Unescape(p[9]),
-          AutomatizmText = Unescape(p[10]),
-          ReflexChainText = Unescape(p[11]),
-          AutomatizmChainText = Unescape(p[12]),
-          MainCycleText = Unescape(p[13])
-        });
-      }
-      else
-      {
-        doc.LogExpectations.Add(new ScenarioLogExpectationRow
-        {
-          StepIndex = step,
-          PulseWithinScenario = pulse,
-          StateText = Unescape(p[2]),
-          StyleText = Unescape(p[3]),
-          ThemeText = Unescape(p[4]),
-          TriggerText = Unescape(p[5]),
-          OrUmText = Unescape(p[6]),
-          DangerText = "-",
-          VeryActualText = "-",
-          GeneticReflexText = Unescape(p[7]),
-          ConditionReflexText = Unescape(p[8]),
-          AutomatizmText = Unescape(p[9]),
-          ReflexChainText = Unescape(p[10]),
-          AutomatizmChainText = Unescape(p[11]),
-          MainCycleText = Unescape(p[12])
-        });
-      }
+        StepIndex = step,
+        PulseWithinScenario = pulse,
+        StateText = Unescape(p[2]),
+        StyleText = Unescape(p[3]),
+        ThemeText = Unescape(p[4]),
+        TriggerText = Unescape(p[5]),
+        OrUmText = Unescape(p[6]),
+        DangerText = Unescape(p[7]),
+        VeryActualText = Unescape(p[8]),
+        GeneticReflexText = Unescape(p[9]),
+        ConditionReflexText = Unescape(p[10]),
+        AutomatizmText = Unescape(p[11]),
+        ReflexChainText = Unescape(p[12]),
+        AutomatizmChainText = Unescape(p[13]),
+        MainCycleText = Unescape(p[14])
+      });
     }
 
     public static (bool Success, string Error) SaveRegistry(IEnumerable<ScenarioHeader> headers)
@@ -478,7 +306,7 @@ namespace AIStudio.Common
       {
         "# Реестр сценариев оператора",
         $"{RegistryFormatHeader}{ScenarioDocument.FormatVersion}",
-        "# Id|Title|Description|Date|PreRunTargetStage"
+        "# Id|Title|Description|PreRunTargetStage"
       };
       foreach (var h in headers.OrderBy(x => x.Id))
       {
@@ -486,7 +314,6 @@ namespace AIStudio.Common
             h.Id.ToString(CultureInfo.InvariantCulture),
             Escape(h.Title ?? ""),
             Escape(h.Description ?? ""),
-            Escape(h.DateText ?? ""),
             h.PreRunTargetStage.ToString(CultureInfo.InvariantCulture)));
       }
 
@@ -518,7 +345,7 @@ namespace AIStudio.Common
       {
         "# Строки сценария оператора",
         $"{LinesFormatHeader}{ScenarioDocument.LinesFileFormatVersion}",
-        $"# SCENARIO_META|{Escape(doc.Header.Title ?? "")}|{Escape(doc.Header.Description ?? "")}|{Escape(doc.Header.DateText ?? "")}|{Escape(doc.Header.InitialHomeostasisValues ?? "")}|{doc.Header.PreRunTargetStage.ToString(CultureInfo.InvariantCulture)}|{(doc.Header.PreRunClearAgentData ? "1" : "0")}|{(doc.Header.ScenarioObservationMode ? "1" : "0")}|{(doc.Header.ScenarioAuthoritativeRecording ? "1" : "0")}|{(doc.Header.PreRunNormalHomeostasisState ? "1" : "0")}|{doc.Header.PulseStepIncrement.ToString(CultureInfo.InvariantCulture)}|{doc.Header.RunPulseTimingCoefficient.ToString(CultureInfo.InvariantCulture)}",
+        $"# SCENARIO_META|{Escape(doc.Header.Title ?? "")}|{Escape(doc.Header.Description ?? "")}|{Escape(doc.Header.InitialHomeostasisValues ?? "")}|{doc.Header.PreRunTargetStage.ToString(CultureInfo.InvariantCulture)}|{(doc.Header.PreRunClearAgentData ? "1" : "0")}|{(doc.Header.ScenarioObservationMode ? "1" : "0")}|{(doc.Header.ScenarioAuthoritativeRecording ? "1" : "0")}|{(doc.Header.PreRunNormalHomeostasisState ? "1" : "0")}|{doc.Header.PulseStepIncrement.ToString(CultureInfo.InvariantCulture)}|{doc.Header.RunPulseTimingCoefficient.ToString(CultureInfo.InvariantCulture)}",
         "# Step|Pulse|Kind(P|W)|ToneId|MoodId|ActionIds|Phrase|ResetWait|VisualColorId",
         "# Kind=W — только клик по плашке ожидания; P — воздействия с пульта. Пульс — по шагам и режиму приращения из метаданных (см. настройки проекта). VisualColorId — код зрительного канала (0…8), см. AgentVisualColor."
       };

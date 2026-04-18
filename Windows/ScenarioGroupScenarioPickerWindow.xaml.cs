@@ -1,9 +1,11 @@
 using AIStudio.ViewModels.Research;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
+using System.Windows.Threading;
 
 namespace AIStudio.Windows
 {
@@ -17,6 +19,44 @@ namespace AIStudio.Windows
 
     /// <summary>Идентификаторы выбранных сценариев в порядке выделения в списке (после нажатия «Выбрать» или двойного щелчка).</summary>
     public IReadOnlyList<int> SelectedScenarioIds { get; private set; }
+
+    /// <summary>Что подсветить при открытии (уже выбрано в таблице группы), в порядке следования в списке.</summary>
+    public IReadOnlyList<int> InitialSelectedScenarioIds { get; set; }
+
+    private void PickerGrid_OnLoaded(object sender, RoutedEventArgs e)
+    {
+      if (InitialSelectedScenarioIds == null || InitialSelectedScenarioIds.Count == 0)
+        return;
+      Dispatcher.BeginInvoke(new Action(ApplyInitialSelectionAfterGridReady), DispatcherPriority.ContextIdle);
+    }
+
+    private void ApplyInitialSelectionAfterGridReady()
+    {
+      if (InitialSelectedScenarioIds != null && InitialSelectedScenarioIds.Count > 0
+          && DataContext is ScenarioGroupScenarioPickerViewModel pickerVm)
+        pickerVm.ClearFilters();
+      PickerGrid.UpdateLayout();
+      ApplyInitialSelection();
+    }
+
+    private void ApplyInitialSelection()
+    {
+      if (InitialSelectedScenarioIds == null || InitialSelectedScenarioIds.Count == 0)
+        return;
+      var want = new HashSet<int>(InitialSelectedScenarioIds);
+      PickerGrid.SelectedItems.Clear();
+      object first = null;
+      foreach (ScenarioGroupScenarioPickerRow r in PickerGrid.Items)
+      {
+        if (!want.Contains(r.Id))
+          continue;
+        PickerGrid.SelectedItems.Add(r);
+        if (first == null)
+          first = r;
+      }
+      if (first != null)
+        PickerGrid.ScrollIntoView(first);
+    }
 
     private void SelectButton_Click(object sender, RoutedEventArgs e)
     {

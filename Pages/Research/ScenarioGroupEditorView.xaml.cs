@@ -57,7 +57,11 @@ namespace AIStudio.Pages.Research
         return;
       e.Handled = true;
       var owner = Window.GetWindow(this);
-      var dlg = new ScenarioGroupScenarioPickerWindow { Owner = owner };
+      var dlg = new ScenarioGroupScenarioPickerWindow
+      {
+        Owner = owner,
+        InitialSelectedScenarioIds = vm.GetScenarioIdsForPickerPreselection()
+      };
       if (dlg.ShowDialog() != true || dlg.SelectedScenarioIds == null || dlg.SelectedScenarioIds.Count == 0)
         return;
       vm.ApplyPickedScenarios(row, dlg.SelectedScenarioIds);

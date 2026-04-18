@@ -47,16 +47,12 @@
     <Border Grid.Row="1" Margin="0,0,0,8" Padding="10" BorderBrush="#FFBBDEFB" BorderThickness="1" CornerRadius="4" Background="#FFE3F2FD">
       <Grid>
         <Grid.RowDefinitions>
-          <RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/>
+          <RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
         <Grid.ColumnDefinitions>
-          <ColumnDefinition Width="*"/><ColumnDefinition Width="*"/>
+          <ColumnDefinition Width="*"/>
         </Grid.ColumnDefinitions>
-        <StackPanel Grid.Row="0" Grid.Column="0" Margin="0,0,8,8">
-          <TextBlock Text="Дата" FontWeight="SemiBold" Margin="0,0,0,4"/>
-          <TextBox Text="{Binding DateText, UpdateSourceTrigger=PropertyChanged}" Padding="4,3"/>
-        </StackPanel>
-        <StackPanel Grid.Row="0" Grid.Column="1" Margin="8,0,0,8">
+        <StackPanel Grid.Row="0" Grid.Column="0" Margin="0,0,0,8">
           <TextBlock Text="Коэфф. пульсации (для всех сценариев группы)" FontWeight="SemiBold" Margin="0,0,0,4"/>
           <ComboBox Padding="4,3" HorizontalAlignment="Left" MinWidth="120"
                     ItemsSource="{Binding PulseTimingCoefficientChoices}"
@@ -66,7 +62,7 @@
             </ComboBox.ToolTip>
           </ComboBox>
         </StackPanel>
-        <StackPanel Grid.Row="1" Grid.ColumnSpan="2" Margin="0,0,0,8">
+        <StackPanel Grid.Row="1" Grid.Column="0" Margin="0,0,0,8">
           <TextBlock Text="Тип отчёта после группового прогона" FontWeight="SemiBold" Margin="0,0,0,4"/>
           <ComboBox Padding="4,3" HorizontalAlignment="Left" MinWidth="200"
                     ItemsSource="{Binding ReportFormatChoices}"
@@ -74,11 +70,11 @@
                     SelectedValuePath="Format"
                     DisplayMemberPath="Display"/>
         </StackPanel>
-        <StackPanel Grid.Row="2" Grid.ColumnSpan="2" Margin="0,0,0,8">
+        <StackPanel Grid.Row="2" Grid.Column="0" Margin="0,0,0,8">
           <TextBlock Text="Название" FontWeight="SemiBold" Margin="0,0,0,4"/>
           <TextBox Text="{Binding Title, UpdateSourceTrigger=PropertyChanged}" Padding="4,3"/>
         </StackPanel>
-        <StackPanel Grid.Row="3" Grid.ColumnSpan="2" Margin="0,0,0,0">
+        <StackPanel Grid.Row="3" Grid.Column="0" Margin="0,0,0,0">
           <TextBlock Text="Описание" FontWeight="SemiBold" Margin="0,0,0,4"/>
           <TextBox Text="{Binding Description, UpdateSourceTrigger=PropertyChanged}" Padding="4,3" MinHeight="72"
                    TextWrapping="Wrap" AcceptsReturn="True" VerticalScrollBarVisibility="Auto"

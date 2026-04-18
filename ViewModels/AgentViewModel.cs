@@ -44,6 +44,12 @@ namespace AIStudio.ViewModels
     public GomeostasSystem Gomeostas => _gomeostas;
     private ICommand _updateCommand;
     public ICommand UpdateCommand => _updateCommand ?? (_updateCommand = new RelayCommand(_ => UpdateAgentProperties(), _ => !IsAgentDead));
+    private ICommand _setNormalHomeostasisCommand;
+    /// <summary>Ручной сброс жизненных параметров в «норму» (как флажок «Начальное состояние Норма» при запуске сценария).</summary>
+    public ICommand SetNormalHomeostasisCommand =>
+        _setNormalHomeostasisCommand ?? (_setNormalHomeostasisCommand = new RelayCommand(
+            _ => ApplyNormalHomeostasisManually(),
+            _ => IsAnyControlEnabled));
     private ICommand _cancelWaitingPeriodCommand;
     public ICommand CancelWaitingPeriodCommand =>
         _cancelWaitingPeriodCommand ?? (_cancelWaitingPeriodCommand = new RelayCommand(_ => CancelWaitingPeriod()));
@@ -215,6 +221,7 @@ namespace AIStudio.ViewModels
           OnPropertyChanged(nameof(HomeostasisStatusColor));
 
           (_updateCommand as RelayCommand)?.RaiseCanExecuteChanged();
+          (_setNormalHomeostasisCommand as RelayCommand)?.RaiseCanExecuteChanged();
         }
       }
     }
@@ -409,6 +416,48 @@ namespace AIStudio.ViewModels
       UpdateEditableProperties();
       UpdateWarningMessage();
       UpdateWaitingPeriodDisplay();
+    }
+
+    private void ApplyNormalHomeostasisManually()
+    {
+      if (IsAgentDead || !IsAnyControlEnabled)
+        return;
+
+      try
+      {
+        _gomeostas.ApplySpeedOrientedNormalHomeostasisForScenarioPreRun();
+      }
+      catch (Exception ex)
+      {
+        MessageBox.Show(
+            ex.Message,
+            "Состояние Норма",
+            MessageBoxButton.OK,
+            MessageBoxImage.Warning);
+        return;
+      }
+
+      var (propsOk, propsErr) = _gomeostas.SaveAgentProperties();
+      if (!propsOk)
+      {
+        MessageBox.Show(
+            $"Не удалось сохранить свойства агента:\n{propsErr}",
+            "Состояние Норма",
+            MessageBoxButton.OK,
+            MessageBoxImage.Warning);
+      }
+
+      var (paramsOk, paramsErr) = _gomeostas.SaveAgentParameters();
+      if (!paramsOk)
+      {
+        MessageBox.Show(
+            $"Не удалось сохранить значения параметров:\n{paramsErr}",
+            "Состояние Норма",
+            MessageBoxButton.OK,
+            MessageBoxImage.Warning);
+      }
+
+      LoadAgentData();
     }
 
     private void UpdateAgentProperties()
@@ -616,6 +665,7 @@ namespace AIStudio.ViewModels
       OnPropertyChanged(nameof(IsStageSelectionEnabled));
       OnPropertyChanged(nameof(IsEditingEnabled));
       OnPropertyChanged(nameof(IsAnyControlEnabled));
+      (_setNormalHomeostasisCommand as RelayCommand)?.RaiseCanExecuteChanged();
     }
 
     private void CancelWaitingPeriod()

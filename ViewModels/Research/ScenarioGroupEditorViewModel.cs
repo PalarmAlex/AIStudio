@@ -18,7 +18,6 @@ namespace AIStudio.ViewModels.Research
   {
     private string _title = "";
     private string _description = "";
-    private string _dateText = "";
     private int _runPulseTimingCoefficient = 1;
     private ScenarioGroupReportFormat _reportFormat = ScenarioGroupReportFormat.Detailed;
     private ScenarioGroupMemberRow _selectedMember;
@@ -29,9 +28,6 @@ namespace AIStudio.ViewModels.Research
       Document = doc ?? throw new ArgumentNullException(nameof(doc));
       _title = doc.Title ?? "";
       _description = doc.Description ?? "";
-      _dateText = string.IsNullOrWhiteSpace(doc.DateText)
-          ? DateTime.Now.ToString("yyyy-MM-dd")
-          : doc.DateText;
       _runPulseTimingCoefficient = doc.RunPulseTimingCoefficient <= 0 ? 1 : doc.RunPulseTimingCoefficient;
       _reportFormat = Enum.IsDefined(typeof(ScenarioGroupReportFormat), doc.ReportFormat)
           ? doc.ReportFormat
@@ -128,18 +124,6 @@ namespace AIStudio.ViewModels.Research
       }
     }
 
-    public string DateText
-    {
-      get => _dateText;
-      set
-      {
-        if (_dateText == value) return;
-        _dateText = value;
-        OnPropertyChanged();
-        MarkDirty();
-      }
-    }
-
     public int RunPulseTimingCoefficient
     {
       get => _runPulseTimingCoefficient;
@@ -229,6 +213,21 @@ namespace AIStudio.ViewModels.Research
         tip = scenario.FullTitle ?? "";
       }
       row.UpdateMemberPresentation(cell, tip, stage?.Description ?? "");
+    }
+
+    /// <summary>
+    /// Все id сценариев из таблицы группы (по порядку строк), для предвыделения в окне выбора.
+    /// Пустой список — в таблице ни одного выбранного сценария.
+    /// </summary>
+    public IReadOnlyList<int> GetScenarioIdsForPickerPreselection()
+    {
+      var list = new List<int>();
+      foreach (var m in Members)
+      {
+        if (m.ScenarioId > 0)
+          list.Add(m.ScenarioId);
+      }
+      return list;
     }
 
     /// <summary>Первый выбранный id подставляется в строку-якорь, остальные — в новые строки сразу под ней (копия параметров предзапуска с якоря).</summary>
@@ -333,7 +332,6 @@ namespace AIStudio.ViewModels.Research
         Id = Document.Id,
         Title = Title?.Trim() ?? "",
         Description = Description?.Trim() ?? "",
-        DateText = DateText?.Trim() ?? "",
         RunPulseTimingCoefficient = coeff,
         ReportFormat = ReportFormat,
         Members = Members.Select(m => m.Clone()).ToList()
@@ -350,8 +348,7 @@ namespace AIStudio.ViewModels.Research
       {
         Id = doc.Id,
         Title = doc.Title,
-        Description = doc.Description,
-        DateText = doc.DateText
+        Description = doc.Description
       });
       var (okReg, errReg) = ScenarioGroupStorage.SaveGroupRegistry(reg);
       if (!okReg)

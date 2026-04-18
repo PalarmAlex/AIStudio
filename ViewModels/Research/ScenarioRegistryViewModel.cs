@@ -171,7 +171,7 @@ namespace AIStudio.ViewModels.Research
       {
         doc = new ScenarioDocument
         {
-          Header = new ScenarioHeader { Id = 0, Title = "Новый сценарий", DateText = DateTime.Now.ToString("yyyy-MM-dd") }
+          Header = new ScenarioHeader { Id = 0, Title = "Новый сценарий" }
         };
       }
       else
@@ -181,7 +181,6 @@ namespace AIStudio.ViewModels.Research
           doc = ScenarioStorage.LoadScenario(header.Id);
           doc.Header.Title = header.Title;
           doc.Header.Description = header.Description;
-          doc.Header.DateText = header.DateText;
           ScenarioPulseSchedule.EnsureSequentialStepIndices(doc.Lines);
         }
         catch (Exception ex)
@@ -233,7 +232,6 @@ namespace AIStudio.ViewModels.Research
         doc = ScenarioStorage.LoadScenario(Selected.Id);
         doc.Header.Title = Selected.Title;
         doc.Header.Description = Selected.Description;
-        doc.Header.DateText = Selected.DateText;
         ScenarioPulseSchedule.EnsureSequentialStepIndices(doc.Lines);
       }
       catch (Exception ex)
@@ -283,7 +281,6 @@ namespace AIStudio.ViewModels.Research
         ScenarioPulseSchedule.EnsureSequentialStepIndices(doc.Lines);
         doc.Header.Id = ScenarioStorage.NextScenarioId();
         doc.Header.Title = (Selected.Title ?? "Сценарий") + "_copy1";
-        doc.Header.DateText = DateTime.Now.ToString("yyyy-MM-dd");
 
         var (okLines, errLines) = ScenarioStorage.SaveScenarioLines(doc);
         if (!okLines)
@@ -298,7 +295,6 @@ namespace AIStudio.ViewModels.Research
           Id = doc.Header.Id,
           Title = doc.Header.Title,
           Description = doc.Header.Description,
-          DateText = doc.Header.DateText,
           PreRunTargetStage = doc.Header.PreRunTargetStage
         });
         var (ok, msg) = ScenarioStorage.SaveRegistry(reg);
@@ -345,20 +341,8 @@ namespace AIStudio.ViewModels.Research
     {
       var doc = new ScenarioDocument
       {
-        Header = new ScenarioHeader { Title = "Импорт", DateText = DateTime.Now.ToString("yyyy-MM-dd") }
+        Header = new ScenarioHeader { Title = "Импорт" }
       };
-      int formatVersion = 4;
-      foreach (var line in lines)
-      {
-        var t = line?.Trim();
-        if (t != null && t.StartsWith("# SCENARIO_LINES_FORMAT|", StringComparison.Ordinal))
-        {
-          var fv = t.Substring("# SCENARIO_LINES_FORMAT|".Length).Trim();
-          int.TryParse(fv, NumberStyles.Integer, CultureInfo.InvariantCulture, out int parsedV);
-          if (parsedV > 0)
-            formatVersion = parsedV;
-        }
-      }
 
       foreach (var line in lines)
       {
@@ -368,7 +352,7 @@ namespace AIStudio.ViewModels.Research
           if (t != null && t.StartsWith("# SCENARIO_META|", StringComparison.Ordinal))
           {
             var meta = t.Substring("# SCENARIO_META|".Length).Split('|');
-            ScenarioStorage.ApplyScenarioMeta(doc.Header, meta, formatVersion);
+            ScenarioStorage.ApplyScenarioMeta(doc.Header, meta);
           }
           continue;
         }
