@@ -343,6 +343,7 @@
     <Compile Include="ViewModels\Research\ScenarioGroupRegistryViewModel.cs" />
     <Compile Include="ViewModels\Research\ScenarioRegistryPickItem.cs" />
     <Compile Include="ViewModels\Research\ScenarioGroupEditorViewModel.cs" />
+    <Compile Include="ViewModels\Research\ScenarioGroupScenarioPickerViewModel.cs" />
     <Compile Include="Pages\Research\ScenarioRegistryView.xaml.cs">
       <DependentUpon>ScenarioRegistryView.xaml</DependentUpon>
     </Compile>
@@ -363,6 +364,9 @@
     </Compile>
     <Compile Include="Windows\ScenarioGroupEditorWindow.xaml.cs">
       <DependentUpon>ScenarioGroupEditorWindow.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Windows\ScenarioGroupScenarioPickerWindow.xaml.cs">
+      <DependentUpon>ScenarioGroupScenarioPickerWindow.xaml</DependentUpon>
     </Compile>
     <Compile Include="Windows\ScenarioRunProgressWindow.xaml.cs">
       <DependentUpon>ScenarioRunProgressWindow.xaml</DependentUpon>
@@ -614,6 +618,10 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="Windows\ScenarioGroupEditorWindow.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Windows\ScenarioGroupScenarioPickerWindow.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

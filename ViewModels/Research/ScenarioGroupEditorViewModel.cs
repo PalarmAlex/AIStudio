@@ -2,6 +2,8 @@ using AIStudio.Common;
 using AIStudio.ViewModels;
 using ISIDA.Scenarios;
 using System;
+using System.Collections.Generic;
+using System.Globalization;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.ComponentModel;
@@ -207,9 +209,61 @@ namespace AIStudio.ViewModels.Research
 
     private void RefreshMemberSelectionToolTips(ScenarioGroupMemberRow row)
     {
-      var scenario = ScenarioChoices.FirstOrDefault(s => s.Id == row.ScenarioId);
+      var scenario = row.ScenarioId > 0 ? ScenarioChoices.FirstOrDefault(s => s.Id == row.ScenarioId) : null;
       var stage = PreRunStageChoices.FirstOrDefault(s => s.StageNumber == row.PreRunTargetStage);
-      row.UpdateSelectionToolTips(scenario?.FullTitle ?? "", stage?.Description ?? "");
+      string cell;
+      string tip;
+      if (row.ScenarioId <= 0)
+      {
+        cell = "(не выбран)";
+        tip = "Двойной щелчок — выбрать сценарий из списка.";
+      }
+      else if (scenario == null)
+      {
+        cell = row.ScenarioId.ToString(CultureInfo.InvariantCulture);
+        tip = "Сценарий не найден в реестре.";
+      }
+      else
+      {
+        cell = scenario.DisplayTitle ?? "";
+        tip = scenario.FullTitle ?? "";
+      }
+      row.UpdateMemberPresentation(cell, tip, stage?.Description ?? "");
+    }
+
+    /// <summary>Первый выбранный id подставляется в строку-якорь, остальные — в новые строки сразу под ней (копия параметров предзапуска с якоря).</summary>
+    public void ApplyPickedScenarios(ScenarioGroupMemberRow anchor, IReadOnlyList<int> scenarioIds)
+    {
+      if (anchor == null || scenarioIds == null || scenarioIds.Count == 0)
+        return;
+      int idx = Members.IndexOf(anchor);
+      if (idx < 0)
+        return;
+
+      anchor.ScenarioId = scenarioIds[0];
+      for (int i = 1; i < scenarioIds.Count; i++)
+      {
+        var row = new ScenarioGroupMemberRow
+        {
+          SortOrderInGroup = anchor.SortOrderInGroup,
+          ScenarioId = scenarioIds[i],
+          PreRunTargetStage = anchor.PreRunTargetStage,
+          PreRunClearAgentData = anchor.PreRunClearAgentData,
+          PreRunNormalHomeostasisState = anchor.PreRunNormalHomeostasisState,
+          ScenarioObservationMode = anchor.ScenarioObservationMode,
+          ScenarioAuthoritativeRecording = anchor.ScenarioAuthoritativeRecording
+        };
+        Members.Insert(idx + i, row);
+      }
+      NormalizeMemberSortOrder();
+      CommandManager.InvalidateRequerySuggested();
+    }
+
+    private void NormalizeMemberSortOrder()
+    {
+      int n = 1;
+      foreach (var m in Members)
+        m.SortOrderInGroup = n++;
     }
 
     private void MarkDirty() => _hasUnsavedChanges = true;
@@ -230,11 +284,10 @@ namespace AIStudio.ViewModels.Research
     private void AddMember()
     {
       int nextSort = Members.Count == 0 ? 1 : Members.Max(m => m.SortOrderInGroup) + 1;
-      var defaultScenarioId = ScenarioChoices.FirstOrDefault()?.Id ?? 1;
       Members.Add(new ScenarioGroupMemberRow
       {
         SortOrderInGroup = nextSort,
-        ScenarioId = defaultScenarioId,
+        ScenarioId = 0,
         PreRunTargetStage = -1
       });
       CommandManager.InvalidateRequerySuggested();

@@ -56,6 +56,7 @@ namespace AIStudio.Common
     private bool _preRunNormalHomeostasisState;
     private bool _scenarioObservationMode;
     private bool _scenarioAuthoritativeRecording;
+    private string _scenarioCellDisplay = "(не выбран)";
     private string _scenarioSelectionToolTip = "";
     private string _stageSelectionToolTip = "";
 
@@ -101,6 +102,18 @@ namespace AIStudio.Common
       set { if (_scenarioAuthoritativeRecording == value) return; _scenarioAuthoritativeRecording = value; OnPropertyChanged(); }
     }
 
+    /// <summary>Краткая подпись сценария в ячейке таблицы (ID и название).</summary>
+    public string ScenarioCellDisplay
+    {
+      get => _scenarioCellDisplay;
+      private set
+      {
+        if (_scenarioCellDisplay == value) return;
+        _scenarioCellDisplay = value;
+        OnPropertyChanged();
+      }
+    }
+
     /// <summary>Полное название выбранного сценария для подсказки в таблице.</summary>
     public string ScenarioSelectionToolTip
     {
@@ -125,8 +138,9 @@ namespace AIStudio.Common
       }
     }
 
-    internal void UpdateSelectionToolTips(string scenarioFullTitle, string stageDescription)
+    internal void UpdateMemberPresentation(string scenarioCellDisplay, string scenarioFullTitle, string stageDescription)
     {
+      ScenarioCellDisplay = string.IsNullOrEmpty(scenarioCellDisplay) ? "(не выбран)" : scenarioCellDisplay;
       ScenarioSelectionToolTip = scenarioFullTitle ?? "";
       StageSelectionToolTip = stageDescription ?? "";
     }

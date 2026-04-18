@@ -5,7 +5,7 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:converters="clr-namespace:AIStudio.Converters"
              mc:Ignorable="d" 
-             d:DesignHeight="600" d:DesignWidth="1000">
+             d:DesignHeight="600" d:DesignWidth="1050">
 
   <UserControl.Resources>
 
@@ -439,7 +439,7 @@
           </DataGridTextColumn>
 
           <DataGridTextColumn Binding="{Binding DisplayVeryActualCell}"
-                    Width="52"
+                    Width="70"
                     CellStyle="{StaticResource VeryActualCellStyle}">
             <DataGridTextColumn.Header>
               <DataGridColumnHeader Style="{StaticResource MatrixHeaderStyle}"

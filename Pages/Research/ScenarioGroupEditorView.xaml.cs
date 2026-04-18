@@ -1,7 +1,9 @@
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
+using AIStudio.Common;
 using AIStudio.ViewModels.Research;
+using AIStudio.Windows;
 
 namespace AIStudio.Pages.Research
 {
@@ -38,6 +40,27 @@ namespace AIStudio.Pages.Research
         return;
       vm.RemoveMemberCommand.Execute(null);
       e.Handled = true;
+    }
+
+    private void ScenarioCell_OnMouseDown(object sender, MouseButtonEventArgs e)
+    {
+      if (e.ChangedButton != MouseButton.Left || e.ClickCount != 2)
+        return;
+      var fe = sender as FrameworkElement;
+      if (fe == null)
+        return;
+      var row = fe.DataContext as ScenarioGroupMemberRow;
+      if (row == null)
+        return;
+      var vm = GroupEditorRoot.DataContext as ScenarioGroupEditorViewModel;
+      if (vm == null)
+        return;
+      e.Handled = true;
+      var owner = Window.GetWindow(this);
+      var dlg = new ScenarioGroupScenarioPickerWindow { Owner = owner };
+      if (dlg.ShowDialog() != true || dlg.SelectedScenarioIds == null || dlg.SelectedScenarioIds.Count == 0)
+        return;
+      vm.ApplyPickedScenarios(row, dlg.SelectedScenarioIds);
     }
   }
 }

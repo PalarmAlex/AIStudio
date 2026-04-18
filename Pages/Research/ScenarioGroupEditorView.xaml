@@ -16,9 +16,6 @@
     <Style x:Key="StageItemContainerStyle" TargetType="ComboBoxItem">
       <Setter Property="ToolTip" Value="{Binding Description}"/>
     </Style>
-    <Style x:Key="ScenarioPickItemContainerStyle" TargetType="ComboBoxItem">
-      <Setter Property="ToolTip" Value="{Binding FullTitle}"/>
-    </Style>
   </UserControl.Resources>
   <Grid Margin="8">
     <Grid.RowDefinitions>
@@ -106,13 +103,13 @@
           <DataGridTemplateColumn Header="Сценарий" Width="*">
             <DataGridTemplateColumn.CellTemplate>
               <DataTemplate>
-                <ComboBox Padding="2"
-                          ToolTip="{Binding ScenarioSelectionToolTip}"
-                          ItemsSource="{Binding DataContext.ScenarioChoices, ElementName=GroupEditorRoot}"
-                          SelectedValue="{Binding ScenarioId, UpdateSourceTrigger=PropertyChanged}"
-                          SelectedValuePath="Id"
-                          DisplayMemberPath="DisplayTitle"
-                          ItemContainerStyle="{StaticResource ScenarioPickItemContainerStyle}"/>
+                <Border Background="Transparent" Padding="2,4" Cursor="Hand"
+                        MouseDown="ScenarioCell_OnMouseDown">
+                  <TextBlock Text="{Binding ScenarioCellDisplay}"
+                             TextTrimming="CharacterEllipsis"
+                             VerticalAlignment="Center"
+                             ToolTip="{Binding ScenarioSelectionToolTip}"/>
+                </Border>
               </DataTemplate>
             </DataGridTemplateColumn.CellTemplate>
           </DataGridTemplateColumn>

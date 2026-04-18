@@ -1,0 +1,129 @@
+<Window x:Class="AIStudio.Windows.ScenarioGroupScenarioPickerWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Выбор сценария" Height="520" Width="720"
+        WindowStartupLocation="CenterOwner"
+        MinHeight="360" MinWidth="560">
+  <Window.Resources>
+    <Style x:Key="PickerGridStyle" TargetType="DataGrid">
+      <Setter Property="Background" Value="White"/>
+      <Setter Property="RowBackground" Value="#FFF9F9F9"/>
+      <Setter Property="AlternatingRowBackground" Value="#FFF0F0F0"/>
+      <Setter Property="BorderThickness" Value="0"/>
+      <Setter Property="GridLinesVisibility" Value="None"/>
+      <Setter Property="VerticalScrollBarVisibility" Value="Auto"/>
+      <Setter Property="HorizontalScrollBarVisibility" Value="Auto"/>
+      <Setter Property="SelectionUnit" Value="FullRow"/>
+      <Setter Property="CanUserAddRows" Value="False"/>
+      <Setter Property="CanUserDeleteRows" Value="False"/>
+      <Setter Property="CanUserSortColumns" Value="False"/>
+    </Style>
+    <Style x:Key="PickerRowStyle" TargetType="DataGridRow">
+      <Style.Triggers>
+        <Trigger Property="IsSelected" Value="True">
+          <Setter Property="Background" Value="#FFE3F2FD"/>
+          <Setter Property="BorderBrush" Value="#FF2196F3"/>
+          <Setter Property="BorderThickness" Value="1"/>
+        </Trigger>
+      </Style.Triggers>
+    </Style>
+    <Style x:Key="PickerHeaderStyle" TargetType="DataGridColumnHeader">
+      <Setter Property="FontSize" Value="12"/>
+      <Setter Property="FontWeight" Value="SemiBold"/>
+      <Setter Property="Padding" Value="8,6"/>
+      <Setter Property="Background" Value="#FFE8EAF6"/>
+      <Setter Property="Foreground" Value="#FF283593"/>
+      <Setter Property="BorderBrush" Value="#FFE0E0E0"/>
+      <Setter Property="BorderThickness" Value="0,0,1,1"/>
+    </Style>
+  </Window.Resources>
+  <Grid Margin="12">
+    <Grid.RowDefinitions>
+      <RowDefinition Height="Auto"/>
+      <RowDefinition Height="Auto"/>
+      <RowDefinition Height="*"/>
+      <RowDefinition Height="Auto"/>
+    </Grid.RowDefinitions>
+
+    <TextBlock Grid.Row="0" Text="Выберите один или несколько сценариев" FontSize="14" FontWeight="SemiBold" Margin="0,0,0,10"/>
+
+    <Border Grid.Row="1" BorderBrush="#FFE0E0E0" BorderThickness="1" CornerRadius="4" Padding="8,8" Margin="0,0,0,10" Background="#FFF9FBE7">
+      <Grid>
+        <Grid.ColumnDefinitions>
+          <ColumnDefinition Width="Auto"/>
+          <ColumnDefinition Width="88"/>
+          <ColumnDefinition Width="Auto"/>
+          <ColumnDefinition Width="*"/>
+          <ColumnDefinition Width="Auto"/>
+          <ColumnDefinition Width="*"/>
+          <ColumnDefinition Width="Auto"/>
+          <ColumnDefinition Width="Auto"/>
+        </Grid.ColumnDefinitions>
+        <TextBlock Grid.Column="0" Text="ID" VerticalAlignment="Center" Margin="0,0,8,0" FontWeight="SemiBold"/>
+        <TextBox Grid.Column="1" Padding="4,3" Margin="0,0,12,0"
+                 Text="{Binding FilterIdText, UpdateSourceTrigger=PropertyChanged}"/>
+        <TextBlock Grid.Column="2" Text="Название" VerticalAlignment="Center" Margin="0,0,8,0" FontWeight="SemiBold"/>
+        <TextBox Grid.Column="3" Padding="4,3" Margin="0,0,12,0"
+                 Text="{Binding FilterTitleText, UpdateSourceTrigger=PropertyChanged}"/>
+        <TextBlock Grid.Column="4" Text="Стадия" VerticalAlignment="Center" Margin="0,0,8,0" FontWeight="SemiBold"/>
+        <TextBox Grid.Column="5" Padding="4,3" Margin="0,0,12,0"
+                 Text="{Binding FilterStageText, UpdateSourceTrigger=PropertyChanged}"/>
+        <Button Grid.Column="6" Content="Применить" Padding="12,6" Margin="0,0,8,0"
+                Command="{Binding ApplyFiltersCommand}" Cursor="Hand"/>
+        <Button Grid.Column="7" Content="Сброс" Padding="12,6"
+                Command="{Binding ResetFiltersCommand}" Cursor="Hand"/>
+      </Grid>
+    </Border>
+
+    <Border Grid.Row="2" BorderBrush="#FFE0E0E0" BorderThickness="1" CornerRadius="4" Margin="0,0,0,10">
+      <DataGrid x:Name="PickerGrid"
+                ItemsSource="{Binding Items}"
+                AutoGenerateColumns="False"
+                IsReadOnly="True"
+                SelectionMode="Extended"
+                HeadersVisibility="Column"
+                Style="{StaticResource PickerGridStyle}"
+                RowStyle="{StaticResource PickerRowStyle}"
+                MouseDoubleClick="PickerGrid_OnMouseDoubleClick">
+        <DataGrid.ColumnHeaderStyle>
+          <Style TargetType="DataGridColumnHeader" BasedOn="{StaticResource PickerHeaderStyle}"/>
+        </DataGrid.ColumnHeaderStyle>
+        <DataGrid.Columns>
+          <DataGridTextColumn Header="ID" Binding="{Binding Id}" Width="64">
+            <DataGridTextColumn.ElementStyle>
+              <Style TargetType="TextBlock">
+                <Setter Property="Padding" Value="6,4"/>
+                <Setter Property="VerticalAlignment" Value="Center"/>
+              </Style>
+            </DataGridTextColumn.ElementStyle>
+          </DataGridTextColumn>
+          <DataGridTextColumn Header="Название" Binding="{Binding Title}" Width="2*">
+            <DataGridTextColumn.ElementStyle>
+              <Style TargetType="TextBlock">
+                <Setter Property="Padding" Value="6,4"/>
+                <Setter Property="TextTrimming" Value="CharacterEllipsis"/>
+                <Setter Property="VerticalAlignment" Value="Center"/>
+                <Setter Property="ToolTip" Value="{Binding Title}"/>
+              </Style>
+            </DataGridTextColumn.ElementStyle>
+          </DataGridTextColumn>
+          <DataGridTextColumn Header="Стадия" Binding="{Binding StageCaption}" Width="*">
+            <DataGridTextColumn.ElementStyle>
+              <Style TargetType="TextBlock">
+                <Setter Property="Padding" Value="6,4"/>
+                <Setter Property="TextTrimming" Value="CharacterEllipsis"/>
+                <Setter Property="VerticalAlignment" Value="Center"/>
+                <Setter Property="ToolTip" Value="{Binding StageCaption}"/>
+              </Style>
+            </DataGridTextColumn.ElementStyle>
+          </DataGridTextColumn>
+        </DataGrid.Columns>
+      </DataGrid>
+    </Border>
+
+    <StackPanel Grid.Row="3" Orientation="Horizontal" HorizontalAlignment="Right">
+      <Button Content="Выбрать" Padding="14,6" Margin="0,0,8,0" IsDefault="True" Click="SelectButton_Click" Cursor="Hand"/>
+      <Button Content="Отмена" Padding="14,6" IsCancel="True"/>
+    </StackPanel>
+  </Grid>
+</Window>
