@@ -27,6 +27,12 @@ namespace AIStudio.ViewModels.Episodic
     public int Effect { get; set; }
     public int Count { get; set; }
     public int StimulsEffect { get; set; }
+    /// <summary>Учительское правило (оценка в StimulsEffect).</summary>
+    public bool IsTeacher { get; set; }
+    /// <summary>Текст столбца «Эффект»: для учителя — «—», иначе число.</summary>
+    public string EffectColumnText => IsTeacher ? "—" : Effect.ToString();
+    /// <summary>Для окраски столбца «Эффект»: у учителя нейтральный 0.</summary>
+    public int EffectColorValue => IsTeacher ? 0 : Effect;
     /// <summary>Контексты реагирования (Level2) для отображения через IdListToNamesConverter.</summary>
     public List<int> EmotionContextIds { get; set; }
     public string TriggerTooltipText { get; set; }
@@ -289,6 +295,7 @@ namespace AIStudio.ViewModels.Episodic
           Effect = node.Params.Effect,
           Count = node.Params.Count,
           StimulsEffect = node.Params.StimulsEffect,
+          IsTeacher = node.Params.IsTeacher,
           EmotionContextIds = emoImg?.BaseStylesList != null ? new List<int>(emoImg.BaseStylesList) : new List<int>(),
           TriggerTooltipText = _presentation.GetTriggerTooltip(node.TriggerId),
           ActionTooltipText = _presentation.GetActionTooltip(node.ActionId),

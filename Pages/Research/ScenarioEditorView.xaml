@@ -35,7 +35,6 @@
       <RowDefinition Height="Auto"/>
       <RowDefinition Height="*"/>
       <RowDefinition Height="Auto"/>
-      <RowDefinition Height="Auto"/>
     </Grid.RowDefinitions>
 
     <Grid Grid.Row="0" Margin="0,0,0,6">
@@ -468,27 +467,6 @@
     </TabControl>
 
     <Border Grid.Row="2"
-            BorderBrush="#FFE0E0E0"
-            BorderThickness="1"
-            CornerRadius="4"
-            Padding="10,8"
-            Margin="0,6,0,4"
-            Background="#FFF9FBE7">
-      <Grid>
-        <Grid.ColumnDefinitions>
-          <ColumnDefinition Width="Auto"/>
-          <ColumnDefinition Width="*"/>
-          <ColumnDefinition Width="Auto"/>
-        </Grid.ColumnDefinitions>
-        <TextBlock Grid.Column="0" Text="Сохранять файл отчёта в:" VerticalAlignment="Center" Margin="0,0,10,0" FontSize="12"/>
-        <TextBox Grid.Column="1" Text="{Binding ReportOutputFolder, UpdateSourceTrigger=PropertyChanged}"
-                 Padding="4,3" FontSize="12" VerticalAlignment="Center" Margin="0,0,8,0"/>
-        <Button Grid.Column="2" Content="Обзор…" Padding="10,4" Margin="0,0,0,0"
-                Command="{Binding BrowseReportFolderCommand}" VerticalAlignment="Center"/>
-      </Grid>
-    </Border>
-
-    <Border Grid.Row="3"
             BorderBrush="#FFE0E0E0"
             BorderThickness="1"
             CornerRadius="4"

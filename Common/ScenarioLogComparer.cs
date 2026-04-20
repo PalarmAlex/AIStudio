@@ -16,6 +16,10 @@ namespace AIStudio.Common
       public string Theme { get; set; } = "-";
       public string Trigger { get; set; } = "-";
       public string OrUm { get; set; } = "-";
+
+      /// <summary>Для отображения «УМ1»/«УМ2» в отчёте: успех с последней записи лога на пульсе; иначе null.</summary>
+      public bool? OrUmThinkingSuccess { get; set; }
+
       public string Danger { get; set; } = "-";
       public string VeryActual { get; set; } = "-";
       public string GeneticReflex { get; set; } = "-";
@@ -44,7 +48,7 @@ namespace AIStudio.Common
           snap.Style = MergeField(snap.Style, e.DisplayBaseStyleID);
           snap.Theme = MergeField(snap.Theme, e.DisplayThinkingThemeId);
           snap.Trigger = MergeField(snap.Trigger, e.DisplayTriggerStimulusID);
-          snap.OrUm = MergeField(snap.OrUm, e.DisplayOrUm);
+          MergeOrUm(snap, e);
           snap.Danger = MergeField(snap.Danger, e.DisplayDanger);
           snap.VeryActual = MergeField(snap.VeryActual, e.DisplayVeryActual);
           snap.GeneticReflex = MergeField(snap.GeneticReflex, e.DisplayGeneticReflexID);
@@ -87,6 +91,16 @@ namespace AIStudio.Common
         snap.VeryActual = prev.VeryActual;
       }
       return snap;
+    }
+
+    /// <summary>Последнее на пульсе непустое «ОР/УМ»; для «УМ1»/«УМ2» — признак успеха с той же записи.</summary>
+    private static void MergeOrUm(AggregatedLogSnapshot snap, MemoryLogManager.LogEntry e)
+    {
+      var c = NormalizeDisplay(e.DisplayOrUm);
+      if (c == "-")
+        return;
+      snap.OrUm = c;
+      snap.OrUmThinkingSuccess = c == "УМ1" || c == "УМ2" ? e.ThinkingLevelSuccess : null;
     }
 
     /// <summary>Если кандидат не «-», подставляет его; иначе оставляет текущее значение.</summary>

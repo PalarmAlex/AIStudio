@@ -18,8 +18,6 @@ using System.Runtime.CompilerServices;
 using System.Windows;
 using System.Windows.Input;
 
-using Ookii.Dialogs.Wpf;
-
 namespace AIStudio.ViewModels.Research
 {
   public sealed class ScenarioEditorViewModel : INotifyPropertyChanged
@@ -44,18 +42,13 @@ namespace AIStudio.ViewModels.Research
     };
     private ScenarioLineRow _selectedLine;
     private ScenarioLogExpectationRow _selectedExpectationRow;
-    private readonly Func<ScenarioDocument, string, ScenarioEditorViewModel, bool> _tryStartScenario;
-    private string _reportOutputFolder = "";
     private string _repeatBlockCountText = "1";
 
     public ScenarioEditorViewModel(
         InfluenceActionSystem influenceActions,
-        ScenarioDocument doc,
-        Func<ScenarioDocument, string, ScenarioEditorViewModel, bool> tryStartScenario = null)
+        ScenarioDocument doc)
     {
       _influenceActions = influenceActions ?? throw new ArgumentNullException(nameof(influenceActions));
-      _tryStartScenario = tryStartScenario;
-      _reportOutputFolder = AppConfig.ScenarioReportsFolderPath;
       Document = doc ?? throw new ArgumentNullException(nameof(doc));
 
       _title = doc.Header.Title ?? "";
@@ -135,34 +128,8 @@ namespace AIStudio.ViewModels.Research
       SaveCommand = new RelayCommand(_ => Save(requestCloseAfterSuccess: false, showSuccessMessage: true));
       AddLineCommand = new RelayCommand(_ => AddLine());
       MassFillExpectationsCommand = new RelayCommand(_ => MassFillExpectations());
-      BrowseReportFolderCommand = new RelayCommand(_ => BrowseReportFolder());
 
       HasUnsavedChanges = false;
-    }
-
-    public string ReportOutputFolder
-    {
-      get => _reportOutputFolder;
-      set
-      {
-        if (_reportOutputFolder == value) return;
-        _reportOutputFolder = value ?? "";
-        OnPropertyChanged();
-      }
-    }
-
-    public ICommand BrowseReportFolderCommand { get; }
-
-    private void BrowseReportFolder()
-    {
-      var dialog = new VistaFolderBrowserDialog
-      {
-        Description = "Каталог для сохранения HTML-отчёта",
-        UseDescriptionForTitle = true,
-        SelectedPath = Directory.Exists(ReportOutputFolder) ? ReportOutputFolder : ""
-      };
-      if (dialog.ShowDialog() == true)
-        ReportOutputFolder = dialog.SelectedPath;
     }
 
     public ScenarioDocument Document { get; }

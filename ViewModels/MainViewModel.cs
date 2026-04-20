@@ -576,6 +576,7 @@ namespace AIStudio
           _scenarioRunner,
           openEditorEmbedded: OpenEditorEmbedded,
           tryStartScenario: TryStartScenario,
+          getLaunchPrecheckError: GetScenarioGroupLaunchPrecheckError,
           isScenarioRunSessionBusy: () => IsScenarioRunSessionBusy,
           requestStopScenarioSession: RequestStopScenarioSession,
           canStopScenarioSession: () => _scenarioRunner.IsRunning || _homeostasisSettleWaitActive || _scenarioBatchRun != null);
@@ -867,16 +868,14 @@ namespace AIStudio
       }
     }
 
-    /// <summary>Тот же сценарий открыт в другом редакторе — запуск с диска даст рассинхрон с несохранённым.</summary>
-    private bool IsSameScenarioOpenInAnotherEditor(ScenarioDocument doc, ScenarioEditorViewModel initiatingEditor)
+    /// <summary>Тот же сценарий открыт в редакторе — запуск с диска даст рассинхрон с несохранённым.</summary>
+    private bool IsSameScenarioOpenInAnotherEditor(ScenarioDocument doc)
     {
       if (doc?.Header == null)
         return false;
       int id = doc.Header.Id;
       foreach (var vm in EnumerateOpenScenarioEditors(CurrentContent))
       {
-        if (vm == initiatingEditor)
-          continue;
         var openDoc = vm.Document;
         if (openDoc?.Header == null)
           continue;
@@ -888,9 +887,8 @@ namespace AIStudio
       return false;
     }
 
-    /// <summary>Запуск сценария из реестра или редактора: проверки, переход на стадию, старт раннера.</summary>
-    /// <param name="initiatingEditor">Редактор, из которого нажали «Запустить»; null — запуск из реестра.</param>
-    public bool TryStartScenario(ScenarioDocument doc, string reportOutputFolder, ScenarioEditorViewModel initiatingEditor = null)
+    /// <summary>Запуск сценария из реестра или очереди группы: проверки, переход на стадию, старт раннера.</summary>
+    public bool TryStartScenario(ScenarioDocument doc, string reportOutputFolder)
     {
       if (doc == null)
         return false;
@@ -906,7 +904,7 @@ namespace AIStudio
         return false;
       }
 
-      if (IsSameScenarioOpenInAnotherEditor(doc, initiatingEditor))
+      if (IsSameScenarioOpenInAnotherEditor(doc))
       {
         MessageBox.Show(
             "Этот сценарий уже открыт в редакторе. Закройте вкладку редактора или окно сценария, затем запустите прогон снова.",
@@ -1043,7 +1041,7 @@ namespace AIStudio
         }
 
         var probe = ScenarioGroupDocument.ApplyMemberToScenario(loaded, m, groupDoc.RunPulseTimingCoefficient);
-        if (IsSameScenarioOpenInAnotherEditor(probe, null))
+        if (IsSameScenarioOpenInAnotherEditor(probe))
         {
           MessageBox.Show(
               $"Сценарий ID {m.ScenarioId} открыт в редакторе. Закройте редактор и повторите запуск группы.",
@@ -1102,7 +1100,7 @@ namespace AIStudio
       }
 
       var doc = ScenarioGroupDocument.ApplyMemberToScenario(loaded, m, st.GroupDefinition.RunPulseTimingCoefficient);
-      if (!TryStartScenario(doc, st.ReportOutputFolder, null))
+      if (!TryStartScenario(doc, st.ReportOutputFolder))
       {
         var failed = _scenarioBatchRun;
         _scenarioBatchRun = null;

@@ -25,7 +25,8 @@ namespace AIStudio.ViewModels.Research
     private readonly InfluenceActionSystem _influenceActions;
     private readonly OperatorScenarioRunner _runner;
     private readonly Action<ScenarioEditorViewModel> _openEditorEmbedded;
-    private readonly Func<ScenarioDocument, string, ScenarioEditorViewModel, bool> _tryStartScenario;
+    private readonly Func<ScenarioDocument, string, bool> _tryStartScenario;
+    private readonly Func<string> _getLaunchPrecheckError;
     private readonly Func<bool> _isScenarioRunSessionBusy;
     private readonly Action _requestStopScenarioSession;
     private readonly Func<bool> _canStopScenarioSession;
@@ -58,7 +59,8 @@ namespace AIStudio.ViewModels.Research
         InfluenceActionSystem influenceActions,
         OperatorScenarioRunner runner,
         Action<ScenarioEditorViewModel> openEditorEmbedded = null,
-        Func<ScenarioDocument, string, ScenarioEditorViewModel, bool> tryStartScenario = null,
+        Func<ScenarioDocument, string, bool> tryStartScenario = null,
+        Func<string> getLaunchPrecheckError = null,
         Func<bool> isScenarioRunSessionBusy = null,
         Action requestStopScenarioSession = null,
         Func<bool> canStopScenarioSession = null)
@@ -67,6 +69,7 @@ namespace AIStudio.ViewModels.Research
       _runner = runner ?? throw new ArgumentNullException(nameof(runner));
       _openEditorEmbedded = openEditorEmbedded;
       _tryStartScenario = tryStartScenario ?? throw new ArgumentNullException(nameof(tryStartScenario));
+      _getLaunchPrecheckError = getLaunchPrecheckError;
       _isScenarioRunSessionBusy = isScenarioRunSessionBusy ?? (() => runner.IsRunning);
       _requestStopScenarioSession = requestStopScenarioSession ?? (() => _runner.StopUser());
       _canStopScenarioSession = canStopScenarioSession ?? (() => _runner.IsRunning);
@@ -195,10 +198,7 @@ namespace AIStudio.ViewModels.Research
 
     private ScenarioEditorViewModel CreateEditorViewModel(ScenarioDocument doc)
     {
-      return new ScenarioEditorViewModel(
-          _influenceActions,
-          doc,
-          _tryStartScenario);
+      return new ScenarioEditorViewModel(_influenceActions, doc);
     }
 
     private void OpenEditorWithViewModel(ScenarioEditorViewModel vm)
@@ -240,7 +240,41 @@ namespace AIStudio.ViewModels.Research
         return;
       }
 
-      _tryStartScenario(doc, AppConfig.ScenarioReportsFolderPath, null);
+      if (doc.Lines == null || doc.Lines.Count == 0)
+      {
+        MessageBox.Show("В сценарии нет шагов для запуска.", "Сценарий", MessageBoxButton.OK, MessageBoxImage.Information);
+        return;
+      }
+
+      if (_getLaunchPrecheckError != null)
+      {
+        var preErr = _getLaunchPrecheckError();
+        if (!string.IsNullOrEmpty(preErr))
+        {
+          MessageBox.Show(preErr, "Запуск сценария", MessageBoxButton.OK, MessageBoxImage.Information);
+          return;
+        }
+      }
+
+      var h = doc.Header;
+      var sb = new StringBuilder();
+      sb.Append("Будет запущен сценарий ID ").Append(h.Id.ToString(CultureInfo.InvariantCulture))
+          .Append(" «").Append(h.Title ?? "").AppendLine("».");
+      sb.Append("  стадия ").Append(ScenarioGroupDocument.FormatPreRunStageShort(h.PreRunTargetStage))
+          .Append(", очистка ").Append(h.PreRunClearAgentData ? "да" : "нет")
+          .Append(", норма ").Append(h.PreRunNormalHomeostasisState ? "да" : "нет")
+          .Append(", набл. ").Append(h.ScenarioObservationMode ? "да" : "нет")
+          .Append(", авт.зап. ").AppendLine(h.ScenarioAuthoritativeRecording ? "да" : "нет");
+      sb.Append("  коэфф. пульсации: ").Append(h.RunPulseTimingCoefficient.ToString(CultureInfo.InvariantCulture))
+          .Append("; шагов: ").Append(doc.Lines.Count.ToString(CultureInfo.InvariantCulture))
+          .AppendLine();
+      sb.AppendLine().AppendLine("Продолжить?");
+
+      var owner = Application.Current?.MainWindow as Window;
+      if (!WideYesNoDialog.Show(owner, sb.ToString(), "Подтверждение запуска сценария"))
+        return;
+
+      _tryStartScenario(doc, AppConfig.ScenarioReportsFolderPath);
     }
 
     public bool TryDeleteSelected(IReadOnlyList<ScenarioHeader> headers)

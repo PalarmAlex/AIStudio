@@ -301,10 +301,15 @@
           </DataGridTemplateColumn>
 
           <DataGridTemplateColumn Header="Эффект" Width="64" SortMemberPath="Effect">
+            <DataGridTemplateColumn.HeaderStyle>
+              <Style TargetType="DataGridColumnHeader">
+                <Setter Property="ToolTip" Value="Прямое правило: полезность. Учитель: см. «Значимость» (оценка с пульта)."/>
+              </Style>
+            </DataGridTemplateColumn.HeaderStyle>
             <DataGridTemplateColumn.CellTemplate>
               <DataTemplate>
-                <TextBlock Text="{Binding Effect}"
-                           Foreground="{Binding Effect, Converter={StaticResource UsefulnessToColorConverter}}"
+                <TextBlock Text="{Binding EffectColumnText}"
+                           Foreground="{Binding EffectColorValue, Converter={StaticResource UsefulnessToColorConverter}}"
                            FontWeight="Bold"/>
               </DataTemplate>
             </DataGridTemplateColumn.CellTemplate>

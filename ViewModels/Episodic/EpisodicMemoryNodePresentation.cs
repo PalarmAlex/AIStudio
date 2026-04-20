@@ -19,6 +19,13 @@ namespace AIStudio.ViewModels.Episodic
   /// </summary>
   public sealed class EpisodicMemoryNodePresentation
   {
+    /// <summary>Подписанный исход для отображения: прямое — Effect, учитель — оценка (StimulsEffect).</summary>
+    public static int GetSignedOutcome(EpisodicParams p)
+    {
+      if (p == null) return 0;
+      return p.IsTeacher ? p.StimulsEffect : p.Effect;
+    }
+
     private readonly GomeostasSystem _gomeostas;
     private readonly EmotionsImageSystem _emotionsImage;
     private readonly InfluenceActionSystem _influenceAction;
@@ -103,14 +110,27 @@ namespace AIStudio.ViewModels.Episodic
           tooltip = GetTriggerTooltip(node.TriggerId);
           break;
         case 4:
-          text = node.Params != null
-            ? $"Акция: {node.ActionId}, Эффект: {FormatEffect(node.Params.Effect)}"
-            : $"Акция: {node.ActionId}";
+          if (node.Params != null)
+          {
+            text = node.Params.IsTeacher
+              ? $"Акция: {node.ActionId}, учитель: {FormatEffect(node.Params.StimulsEffect)}"
+              : $"Акция: {node.ActionId}, Эффект: {FormatEffect(node.Params.Effect)}";
+          }
+          else
+            text = $"Акция: {node.ActionId}";
           tooltip = GetActionTooltip(node.ActionId);
           if (node.Params != null)
-            tooltip += $"\nЭффект: {node.Params.Effect}, Count: {node.Params.Count}";
+          {
+            if (node.Params.IsTeacher)
+              tooltip += $"\nУчительское правило, оценка: {node.Params.StimulsEffect}, Count: {node.Params.Count}";
+            else
+              tooltip += $"\nЭффект: {node.Params.Effect}, Count: {node.Params.Count}";
+          }
           if (node.Params != null)
-            effectBrush = node.Params.Effect > 0 ? Brushes.DarkGreen : (node.Params.Effect < 0 ? Brushes.DarkRed : Brushes.DarkGoldenrod);
+          {
+            int v = GetSignedOutcome(node.Params);
+            effectBrush = v > 0 ? Brushes.DarkGreen : (v < 0 ? Brushes.DarkRed : Brushes.DarkGoldenrod);
+          }
           break;
         default:
           text = BuildCompositeLabel(node);

@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using ISIDA.Reflexes;
 
 namespace AIStudio.Common
@@ -46,6 +47,16 @@ namespace AIStudio.Common
 
     /// <summary>Колонка «Актуально» в отчёте: та же визуализация, что у «Опасно» («1» / «-»).</summary>
     public static string FormatVeryActualComparisonCell(string raw) => FormatDangerComparisonCell(raw);
+
+    /// <summary>HTML ячейки «факт» для «ОР/УМ»: «УМ1»/«УМ2» зелёным при успехе, иначе красным; остальное без разметки.</summary>
+    public static string FormatOrUmFactCellHtml(string raw, bool? thinkingLevelSuccess)
+    {
+      var a = NormalizeCell(raw ?? "");
+      if (a != "УМ1" && a != "УМ2")
+        return WebUtility.HtmlEncode(a);
+      var cls = thinkingLevelSuccess == true ? "um-ok" : "um-bad";
+      return "<span class=\"" + cls + "\">" + WebUtility.HtmlEncode(a) + "</span>";
+    }
 
     /// <summary>
     /// В лог в поле стиля попадает Id образа стиля (<see cref="PerceptionImagesSystem.BehaviorStyleImage"/>).

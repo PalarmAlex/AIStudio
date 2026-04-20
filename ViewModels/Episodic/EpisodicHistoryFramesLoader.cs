@@ -29,8 +29,8 @@ namespace AIStudio.ViewModels.Episodic
             continue;
           }
           var node = episodic.GetNodeById(e.NodeId);
-          int effect = node?.Params?.Effect ?? 0;
-          Brush brush = effect < 0 ? Brushes.LightCoral : (effect > 0 ? Brushes.LightGreen : new SolidColorBrush(Color.FromRgb(0xE8, 0xC2, 0x00)));
+          int v = EpisodicMemoryNodePresentation.GetSignedOutcome(node?.Params);
+          Brush brush = v < 0 ? Brushes.LightCoral : (v > 0 ? Brushes.LightGreen : new SolidColorBrush(Color.FromRgb(0xE8, 0xC2, 0x00)));
           string tooltip = presentation.BuildFullFrameTooltip(node);
           list.Add(new HistoryFrameItem(e.NodeId.ToString(), brush, tooltip));
         }

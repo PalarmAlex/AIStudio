@@ -280,6 +280,10 @@ namespace AIStudio.Common
       sb.AppendLine("table.compare-table td.col-exp{background:transparent;}");
       sb.AppendLine("table.compare-table th.col-fact-h,table.compare-table td.col-fact{background:#E3F2FD;}");
       sb.AppendLine("table.compare-table td.col-fact.fact-mismatch{background:#FFEBEE;color:#B71C1C;border-color:#FFCDD2;}");
+      sb.AppendLine("table.compare-table td.col-fact span.um-ok{color:#2E7D32;font-weight:600;}");
+      sb.AppendLine("table.compare-table td.col-fact span.um-bad{color:#C62828;font-weight:600;}");
+      sb.AppendLine("table.compare-table td.col-fact.fact-mismatch span.um-ok{color:#2E7D32;}");
+      sb.AppendLine("table.compare-table td.col-fact.fact-mismatch span.um-bad{color:#C62828;}");
       sb.AppendLine(".summary-box{margin-top:20px;padding:14px 16px;border-radius:6px;border:1px solid #CFD8DC;background:#FAFAFA;}");
       sb.AppendLine(".summary-box h3{margin:0 0 10px 0;font-size:14px;color:#37474F;}");
       sb.AppendLine(".summary-ok{color:#2E7D32;font-size:13px;font-weight:600;margin:0;}");
@@ -381,6 +385,8 @@ namespace AIStudio.Common
             var actRaw = col.GetActual(snap);
             var expDisp = expRaw;
             var actDisp = actRaw;
+            var factCellHtmlRaw = false;
+            string factCellHtml = null;
             if (col.Label == "Состояние")
             {
               expDisp = ScenarioReportLogDisplay.FormatStateCell(expRaw);
@@ -396,9 +402,19 @@ namespace AIStudio.Common
               expDisp = ScenarioReportLogDisplay.FormatVeryActualComparisonCell(expRaw);
               actDisp = ScenarioReportLogDisplay.FormatVeryActualComparisonCell(actRaw);
             }
+            else if (col.Label == "ОР/УМ")
+            {
+              factCellHtmlRaw = true;
+              factCellHtml = ScenarioReportLogDisplay.FormatOrUmFactCellHtml(actRaw, snap.OrUmThinkingSuccess);
+            }
             sb.Append("<td class=\"col-exp\">").Append(Escape(expDisp)).Append("</td>");
             var factClass = "col-fact" + (IsFieldMismatch(expRaw, actRaw, col.Label) ? " fact-mismatch" : "");
-            sb.Append("<td class=\"").Append(factClass).Append("\">").Append(Escape(actDisp)).Append("</td>");
+            sb.Append("<td class=\"").Append(factClass).Append("\">");
+            if (factCellHtmlRaw)
+              sb.Append(factCellHtml);
+            else
+              sb.Append(Escape(actDisp));
+            sb.Append("</td>");
           }
           sb.AppendLine("</tr>");
         }
@@ -436,7 +452,7 @@ namespace AIStudio.Common
         sb.AppendLine("<ul>");
         foreach (var c in failed)
         {
-          sb.Append("<li><strong>Шаг ").Append(Escape(c.StepIndex.ToString(CultureInfo.InvariantCulture))).Append(", пульс внутри сценария ")
+          sb.Append("<li><strong>Шаг ").Append(Escape(c.StepIndex.ToString(CultureInfo.InvariantCulture))).Append(", № пульса ")
               .Append(Escape(c.PulseWithinScenario.ToString(CultureInfo.InvariantCulture))).Append(".</strong> ")
               .Append(Escape(c.Details))
               .AppendLine("</li>");
@@ -480,7 +496,7 @@ namespace AIStudio.Common
       if (e == null)
         return "Нет данных о завершении.";
       if (e.Success)
-        return "Сценарий завершён успешно. Последний выполненный пульс внутри сценария: "
+        return "Сценарий завершён успешно. Последний выполненный № пульса: "
             + e.LastExecutedPulseWithinScenario.ToString(CultureInfo.InvariantCulture) + ".";
       if (e.AbortedByUser)
         return "Сценарий остановлен пользователем (кнопка «Стоп»).";

@@ -471,9 +471,9 @@ namespace AIStudio.ViewModels.Episodic
         if (node.Params == null) return false;
         switch (SelectedUsefulnessFilter)
         {
-          case "<0": if (node.Params.Effect >= 0) return false; break;
-          case "=0": if (node.Params.Effect != 0) return false; break;
-          case ">0": if (node.Params.Effect <= 0) return false; break;
+          case "<0": if (EpisodicMemoryNodePresentation.GetSignedOutcome(node.Params) >= 0) return false; break;
+          case "=0": if (EpisodicMemoryNodePresentation.GetSignedOutcome(node.Params) != 0) return false; break;
+          case ">0": if (EpisodicMemoryNodePresentation.GetSignedOutcome(node.Params) <= 0) return false; break;
         }
       }
 
