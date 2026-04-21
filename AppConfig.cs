@@ -47,6 +47,23 @@ public static class AppConfig
       return path;
     }
   }
+
+  /// <summary>Каталог для отчётов и данных исследовательских прогонов (pipe, JSON, CSV; по умолчанию …\ISIDA\Data\ResearchHarness).</summary>
+  public static string ResearchHarnessOutputFolderPath
+  {
+    get
+    {
+      var path = GetSetting("ResearchHarnessOutputFolderPath");
+      if (string.IsNullOrWhiteSpace(path))
+      {
+        string appDataPath = Path.Combine(
+            Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData),
+            "ISIDA");
+        path = Path.Combine(appDataPath, "Data", "ResearchHarness");
+      }
+      return path;
+    }
+  }
   public static ResearchLogger.LogFormat LogFormat => GetLogFormatSetting("DefaultFormatLog", ResearchLogger.LogFormat.All);
   public static int FirstRun => GetIntSetting("FirstRun", (int)GetDefaultValueSettings("FirstRun"));
   public static bool LogEnabled => GetBoolSetting("LogEnabled", (bool)GetDefaultValueSettings("LogEnabled"));
@@ -97,6 +114,31 @@ public static class AppConfig
     }
   }
 
+  /// <summary>Добавляет в существующий XML ключ каталога прогонов исследований, если его ещё нет.</summary>
+  private static void EnsureResearchHarnessOutputFolderSetting()
+  {
+    try
+    {
+      if (!File.Exists(ConfigFullPath))
+        return;
+      var doc = XDocument.Load(ConfigFullPath);
+      var app = doc.Root?.Element("AppSettings");
+      if (app == null)
+        return;
+      if (app.Element("ResearchHarnessOutputFolderPath") != null)
+        return;
+      string appDataPath = Path.Combine(
+          Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData),
+          "ISIDA");
+      app.Add(new XElement("ResearchHarnessOutputFolderPath", Path.Combine(appDataPath, "Data", "ResearchHarness")));
+      doc.Save(ConfigFullPath);
+    }
+    catch (Exception ex)
+    {
+      Logger.Error(ex.Message);
+    }
+  }
+
   /// <summary>
   /// Инициализирует конфигурацию и проверяет первый запуск
   /// </summary>
@@ -109,9 +151,19 @@ public static class AppConfig
         CreateDefaultConfig();
 
       EnsureScenarioReportsFolderSetting();
+      EnsureResearchHarnessOutputFolderSetting();
       try
       {
         Directory.CreateDirectory(ScenarioReportsFolderPath);
+      }
+      catch
+      {
+        // ignore
+      }
+
+      try
+      {
+        Directory.CreateDirectory(ResearchHarnessOutputFolderPath);
       }
       catch
       {
@@ -154,6 +206,7 @@ public static class AppConfig
           new XElement("LogsFolderPath", Path.Combine(appDataPath, "Logs")),
           new XElement("BootDataFolderPath", Path.Combine(appDataPath, "BootData")),
           new XElement("ScenarioReportsFolderPath", Path.Combine(appDataPath, "Data", "Scenarios", "Reports")),
+          new XElement("ResearchHarnessOutputFolderPath", Path.Combine(appDataPath, "Data", "ResearchHarness")),
           new XElement("DefaultStileId", 0),
           new XElement("DefaultAdaptiveActionId", 0),
           new XElement("DefaultThemeTypeId", 4),
@@ -197,6 +250,7 @@ public static class AppConfig
       SetSetting("LogsFolderPath", Path.Combine(appDataPath, "Logs"));
       SetSetting("BootDataFolderPath", Path.Combine(appDataPath, "BootData"));
       SetSetting("ScenarioReportsFolderPath", Path.Combine(appDataPath, "Data", "Scenarios", "Reports"));
+      SetSetting("ResearchHarnessOutputFolderPath", Path.Combine(appDataPath, "Data", "ResearchHarness"));
 
       Logger.Info($"Конфигурационные пути обновлены для установки в: {appDataPath}");
     }
