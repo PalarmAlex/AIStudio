@@ -84,43 +84,8 @@
                  ToolTip="xxxxx - нераспознанные слова"/>
     </Border>
 
-    <!-- Кол. 0: Тон | Настроение -->
-    <Grid Grid.Column="0" Grid.Row="2" Margin="0,8,0,6">
-      <Grid.ColumnDefinitions>
-        <ColumnDefinition Width="*"/>
-        <ColumnDefinition Width="*"/>
-      </Grid.ColumnDefinitions>
-      <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center" Margin="0,0,40,0">
-        <TextBlock Text="Тон" VerticalAlignment="Center" Margin="0,0,6,0" FontSize="14"/>
-        <ComboBox ItemsSource="{Binding ToneList}"
-                  SelectedValuePath="Key"
-                  DisplayMemberPath="Value"
-                  SelectedValue="{Binding SelectedToneId, UpdateSourceTrigger=PropertyChanged}"
-                  MinWidth="90"
-                  Height="25"/>
-      </StackPanel>
-      <Grid Grid.Column="1" VerticalAlignment="Center">
-        <Grid.ColumnDefinitions>
-          <ColumnDefinition Width="Auto"/>
-          <ColumnDefinition Width="*"/>
-        </Grid.ColumnDefinitions>
-        <TextBlock Grid.Column="0"
-                   Text="Настроение"
-                   VerticalAlignment="Center"
-                   Margin="-29,0,6,0"
-                   FontSize="14"/>
-        <ComboBox Grid.Column="1"
-                  ItemsSource="{Binding MoodList}"
-                  SelectedValuePath="Key"
-                  DisplayMemberPath="Value"
-                  SelectedValue="{Binding SelectedMoodId, UpdateSourceTrigger=PropertyChanged}"
-                  MinWidth="100"
-                  Height="25"/>
-      </Grid>
-    </Grid>
-
     <!-- Кол. 0: Режим наблюдения | Авторитарная запись -->
-    <Grid Grid.Column="0" Grid.Row="3" Margin="0,0,0,6">
+    <Grid Grid.Column="0" Grid.Row="2" Margin="0,0,0,6">
       <Grid.ColumnDefinitions>
         <ColumnDefinition Width="*"/>
         <ColumnDefinition Width="*"/>
@@ -136,6 +101,41 @@
                 ToolTip="Новые фразы сразу записываются в дерево, минуя песочницу"
                 VerticalAlignment="Center"
                 HorizontalAlignment="Right"/>
+    </Grid>
+
+    <!-- Кол. 0: Тон | Настроение -->
+    <Grid Grid.Column="0" Grid.Row="3" Margin="0,8,0,6">
+      <Grid.ColumnDefinitions>
+        <ColumnDefinition Width="*"/>
+        <ColumnDefinition Width="*"/>
+      </Grid.ColumnDefinitions>
+      <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center" Margin="0,0,35,0">
+        <TextBlock Text="Тон" VerticalAlignment="Center" Margin="0,0,6,0" FontSize="14"/>
+        <ComboBox ItemsSource="{Binding ToneList}"
+                  SelectedValuePath="Key"
+                  DisplayMemberPath="Value"
+                  SelectedValue="{Binding SelectedToneId, UpdateSourceTrigger=PropertyChanged}"
+                  MinWidth="100"
+                  Height="25" Margin="10,0,0,0" Width="100"/>
+      </StackPanel>
+      <Grid Grid.Column="1" VerticalAlignment="Center">
+        <Grid.ColumnDefinitions>
+          <ColumnDefinition Width="Auto"/>
+          <ColumnDefinition Width="*"/>
+        </Grid.ColumnDefinitions>
+        <TextBlock Grid.Column="0"
+                   Text="Настроение"
+                   VerticalAlignment="Center"
+                   Margin="-20,0,6,0"
+                   FontSize="14"/>
+        <ComboBox Grid.Column="1"
+                  ItemsSource="{Binding MoodList}"
+                  SelectedValuePath="Key"
+                  DisplayMemberPath="Value"
+                  SelectedValue="{Binding SelectedMoodId, UpdateSourceTrigger=PropertyChanged}"
+                  MinWidth="90"
+                  Height="25" Width="110" HorizontalAlignment="Right"/>
+      </Grid>
     </Grid>
 
     <!-- Кол. 0: Цвет | Кнопка отправить -->

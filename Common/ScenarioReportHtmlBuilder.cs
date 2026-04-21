@@ -18,7 +18,8 @@ namespace AIStudio.Common
         ScenarioDocument doc,
         OperatorScenarioCompletedEventArgs completion,
         InfluenceActionSystem influenceActions,
-        PerceptionImagesSystem perceptionImages = null)
+        PerceptionImagesSystem perceptionImages = null,
+        AgentLogCellTooltipProvider cellTooltips = null)
     {
       if (doc == null)
         return "<html><body><p>Нет данных сценария.</p></body></html>";
@@ -31,7 +32,7 @@ namespace AIStudio.Common
 
       sb.AppendLine("<h1>Отчёт по прогону сценария оператора</h1>");
       sb.AppendLine("<p>").Append(Escape(BuildSummaryParagraph(completion))).AppendLine("</p>");
-      AppendScenarioReportMainBody(sb, doc, completion, influenceActions, perceptionImages);
+      AppendScenarioReportMainBody(sb, doc, completion, influenceActions, perceptionImages, cellTooltips);
 
       sb.AppendLine("<p class=\"muted\" style=\"margin-top:24px;font-size:11px;\">Сформировано AIStudio.</p>");
       sb.AppendLine("</body></html>");
@@ -43,7 +44,8 @@ namespace AIStudio.Common
         ScenarioGroupDocument groupDef,
         IReadOnlyList<Tuple<ScenarioDocument, OperatorScenarioCompletedEventArgs>> runs,
         InfluenceActionSystem influenceActions,
-        PerceptionImagesSystem perceptionImages = null)
+        PerceptionImagesSystem perceptionImages = null,
+        AgentLogCellTooltipProvider cellTooltips = null)
     {
       if (groupDef == null || runs == null)
         return "<html><body><p>Нет данных группы.</p></body></html>";
@@ -76,7 +78,7 @@ namespace AIStudio.Common
             .Append(": ID ").Append(Escape(doc.Header?.Id.ToString(CultureInfo.InvariantCulture) ?? ""))
             .Append(" — ").Append(Escape(doc.Header?.Title ?? "")).AppendLine("</h2>");
         sb.AppendLine("<p>").Append(Escape(BuildSummaryParagraph(completion))).AppendLine("</p>");
-        AppendScenarioReportMainBody(sb, doc, completion, influenceActions, perceptionImages);
+        AppendScenarioReportMainBody(sb, doc, completion, influenceActions, perceptionImages, cellTooltips);
       }
 
       sb.AppendLine("<p class=\"muted\" style=\"margin-top:24px;font-size:11px;\">Сформировано AIStudio.</p>");
@@ -147,8 +149,8 @@ namespace AIStudio.Common
           ? "steps-zebra group-compose group-compose-compact"
           : "steps-zebra group-compose";
       sb.Append("<table class=\"").Append(tableClass).AppendLine("\"><colgroup>");
-      sb.AppendLine("<col style=\"width:2.8em\"/><col/>");
-      sb.AppendLine("<col style=\"width:3.6em\"/><col style=\"width:3.6em\"/><col style=\"width:3.2em\"/><col style=\"width:3.2em\"/><col style=\"width:3.8em\"/>");
+      sb.AppendLine("<col style=\"width:4.5em\"/><col/>");
+      sb.AppendLine("<col style=\"width:calc(7em/1.5)\"/><col style=\"width:6em\"/><col style=\"width:4em\"/><col style=\"width:4em\"/><col style=\"width:5.5em\"/>");
       if (compact)
         sb.AppendLine("<col style=\"width:24em\"/>");
       sb.AppendLine("</colgroup>");
@@ -293,12 +295,92 @@ namespace AIStudio.Common
       sb.AppendLine("</style>");
     }
 
+    private static bool CellQualifiesForComparisonTooltip(string rawCell)
+    {
+      var a = ScenarioLogComparer.NormalizeDisplay(rawCell ?? "");
+      return a != "-";
+    }
+
+    /// <summary>Текст для атрибута title в таблице сравнения (ожид. / факт).</summary>
+    private static string GetComparisonCellTooltip(
+        string columnLabel,
+        bool isFact,
+        string expRaw,
+        string actRaw,
+        ScenarioLogComparer.AggregatedLogSnapshot snap,
+        AgentLogCellTooltipProvider tooltips)
+    {
+      if (tooltips == null)
+        return null;
+      var raw = isFact ? (actRaw ?? "") : (expRaw ?? "");
+      if (!CellQualifiesForComparisonTooltip(raw))
+        return null;
+
+      string tip;
+      switch (columnLabel)
+      {
+        case "Состояние":
+          tip = AgentLogCellTooltipProvider.GetStateCodeTooltip(raw.Trim());
+          break;
+        case "Стиль":
+          tip = tooltips.GetStyleCellTooltipForReport(raw);
+          break;
+        case "Тема":
+          if (isFact && snap != null && !string.IsNullOrWhiteSpace(snap.ThemeTooltip))
+            tip = snap.ThemeTooltip.Trim();
+          else
+            tip = tooltips.GetThinkingThemeTypeTooltip(raw);
+          if (string.IsNullOrWhiteSpace(tip))
+            return null;
+          break;
+        case "Триггер":
+          tip = tooltips.GetTriggerTooltip(raw.Trim());
+          break;
+        case "ОР/УМ":
+          tip = tooltips.GetOrUmTooltip(raw.Trim(), isFact ? snap?.OrUmThinkingSuccess : null);
+          break;
+        case "Опасно":
+        case "Актуально":
+          if (ScenarioLogComparer.NormalizeDisplay(raw) != "1")
+            return null;
+          tip = columnLabel == "Опасно" ? "Опасная ситуация" : "Актуальная ситуация";
+          break;
+        case "Б/у рефлекс":
+          tip = tooltips.GetActionsForGeneticReflex(raw.Trim());
+          break;
+        case "Усл. рефлекс":
+          tip = tooltips.GetActionsForConditionReflex(raw.Trim());
+          break;
+        case "Автоматизм":
+          tip = tooltips.GetAutomatizmTooltip(raw.Trim());
+          break;
+        case "Цепочка РФ":
+          tip = tooltips.GetReflexChainTooltip(raw.Trim());
+          break;
+        case "Цепочка АВ":
+          tip = tooltips.GetAutomatizmChainTooltip(raw.Trim());
+          break;
+        case "Цикл М":
+          if (!isFact || snap == null || string.IsNullOrWhiteSpace(snap.MainCycleTooltip))
+            return null;
+          tip = snap.MainCycleTooltip.Trim();
+          break;
+        default:
+          return null;
+      }
+
+      if (string.IsNullOrWhiteSpace(tip))
+        return null;
+      return tip;
+    }
+
     public static void AppendScenarioReportMainBody(
         StringBuilder sb,
         ScenarioDocument doc,
         OperatorScenarioCompletedEventArgs completion,
         InfluenceActionSystem influenceActions,
-        PerceptionImagesSystem perceptionImages)
+        PerceptionImagesSystem perceptionImages,
+        AgentLogCellTooltipProvider cellTooltips = null)
     {
       sb.AppendLine("<h2>Данные сценария</h2>");
       sb.AppendLine("<table class=\"meta-table\">");
@@ -407,9 +489,17 @@ namespace AIStudio.Common
               factCellHtmlRaw = true;
               factCellHtml = ScenarioReportLogDisplay.FormatOrUmFactCellHtml(actRaw, snap.OrUmThinkingSuccess);
             }
-            sb.Append("<td class=\"col-exp\">").Append(Escape(expDisp)).Append("</td>");
+            var expTitle = GetComparisonCellTooltip(col.Label, isFact: false, expRaw, actRaw, snap, cellTooltips);
+            sb.Append("<td class=\"col-exp\"");
+            if (!string.IsNullOrEmpty(expTitle))
+              sb.Append(" title=\"").Append(EscapeForHtmlTitleAttribute(expTitle)).Append("\"");
+            sb.Append(">").Append(Escape(expDisp)).Append("</td>");
             var factClass = "col-fact" + (IsFieldMismatch(expRaw, actRaw, col.Label) ? " fact-mismatch" : "");
-            sb.Append("<td class=\"").Append(factClass).Append("\">");
+            var factTitle = GetComparisonCellTooltip(col.Label, isFact: true, expRaw, actRaw, snap, cellTooltips);
+            sb.Append("<td class=\"").Append(factClass).Append("\"");
+            if (!string.IsNullOrEmpty(factTitle))
+              sb.Append(" title=\"").Append(EscapeForHtmlTitleAttribute(factTitle)).Append("\"");
+            sb.Append(">");
             if (factCellHtmlRaw)
               sb.Append(factCellHtml);
             else
@@ -554,6 +644,16 @@ namespace AIStudio.Common
     }
 
     private static string Escape(string s) => WebUtility.HtmlEncode(s ?? "");
+
+    /// <summary>Кодирует текст для атрибута title: WebUtility.HtmlEncode и замена LF на числовую сущность перевода строки для многострочной подсказки в типичных браузерах.</summary>
+    private static string EscapeForHtmlTitleAttribute(string s)
+    {
+      if (string.IsNullOrEmpty(s))
+        return "";
+      var normalized = s.Replace("\r\n", "\n").Replace('\r', '\n');
+      var enc = WebUtility.HtmlEncode(normalized);
+      return enc.Replace("\n", "&#10;");
+    }
 
     private static string FormatToneCell(int toneId)
     {

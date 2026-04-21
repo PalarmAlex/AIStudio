@@ -79,6 +79,7 @@ namespace AIStudio
     private bool _homeostasisSettleWaitActive;
     private Action<int> _homeostasisSettlePulseHandler;
     private bool _scenarioLaunchCommitActive;
+    private AgentLogCellTooltipProvider _agentLogCellTooltips;
 
     public event PropertyChangedEventHandler PropertyChanged;
     private AgentViewModel _agentViewModel;
@@ -218,6 +219,17 @@ namespace AIStudio
         _stage2PrimitivesLoader = _isidaContext.Stage2PrimitivesLoader;
 
         _stepInzialized = 4;
+
+        _agentLogCellTooltips = new AgentLogCellTooltipProvider(
+            _gomeostas,
+            _perceptionImagesSystem,
+            _influenceActionSystem,
+            _sensorySystem.VerbalChannel,
+            _actionsSystem,
+            _geneticReflexesSystem,
+            _conditionedReflexesSystem,
+            _automatizmSystem,
+            _actionsImagesSystem);
       }
       catch (IsidaInitializationException ex)
       {
@@ -463,6 +475,9 @@ namespace AIStudio
           case "41": // Исследования: группы сценариев
             ShowScenarioGroupRegistry();
             break;
+          case "42": // Исследования: прогоны гомеостаза (табличный JSON)
+            ShowHomeostasisHarnessResearch();
+            break;
           default:
             ShowStub($"Меню {menuItem}");
             break;
@@ -581,6 +596,12 @@ namespace AIStudio
           requestStopScenarioSession: RequestStopScenarioSession,
           canStopScenarioSession: () => _scenarioRunner.IsRunning || _homeostasisSettleWaitActive || _scenarioBatchRun != null);
       CurrentContent = new ScenarioRegistryView { DataContext = scenariosVm };
+    }
+
+    private void ShowHomeostasisHarnessResearch()
+    {
+      var vm = new HomeostasisHarnessViewModel(_gomeostas);
+      CurrentContent = new HomeostasisHarnessView { DataContext = vm };
     }
 
     private void ShowScenarioGroupRegistry()
@@ -1154,7 +1175,8 @@ namespace AIStudio
             state.GroupDefinition,
             state.Completed,
             _influenceActionSystem,
-            _perceptionImagesSystem);
+            _perceptionImagesSystem,
+            _agentLogCellTooltips);
         File.WriteAllText(reportPath, html, Encoding.UTF8);
 
         var msg = userAborted
@@ -1499,7 +1521,7 @@ namespace AIStudio
             Directory.CreateDirectory(folder);
             var fname = $"scenario_{e.Document.Header?.Id ?? 0}_{DateTime.Now:yyyyMMdd_HHmmss}.html";
             reportPath = Path.Combine(folder, fname);
-            var html = ScenarioReportHtmlBuilder.BuildHtml(e.Document, e, _influenceActionSystem, _perceptionImagesSystem);
+            var html = ScenarioReportHtmlBuilder.BuildHtml(e.Document, e, _influenceActionSystem, _perceptionImagesSystem, _agentLogCellTooltips);
             File.WriteAllText(reportPath, html, Encoding.UTF8);
           }
           catch (Exception ex)

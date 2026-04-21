@@ -28,6 +28,12 @@ namespace AIStudio.Common
       public string ReflexChain { get; set; } = "-";
       public string AutomatizmChain { get; set; } = "-";
       public string MainCycle { get; set; } = "-";
+
+      /// <summary>Текст подсказки темы с последней записи лога на пульсе (если есть).</summary>
+      public string ThemeTooltip { get; set; }
+
+      /// <summary>Текст подсказки главного цикла мышления с последней записи на пульсе.</summary>
+      public string MainCycleTooltip { get; set; }
     }
 
     /// <summary>Группирует записи по пульсу: для каждого поля берётся последнее не «-» значение по времени.</summary>
@@ -46,7 +52,13 @@ namespace AIStudio.Common
         {
           snap.State = MergeField(snap.State, e.DisplayBaseID);
           snap.Style = MergeField(snap.Style, e.DisplayBaseStyleID);
-          snap.Theme = MergeField(snap.Theme, e.DisplayThinkingThemeId);
+          var themeCand = NormalizeDisplay(e.DisplayThinkingThemeId);
+          if (themeCand != "-")
+          {
+            snap.Theme = themeCand;
+            if (!string.IsNullOrWhiteSpace(e.ThinkingThemeTooltip))
+              snap.ThemeTooltip = e.ThinkingThemeTooltip.Trim();
+          }
           snap.Trigger = MergeField(snap.Trigger, e.DisplayTriggerStimulusID);
           MergeOrUm(snap, e);
           snap.Danger = MergeField(snap.Danger, e.DisplayDanger);
@@ -56,7 +68,13 @@ namespace AIStudio.Common
           snap.Automatizm = MergeField(snap.Automatizm, e.DisplayAutomatizmID);
           snap.ReflexChain = MergeField(snap.ReflexChain, e.DisplayReflexChainInfo);
           snap.AutomatizmChain = MergeField(snap.AutomatizmChain, e.DisplayAutomatizmChainInfo);
-          snap.MainCycle = MergeField(snap.MainCycle, e.DisplayMainThinkingCycle);
+          var mainCand = NormalizeDisplay(e.DisplayMainThinkingCycle);
+          if (mainCand != "-")
+          {
+            snap.MainCycle = mainCand;
+            if (!string.IsNullOrWhiteSpace(e.MainThinkingCycleTooltip))
+              snap.MainCycleTooltip = e.MainThinkingCycleTooltip.Trim();
+          }
         }
         result[g.Key] = snap;
       }

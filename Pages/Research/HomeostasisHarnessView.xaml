@@ -1,0 +1,38 @@
+<UserControl x:Class="AIStudio.Pages.Research.HomeostasisHarnessView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d"
+             d:DesignHeight="520" d:DesignWidth="720">
+  <Grid Margin="12">
+    <Grid.RowDefinitions>
+      <RowDefinition Height="Auto"/>
+      <RowDefinition Height="Auto"/>
+      <RowDefinition Height="*"/>
+      <RowDefinition Height="Auto"/>
+      <RowDefinition Height="Auto"/>
+    </Grid.RowDefinitions>
+    <TextBlock Grid.Row="0" Text="Исследовательские прогоны гомеостаза" FontSize="18" FontWeight="SemiBold" Margin="0,0,0,10"/>
+
+    <StackPanel Grid.Row="1" Orientation="Horizontal" Margin="0,0,0,8">
+      <TextBlock Text="Прогон (harness_id):" VerticalAlignment="Center" Margin="0,0,8,0"/>
+      <ComboBox Width="420" ItemsSource="{Binding HarnessIds}" SelectedItem="{Binding SelectedHarnessId, Mode=TwoWay}"/>
+      <Button Content="Шаблон" Margin="12,0,0,0" Padding="12,4" Command="{Binding LoadTemplateCommand}" ToolTip="Подставить пример входного JSON"/>
+    </StackPanel>
+
+    <GroupBox Grid.Row="2" Header="Входной JSON (UTF-8; поля schema_version, harness_id, cases)" Margin="0,0,0,8">
+      <TextBox Text="{Binding InputJsonText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+               AcceptsReturn="True" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto"
+               FontFamily="Consolas" FontSize="12"/>
+    </GroupBox>
+
+    <StackPanel Grid.Row="3" Orientation="Horizontal" Margin="0,0,0,8">
+      <Button Content="Выполнить прогон" Padding="14,6" Command="{Binding RunCommand}" IsDefault="True"/>
+      <Button Content="Открыть каталог прогонов" Margin="10,0,0,0" Padding="12,6" Command="{Binding OpenRunsRootCommand}"/>
+      <Button Content="Открыть последний отчёт" Margin="10,0,0,0" Padding="12,6" Command="{Binding OpenLastReportCommand}"/>
+    </StackPanel>
+
+    <TextBlock Grid.Row="4" Text="{Binding StatusMessage}" TextWrapping="Wrap" Foreground="#37474F"/>
+  </Grid>
+</UserControl>
