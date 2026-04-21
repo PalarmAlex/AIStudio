@@ -26,6 +26,8 @@
 
       <RowDefinition Height="Auto"/>
 
+      <RowDefinition Height="Auto"/>
+
       <RowDefinition Height="*"/>
 
       <RowDefinition Height="Auto"/>
@@ -124,7 +126,29 @@
 
 
 
-    <GroupBox Grid.Row="5" Header="Строки прогона (каждая строка — шаг; # в начале — комментарий)" Margin="0,0,0,8">
+    <Expander Grid.Row="5" Header="Пример JSON для пакетного прогона (тот же harness_id)" Margin="0,0,0,8" IsExpanded="False">
+
+      <StackPanel Margin="0,4,0,0">
+
+        <TextBlock TextWrapping="Wrap" FontSize="11" Foreground="#555" Margin="0,0,0,8"
+
+                   Text="Ниже — образец входного файла для HomeostasisHarnessRunner (JSON в isida), с тем же harness_id, что у выбранного метода в списке. Это не pipe-строки и не связано с кнопкой «Автогенерация строк»: JSON нужен, если вы гоняете прогон из кода или CLI. Скопируйте текст в файл UTF-8, при необходимости измените кейсы и ожидаемые смыслы проверок — корректность входов и эталонов задаёт архитектор."/>
+
+        <TextBox Text="{Binding JsonSampleText, Mode=OneWay}"
+
+                 IsReadOnly="True" AcceptsReturn="True" TextWrapping="Wrap"
+
+                 VerticalScrollBarVisibility="Auto" MaxHeight="200"
+
+                 FontFamily="Consolas" FontSize="11"/>
+
+      </StackPanel>
+
+    </Expander>
+
+
+
+    <GroupBox Grid.Row="6" Header="Строки прогона (каждая строка — шаг; # в начале — комментарий)" Margin="0,0,0,8">
 
       <Grid>
 
@@ -148,9 +172,21 @@
 
                 Margin="0,8,0,0" Padding="10,5" HorizontalAlignment="Left"
 
-                Command="{Binding AutoGenerateScenarioCommand}"
+                Command="{Binding AutoGenerateScenarioCommand}">
 
-                ToolTip="Эталонные строки для текущего метода (Out1 = калькулятор). Если поле не пустое — спросит: заменить целиком или добавить в конец."/>
+          <Button.ToolTip>
+
+            <ToolTip MaxWidth="420">
+
+              <TextBlock TextWrapping="Wrap"
+
+                         Text="Шаблон pipe-сценария, а не генерация корректных тестовых входов. Колонки «ожидание» заполняются снимком текущего калькулятора — при неизменном движке строки почти всегда дадут OK (самосогласованность), это не доказательство правильности формул. Содержательные входы и эталоны нужно придумывать самому. Если поле уже не пустое — спросит: заменить целиком или добавить в конец."/>
+
+            </ToolTip>
+
+          </Button.ToolTip>
+
+        </Button>
 
       </Grid>
 
@@ -158,7 +194,7 @@
 
 
 
-    <StackPanel Grid.Row="6" Orientation="Horizontal" Margin="0,0,0,8">
+    <StackPanel Grid.Row="7" Orientation="Horizontal" Margin="0,0,0,8">
 
       <Button Content="Выполнить прогон" Padding="14,6" Command="{Binding RunCommand}" IsDefault="True"/>
 
@@ -172,7 +208,7 @@
 
 
 
-    <ScrollViewer Grid.Row="7" VerticalScrollBarVisibility="Auto" MaxHeight="96" HorizontalScrollBarVisibility="Disabled">
+    <ScrollViewer Grid.Row="8" VerticalScrollBarVisibility="Auto" MaxHeight="96" HorizontalScrollBarVisibility="Disabled">
 
       <TextBlock Text="{Binding StatusMessage}" TextWrapping="Wrap" Foreground="#37474F"/>
 

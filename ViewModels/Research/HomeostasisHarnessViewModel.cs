@@ -9,6 +9,7 @@ using System.Windows;
 using System.Windows.Input;
 using AIStudio.Common;
 using ISIDA.Gomeostas;
+using ISIDA.Research;
 
 namespace AIStudio.ViewModels.Research
 {
@@ -58,6 +59,7 @@ namespace AIStudio.ViewModels.Research
         OnPropertyChanged();
         OnPropertyChanged(nameof(MethodCardText));
         OnPropertyChanged(nameof(PipeFormatHint));
+        OnPropertyChanged(nameof(JsonSampleText));
         RefreshSavedScenarioNamesAndLoadInitial();
         CommandManager.InvalidateRequerySuggested();
       }
@@ -66,6 +68,10 @@ namespace AIStudio.ViewModels.Research
     public string MethodCardText => SelectedMethod?.CardDescription ?? "";
 
     public string PipeFormatHint => SelectedMethod?.PipeFormatLine ?? "";
+
+    /// <summary>Пример JSON с тем же <c>harness_id</c>, что у выбранного pipe-метода (для CLI / внешнего прогона).</summary>
+    public string JsonSampleText =>
+        SelectedMethod == null ? "" : ResearchHarnessSampleInputs.GetJson(SelectedMethod.HarnessId);
 
     /// <summary>Выбранное имя файла сценария из списка (без .txt); при смене — загрузка в поле строк.</summary>
     public string SelectedSavedScenario

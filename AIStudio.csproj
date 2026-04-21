@@ -333,9 +333,6 @@
     <Compile Include="ViewModels\VerbalTreesViewModel.cs" />
     <Compile Include="Common\ResearchHarnessPaths.cs" />
     <Compile Include="Common\ResearchHarnessScenarioStore.cs" />
-    <Compile Include="Common\ResearchHarnessPipeMethodCatalog.cs" />
-    <Compile Include="Common\ResearchHarnessPipeRunner.cs" />
-    <Compile Include="Common\ResearchHarnessPipeReportHtmlBuilder.cs" />
     <Compile Include="Common\ResearchHarnessScrollMessageWindow.cs" />
     <Compile Include="Common\ResearchHarnessReportHtmlBuilder.cs" />
     <Compile Include="Common\ResearchHarnessSampleInputs.cs" />
