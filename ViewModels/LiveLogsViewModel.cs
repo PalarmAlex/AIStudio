@@ -184,7 +184,8 @@ namespace AIStudio.ViewModels
         ActIdList = d.ActIdList ?? new List<int>(),
         PhraseIdList = d.PhraseIdList ?? new List<int>(),
         ToneId = d.ToneId,
-        MoodId = d.MoodId
+        MoodId = d.MoodId,
+        Usefulness = d.Usefulness
       };
     }
 

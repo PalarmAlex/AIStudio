@@ -331,11 +331,6 @@
     <Compile Include="ViewModels\StyleLogsViewModel.cs" />
     <Compile Include="ViewModels\SystemParametersViewModel.cs" />
     <Compile Include="ViewModels\VerbalTreesViewModel.cs" />
-    <Compile Include="Common\ResearchHarnessPaths.cs" />
-    <Compile Include="Common\ResearchHarnessScenarioStore.cs" />
-    <Compile Include="Common\ResearchHarnessScrollMessageWindow.cs" />
-    <Compile Include="Common\ResearchHarnessReportHtmlBuilder.cs" />
-    <Compile Include="Common\ResearchHarnessSampleInputs.cs" />
     <Compile Include="Common\ScenarioPaths.cs" />
     <Compile Include="Common\ScenarioStorage.cs" />
     <Compile Include="Common\ScenarioGroupModels.cs" />
@@ -353,7 +348,6 @@
     <Compile Include="ViewModels\Research\ScenarioRegistryPickItem.cs" />
     <Compile Include="ViewModels\Research\ScenarioGroupEditorViewModel.cs" />
     <Compile Include="ViewModels\Research\ScenarioGroupScenarioPickerViewModel.cs" />
-    <Compile Include="ViewModels\Research\HomeostasisHarnessViewModel.cs" />
     <Compile Include="Pages\Research\ScenarioRegistryView.xaml.cs">
       <DependentUpon>ScenarioRegistryView.xaml</DependentUpon>
     </Compile>
@@ -368,9 +362,6 @@
     </Compile>
     <Compile Include="Pages\Research\ScenarioEditorView.xaml.cs">
       <DependentUpon>ScenarioEditorView.xaml</DependentUpon>
-    </Compile>
-    <Compile Include="Pages\Research\HomeostasisHarnessView.xaml.cs">
-      <DependentUpon>HomeostasisHarnessView.xaml</DependentUpon>
     </Compile>
     <Compile Include="Windows\ScenarioEditorWindow.xaml.cs">
       <DependentUpon>ScenarioEditorWindow.xaml</DependentUpon>
@@ -623,10 +614,6 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="Pages\Research\ScenarioEditorView.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="Pages\Research\HomeostasisHarnessView.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

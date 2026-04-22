@@ -475,9 +475,6 @@ namespace AIStudio
           case "41": // Исследования: группы сценариев
             ShowScenarioGroupRegistry();
             break;
-          case "42": // Исследования: прогоны гомеостаза (табличный JSON)
-            ShowHomeostasisHarnessResearch();
-            break;
           default:
             ShowStub($"Меню {menuItem}");
             break;
@@ -596,12 +593,6 @@ namespace AIStudio
           requestStopScenarioSession: RequestStopScenarioSession,
           canStopScenarioSession: () => _scenarioRunner.IsRunning || _homeostasisSettleWaitActive || _scenarioBatchRun != null);
       CurrentContent = new ScenarioRegistryView { DataContext = scenariosVm };
-    }
-
-    private void ShowHomeostasisHarnessResearch()
-    {
-      var vm = new HomeostasisHarnessViewModel(_gomeostas);
-      CurrentContent = new HomeostasisHarnessView { DataContext = vm };
     }
 
     private void ShowScenarioGroupRegistry()

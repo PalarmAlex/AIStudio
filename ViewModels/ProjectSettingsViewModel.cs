@@ -32,7 +32,6 @@ namespace AIStudio.ViewModels
     private string _logsFolderPath;
     private string _bootDataFolderPath;
     private string _scenarioReportsFolderPath;
-    private string _researchHarnessOutputFolderPath;
     private int _defaultStileId;
     private int _defaultAdaptiveActionId;
     private int _defaultThemeTypeId;
@@ -138,17 +137,6 @@ namespace AIStudio.ViewModels
       {
         _scenarioReportsFolderPath = value;
         OnPropertyChanged(nameof(ScenarioReportsFolderPath));
-      }
-    }
-
-    /// <summary>Каталог отчётов и файлов исследовательских прогонов (pipe, CSV, HTML).</summary>
-    public string ResearchHarnessOutputFolderPath
-    {
-      get => _researchHarnessOutputFolderPath;
-      set
-      {
-        _researchHarnessOutputFolderPath = value;
-        OnPropertyChanged(nameof(ResearchHarnessOutputFolderPath));
       }
     }
 
@@ -449,7 +437,6 @@ namespace AIStudio.ViewModels
       LogsFolderPath = AppConfig.LogsFolderPath;
       BootDataFolderPath = AppConfig.BootDataFolderPath;
       ScenarioReportsFolderPath = AppConfig.ScenarioReportsFolderPath;
-      ResearchHarnessOutputFolderPath = AppConfig.ResearchHarnessOutputFolderPath;
       DefaultStileId = AppConfig.DefaultStileId;
       WaitingPeriodForActionsVal = AppConfig.WaitingPeriodForActionsVal;
       _thinkingCycleDecayAgeDivisor = AppConfig.ThinkingCycleDecayAgeDivisor;
@@ -606,9 +593,6 @@ namespace AIStudio.ViewModels
         case nameof(ScenarioReportsFolderPath):
           initialPath = Directory.Exists(ScenarioReportsFolderPath) ? ScenarioReportsFolderPath : "";
           break;
-        case nameof(ResearchHarnessOutputFolderPath):
-          initialPath = Directory.Exists(ResearchHarnessOutputFolderPath) ? ResearchHarnessOutputFolderPath : "";
-          break;
         default:
           initialPath = "";
           break;
@@ -646,9 +630,6 @@ namespace AIStudio.ViewModels
             break;
           case nameof(ScenarioReportsFolderPath):
             ScenarioReportsFolderPath = dialog.SelectedPath;
-            break;
-          case nameof(ResearchHarnessOutputFolderPath):
-            ResearchHarnessOutputFolderPath = dialog.SelectedPath;
             break;
         }
       }
@@ -691,7 +672,6 @@ namespace AIStudio.ViewModels
         AppConfig.SetSetting(nameof(LogsFolderPath), LogsFolderPath);
         AppConfig.SetSetting(nameof(BootDataFolderPath), BootDataFolderPath);
         AppConfig.SetSetting(nameof(ScenarioReportsFolderPath), ScenarioReportsFolderPath);
-        AppConfig.SetSetting(nameof(ResearchHarnessOutputFolderPath), ResearchHarnessOutputFolderPath);
         AppConfig.SetIntSetting(nameof(DefaultStileId), DefaultStileId);
         AppConfig.SetIntSetting(nameof(WaitingPeriodForActionsVal), WaitingPeriodForActionsVal);
         AppConfig.SetIntSetting(nameof(ThinkingCycleDecayAgeDivisor), ThinkingCycleDecayAgeDivisor);

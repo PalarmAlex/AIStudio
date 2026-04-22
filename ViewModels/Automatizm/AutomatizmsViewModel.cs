@@ -720,7 +720,8 @@ namespace AIStudio.ViewModels
               ActIdList = actionsImage.ActIdList ?? new List<int>(),
               PhraseIdList = actionsImage.PhraseIdList ?? new List<int>(),
               ToneId = actionsImage.ToneId,
-              MoodId = actionsImage.MoodId
+              MoodId = actionsImage.MoodId,
+              Usefulness = automatizm.Usefulness
             } : null
           };
 
@@ -1376,6 +1377,8 @@ namespace AIStudio.ViewModels
       public List<int> PhraseIdList { get; set; } = new List<int>();
       public int ToneId { get; set; }
       public int MoodId { get; set; }
+      /// <summary>Полезность автоматизма (справочник); для подсказок в логах и списке.</summary>
+      public int? Usefulness { get; set; }
     }
 
     public class DescriptionWithLink

@@ -345,6 +345,8 @@ namespace AIStudio.Common
       public List<int> PhraseIdList { get; set; }
       public int ToneId { get; set; }
       public int MoodId { get; set; }
+      /// <summary>Свойство <see cref="Automatizm.Usefulness"/> из справочника автоматизмов; null если автоматизм не найден.</summary>
+      public int? Usefulness { get; set; }
     }
 
     public AutomatizmActionsImageData TryGetAutomatizmActionsImageData(string displayAutomatizmID)
@@ -367,9 +369,19 @@ namespace AIStudio.Common
               ActIdList = actionsImage.ActIdList?.ToList() ?? new List<int>(),
               PhraseIdList = actionsImage.PhraseIdList?.ToList() ?? new List<int>(),
               ToneId = actionsImage.ToneId,
-              MoodId = actionsImage.MoodId
+              MoodId = actionsImage.MoodId,
+              Usefulness = atmz.Usefulness
             };
           }
+
+          return new AutomatizmActionsImageData
+          {
+            ActIdList = new List<int>(),
+            PhraseIdList = new List<int>(),
+            ToneId = 0,
+            MoodId = 0,
+            Usefulness = atmz.Usefulness
+          };
         }
       }
       catch (Exception ex)
@@ -442,6 +454,9 @@ namespace AIStudio.Common
 
       string moodText = ActionsImagesSystem.GetMoodText(actionsImage.MoodId);
       sb.AppendLine(string.IsNullOrEmpty(moodText) ? "Настроение: —" : $"Настроение: {moodText}");
+
+      if (actionsImage.Usefulness.HasValue)
+        sb.AppendLine($"Полезность: {actionsImage.Usefulness.Value}");
 
       return sb.ToString().TrimEnd();
     }

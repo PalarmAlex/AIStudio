@@ -74,6 +74,9 @@ namespace AIStudio.Converters
         string moodText = ActionsImagesSystem.IsInitialized ? ActionsImagesSystem.GetMoodText(actionsImage.MoodId) : actionsImage.MoodId.ToString();
         sb.AppendLine(string.IsNullOrEmpty(moodText) ? "Настроение: —" : $"Настроение: {moodText}");
 
+        if (actionsImage.Usefulness.HasValue)
+          sb.AppendLine($"Полезность: {actionsImage.Usefulness.Value}");
+
         return sb.ToString();
       }
       return "Нет данных об образе действий";
