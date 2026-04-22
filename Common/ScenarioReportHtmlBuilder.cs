@@ -352,7 +352,7 @@ namespace AIStudio.Common
           tip = tooltips.GetActionsForConditionReflex(raw.Trim());
           break;
         case "Автоматизм":
-          tip = tooltips.GetAutomatizmTooltip(raw.Trim());
+          tip = tooltips.GetAutomatizmTooltip(raw.Trim(), snap?.AutomatizmUsefulnessLogged);
           break;
         case "Цепочка РФ":
           tip = tooltips.GetReflexChainTooltip(raw.Trim());
@@ -435,8 +435,9 @@ namespace AIStudio.Common
           .Append(Escape(anchor.ToString(CultureInfo.InvariantCulture)))
           .Append(". Глобальный пульс шага = якорь + № пульса внутри сценария. ");
 
+      var comparisonSpecs = BuildVisibleComparisonColumnSpecs(doc, anchor, agg);
       sb.AppendLine("<table class=\"compare-table\"><tr><th>Шаг</th><th>№ пульса</th>");
-      foreach (var col in ComparisonColumnSpecs)
+      foreach (var col in comparisonSpecs)
       {
         sb.Append("<th class=\"col-exp-h\">").Append(Escape(col.Label + " (ожид.)")).Append("</th>");
         sb.Append("<th class=\"col-fact-h\">").Append(Escape(col.Label + " (факт)")).Append("</th>");
@@ -461,7 +462,7 @@ namespace AIStudio.Common
           sb.AppendLine("<tr>");
           sb.Append("<td>").Append(Escape(line.StepIndex.ToString(CultureInfo.InvariantCulture))).Append("</td>");
           sb.Append("<td>").Append(Escape(line.PulseWithinScenario.ToString(CultureInfo.InvariantCulture))).Append("</td>");
-          foreach (var col in ComparisonColumnSpecs)
+          foreach (var col in comparisonSpecs)
           {
             var expRaw = col.GetExpectedMain(exp);
             var actRaw = col.GetActual(snap);
@@ -552,6 +553,66 @@ namespace AIStudio.Common
       sb.AppendLine("</div>");
     }
 
+    /// <summary>
+    /// Совпадает с тем, что видно в ячейке: для «Опасно»/«Актуально» в логе часто «0», в отчёте это «-».
+    /// </summary>
+    private static bool ComparisonPairIsVisuallyAllDash(string columnLabel, string expRaw, string actRaw)
+    {
+      bool expDash;
+      bool actDash;
+      if (columnLabel == "Опасно" || columnLabel == "Актуально")
+      {
+        expDash = ScenarioReportLogDisplay.FormatDangerComparisonCell(expRaw) == "-";
+        actDash = ScenarioReportLogDisplay.FormatDangerComparisonCell(actRaw) == "-";
+      }
+      else
+      {
+        expDash = ScenarioLogComparer.NormalizeDisplay(expRaw) == "-";
+        actDash = ScenarioLogComparer.NormalizeDisplay(actRaw) == "-";
+      }
+      return expDash && actDash;
+    }
+
+    /// <summary>
+    /// Оставляет только пары «ожид./факт», по которым хотя бы в одной строке есть не прочерк
+    /// (иначе колонка только занимает место).
+    /// </summary>
+    private static ComparisonColumnSpec[] BuildVisibleComparisonColumnSpecs(
+        ScenarioDocument doc,
+        int anchor,
+        IReadOnlyDictionary<int, ScenarioLogComparer.AggregatedLogSnapshot> agg)
+    {
+      var all = ComparisonColumnSpecs;
+      if (doc?.Lines == null)
+        return all;
+
+      var expList = doc.LogExpectations ?? new List<ScenarioLogExpectationRow>();
+      var used = new bool[all.Length];
+      foreach (var line in doc.Lines.OrderBy(l => l.StepIndex))
+      {
+        var snap = ScenarioLogComparer.ResolveSnapshot(anchor + line.PulseWithinScenario, agg);
+        var exp = expList.FirstOrDefault(e => e.StepIndex == line.StepIndex && e.PulseWithinScenario == line.PulseWithinScenario)
+            ?? expList.FirstOrDefault(e => e.StepIndex == line.StepIndex)
+            ?? new ScenarioLogExpectationRow();
+        for (int i = 0; i < all.Length; i++)
+        {
+          var col = all[i];
+          var expRaw = col.GetExpectedMain(exp);
+          var actRaw = col.GetActual(snap);
+          if (!ComparisonPairIsVisuallyAllDash(col.Label, expRaw, actRaw))
+            used[i] = true;
+        }
+      }
+
+      var list = new List<ComparisonColumnSpec>(all.Length);
+      for (int i = 0; i < all.Length; i++)
+      {
+        if (used[i])
+          list.Add(all[i]);
+      }
+      return list.ToArray();
+    }
+
     private sealed class ComparisonColumnSpec
     {
       public string Label { get; set; }
@@ -571,6 +632,12 @@ namespace AIStudio.Common
       new ComparisonColumnSpec { Label = "Б/у рефлекс", GetExpectedMain = e => e.GeneticReflexText ?? "", GetActual = a => a.GeneticReflex },
       new ComparisonColumnSpec { Label = "Усл. рефлекс", GetExpectedMain = e => e.ConditionReflexText ?? "", GetActual = a => a.ConditionReflex },
       new ComparisonColumnSpec { Label = "Автоматизм", GetExpectedMain = e => e.AutomatizmText ?? "", GetActual = a => a.Automatizm },
+      new ComparisonColumnSpec
+      {
+        Label = "Успешность",
+        GetExpectedMain = e => e.AutomatizmUsefulnessText ?? "",
+        GetActual = a => ScenarioLogComparer.FormatAutomatizmUsefulnessCell(a.AutomatizmUsefulnessLogged)
+      },
       new ComparisonColumnSpec { Label = "Цепочка РФ", GetExpectedMain = e => e.ReflexChainText ?? "", GetActual = a => a.ReflexChain },
       new ComparisonColumnSpec { Label = "Цепочка АВ", GetExpectedMain = e => e.AutomatizmChainText ?? "", GetActual = a => a.AutomatizmChain },
       new ComparisonColumnSpec { Label = "Цикл М", GetExpectedMain = e => e.MainCycleText ?? "", GetActual = a => a.MainCycle }

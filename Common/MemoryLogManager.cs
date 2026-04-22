@@ -191,7 +191,8 @@ namespace AIStudio.Common
                        int? mainThinkingCycleId = null, string mainThinkingCycleTooltip = null,
                        string mainThinkingCycleTaskStatus = null,
                        bool informationEnvironmentDanger = false,
-                       bool informationEnvironmentVeryActual = false)
+                       bool informationEnvironmentVeryActual = false,
+                       int? automatizmUsefulnessAtSnapshot = null)
     {
       if (_disposed) return;
 
@@ -199,7 +200,7 @@ namespace AIStudio.Common
           orientationReflexType, geneticReflexId, conditionedReflexId, automatizmId, reflexChainInfo,
           automatizmChainInfo, thinkingLevel, thinkingLevelSuccess, thinkingThemeTypeId,
           thinkingThemeTooltip, mainThinkingCycleId, mainThinkingCycleTooltip, mainThinkingCycleTaskStatus,
-          informationEnvironmentDanger, informationEnvironmentVeryActual);
+          informationEnvironmentDanger, informationEnvironmentVeryActual, automatizmUsefulnessAtSnapshot);
 
       AddLogEntry(entry);
     }
@@ -215,7 +216,8 @@ namespace AIStudio.Common
         int? conditionedReflexId, int? automatizmId, string reflexChainInfo, string automatizmChainInfo,
         int? thinkingLevel, bool? thinkingLevelSuccess, int? thinkingThemeTypeId, string thinkingThemeTooltip,
         int? mainThinkingCycleId, string mainThinkingCycleTooltip, string mainThinkingCycleTaskStatus,
-        bool informationEnvironmentDanger, bool informationEnvironmentVeryActual)
+        bool informationEnvironmentDanger, bool informationEnvironmentVeryActual,
+        int? automatizmUsefulnessAtSnapshot = null)
     {
       return new LogEntry
       {
@@ -240,6 +242,7 @@ namespace AIStudio.Common
         MainThinkingCycleTaskStatus = string.IsNullOrEmpty(mainThinkingCycleTaskStatus) ? null : mainThinkingCycleTaskStatus,
         InformationEnvironmentDanger = informationEnvironmentDanger,
         InformationEnvironmentVeryActual = informationEnvironmentVeryActual,
+        AutomatizmUsefulnessAtSnapshot = automatizmUsefulnessAtSnapshot,
         Timestamp = DateTime.Now
       };
     }
@@ -259,7 +262,8 @@ namespace AIStudio.Common
           int? thinkingLevel = null, bool? thinkingLevelSuccess = null, int? thinkingThemeTypeId = null,
           string thinkingThemeTooltip = null, int? mainThinkingCycleId = null,
           string mainThinkingCycleTooltip = null, string mainThinkingCycleTaskStatus = null,
-          bool informationEnvironmentDanger = false, bool informationEnvironmentVeryActual = false)
+          bool informationEnvironmentDanger = false, bool informationEnvironmentVeryActual = false,
+          int? automatizmUsefulnessAtSnapshot = null)
       {
         if (_owner._disposed)
           return;
@@ -267,7 +271,7 @@ namespace AIStudio.Common
             orientationReflexType, geneticReflexId, conditionedReflexId, automatizmId, reflexChainInfo,
             automatizmChainInfo, thinkingLevel, thinkingLevelSuccess, thinkingThemeTypeId,
             thinkingThemeTooltip, mainThinkingCycleId, mainThinkingCycleTooltip, mainThinkingCycleTaskStatus,
-            informationEnvironmentDanger, informationEnvironmentVeryActual);
+            informationEnvironmentDanger, informationEnvironmentVeryActual, automatizmUsefulnessAtSnapshot);
         _owner.UpsertAgentDisplayLogEntry(entry);
       }
 
@@ -809,6 +813,9 @@ namespace AIStudio.Common
       /// Идентификатор активного автоматизма
       /// </summary>
       public int? AutomatizmID { get; set; }
+
+      /// <summary>Полезность автоматизма на момент записи строки лога (снимок), не текущая из справочника.</summary>
+      public int? AutomatizmUsefulnessAtSnapshot { get; set; }
 
       /// <summary>
       /// Отформатированное время для отображения в UI

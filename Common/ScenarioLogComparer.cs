@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Text;
 using ISIDA.Scenarios;
@@ -25,6 +26,8 @@ namespace AIStudio.Common
       public string GeneticReflex { get; set; } = "-";
       public string ConditionReflex { get; set; } = "-";
       public string Automatizm { get; set; } = "-";
+      /// <summary>Полезность с последней записи лога на пульсе (снимок), если была.</summary>
+      public int? AutomatizmUsefulnessLogged { get; set; }
       public string ReflexChain { get; set; } = "-";
       public string AutomatizmChain { get; set; } = "-";
       public string MainCycle { get; set; } = "-";
@@ -66,6 +69,10 @@ namespace AIStudio.Common
           snap.GeneticReflex = MergeField(snap.GeneticReflex, e.DisplayGeneticReflexID);
           snap.ConditionReflex = MergeField(snap.ConditionReflex, e.DisplayConditionReflexID);
           snap.Automatizm = MergeField(snap.Automatizm, e.DisplayAutomatizmID);
+          if (NormalizeDisplay(e.DisplayAutomatizmID) != "-")
+            snap.AutomatizmUsefulnessLogged = e.AutomatizmUsefulnessAtSnapshot;
+          else if (e.AutomatizmUsefulnessAtSnapshot.HasValue)
+            snap.AutomatizmUsefulnessLogged = e.AutomatizmUsefulnessAtSnapshot;
           snap.ReflexChain = MergeField(snap.ReflexChain, e.DisplayReflexChainInfo);
           snap.AutomatizmChain = MergeField(snap.AutomatizmChain, e.DisplayAutomatizmChainInfo);
           var mainCand = NormalizeDisplay(e.DisplayMainThinkingCycle);
@@ -145,6 +152,12 @@ namespace AIStudio.Common
       var t = raw.Trim();
       return t.Length == 0 ? "-" : t;
     }
+
+    /// <summary>Текст ячейки «полезность автоматизма» для отчёта и сравнения с ожиданием.</summary>
+    public static string FormatAutomatizmUsefulnessCell(int? usefulnessLogged) =>
+        usefulnessLogged.HasValue
+            ? usefulnessLogged.Value.ToString(CultureInfo.InvariantCulture)
+            : "-";
 
     /// <summary>
     /// Сравнение ячейки ожидания с нормализованным значением из лога (как в <see cref="NormalizeDisplay"/>).
@@ -292,6 +305,7 @@ namespace AIStudio.Common
         Check("Б/у рефлекс", exp.GeneticReflexText, actual.GeneticReflex);
         Check("Усл. рефлекс", exp.ConditionReflexText, actual.ConditionReflex);
         Check("Автоматизм", exp.AutomatizmText, actual.Automatizm);
+        Check("Успешность", exp.AutomatizmUsefulnessText, FormatAutomatizmUsefulnessCell(actual.AutomatizmUsefulnessLogged));
         Check("Цепочка РФ", exp.ReflexChainText, actual.ReflexChain);
         Check("Цепочка АВ", exp.AutomatizmChainText, actual.AutomatizmChain);
         Check("Цикл М", exp.MainCycleText, actual.MainCycle);

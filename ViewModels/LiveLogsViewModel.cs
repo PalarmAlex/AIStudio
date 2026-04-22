@@ -174,18 +174,31 @@ namespace AIStudio.ViewModels
     /// <summary>
     /// Получает образ действия автоматизма
     /// </summary>
-    public AutomatizmsViewModel.ActionsImageDisplay GetActionsForAutomatizm(string displayAutomatizmID)
+    /// <param name="usefulnessAtSnapshot">Из строки лога; если null — берётся текущая из справочника (как в редакторе).</param>
+    public AutomatizmsViewModel.ActionsImageDisplay GetActionsForAutomatizm(string displayAutomatizmID, int? usefulnessAtSnapshot = null)
     {
       var d = _tooltipProvider.TryGetAutomatizmActionsImageData(displayAutomatizmID);
-      if (d == null)
+      if (d == null && !usefulnessAtSnapshot.HasValue)
         return null;
+      if (d == null)
+      {
+        return new AutomatizmsViewModel.ActionsImageDisplay
+        {
+          ActIdList = new List<int>(),
+          PhraseIdList = new List<int>(),
+          ToneId = 0,
+          MoodId = 0,
+          Usefulness = usefulnessAtSnapshot
+        };
+      }
+
       return new AutomatizmsViewModel.ActionsImageDisplay
       {
         ActIdList = d.ActIdList ?? new List<int>(),
         PhraseIdList = d.PhraseIdList ?? new List<int>(),
         ToneId = d.ToneId,
         MoodId = d.MoodId,
-        Usefulness = d.Usefulness
+        Usefulness = usefulnessAtSnapshot ?? d.Usefulness
       };
     }
 

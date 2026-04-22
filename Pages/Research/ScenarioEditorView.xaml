@@ -453,6 +453,7 @@
             <DataGridTextColumn Header="Б/у рефлекс" Binding="{Binding GeneticReflexText, UpdateSourceTrigger=PropertyChanged}" Width="88"/>
             <DataGridTextColumn Header="Усл. рефлекс" Binding="{Binding ConditionReflexText, UpdateSourceTrigger=PropertyChanged}" Width="88"/>
             <DataGridTextColumn Header="Автоматизм" Binding="{Binding AutomatizmText, UpdateSourceTrigger=PropertyChanged}" Width="88"/>
+            <DataGridTextColumn Header="Успешность" Binding="{Binding AutomatizmUsefulnessText, UpdateSourceTrigger=PropertyChanged}" Width="80"/>
             <DataGridTextColumn Header="Цепочка РФ" Binding="{Binding ReflexChainText, UpdateSourceTrigger=PropertyChanged}" Width="88"/>
             <DataGridTextColumn Header="Цепочка АВ" Binding="{Binding AutomatizmChainText, UpdateSourceTrigger=PropertyChanged}" Width="88"/>
             <DataGridTextColumn Header="Цикл М" Binding="{Binding MainCycleText, UpdateSourceTrigger=PropertyChanged}" Width="72"/>

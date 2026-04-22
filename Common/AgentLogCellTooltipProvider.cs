@@ -399,12 +399,29 @@ namespace AIStudio.Common
       return null;
     }
 
-    public string GetAutomatizmTooltip(string displayAutomatizmID)
+    /// <param name="usefulnessAtSnapshot">Если задано — строка «Полезность» из лога на момент записи, а не текущая из справочника.</param>
+    public string GetAutomatizmTooltip(string displayAutomatizmID, int? usefulnessAtSnapshot = null)
     {
       var img = TryGetAutomatizmActionsImageData(displayAutomatizmID);
-      if (img == null)
+      if (img == null && !usefulnessAtSnapshot.HasValue)
         return "Нет данных о действиях автоматизма";
-      return FormatAutomatizmActionsImageTooltip(img);
+      if (img == null)
+        return $"Полезность: {usefulnessAtSnapshot.Value}";
+
+      AutomatizmActionsImageData forFormat = img;
+      if (usefulnessAtSnapshot.HasValue)
+      {
+        forFormat = new AutomatizmActionsImageData
+        {
+          ActIdList = img.ActIdList,
+          PhraseIdList = img.PhraseIdList,
+          ToneId = img.ToneId,
+          MoodId = img.MoodId,
+          Usefulness = usefulnessAtSnapshot
+        };
+      }
+
+      return FormatAutomatizmActionsImageTooltip(forFormat);
     }
 
     private string FormatAutomatizmActionsImageTooltip(AutomatizmActionsImageData actionsImage)

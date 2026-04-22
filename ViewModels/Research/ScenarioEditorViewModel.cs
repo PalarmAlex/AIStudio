@@ -244,6 +244,7 @@ namespace AIStudio.ViewModels.Research
         r.GeneticReflexText = target;
         r.ConditionReflexText = target;
         r.AutomatizmText = target;
+        r.AutomatizmUsefulnessText = target;
         r.ReflexChainText = target;
         r.AutomatizmChainText = target;
         r.MainCycleText = target;
@@ -299,6 +300,7 @@ namespace AIStudio.ViewModels.Research
       r.GeneticReflexText = NormalizeExpectedCell(r.GeneticReflexText);
       r.ConditionReflexText = NormalizeExpectedCell(r.ConditionReflexText);
       r.AutomatizmText = NormalizeExpectedCell(r.AutomatizmText);
+      r.AutomatizmUsefulnessText = NormalizeExpectedCell(r.AutomatizmUsefulnessText);
       r.ReflexChainText = NormalizeExpectedCell(r.ReflexChainText);
       r.AutomatizmChainText = NormalizeExpectedCell(r.AutomatizmChainText);
       r.MainCycleText = NormalizeExpectedCell(r.MainCycleText);

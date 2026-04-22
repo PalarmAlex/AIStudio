@@ -236,6 +236,8 @@ namespace AIStudio.Common
         sk.SkipDanger = Skip(11);
       if (p.Length >= 13)
         sk.SkipVeryActual = Skip(12);
+      if (p.Length >= 14)
+        sk.SkipAutomatizmUsefulness = Skip(13);
     }
 
     /// <summary>Делит строку ожиданий по «|», не экранированным обратным слэшем (поля могут содержать \| после записи Escape).</summary>
@@ -295,7 +297,8 @@ namespace AIStudio.Common
         AutomatizmText = Unescape(p[11]),
         ReflexChainText = Unescape(p[12]),
         AutomatizmChainText = Unescape(p[13]),
-        MainCycleText = Unescape(p[14])
+        MainCycleText = Unescape(p[14]),
+        AutomatizmUsefulnessText = p.Count >= 16 ? Unescape(p[15]) : "-"
       });
     }
 
@@ -384,8 +387,9 @@ namespace AIStudio.Common
           skc.SkipAutomatizmChain ? "1" : "0",
           skc.SkipMainCycle ? "1" : "0",
           skc.SkipDanger ? "1" : "0",
-          skc.SkipVeryActual ? "1" : "0"));
-      lines.Add("# Step|Pulse|State|Style|Theme|Trigger|OrUm|Opasno|Actualno|GenRef|CondRef|Aut|RefChain|AutChain|Cycle");
+          skc.SkipVeryActual ? "1" : "0",
+          skc.SkipAutomatizmUsefulness ? "1" : "0"));
+      lines.Add("# Step|Pulse|State|Style|Theme|Trigger|OrUm|Opasno|Actualno|GenRef|CondRef|Aut|RefChain|AutChain|Cycle|Use");
       foreach (var exp in (doc.LogExpectations ?? new List<ScenarioLogExpectationRow>()).OrderBy(e => e.StepIndex))
       {
         lines.Add(string.Join("|",
@@ -403,7 +407,8 @@ namespace AIStudio.Common
             Escape(exp.AutomatizmText ?? ""),
             Escape(exp.ReflexChainText ?? ""),
             Escape(exp.AutomatizmChainText ?? ""),
-            Escape(exp.MainCycleText ?? "")));
+            Escape(exp.MainCycleText ?? ""),
+            Escape(exp.AutomatizmUsefulnessText ?? "")));
       }
 
       var path = ScenarioPaths.LinesPath(doc.Header.Id);

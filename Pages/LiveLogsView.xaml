@@ -219,6 +219,7 @@
           <MultiBinding Converter="{StaticResource AutomatizmTooltipConverter}">
             <Binding ElementName="LogDataGrid" Path="DataContext"/>
             <Binding Path="DisplayAutomatizmID"/>
+            <Binding Path="AutomatizmUsefulnessAtSnapshot"/>
           </MultiBinding>
         </Setter.Value>
       </Setter>
