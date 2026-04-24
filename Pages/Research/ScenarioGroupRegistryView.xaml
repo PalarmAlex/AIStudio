@@ -90,7 +90,8 @@
                 HeadersVisibility="Column"
                 Style="{StaticResource ScenarioRegistryDataGridStyle}"
                 RowStyle="{StaticResource ScenarioRegistryRowStyle}"
-                MouseDoubleClick="DataGrid_OnMouseDoubleClick">
+                MouseDoubleClick="DataGrid_OnMouseDoubleClick"
+                PreviewKeyDown="DataGrid_OnPreviewKeyDown">
         <DataGrid.ColumnHeaderStyle>
           <Style TargetType="DataGridColumnHeader" BasedOn="{StaticResource ScenarioRegistryHeaderStyle}"/>
         </DataGrid.ColumnHeaderStyle>

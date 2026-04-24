@@ -39,7 +39,8 @@ namespace AIStudio.Common
       public string MainCycleTooltip { get; set; }
     }
 
-    /// <summary>Группирует записи по пульсу: для каждого поля берётся последнее не «-» значение по времени.</summary>
+    /// <summary>Группирует записи по пульсу: для каждого поля берётся последнее не «-» значение по времени.
+    /// Если на пульсе итогово есть автоматизм, б/у и условный рефлекс и цепочка РФ обнуляются (как в агентной строке лога при подавлении рефлекса автоматизмом).</summary>
     public static Dictionary<int, AggregatedLogSnapshot> AggregateByPulse(
         IEnumerable<MemoryLogManager.LogEntry> entries)
     {
@@ -71,8 +72,6 @@ namespace AIStudio.Common
           snap.Automatizm = MergeField(snap.Automatizm, e.DisplayAutomatizmID);
           if (NormalizeDisplay(e.DisplayAutomatizmID) != "-")
             snap.AutomatizmUsefulnessLogged = e.AutomatizmUsefulnessAtSnapshot;
-          else if (e.AutomatizmUsefulnessAtSnapshot.HasValue)
-            snap.AutomatizmUsefulnessLogged = e.AutomatizmUsefulnessAtSnapshot;
           snap.ReflexChain = MergeField(snap.ReflexChain, e.DisplayReflexChainInfo);
           snap.AutomatizmChain = MergeField(snap.AutomatizmChain, e.DisplayAutomatizmChainInfo);
           var mainCand = NormalizeDisplay(e.DisplayMainThinkingCycle);
@@ -83,6 +82,18 @@ namespace AIStudio.Common
               snap.MainCycleTooltip = e.MainThinkingCycleTooltip.Trim();
           }
         }
+
+        // На одном пульсе в CSV может быть несколько строк LogSystemState (промежуточные снимки внутри пульса).
+        // Слияние по «последнему непустому» иначе смешивает рефлекс из ранней строки с автоматизмом из поздней.
+        // Как в ResearchLogger.CreateLogEntry (reflexSuppressedByAutomatizm): при выбранном автоматизме рефлексы в агентной строке не показываются.
+        if (int.TryParse(NormalizeDisplay(snap.Automatizm), NumberStyles.Integer, CultureInfo.InvariantCulture, out int automatizmId)
+            && automatizmId > 0)
+        {
+          snap.GeneticReflex = "-";
+          snap.ConditionReflex = "-";
+          snap.ReflexChain = "-";
+        }
+
         result[g.Key] = snap;
       }
       return result;

@@ -143,6 +143,35 @@ namespace AIStudio.ViewModels.Research
       ApplyFilters();
     }
 
+    /// <summary>Удаление выбранных групп из реестра и с диска после подтверждения. Возвращает true, если клавиша Delete обработана (в т.ч. отказ).</summary>
+    public bool TryDeleteSelected(IReadOnlyList<ScenarioGroupHeader> headers)
+    {
+      if (headers == null || headers.Count == 0)
+        return false;
+      if (_isScenarioRunSessionBusy())
+      {
+        MessageBox.Show("Дождитесь завершения сценария или подготовки к запуску.", "Группа", MessageBoxButton.OK, MessageBoxImage.Information);
+        return true;
+      }
+
+      var ids = new HashSet<int>(headers.Select(h => h.Id));
+      string confirm = ids.Count == 1
+          ? $"Удалить группу «{headers[0].Title}» (ID={headers[0].Id.ToString(CultureInfo.InvariantCulture)})?"
+          : $"Удалить выбранные группы ({ids.Count.ToString(CultureInfo.InvariantCulture)} шт.)?";
+      if (MessageBox.Show(confirm, "Подтверждение",
+            MessageBoxButton.YesNo, MessageBoxImage.Question) != MessageBoxResult.Yes)
+        return true;
+
+      foreach (var id in ids)
+        ScenarioGroupStorage.DeleteGroupFiles(id);
+      var reg = ScenarioGroupStorage.LoadGroupRegistry().Where(h => !ids.Contains(h.Id)).ToList();
+      var (ok, msg) = ScenarioGroupStorage.SaveGroupRegistry(reg);
+      if (!ok)
+        MessageBox.Show(msg, "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
+      Refresh();
+      return true;
+    }
+
     private void ApplyFilters()
     {
       var idF = (FilterIdText ?? "").Trim();
