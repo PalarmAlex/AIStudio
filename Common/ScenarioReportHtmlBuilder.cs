@@ -435,12 +435,18 @@ namespace AIStudio.Common
           .Append(Escape(anchor.ToString(CultureInfo.InvariantCulture)))
           .Append(". Глобальный пульс шага = якорь + № пульса внутри сценария. ");
 
-      var comparisonSpecs = BuildVisibleComparisonColumnSpecs(doc, anchor, agg);
+      bool hideEmptyCols = doc.Header?.ReportHideEmptyComparisonColumns ?? true;
+      bool hideExpectedWhenNoMismatch = doc.Header?.ReportHideExpectedWhenNoMismatch ?? true;
+      var comparisonSpecs = BuildVisibleComparisonColumnSpecs(doc, anchor, agg, hideEmptyCols);
+      var showExpectedColumn = ComputeShowExpectedComparisonColumns(
+          doc, anchor, agg, comparisonSpecs, hideExpectedWhenNoMismatch);
       sb.AppendLine("<table class=\"compare-table\"><tr><th>Шаг</th><th>№ пульса</th>");
-      foreach (var col in comparisonSpecs)
+      for (int ci = 0; ci < comparisonSpecs.Length; ci++)
       {
-        sb.Append("<th class=\"col-exp-h\">").Append(Escape(col.Label + " (ожид.)")).Append("</th>");
-        sb.Append("<th class=\"col-fact-h\">").Append(Escape(col.Label + " (факт)")).Append("</th>");
+        var col = comparisonSpecs[ci];
+        if (showExpectedColumn[ci])
+          sb.Append("<th class=\"col-exp-h\">").Append(Escape(col.Label + " (ожид.)")).Append("</th>");
+        sb.Append("<th class=\"col-fact-h\">").Append(Escape(showExpectedColumn[ci] ? col.Label + " (факт)" : col.Label)).Append("</th>");
       }
       sb.AppendLine("</tr>");
 
@@ -462,8 +468,9 @@ namespace AIStudio.Common
           sb.AppendLine("<tr>");
           sb.Append("<td>").Append(Escape(line.StepIndex.ToString(CultureInfo.InvariantCulture))).Append("</td>");
           sb.Append("<td>").Append(Escape(line.PulseWithinScenario.ToString(CultureInfo.InvariantCulture))).Append("</td>");
-          foreach (var col in comparisonSpecs)
+          for (int ci = 0; ci < comparisonSpecs.Length; ci++)
           {
+            var col = comparisonSpecs[ci];
             var expRaw = col.GetExpectedMain(exp);
             var actRaw = col.GetActual(snap);
             var expDisp = expRaw;
@@ -490,11 +497,14 @@ namespace AIStudio.Common
               factCellHtmlRaw = true;
               factCellHtml = ScenarioReportLogDisplay.FormatOrUmFactCellHtml(actRaw, snap.OrUmThinkingSuccess);
             }
-            var expTitle = GetComparisonCellTooltip(col.Label, isFact: false, expRaw, actRaw, snap, cellTooltips);
-            sb.Append("<td class=\"col-exp\"");
-            if (!string.IsNullOrEmpty(expTitle))
-              sb.Append(" title=\"").Append(EscapeForHtmlTitleAttribute(expTitle)).Append("\"");
-            sb.Append(">").Append(Escape(expDisp)).Append("</td>");
+            if (showExpectedColumn[ci])
+            {
+              var expTitle = GetComparisonCellTooltip(col.Label, isFact: false, expRaw, actRaw, snap, cellTooltips);
+              sb.Append("<td class=\"col-exp\"");
+              if (!string.IsNullOrEmpty(expTitle))
+                sb.Append(" title=\"").Append(EscapeForHtmlTitleAttribute(expTitle)).Append("\"");
+              sb.Append(">").Append(Escape(expDisp)).Append("</td>");
+            }
             var factClass = "col-fact" + (IsFieldMismatch(expRaw, actRaw, col.Label) ? " fact-mismatch" : "");
             var factTitle = GetComparisonCellTooltip(col.Label, isFact: true, expRaw, actRaw, snap, cellTooltips);
             sb.Append("<td class=\"").Append(factClass).Append("\"");
@@ -526,6 +536,42 @@ namespace AIStudio.Common
         return !ScenarioLogComparer.VeryActualExpectationMatches(expectedRaw, actualVal);
       var a = ScenarioLogComparer.NormalizeDisplay(actualVal ?? "");
       return !ScenarioLogComparer.ExpectationCellMatches(expectedRaw, a);
+    }
+
+    /// <summary>
+    /// Для каждой колонки сравнения: true — выводить пару «ожид./факт» (хотя бы в одной строке есть расхождение по <see cref="IsFieldMismatch"/>).
+    /// Иначе в таблице остаётся только столбец факта, чтобы сузить отчёт при полном совпадении по полю.
+    /// </summary>
+    private static bool[] ComputeShowExpectedComparisonColumns(
+        ScenarioDocument doc,
+        int anchor,
+        IReadOnlyDictionary<int, ScenarioLogComparer.AggregatedLogSnapshot> agg,
+        ComparisonColumnSpec[] comparisonSpecs,
+        bool collapseExpectedWhenNoMismatch)
+    {
+      if (!collapseExpectedWhenNoMismatch)
+        return Enumerable.Repeat(true, comparisonSpecs.Length).ToArray();
+
+      var showExpected = new bool[comparisonSpecs.Length];
+      if (doc?.Lines == null || comparisonSpecs.Length == 0)
+        return showExpected;
+
+      var expList = doc.LogExpectations ?? new List<ScenarioLogExpectationRow>();
+      foreach (var line in doc.Lines.OrderBy(l => l.StepIndex))
+      {
+        var snap = ScenarioLogComparer.ResolveSnapshot(anchor + line.PulseWithinScenario, agg);
+        var exp = expList.FirstOrDefault(e => e.StepIndex == line.StepIndex && e.PulseWithinScenario == line.PulseWithinScenario)
+            ?? expList.FirstOrDefault(e => e.StepIndex == line.StepIndex)
+            ?? new ScenarioLogExpectationRow();
+        for (int i = 0; i < comparisonSpecs.Length; i++)
+        {
+          var col = comparisonSpecs[i];
+          if (IsFieldMismatch(col.GetExpectedMain(exp), col.GetActual(snap), col.Label))
+            showExpected[i] = true;
+        }
+      }
+
+      return showExpected;
     }
 
     private static void AppendComparisonSummary(StringBuilder sb, List<ScenarioLogComparer.StepCompareResult> compareList)
@@ -580,10 +626,13 @@ namespace AIStudio.Common
     private static ComparisonColumnSpec[] BuildVisibleComparisonColumnSpecs(
         ScenarioDocument doc,
         int anchor,
-        IReadOnlyDictionary<int, ScenarioLogComparer.AggregatedLogSnapshot> agg)
+        IReadOnlyDictionary<int, ScenarioLogComparer.AggregatedLogSnapshot> agg,
+        bool hideVisuallyEmptyColumns)
     {
       var all = ComparisonColumnSpecs;
       if (doc?.Lines == null)
+        return all;
+      if (!hideVisuallyEmptyColumns)
         return all;
 
       var expList = doc.LogExpectations ?? new List<ScenarioLogExpectationRow>();

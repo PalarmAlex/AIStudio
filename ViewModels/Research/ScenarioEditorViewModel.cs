@@ -34,6 +34,8 @@ namespace AIStudio.ViewModels.Research
     private string _massFillMode = "Unknown";
     private int _pulseStepIncrement = (int)ScenarioPulseStepIncrement.ActionHoldPlusOne;
     private int _runPulseTimingCoefficient = 1;
+    private bool _reportHideEmptyComparisonColumns = true;
+    private bool _reportHideExpectedWhenNoMismatch = true;
 
     public List<ScenarioExpectationChoiceItem> MassFillOptions { get; } = new List<ScenarioExpectationChoiceItem>
     {
@@ -62,6 +64,8 @@ namespace AIStudio.ViewModels.Research
       _scenarioAuthoritativeRecording = doc.Header.ScenarioAuthoritativeRecording;
       _pulseStepIncrement = NormalizePulseStepIncrementCode(doc.Header.PulseStepIncrement);
       _runPulseTimingCoefficient = NormalizeRunPulseTimingCoefficient(doc.Header.RunPulseTimingCoefficient);
+      _reportHideEmptyComparisonColumns = doc.Header.ReportHideEmptyComparisonColumns;
+      _reportHideExpectedWhenNoMismatch = doc.Header.ReportHideExpectedWhenNoMismatch;
 
       PulseTimingCoefficientChoices = new List<int> { 1, 5, 10, 20 };
 
@@ -476,6 +480,30 @@ namespace AIStudio.ViewModels.Research
       }
     }
 
+    public bool ReportHideEmptyComparisonColumns
+    {
+      get => _reportHideEmptyComparisonColumns;
+      set
+      {
+        if (_reportHideEmptyComparisonColumns == value) return;
+        _reportHideEmptyComparisonColumns = value;
+        OnPropertyChanged();
+        HasUnsavedChanges = true;
+      }
+    }
+
+    public bool ReportHideExpectedWhenNoMismatch
+    {
+      get => _reportHideExpectedWhenNoMismatch;
+      set
+      {
+        if (_reportHideExpectedWhenNoMismatch == value) return;
+        _reportHideExpectedWhenNoMismatch = value;
+        OnPropertyChanged();
+        HasUnsavedChanges = true;
+      }
+    }
+
     public ScenarioLineRow SelectedLine
     {
       get => _selectedLine;
@@ -743,6 +771,8 @@ namespace AIStudio.ViewModels.Research
       doc.Header.ScenarioAuthoritativeRecording = ScenarioAuthoritativeRecording;
       doc.Header.PulseStepIncrement = PulseStepIncrement;
       doc.Header.RunPulseTimingCoefficient = RunPulseTimingCoefficient;
+      doc.Header.ReportHideEmptyComparisonColumns = ReportHideEmptyComparisonColumns;
+      doc.Header.ReportHideExpectedWhenNoMismatch = ReportHideExpectedWhenNoMismatch;
 
       var (okLines, errLines) = ScenarioStorage.SaveScenarioLines(doc);
       if (!okLines)
@@ -771,6 +801,8 @@ namespace AIStudio.ViewModels.Research
       }
 
       Document.Header.Id = doc.Header.Id;
+      Document.Header.ReportHideEmptyComparisonColumns = doc.Header.ReportHideEmptyComparisonColumns;
+      Document.Header.ReportHideExpectedWhenNoMismatch = doc.Header.ReportHideExpectedWhenNoMismatch;
 
       HasUnsavedChanges = false;
       if (showSuccessMessage)
@@ -799,7 +831,9 @@ namespace AIStudio.ViewModels.Research
           ScenarioObservationMode = ScenarioObservationMode,
           ScenarioAuthoritativeRecording = ScenarioAuthoritativeRecording,
           PulseStepIncrement = PulseStepIncrement,
-          RunPulseTimingCoefficient = RunPulseTimingCoefficient
+          RunPulseTimingCoefficient = RunPulseTimingCoefficient,
+          ReportHideEmptyComparisonColumns = ReportHideEmptyComparisonColumns,
+          ReportHideExpectedWhenNoMismatch = ReportHideExpectedWhenNoMismatch
         },
         Lines = Lines.Select(l => l.Clone()).ToList(),
         LogExpectationColumnSkips = Document.LogExpectationColumnSkips?.Clone() ?? new ScenarioLogExpectationColumnSkips(),

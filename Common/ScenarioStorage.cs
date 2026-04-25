@@ -154,6 +154,12 @@ namespace AIStudio.Common
           && (psi == 1 || psi == 2 || psi == 3 || psi == 4))
         header.PulseStepIncrement = psi;
       TryApplyRunPulseCoefficient(meta[i + 7], header);
+      if (meta.Length > i + 8
+          && int.TryParse(meta[i + 8].Trim(), NumberStyles.Integer, CultureInfo.InvariantCulture, out int rEmpty))
+        header.ReportHideEmptyComparisonColumns = rEmpty != 0;
+      if (meta.Length > i + 9
+          && int.TryParse(meta[i + 9].Trim(), NumberStyles.Integer, CultureInfo.InvariantCulture, out int rExp))
+        header.ReportHideExpectedWhenNoMismatch = rExp != 0;
     }
 
     private static void TryApplyRunPulseCoefficient(string raw, ScenarioHeader header)
@@ -348,7 +354,7 @@ namespace AIStudio.Common
       {
         "# Строки сценария оператора",
         $"{LinesFormatHeader}{ScenarioDocument.LinesFileFormatVersion}",
-        $"# SCENARIO_META|{Escape(doc.Header.Title ?? "")}|{Escape(doc.Header.Description ?? "")}|{Escape(doc.Header.InitialHomeostasisValues ?? "")}|{doc.Header.PreRunTargetStage.ToString(CultureInfo.InvariantCulture)}|{(doc.Header.PreRunClearAgentData ? "1" : "0")}|{(doc.Header.ScenarioObservationMode ? "1" : "0")}|{(doc.Header.ScenarioAuthoritativeRecording ? "1" : "0")}|{(doc.Header.PreRunNormalHomeostasisState ? "1" : "0")}|{doc.Header.PulseStepIncrement.ToString(CultureInfo.InvariantCulture)}|{doc.Header.RunPulseTimingCoefficient.ToString(CultureInfo.InvariantCulture)}",
+        $"# SCENARIO_META|{Escape(doc.Header.Title ?? "")}|{Escape(doc.Header.Description ?? "")}|{Escape(doc.Header.InitialHomeostasisValues ?? "")}|{doc.Header.PreRunTargetStage.ToString(CultureInfo.InvariantCulture)}|{(doc.Header.PreRunClearAgentData ? "1" : "0")}|{(doc.Header.ScenarioObservationMode ? "1" : "0")}|{(doc.Header.ScenarioAuthoritativeRecording ? "1" : "0")}|{(doc.Header.PreRunNormalHomeostasisState ? "1" : "0")}|{doc.Header.PulseStepIncrement.ToString(CultureInfo.InvariantCulture)}|{doc.Header.RunPulseTimingCoefficient.ToString(CultureInfo.InvariantCulture)}|{(doc.Header.ReportHideEmptyComparisonColumns ? "1" : "0")}|{(doc.Header.ReportHideExpectedWhenNoMismatch ? "1" : "0")}",
         "# Step|Pulse|Kind(P|W)|ToneId|MoodId|ActionIds|Phrase|ResetWait|VisualColorId",
         "# Kind=W — только клик по плашке ожидания; P — воздействия с пульта. Пульс — по шагам и режиму приращения из метаданных (см. настройки проекта). VisualColorId — код зрительного канала (0…8), см. AgentVisualColor."
       };
