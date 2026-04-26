@@ -388,6 +388,28 @@ namespace AIStudio.Common
           if (string.IsNullOrWhiteSpace(tip))
             return null;
           break;
+        case "Циклы Ф":
+          if (!isFact || snap == null)
+            return null;
+          tip = null;
+          if (snap.BackgroundCycleSegments != null && snap.BackgroundCycleSegments.Count > 1)
+          {
+            var parts = snap.BackgroundCycleSegments
+                .Select(s =>
+                {
+                  var t = string.IsNullOrWhiteSpace(s.Tooltip) ? "—" : s.Tooltip.Trim();
+                  return "Цикл " + s.Id.ToString(CultureInfo.InvariantCulture) + ": " + t;
+                });
+            tip = string.Join("\n\n", parts);
+          }
+          else if (!string.IsNullOrWhiteSpace(snap.BackgroundCyclesTooltip))
+            tip = snap.BackgroundCyclesTooltip.Trim();
+          else if (snap.BackgroundCycleSegments != null && snap.BackgroundCycleSegments.Count == 1 &&
+                   !string.IsNullOrWhiteSpace(snap.BackgroundCycleSegments[0].Tooltip))
+            tip = snap.BackgroundCycleSegments[0].Tooltip.Trim();
+          if (string.IsNullOrWhiteSpace(tip))
+            return null;
+          break;
         default:
           return null;
       }
@@ -525,6 +547,11 @@ namespace AIStudio.Common
               factCellHtmlRaw = true;
               factCellHtml = ScenarioReportLogDisplay.FormatMainCycleFactCellHtml(snap);
             }
+            else if (col.Label == "Циклы Ф")
+            {
+              factCellHtmlRaw = true;
+              factCellHtml = ScenarioReportLogDisplay.FormatBackgroundCyclesFactCellHtml(snap);
+            }
             if (showExpectedColumn[ci])
             {
               var expTitle = GetComparisonCellTooltip(col.Label, isFact: false, expRaw, actRaw, snap, cellTooltips);
@@ -563,7 +590,7 @@ namespace AIStudio.Common
       if (columnLabel == "Актуально")
         return !ScenarioLogComparer.VeryActualExpectationMatches(expectedRaw, actualVal);
       var a = ScenarioLogComparer.NormalizeDisplay(actualVal ?? "");
-      if (columnLabel == "Цикл М")
+      if (columnLabel == "Цикл М" || columnLabel == "Циклы Ф")
         return !ScenarioLogComparer.MainCycleExpectationMatches(expectedRaw, a);
       return !ScenarioLogComparer.ExpectationCellMatches(expectedRaw, a);
     }
@@ -719,7 +746,8 @@ namespace AIStudio.Common
       },
       new ComparisonColumnSpec { Label = "Цепочка РФ", GetExpectedMain = e => e.ReflexChainText ?? "", GetActual = a => a.ReflexChain },
       new ComparisonColumnSpec { Label = "Цепочка АВ", GetExpectedMain = e => e.AutomatizmChainText ?? "", GetActual = a => a.AutomatizmChain },
-      new ComparisonColumnSpec { Label = "Цикл М", GetExpectedMain = e => e.MainCycleText ?? "", GetActual = a => a.MainCycle }
+      new ComparisonColumnSpec { Label = "Цикл М", GetExpectedMain = e => e.MainCycleText ?? "", GetActual = a => a.MainCycle },
+      new ComparisonColumnSpec { Label = "Циклы Ф", GetExpectedMain = e => e.BackgroundCyclesText ?? "", GetActual = a => a.BackgroundCycles }
     };
 
     private static void AppendMetaRow(StringBuilder sb, string name, string valueHtmlEscaped)
@@ -797,8 +825,55 @@ namespace AIStudio.Common
       if (string.IsNullOrEmpty(s))
         return "";
       var normalized = s.Replace("\r\n", "\n").Replace('\r', '\n');
+      normalized = WrapLongTooltipLinesForTitle(normalized, maxLineLength: 68);
       var enc = WebUtility.HtmlEncode(normalized);
       return enc.Replace("\n", "&#10;");
+    }
+
+    /// <summary>Разбивает слишком длинные строки подсказки по пробелам, чтобы title в отчёте не уходил в одну горизонтальную линию.</summary>
+    private static string WrapLongTooltipLinesForTitle(string s, int maxLineLength)
+    {
+      if (string.IsNullOrEmpty(s) || maxLineLength < 24)
+        return s;
+      var paragraphs = s.Split(new[] { "\n\n" }, StringSplitOptions.None);
+      for (int i = 0; i < paragraphs.Length; i++)
+      {
+        var inner = paragraphs[i].Replace("\r", "");
+        var innerLines = inner.Split('\n');
+        for (int j = 0; j < innerLines.Length; j++)
+          innerLines[j] = WrapLongSingleLine(innerLines[j], maxLineLength);
+        paragraphs[i] = string.Join("\n", innerLines);
+      }
+      return string.Join("\n\n", paragraphs);
+    }
+
+    private static string WrapLongSingleLine(string line, int maxLen)
+    {
+      if (string.IsNullOrEmpty(line) || line.Length <= maxLen)
+        return line;
+      var sb = new StringBuilder();
+      var rest = line;
+      int minCut = Math.Max(12, maxLen * 2 / 5);
+      while (rest.Length > maxLen)
+      {
+        int cut = maxLen;
+        int lastSpace = rest.LastIndexOf(' ', maxLen - 1, maxLen);
+        if (lastSpace >= minCut)
+          cut = lastSpace + 1;
+        if (sb.Length > 0)
+          sb.Append('\n');
+        sb.Append(rest.Substring(0, cut));
+        rest = rest.Substring(cut).TrimStart();
+        if (rest.Length == 0)
+          break;
+      }
+      if (rest.Length > 0)
+      {
+        if (sb.Length > 0)
+          sb.Append('\n');
+        sb.Append(rest);
+      }
+      return sb.ToString();
     }
 
     private static string FormatToneCell(int toneId)

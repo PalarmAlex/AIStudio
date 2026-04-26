@@ -60,13 +60,18 @@ namespace AIStudio.Common
     }
 
     /// <summary>HTML ячейки «Цикл М»: несколько циклов на пульсе — через запятую, цвет по статусу задачи.</summary>
-    public static string FormatMainCycleFactCellHtml(ScenarioLogComparer.AggregatedLogSnapshot snap)
+    public static string FormatMainCycleFactCellHtml(ScenarioLogComparer.AggregatedLogSnapshot snap) =>
+        FormatThinkingCycleIdsFactCellHtml(snap?.MainCycleSegments, snap?.MainCycle);
+
+    /// <summary>HTML ячейки «Циклы Ф»: те же классы раскраски, что у «Цикл М».</summary>
+    public static string FormatBackgroundCyclesFactCellHtml(ScenarioLogComparer.AggregatedLogSnapshot snap) =>
+        FormatThinkingCycleIdsFactCellHtml(snap?.BackgroundCycleSegments, snap?.BackgroundCycles);
+
+    private static string FormatThinkingCycleIdsFactCellHtml(
+        IReadOnlyList<MainCyclePulseSegment> segs, string fallbackCommaText)
     {
-      if (snap == null)
-        return WebUtility.HtmlEncode("-");
-      var segs = snap.MainCycleSegments;
       if (segs == null || segs.Count == 0)
-        return WebUtility.HtmlEncode(NormalizeCell(snap.MainCycle ?? ""));
+        return WebUtility.HtmlEncode(NormalizeCell(fallbackCommaText ?? ""));
       if (segs.Count == 1)
         return MainCycleIdSpan(segs[0].TaskStatus, segs[0].Id);
       return string.Join(", ", segs.Select(s => MainCycleIdSpan(s.TaskStatus, s.Id)));

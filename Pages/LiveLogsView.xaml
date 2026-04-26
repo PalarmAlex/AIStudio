@@ -326,9 +326,33 @@
       <Setter Property="ToolTipService.InitialShowDelay" Value="500"/>
     </Style>
 
-    <!-- Стиль для ячейки главного цикла мышления: подсказка с учётом нескольких циклов на пульсе -->
+    <!-- Стиль для ячейки главного цикла мышления: подсказка с переносом строк (длинный текст не в одну линию). -->
     <Style x:Key="MainThinkingCycleCellStyle" TargetType="DataGridCell" BasedOn="{StaticResource MatrixCellStyle}">
-      <Setter Property="ToolTip" Value="{Binding MainCycleAggregatedCellTooltip}"/>
+      <Setter Property="ToolTip">
+        <Setter.Value>
+          <ToolTip DataContext="{Binding PlacementTarget.DataContext, RelativeSource={RelativeSource Self}}"
+                   MaxWidth="420">
+            <TextBlock Text="{Binding MainCycleAggregatedCellTooltip}"
+                       TextWrapping="Wrap"
+                       FontFamily="Consolas, Courier New"
+                       FontSize="12"/>
+          </ToolTip>
+        </Setter.Value>
+      </Setter>
+    </Style>
+
+    <Style x:Key="BackgroundThinkingCycleCellStyle" TargetType="DataGridCell" BasedOn="{StaticResource MatrixCellStyle}">
+      <Setter Property="ToolTip">
+        <Setter.Value>
+          <ToolTip DataContext="{Binding PlacementTarget.DataContext, RelativeSource={RelativeSource Self}}"
+                   MaxWidth="420">
+            <TextBlock Text="{Binding BackgroundCycleAggregatedCellTooltip}"
+                       TextWrapping="Wrap"
+                       FontFamily="Consolas, Courier New"
+                       FontSize="12"/>
+          </ToolTip>
+        </Setter.Value>
+      </Setter>
     </Style>
 
   </UserControl.Resources>
@@ -520,9 +544,14 @@
 
           <DataGridTemplateColumn Width="88" CellStyle="{StaticResource MainThinkingCycleCellStyle}">
             <DataGridTemplateColumn.Header>
-              <DataGridColumnHeader Style="{StaticResource MatrixHeaderStyle}"
-                            Content="Цикл М"
-                            ToolTip="Главный цикл мышления на пульсе. Несколько циклов — через запятую; цвет номера: жёлтый — ожидание оценки, красный — нет решения, зелёный — решение (в т.ч. завершён после подтверждения)."/>
+              <DataGridColumnHeader Style="{StaticResource MatrixHeaderStyle}" Content="Цикл М">
+                <DataGridColumnHeader.ToolTip>
+                  <ToolTip MaxWidth="380">
+                    <TextBlock TextWrapping="Wrap" FontFamily="Consolas, Courier New" FontSize="12"
+                               Text="Главный цикл мышления на пульсе. Несколько номеров — через запятую.&#10;&#10;Цвет номера: жёлтый — ожидание оценки; красный — нет решения; зелёный — решение (в т.ч. завершён после подтверждения)."/>
+                  </ToolTip>
+                </DataGridColumnHeader.ToolTip>
+              </DataGridColumnHeader>
             </DataGridTemplateColumn.Header>
             <DataGridTemplateColumn.CellTemplate>
               <DataTemplate>
@@ -534,6 +563,56 @@
                     Visibility="{Binding MainCycleLiveSegmentCount, Converter={StaticResource MainCycleSegmentCountVisibility}}"/>
                   <ItemsControl ItemsSource="{Binding MainCycleLiveSegments}"
                     Visibility="{Binding MainCycleLiveSegmentCount, Converter={StaticResource MainCycleSegmentCountVisibility}, ConverterParameter=Invert}">
+                    <ItemsControl.ItemsPanel>
+                      <ItemsPanelTemplate>
+                        <StackPanel Orientation="Horizontal"/>
+                      </ItemsPanelTemplate>
+                    </ItemsControl.ItemsPanel>
+                    <ItemsControl.ItemTemplate>
+                      <DataTemplate>
+                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                          <TextBlock Text=", "
+                            FontFamily="Consolas, Courier New"
+                            FontSize="12"
+                            Foreground="#FFB8FFB8"
+                            VerticalAlignment="Center"
+                            Visibility="{Binding ShowLeadingComma, Converter={StaticResource BooleanToVisibilityConverter}}"/>
+                          <TextBlock Text="{Binding Id}"
+                            FontFamily="Consolas, Courier New"
+                            FontSize="12"
+                            FontWeight="Bold"
+                            Foreground="{Binding IdForeground}"
+                            VerticalAlignment="Center"/>
+                        </StackPanel>
+                      </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                  </ItemsControl>
+                </StackPanel>
+              </DataTemplate>
+            </DataGridTemplateColumn.CellTemplate>
+          </DataGridTemplateColumn>
+
+          <DataGridTemplateColumn Width="88" CellStyle="{StaticResource BackgroundThinkingCycleCellStyle}">
+            <DataGridTemplateColumn.Header>
+              <DataGridColumnHeader Style="{StaticResource MatrixHeaderStyle}" Content="Циклы Ф">
+                <DataGridColumnHeader.ToolTip>
+                  <ToolTip MaxWidth="380">
+                    <TextBlock TextWrapping="Wrap" FontFamily="Consolas, Courier New" FontSize="12"
+                               Text="Фоновые циклы мышления на пульсе: id через запятую, слева — тяжелее по весу.&#10;&#10;Цвет номера: жёлтый — ожидание оценки; красный — нет решения; зелёный — решение (в т.ч. завершён после подтверждения)."/>
+                  </ToolTip>
+                </DataGridColumnHeader.ToolTip>
+              </DataGridColumnHeader>
+            </DataGridTemplateColumn.Header>
+            <DataGridTemplateColumn.CellTemplate>
+              <DataTemplate>
+                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                  <TextBlock Text="-"
+                    FontFamily="Consolas, Courier New"
+                    FontSize="12"
+                    VerticalAlignment="Center"
+                    Visibility="{Binding BackgroundCycleLiveSegmentCount, Converter={StaticResource MainCycleSegmentCountVisibility}}"/>
+                  <ItemsControl ItemsSource="{Binding BackgroundCycleLiveSegments}"
+                    Visibility="{Binding BackgroundCycleLiveSegmentCount, Converter={StaticResource MainCycleSegmentCountVisibility}, ConverterParameter=Invert}">
                     <ItemsControl.ItemsPanel>
                       <ItemsPanelTemplate>
                         <StackPanel Orientation="Horizontal"/>

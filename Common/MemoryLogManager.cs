@@ -7,6 +7,7 @@ using System.Text;
 using System.Windows;
 using System.Windows.Threading;
 using ISIDA.Common;
+using Newtonsoft.Json;
 
 namespace AIStudio.Common
 {
@@ -196,7 +197,8 @@ namespace AIStudio.Common
                        string mainThinkingCycleTaskStatus = null,
                        bool informationEnvironmentDanger = false,
                        bool informationEnvironmentVeryActual = false,
-                       int? automatizmUsefulnessAtSnapshot = null)
+                       int? automatizmUsefulnessAtSnapshot = null,
+                       string backgroundThinkingCyclesJson = null)
     {
       if (_disposed) return;
 
@@ -204,7 +206,8 @@ namespace AIStudio.Common
           orientationReflexType, geneticReflexId, conditionedReflexId, automatizmId, reflexChainInfo,
           automatizmChainInfo, thinkingLevel, thinkingLevelSuccess, thinkingThemeTypeId,
           thinkingThemeTooltip, mainThinkingCycleId, mainThinkingCycleTooltip, mainThinkingCycleTaskStatus,
-          informationEnvironmentDanger, informationEnvironmentVeryActual, automatizmUsefulnessAtSnapshot);
+          informationEnvironmentDanger, informationEnvironmentVeryActual, automatizmUsefulnessAtSnapshot,
+          backgroundThinkingCyclesJson);
 
       AddLogEntry(entry);
     }
@@ -221,7 +224,7 @@ namespace AIStudio.Common
         int? thinkingLevel, bool? thinkingLevelSuccess, int? thinkingThemeTypeId, string thinkingThemeTooltip,
         int? mainThinkingCycleId, string mainThinkingCycleTooltip, string mainThinkingCycleTaskStatus,
         bool informationEnvironmentDanger, bool informationEnvironmentVeryActual,
-        int? automatizmUsefulnessAtSnapshot = null)
+        int? automatizmUsefulnessAtSnapshot = null, string backgroundThinkingCyclesJson = null)
     {
       return new LogEntry
       {
@@ -244,6 +247,9 @@ namespace AIStudio.Common
         MainThinkingCycleId = mainThinkingCycleId.HasValue && mainThinkingCycleId.Value > 0 ? mainThinkingCycleId : null,
         MainThinkingCycleTooltip = string.IsNullOrEmpty(mainThinkingCycleTooltip) ? null : mainThinkingCycleTooltip,
         MainThinkingCycleTaskStatus = string.IsNullOrEmpty(mainThinkingCycleTaskStatus) ? null : mainThinkingCycleTaskStatus,
+        BackgroundThinkingCyclesJson = string.IsNullOrWhiteSpace(backgroundThinkingCyclesJson)
+            ? null
+            : backgroundThinkingCyclesJson.Trim(),
         InformationEnvironmentDanger = informationEnvironmentDanger,
         InformationEnvironmentVeryActual = informationEnvironmentVeryActual,
         AutomatizmUsefulnessAtSnapshot = automatizmUsefulnessAtSnapshot,
@@ -267,7 +273,7 @@ namespace AIStudio.Common
           string thinkingThemeTooltip = null, int? mainThinkingCycleId = null,
           string mainThinkingCycleTooltip = null, string mainThinkingCycleTaskStatus = null,
           bool informationEnvironmentDanger = false, bool informationEnvironmentVeryActual = false,
-          int? automatizmUsefulnessAtSnapshot = null)
+          int? automatizmUsefulnessAtSnapshot = null, string backgroundThinkingCyclesJson = null)
       {
         if (_owner._disposed)
           return;
@@ -275,7 +281,8 @@ namespace AIStudio.Common
             orientationReflexType, geneticReflexId, conditionedReflexId, automatizmId, reflexChainInfo,
             automatizmChainInfo, thinkingLevel, thinkingLevelSuccess, thinkingThemeTypeId,
             thinkingThemeTooltip, mainThinkingCycleId, mainThinkingCycleTooltip, mainThinkingCycleTaskStatus,
-            informationEnvironmentDanger, informationEnvironmentVeryActual, automatizmUsefulnessAtSnapshot);
+            informationEnvironmentDanger, informationEnvironmentVeryActual, automatizmUsefulnessAtSnapshot,
+            backgroundThinkingCyclesJson);
         _owner.UpsertAgentDisplayLogEntry(entry);
       }
 
@@ -347,10 +354,17 @@ namespace AIStudio.Common
     private void RefreshAgentDisplayMainCycleAggregatesLocked()
     {
       foreach (var g in _agentDisplayLogEntries.Where(e => e.Pulse.HasValue).GroupBy(e => e.Pulse.Value))
-        ApplyMainCyclePulseDisplayToGroup(g.ToList());
+      {
+        var list = g.ToList();
+        ApplyMainCyclePulseDisplayToGroup(list);
+        ApplyBackgroundCyclePulseDisplayToGroup(list);
+      }
 
       foreach (var e in _agentDisplayLogEntries.Where(e => !e.Pulse.HasValue))
+      {
         e.ApplyPulseMainCycleDisplay(null, e.MainThinkingCycleTooltip ?? "");
+        e.ApplyPulseBackgroundCycleDisplay(null, "");
+      }
     }
 
     private static void ApplyMainCyclePulseDisplayToGroup(List<LogEntry> group)
@@ -398,6 +412,82 @@ namespace AIStudio.Common
       {
         string tip = buf.Count > 1 ? (aggTip ?? "") : (e.MainThinkingCycleTooltip ?? "");
         e.ApplyPulseMainCycleDisplay(segments, tip);
+      }
+    }
+
+    private sealed class BackgroundCycleJsonItem
+    {
+      public int Id { get; set; }
+      public int Weight { get; set; }
+      public string TaskStatus { get; set; }
+      public string Tooltip { get; set; }
+    }
+
+    private static List<BackgroundCycleJsonItem> TryParseBackgroundCyclesJson(string json)
+    {
+      var list = new List<BackgroundCycleJsonItem>();
+      if (string.IsNullOrWhiteSpace(json))
+        return list;
+      try
+      {
+        var arr = JsonConvert.DeserializeObject<List<BackgroundCycleJsonItem>>(json);
+        if (arr != null)
+          list.AddRange(arr.Where(x => x != null && x.Id > 0));
+      }
+      catch
+      {
+      }
+      return list;
+    }
+
+    private static void ApplyBackgroundCyclePulseDisplayToGroup(List<LogEntry> group)
+    {
+      if (group == null || group.Count == 0)
+        return;
+
+      var ordered = group.OrderBy(e => e.Timestamp).ToList();
+      var byId = new Dictionary<int, (int weight, string st, string tip)>();
+      foreach (var e in ordered)
+      {
+        foreach (var it in TryParseBackgroundCyclesJson(e.BackgroundThinkingCyclesJson))
+        {
+          string st = string.IsNullOrWhiteSpace(it.TaskStatus) ? "NoSolution" : it.TaskStatus.Trim();
+          string tip = string.IsNullOrWhiteSpace(it.Tooltip) ? null : it.Tooltip.Trim();
+          byId[it.Id] = (it.Weight, st, tip);
+        }
+      }
+
+      if (byId.Count == 0)
+      {
+        foreach (var e in group)
+          e.ApplyPulseBackgroundCycleDisplay(null, "");
+        return;
+      }
+
+      var sorted = byId.OrderByDescending(kv => kv.Value.weight).ToList();
+      var segments = new List<AgentLogMainCycleLiveSegment>();
+      for (int k = 0; k < sorted.Count; k++)
+        segments.Add(new AgentLogMainCycleLiveSegment(sorted[k].Key, sorted[k].Value.st, k > 0));
+
+      string aggTip = null;
+      if (sorted.Count > 1)
+      {
+        var sb = new StringBuilder();
+        for (int i = 0; i < sorted.Count; i++)
+        {
+          if (i > 0)
+            sb.AppendLine().AppendLine();
+          var t = string.IsNullOrEmpty(sorted[i].Value.tip) ? "—" : sorted[i].Value.tip;
+          sb.Append("Цикл ").Append(sorted[i].Key).Append(": ").Append(t);
+        }
+        aggTip = sb.ToString();
+      }
+
+      string singleTip = sorted.Count == 1 ? (sorted[0].Value.tip ?? "") : null;
+      foreach (var e in group)
+      {
+        string tip = sorted.Count > 1 ? (aggTip ?? "") : singleTip ?? "";
+        e.ApplyPulseBackgroundCycleDisplay(segments, tip);
       }
     }
 
@@ -1000,6 +1090,9 @@ namespace AIStudio.Common
       /// <summary>Статус задачи главного цикла для фона ячейки: Awaiting / NoSolution / Solved.</summary>
       public string MainThinkingCycleTaskStatus { get; set; }
 
+      /// <summary>JSON фоновых циклов (как в ResearchLogger «ЦиклыФ_json»).</summary>
+      public string BackgroundThinkingCyclesJson { get; set; }
+
       public event PropertyChangedEventHandler PropertyChanged;
 
       private string _mainCycleAggregatedCellTooltip;
@@ -1024,6 +1117,30 @@ namespace AIStudio.Common
         _mainCycleAggregatedCellTooltip = cellTooltip ?? "";
         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(MainCycleAggregatedCellTooltip)));
         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(MainCycleLiveSegmentCount)));
+      }
+
+      private string _backgroundCycleAggregatedCellTooltip;
+
+      /// <summary>Подсказка ячейки «Циклы Ф» (несколько циклов — объединённая).</summary>
+      public string BackgroundCycleAggregatedCellTooltip => _backgroundCycleAggregatedCellTooltip ?? "";
+
+      /// <summary>Сегменты «Циклы Ф» (те же цвета статуса, что у «Цикл М»).</summary>
+      public ObservableCollection<AgentLogMainCycleLiveSegment> BackgroundCycleLiveSegments { get; } =
+          new ObservableCollection<AgentLogMainCycleLiveSegment>();
+
+      public int BackgroundCycleLiveSegmentCount => BackgroundCycleLiveSegments.Count;
+
+      internal void ApplyPulseBackgroundCycleDisplay(IEnumerable<AgentLogMainCycleLiveSegment> segments, string cellTooltip)
+      {
+        BackgroundCycleLiveSegments.Clear();
+        if (segments != null)
+        {
+          foreach (var s in segments)
+            BackgroundCycleLiveSegments.Add(s);
+        }
+        _backgroundCycleAggregatedCellTooltip = cellTooltip ?? "";
+        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(BackgroundCycleAggregatedCellTooltip)));
+        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(BackgroundCycleLiveSegmentCount)));
       }
 
       /// <summary>Признак опасной ситуации в информационной среде (для столбца «Опасно»).</summary>

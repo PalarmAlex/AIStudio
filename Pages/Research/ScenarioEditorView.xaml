@@ -482,6 +482,7 @@
             <DataGridTextColumn Header="Цепочка РФ" Binding="{Binding ReflexChainText, UpdateSourceTrigger=PropertyChanged}" Width="88"/>
             <DataGridTextColumn Header="Цепочка АВ" Binding="{Binding AutomatizmChainText, UpdateSourceTrigger=PropertyChanged}" Width="88"/>
             <DataGridTextColumn Header="Цикл М" Binding="{Binding MainCycleText, UpdateSourceTrigger=PropertyChanged}" Width="72"/>
+            <DataGridTextColumn Header="Циклы Ф" Binding="{Binding BackgroundCyclesText, UpdateSourceTrigger=PropertyChanged}" Width="72"/>
           </DataGrid.Columns>
         </DataGrid>
       </Grid>

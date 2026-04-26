@@ -308,6 +308,7 @@ namespace AIStudio.ViewModels.Research
       r.ReflexChainText = NormalizeExpectedCell(r.ReflexChainText);
       r.AutomatizmChainText = NormalizeExpectedCell(r.AutomatizmChainText);
       r.MainCycleText = NormalizeExpectedCell(r.MainCycleText);
+      r.BackgroundCyclesText = NormalizeExpectedCell(r.BackgroundCyclesText);
     }
 
     /// <summary>Состояние, стиль, ОР/УМ: «-», пусто (не проверять) или код.</summary>

@@ -4,6 +4,7 @@ using System.Globalization;
 using System.Linq;
 using System.Text;
 using ISIDA.Scenarios;
+using Newtonsoft.Json;
 
 namespace AIStudio.Common
 {
@@ -18,6 +19,9 @@ namespace AIStudio.Common
 
     /// <summary>Подсказка с этой записи лога.</summary>
     public string Tooltip { get; set; }
+
+    /// <summary>Вес цикла (для сортировки «Циклы Ф» по убыванию в агрегате).</summary>
+    public int Weight { get; set; }
   }
 
   /// <summary>Слияние записей лога по глобальному пульсу и сравнение с ожиданиями сценария.</summary>
@@ -48,11 +52,19 @@ namespace AIStudio.Common
       /// <summary>Номера циклов на пульсе по порядку появления в логе (для раскраски в отчёте).</summary>
       public List<MainCyclePulseSegment> MainCycleSegments { get; } = new List<MainCyclePulseSegment>();
 
+      public string BackgroundCycles { get; set; } = "-";
+
+      /// <summary>Фоновые циклы на пульсе (по убыванию веса в агрегате).</summary>
+      public List<MainCyclePulseSegment> BackgroundCycleSegments { get; } = new List<MainCyclePulseSegment>();
+
       /// <summary>Текст подсказки темы с последней записи лога на пульсе (если есть).</summary>
       public string ThemeTooltip { get; set; }
 
       /// <summary>Текст подсказки главного цикла мышления с последней записи на пульсе.</summary>
       public string MainCycleTooltip { get; set; }
+
+      /// <summary>Подсказка по фоновым циклам на пульсе.</summary>
+      public string BackgroundCyclesTooltip { get; set; }
     }
 
     /// <summary>Группирует записи по пульсу: для каждого поля берётся последнее не «-» значение по времени.
@@ -130,6 +142,41 @@ namespace AIStudio.Common
                 .ToList();
             if (tipParts.Count > 0)
               snap.MainCycleTooltip = string.Join("\n\n", tipParts);
+          }
+
+          if (!string.IsNullOrWhiteSpace(e.BackgroundThinkingCyclesJson))
+          {
+            snap.BackgroundCycleSegments.Clear();
+            foreach (var it in TryParseBackgroundCyclesJson(e.BackgroundThinkingCyclesJson))
+            {
+              if (it.Id <= 0)
+                continue;
+              var st = string.IsNullOrWhiteSpace(it.TaskStatus) ? "NoSolution" : it.TaskStatus.Trim();
+              var tip = string.IsNullOrWhiteSpace(it.Tooltip) ? null : it.Tooltip.Trim();
+              snap.BackgroundCycleSegments.Add(new MainCyclePulseSegment
+              {
+                Id = it.Id,
+                TaskStatus = st,
+                Tooltip = tip,
+                Weight = it.Weight
+              });
+            }
+
+            if (snap.BackgroundCycleSegments.Count > 0)
+            {
+              var orderedBg = snap.BackgroundCycleSegments.OrderByDescending(s => s.Weight).ThenBy(s => s.Id).ToList();
+              snap.BackgroundCycles = string.Join(", ", orderedBg.Select(s => s.Id.ToString(CultureInfo.InvariantCulture)));
+              var bgTipParts = orderedBg
+                  .Select(s => string.IsNullOrEmpty(s.Tooltip) ? null : $"Цикл {s.Id}: {s.Tooltip}")
+                  .Where(x => !string.IsNullOrEmpty(x))
+                  .ToList();
+              snap.BackgroundCyclesTooltip = bgTipParts.Count > 0 ? string.Join("\n\n", bgTipParts) : null;
+            }
+            else
+            {
+              snap.BackgroundCycles = "-";
+              snap.BackgroundCyclesTooltip = null;
+            }
           }
         }
 
@@ -373,7 +420,7 @@ namespace AIStudio.Common
             }
             return;
           }
-          if (label == "Цикл М")
+          if (label == "Цикл М" || label == "Циклы Ф")
           {
             if (!MainCycleExpectationMatches(expectedRaw, a))
             {
@@ -410,6 +457,7 @@ namespace AIStudio.Common
         Check("Цепочка РФ", exp.ReflexChainText, actual.ReflexChain);
         Check("Цепочка АВ", exp.AutomatizmChainText, actual.AutomatizmChain);
         Check("Цикл М", exp.MainCycleText, actual.MainCycle);
+        Check("Циклы Ф", exp.BackgroundCyclesText, actual.BackgroundCycles);
 
         var ok = mismatches.Count == 0;
         var sb = new StringBuilder();
@@ -429,6 +477,36 @@ namespace AIStudio.Common
       }
 
       return list;
+    }
+
+    private sealed class BackgroundCycleJsonItem
+    {
+      public int Id { get; set; }
+      public int Weight { get; set; }
+      public string TaskStatus { get; set; }
+      public string Tooltip { get; set; }
+    }
+
+    private static IEnumerable<BackgroundCycleJsonItem> TryParseBackgroundCyclesJson(string json)
+    {
+      if (string.IsNullOrWhiteSpace(json))
+        yield break;
+      List<BackgroundCycleJsonItem> list;
+      try
+      {
+        list = JsonConvert.DeserializeObject<List<BackgroundCycleJsonItem>>(json);
+      }
+      catch
+      {
+        yield break;
+      }
+      if (list == null)
+        yield break;
+      foreach (var x in list)
+      {
+        if (x != null && x.Id > 0)
+          yield return x;
+      }
     }
   }
 }
