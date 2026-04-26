@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Net;
 using ISIDA.Reflexes;
@@ -56,6 +57,33 @@ namespace AIStudio.Common
         return WebUtility.HtmlEncode(a);
       var cls = thinkingLevelSuccess == true ? "um-ok" : "um-bad";
       return "<span class=\"" + cls + "\">" + WebUtility.HtmlEncode(a) + "</span>";
+    }
+
+    /// <summary>HTML ячейки «Цикл М»: несколько циклов на пульсе — через запятую, цвет по статусу задачи.</summary>
+    public static string FormatMainCycleFactCellHtml(ScenarioLogComparer.AggregatedLogSnapshot snap)
+    {
+      if (snap == null)
+        return WebUtility.HtmlEncode("-");
+      var segs = snap.MainCycleSegments;
+      if (segs == null || segs.Count == 0)
+        return WebUtility.HtmlEncode(NormalizeCell(snap.MainCycle ?? ""));
+      if (segs.Count == 1)
+        return MainCycleIdSpan(segs[0].TaskStatus, segs[0].Id);
+      return string.Join(", ", segs.Select(s => MainCycleIdSpan(s.TaskStatus, s.Id)));
+    }
+
+    private static string MainCycleIdSpan(string taskStatus, int id)
+    {
+      string cls = "mc-await";
+      if (string.Equals(taskStatus, "NoSolution", StringComparison.Ordinal))
+        cls = "mc-ns";
+      else if (string.Equals(taskStatus, "Awaiting", StringComparison.Ordinal))
+        cls = "mc-await";
+      else if (string.Equals(taskStatus, "Solved", StringComparison.Ordinal) ||
+               string.Equals(taskStatus, "Completed", StringComparison.Ordinal))
+        cls = "mc-solved";
+      return "<span class=\"" + cls + "\">" +
+             WebUtility.HtmlEncode(id.ToString(CultureInfo.InvariantCulture)) + "</span>";
     }
 
     /// <summary>

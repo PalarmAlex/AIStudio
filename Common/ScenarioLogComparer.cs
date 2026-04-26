@@ -7,6 +7,19 @@ using ISIDA.Scenarios;
 
 namespace AIStudio.Common
 {
+  /// <summary>Один номер цикла мышления на пульсе с последним известным статусом (для отчёта).</summary>
+  public sealed class MainCyclePulseSegment
+  {
+    /// <summary>Идентификатор экземпляра цикла.</summary>
+    public int Id { get; set; }
+
+    /// <summary>Статус: Awaiting / NoSolution / Solved / Completed.</summary>
+    public string TaskStatus { get; set; }
+
+    /// <summary>Подсказка с этой записи лога.</summary>
+    public string Tooltip { get; set; }
+  }
+
   /// <summary>Слияние записей лога по глобальному пульсу и сравнение с ожиданиями сценария.</summary>
   public static class ScenarioLogComparer
   {
@@ -31,6 +44,9 @@ namespace AIStudio.Common
       public string ReflexChain { get; set; } = "-";
       public string AutomatizmChain { get; set; } = "-";
       public string MainCycle { get; set; } = "-";
+
+      /// <summary>Номера циклов на пульсе по порядку появления в логе (для раскраски в отчёте).</summary>
+      public List<MainCyclePulseSegment> MainCycleSegments { get; } = new List<MainCyclePulseSegment>();
 
       /// <summary>Текст подсказки темы с последней записи лога на пульсе (если есть).</summary>
       public string ThemeTooltip { get; set; }
@@ -80,6 +96,40 @@ namespace AIStudio.Common
             snap.MainCycle = mainCand;
             if (!string.IsNullOrWhiteSpace(e.MainThinkingCycleTooltip))
               snap.MainCycleTooltip = e.MainThinkingCycleTooltip.Trim();
+          }
+
+          if (e.MainThinkingCycleId.HasValue && e.MainThinkingCycleId.Value > 0)
+          {
+            var st = string.IsNullOrWhiteSpace(e.MainThinkingCycleTaskStatus)
+                ? "NoSolution"
+                : e.MainThinkingCycleTaskStatus.Trim();
+            var tip = string.IsNullOrWhiteSpace(e.MainThinkingCycleTooltip)
+                ? null
+                : e.MainThinkingCycleTooltip.Trim();
+            int idx = snap.MainCycleSegments.FindIndex(s => s.Id == e.MainThinkingCycleId.Value);
+            if (idx >= 0)
+            {
+              snap.MainCycleSegments[idx].TaskStatus = st;
+              if (!string.IsNullOrEmpty(tip))
+                snap.MainCycleSegments[idx].Tooltip = tip;
+            }
+            else
+            {
+              snap.MainCycleSegments.Add(new MainCyclePulseSegment
+              {
+                Id = e.MainThinkingCycleId.Value,
+                TaskStatus = st,
+                Tooltip = tip
+              });
+            }
+
+            snap.MainCycle = string.Join(", ", snap.MainCycleSegments.Select(s => s.Id.ToString(CultureInfo.InvariantCulture)));
+            var tipParts = snap.MainCycleSegments
+                .Select(s => string.IsNullOrEmpty(s.Tooltip) ? null : $"Цикл {s.Id}: {s.Tooltip}")
+                .Where(x => !string.IsNullOrEmpty(x))
+                .ToList();
+            if (tipParts.Count > 0)
+              snap.MainCycleTooltip = string.Join("\n\n", tipParts);
           }
         }
 
@@ -162,6 +212,38 @@ namespace AIStudio.Common
         return "-";
       var t = raw.Trim();
       return t.Length == 0 ? "-" : t;
+    }
+
+    /// <summary>Сравнение ожидания с фактом по «Цикл М»: допускает несколько номеров через запятую в факте.</summary>
+    public static bool MainCycleExpectationMatches(string expectedRaw, string actualDisplayNormalized)
+    {
+      if (string.IsNullOrWhiteSpace(expectedRaw))
+        return true;
+      var a = actualDisplayNormalized ?? "-";
+      if (ExpectationCellMatches(expectedRaw, a))
+        return true;
+      if (a == "-")
+        return false;
+      var actualTokens = new HashSet<string>(StringComparer.Ordinal);
+      foreach (var tok in a.Split(',').Select(t => t.Trim()).Where(t => t.Length > 0))
+        actualTokens.Add(tok);
+      if (actualTokens.Count == 0)
+        return false;
+      foreach (var part in expectedRaw.Split('|'))
+      {
+        var p = part.Trim();
+        if (p.Length == 0)
+          continue;
+        if (p.IndexOf(',') >= 0)
+        {
+          var need = p.Split(',').Select(t => t.Trim()).Where(t => t.Length > 0).ToList();
+          if (need.Count > 0 && need.All(t => actualTokens.Contains(t)))
+            return true;
+        }
+        else if (actualTokens.Contains(p))
+          return true;
+      }
+      return false;
     }
 
     /// <summary>Текст ячейки «полезность автоматизма» для отчёта и сравнения с ожиданием.</summary>
@@ -288,6 +370,14 @@ namespace AIStudio.Common
               var expPhrase = ScenarioReportLogDisplay.FormatDangerComparisonCell(e);
               var factPhrase = ScenarioReportLogDisplay.FormatDangerComparisonCell(aCanon);
               mismatches.Add($"{label}: ожид. «{expPhrase}», факт «{factPhrase}»");
+            }
+            return;
+          }
+          if (label == "Цикл М")
+          {
+            if (!MainCycleExpectationMatches(expectedRaw, a))
+            {
+              mismatches.Add($"{label}: ожид. «{e}», факт «{a}»");
             }
             return;
           }

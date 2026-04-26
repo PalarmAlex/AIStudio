@@ -4,6 +4,7 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:converters="clr-namespace:AIStudio.Converters"
+             xmlns:pages="clr-namespace:AIStudio.Pages"
              mc:Ignorable="d" 
              d:DesignHeight="600" d:DesignWidth="1050">
 
@@ -15,6 +16,9 @@
     <converters:ActionsForConditionReflexConverter x:Key="ActionsForConditionReflexConverter"/>
     <converters:AutomatizmTooltipMultiConverter x:Key="AutomatizmTooltipConverter"/>
     <converters:OrUmTooltipMultiConverter x:Key="OrUmTooltipConverter"/>
+    <converters:IntToVisibilityConverter x:Key="MainCycleSegmentCountVisibility"/>
+    <converters:InverseBooleanToVisibilityConverter x:Key="InverseBooleanToVisibilityConverter"/>
+    <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter"/>
 
     <!-- Стиль для текста матрицы -->
     <Style x:Key="MatrixTextStyle" TargetType="TextBlock">
@@ -164,7 +168,7 @@
       <Setter Property="ToolTip">
         <Setter.Value>
           <MultiBinding Converter="{StaticResource StyleTooltipConverter}">
-            <Binding ElementName="LogDataGrid" Path="DataContext"/>
+            <Binding Path="LogsViewModel" RelativeSource="{RelativeSource AncestorType={x:Type pages:LiveLogsToolTipScope}}"/>
             <Binding Path="DisplayBaseStyleID"/>
           </MultiBinding>
         </Setter.Value>
@@ -176,7 +180,7 @@
       <Setter Property="ToolTip">
         <Setter.Value>
           <MultiBinding Converter="{StaticResource TriggerTooltipConverter}">
-            <Binding ElementName="LogDataGrid" Path="DataContext"/>
+            <Binding Path="LogsViewModel" RelativeSource="{RelativeSource AncestorType={x:Type pages:LiveLogsToolTipScope}}"/>
             <Binding Path="DisplayTriggerStimulusID"/>
           </MultiBinding>
         </Setter.Value>
@@ -193,7 +197,7 @@
       <Setter Property="ToolTip">
         <Setter.Value>
           <MultiBinding Converter="{StaticResource ActionsForGeneticReflexConverter}">
-            <Binding ElementName="LogDataGrid" Path="DataContext"/>
+            <Binding Path="LogsViewModel" RelativeSource="{RelativeSource AncestorType={x:Type pages:LiveLogsToolTipScope}}"/>
             <Binding Path="DisplayGeneticReflexID"/>
           </MultiBinding>
         </Setter.Value>
@@ -205,7 +209,7 @@
       <Setter Property="ToolTip">
         <Setter.Value>
           <MultiBinding Converter="{StaticResource ActionsForConditionReflexConverter}">
-            <Binding ElementName="LogDataGrid" Path="DataContext"/>
+            <Binding Path="LogsViewModel" RelativeSource="{RelativeSource AncestorType={x:Type pages:LiveLogsToolTipScope}}"/>
             <Binding Path="DisplayConditionReflexID"/>
           </MultiBinding>
         </Setter.Value>
@@ -217,7 +221,7 @@
       <Setter Property="ToolTip">
         <Setter.Value>
           <MultiBinding Converter="{StaticResource AutomatizmTooltipConverter}">
-            <Binding ElementName="LogDataGrid" Path="DataContext"/>
+            <Binding Path="LogsViewModel" RelativeSource="{RelativeSource AncestorType={x:Type pages:LiveLogsToolTipScope}}"/>
             <Binding Path="DisplayAutomatizmID"/>
             <Binding Path="AutomatizmUsefulnessAtSnapshot"/>
           </MultiBinding>
@@ -239,15 +243,13 @@
       </Style.Triggers>
     </Style>
 
-    <!-- Стиль для ячейки «Актуально»: при актуальной ситуации красный фон, без цифры в ячейке -->
+    <!-- Стиль для ячейки «Актуально»: восклицательный знак в шаблоне, без заливки фона -->
     <Style x:Key="VeryActualCellStyle" TargetType="DataGridCell" BasedOn="{StaticResource MatrixCellStyle}">
       <Style.Triggers>
         <DataTrigger Binding="{Binding InformationEnvironmentVeryActual}" Value="True">
-          <Setter Property="Background" Value="#80FF0000"/>
           <Setter Property="ToolTip" Value="Актуальная ситуация"/>
         </DataTrigger>
         <DataTrigger Binding="{Binding InformationEnvironmentVeryActual}" Value="False">
-          <Setter Property="Background" Value="Transparent"/>
           <Setter Property="ToolTip" Value="Ситуация не актуальна"/>
         </DataTrigger>
       </Style.Triggers>
@@ -259,7 +261,7 @@
       <Setter Property="ToolTip">
         <Setter.Value>
           <MultiBinding Converter="{StaticResource OrUmTooltipConverter}">
-            <Binding ElementName="LogDataGrid" Path="DataContext"/>
+            <Binding Path="LogsViewModel" RelativeSource="{RelativeSource AncestorType={x:Type pages:LiveLogsToolTipScope}}"/>
             <Binding Path="DisplayOrUm"/>
             <Binding Path="ThinkingLevelSuccessDisplay"/>
           </MultiBinding>
@@ -324,9 +326,9 @@
       <Setter Property="ToolTipService.InitialShowDelay" Value="500"/>
     </Style>
 
-    <!-- Стиль для ячейки главного цикла мышления: номер цикла; статус — во всплывающей подсказке -->
+    <!-- Стиль для ячейки главного цикла мышления: подсказка с учётом нескольких циклов на пульсе -->
     <Style x:Key="MainThinkingCycleCellStyle" TargetType="DataGridCell" BasedOn="{StaticResource MatrixCellStyle}">
-      <Setter Property="ToolTip" Value="{Binding MainThinkingCycleTooltip}"/>
+      <Setter Property="ToolTip" Value="{Binding MainCycleAggregatedCellTooltip}"/>
     </Style>
 
   </UserControl.Resources>
@@ -350,8 +352,9 @@
       </StackPanel>
     </Border>
 
-    <!-- Таблица логов -->
-    <Border Grid.Row="1" Margin="5" BorderBrush="#00FF00" BorderThickness="1" Background="#080808">
+    <!-- Таблица логов (обёртка — стабильный предок для FindAncestor в подсказках ячеек) -->
+    <pages:LiveLogsToolTipScope Grid.Row="1" Margin="5" BorderBrush="#00FF00" BorderThickness="1" Background="#080808"
+                                LogsViewModel="{Binding}">
       <DataGrid ItemsSource="{Binding AgentDisplayLogEntries}"
                         x:Name="LogDataGrid"
                         Style="{StaticResource MatrixDataGridStyle}"
@@ -439,15 +442,31 @@
             </DataGridTextColumn.Header>
           </DataGridTextColumn>
 
-          <DataGridTextColumn Binding="{Binding DisplayVeryActualCell}"
-                    Width="70"
-                    CellStyle="{StaticResource VeryActualCellStyle}">
-            <DataGridTextColumn.Header>
+          <DataGridTemplateColumn Width="70" CellStyle="{StaticResource VeryActualCellStyle}">
+            <DataGridTemplateColumn.Header>
               <DataGridColumnHeader Style="{StaticResource MatrixHeaderStyle}"
                     Content="Актуально"
                     ToolTip="Признак актуальной ситуации"/>
-            </DataGridTextColumn.Header>
-          </DataGridTextColumn>
+            </DataGridTemplateColumn.Header>
+            <DataGridTemplateColumn.CellTemplate>
+              <DataTemplate>
+                <Grid VerticalAlignment="Center" HorizontalAlignment="Center">
+                  <TextBlock Text="!"
+                    FontFamily="Consolas, Courier New"
+                    FontSize="14"
+                    FontWeight="Bold"
+                    Foreground="#FFFF4444"
+                    VerticalAlignment="Center"
+                    Visibility="{Binding InformationEnvironmentVeryActual, Converter={StaticResource BooleanToVisibilityConverter}}"/>
+                  <TextBlock Text="-"
+                    FontFamily="Consolas, Courier New"
+                    FontSize="12"
+                    VerticalAlignment="Center"
+                    Visibility="{Binding InformationEnvironmentVeryActual, Converter={StaticResource InverseBooleanToVisibilityConverter}}"/>
+                </Grid>
+              </DataTemplate>
+            </DataGridTemplateColumn.CellTemplate>
+          </DataGridTemplateColumn>
 
           <DataGridTextColumn Binding="{Binding DisplayGeneticReflexID}" 
                     Width="90"
@@ -499,15 +518,50 @@
             </DataGridTextColumn.Header>
           </DataGridTextColumn>
 
-          <DataGridTextColumn Binding="{Binding DisplayMainThinkingCycle}"
-                    Width="64"
-                    CellStyle="{StaticResource MainThinkingCycleCellStyle}">
-            <DataGridTextColumn.Header>
+          <DataGridTemplateColumn Width="88" CellStyle="{StaticResource MainThinkingCycleCellStyle}">
+            <DataGridTemplateColumn.Header>
               <DataGridColumnHeader Style="{StaticResource MatrixHeaderStyle}"
                             Content="Цикл М"
-                            ToolTip="Главный цикл мышления. Фон: жёлтый — ожидание оценки, красный — нет решения, зелёный — найден автоматизм решения."/>
-            </DataGridTextColumn.Header>
-          </DataGridTextColumn>
+                            ToolTip="Главный цикл мышления на пульсе. Несколько циклов — через запятую; цвет номера: жёлтый — ожидание оценки, красный — нет решения, зелёный — решение (в т.ч. завершён после подтверждения)."/>
+            </DataGridTemplateColumn.Header>
+            <DataGridTemplateColumn.CellTemplate>
+              <DataTemplate>
+                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                  <TextBlock Text="-"
+                    FontFamily="Consolas, Courier New"
+                    FontSize="12"
+                    VerticalAlignment="Center"
+                    Visibility="{Binding MainCycleLiveSegmentCount, Converter={StaticResource MainCycleSegmentCountVisibility}}"/>
+                  <ItemsControl ItemsSource="{Binding MainCycleLiveSegments}"
+                    Visibility="{Binding MainCycleLiveSegmentCount, Converter={StaticResource MainCycleSegmentCountVisibility}, ConverterParameter=Invert}">
+                    <ItemsControl.ItemsPanel>
+                      <ItemsPanelTemplate>
+                        <StackPanel Orientation="Horizontal"/>
+                      </ItemsPanelTemplate>
+                    </ItemsControl.ItemsPanel>
+                    <ItemsControl.ItemTemplate>
+                      <DataTemplate>
+                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                          <TextBlock Text=", "
+                            FontFamily="Consolas, Courier New"
+                            FontSize="12"
+                            Foreground="#FFB8FFB8"
+                            VerticalAlignment="Center"
+                            Visibility="{Binding ShowLeadingComma, Converter={StaticResource BooleanToVisibilityConverter}}"/>
+                          <TextBlock Text="{Binding Id}"
+                            FontFamily="Consolas, Courier New"
+                            FontSize="12"
+                            FontWeight="Bold"
+                            Foreground="{Binding IdForeground}"
+                            VerticalAlignment="Center"/>
+                        </StackPanel>
+                      </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                  </ItemsControl>
+                </StackPanel>
+              </DataTemplate>
+            </DataGridTemplateColumn.CellTemplate>
+          </DataGridTemplateColumn>
 
           <DataGridTextColumn  Width="*">
             <DataGridTextColumn.Header>
@@ -518,7 +572,7 @@
           </DataGridTextColumn>
         </DataGrid.Columns>
       </DataGrid>
-    </Border>
+    </pages:LiveLogsToolTipScope>
 
     <!-- Панель управления -->
     <Border Grid.Row="2" Background="#101010" Padding="10" BorderBrush="#00FF00" BorderThickness="0,1,0,0">

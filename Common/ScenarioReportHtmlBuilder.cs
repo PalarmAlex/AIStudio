@@ -286,6 +286,12 @@ namespace AIStudio.Common
       sb.AppendLine("table.compare-table td.col-fact span.um-bad{color:#C62828;font-weight:600;}");
       sb.AppendLine("table.compare-table td.col-fact.fact-mismatch span.um-ok{color:#2E7D32;}");
       sb.AppendLine("table.compare-table td.col-fact.fact-mismatch span.um-bad{color:#C62828;}");
+      sb.AppendLine("table.compare-table td.col-fact span.mc-ns{color:#C62828;font-weight:600;}");
+      sb.AppendLine("table.compare-table td.col-fact span.mc-await{color:#F9A825;font-weight:600;}");
+      sb.AppendLine("table.compare-table td.col-fact span.mc-solved{color:#2E7D32;font-weight:600;}");
+      sb.AppendLine("table.compare-table td.col-fact.fact-mismatch span.mc-ns{color:#C62828;}");
+      sb.AppendLine("table.compare-table td.col-fact.fact-mismatch span.mc-await{color:#F9A825;}");
+      sb.AppendLine("table.compare-table td.col-fact.fact-mismatch span.mc-solved{color:#2E7D32;}");
       sb.AppendLine(".summary-box{margin-top:20px;padding:14px 16px;border-radius:6px;border:1px solid #CFD8DC;background:#FAFAFA;}");
       sb.AppendLine(".summary-box h3{margin:0 0 10px 0;font-size:14px;color:#37474F;}");
       sb.AppendLine(".summary-ok{color:#2E7D32;font-size:13px;font-weight:600;margin:0;}");
@@ -361,9 +367,26 @@ namespace AIStudio.Common
           tip = tooltips.GetAutomatizmChainTooltip(raw.Trim());
           break;
         case "Цикл М":
-          if (!isFact || snap == null || string.IsNullOrWhiteSpace(snap.MainCycleTooltip))
+          if (!isFact || snap == null)
             return null;
-          tip = snap.MainCycleTooltip.Trim();
+          tip = null;
+          if (snap.MainCycleSegments != null && snap.MainCycleSegments.Count > 1)
+          {
+            var parts = snap.MainCycleSegments
+                .Select(s =>
+                {
+                  var t = string.IsNullOrWhiteSpace(s.Tooltip) ? "—" : s.Tooltip.Trim();
+                  return "Цикл " + s.Id.ToString(CultureInfo.InvariantCulture) + ": " + t;
+                });
+            tip = string.Join("\n\n", parts);
+          }
+          else if (!string.IsNullOrWhiteSpace(snap.MainCycleTooltip))
+            tip = snap.MainCycleTooltip.Trim();
+          else if (snap.MainCycleSegments != null && snap.MainCycleSegments.Count == 1 &&
+                   !string.IsNullOrWhiteSpace(snap.MainCycleSegments[0].Tooltip))
+            tip = snap.MainCycleSegments[0].Tooltip.Trim();
+          if (string.IsNullOrWhiteSpace(tip))
+            return null;
           break;
         default:
           return null;
@@ -497,6 +520,11 @@ namespace AIStudio.Common
               factCellHtmlRaw = true;
               factCellHtml = ScenarioReportLogDisplay.FormatOrUmFactCellHtml(actRaw, snap.OrUmThinkingSuccess);
             }
+            else if (col.Label == "Цикл М")
+            {
+              factCellHtmlRaw = true;
+              factCellHtml = ScenarioReportLogDisplay.FormatMainCycleFactCellHtml(snap);
+            }
             if (showExpectedColumn[ci])
             {
               var expTitle = GetComparisonCellTooltip(col.Label, isFact: false, expRaw, actRaw, snap, cellTooltips);
@@ -535,6 +563,8 @@ namespace AIStudio.Common
       if (columnLabel == "Актуально")
         return !ScenarioLogComparer.VeryActualExpectationMatches(expectedRaw, actualVal);
       var a = ScenarioLogComparer.NormalizeDisplay(actualVal ?? "");
+      if (columnLabel == "Цикл М")
+        return !ScenarioLogComparer.MainCycleExpectationMatches(expectedRaw, a);
       return !ScenarioLogComparer.ExpectationCellMatches(expectedRaw, a);
     }
 

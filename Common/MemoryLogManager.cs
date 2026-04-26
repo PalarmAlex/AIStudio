@@ -1,5 +1,9 @@
 using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.ComponentModel;
+using System.Linq;
+using System.Text;
 using System.Windows;
 using System.Windows.Threading;
 using ISIDA.Common;
@@ -311,13 +315,19 @@ namespace AIStudio.Common
     {
       lock (_lock)
       {
-        if (entry.Pulse.HasValue)
+        // Обычная строка пульса (LogSystemState) заменяется при повторе того же пульса.
+        // «ThinkingCycleClosed» и др. — отдельные строки на тот же пульс (снятый цикл + новый главный).
+        if (entry.Pulse.HasValue &&
+            string.Equals(entry.Method, "LogSystemState", StringComparison.Ordinal))
         {
           for (int i = 0; i < _agentDisplayLogEntries.Count; i++)
           {
-            if (_agentDisplayLogEntries[i].Pulse == entry.Pulse)
+            var ex = _agentDisplayLogEntries[i];
+            if (ex.Pulse == entry.Pulse &&
+                string.Equals(ex.Method, "LogSystemState", StringComparison.Ordinal))
             {
               _agentDisplayLogEntries[i] = entry;
+              RefreshAgentDisplayMainCycleAggregatesLocked();
               return;
             }
           }
@@ -329,6 +339,65 @@ namespace AIStudio.Common
         {
           _agentDisplayLogEntries.RemoveAt(_agentDisplayLogEntries.Count - 1);
         }
+
+        RefreshAgentDisplayMainCycleAggregatesLocked();
+      }
+    }
+
+    private void RefreshAgentDisplayMainCycleAggregatesLocked()
+    {
+      foreach (var g in _agentDisplayLogEntries.Where(e => e.Pulse.HasValue).GroupBy(e => e.Pulse.Value))
+        ApplyMainCyclePulseDisplayToGroup(g.ToList());
+
+      foreach (var e in _agentDisplayLogEntries.Where(e => !e.Pulse.HasValue))
+        e.ApplyPulseMainCycleDisplay(null, e.MainThinkingCycleTooltip ?? "");
+    }
+
+    private static void ApplyMainCyclePulseDisplayToGroup(List<LogEntry> group)
+    {
+      if (group == null || group.Count == 0)
+        return;
+
+      var ordered = group.OrderBy(e => e.Timestamp).ToList();
+      var buf = new List<(int id, string st, string tip)>();
+      foreach (var e in ordered)
+      {
+        if (!e.MainThinkingCycleId.HasValue || e.MainThinkingCycleId.Value <= 0)
+          continue;
+        int id = e.MainThinkingCycleId.Value;
+        string st = string.IsNullOrWhiteSpace(e.MainThinkingCycleTaskStatus)
+            ? "NoSolution"
+            : e.MainThinkingCycleTaskStatus.Trim();
+        string tip = string.IsNullOrWhiteSpace(e.MainThinkingCycleTooltip) ? null : e.MainThinkingCycleTooltip.Trim();
+        int ix = buf.FindIndex(t => t.id == id);
+        if (ix >= 0)
+          buf[ix] = (id, st, tip);
+        else
+          buf.Add((id, st, tip));
+      }
+
+      var segments = new List<AgentLogMainCycleLiveSegment>();
+      for (int k = 0; k < buf.Count; k++)
+        segments.Add(new AgentLogMainCycleLiveSegment(buf[k].id, buf[k].st, k > 0));
+
+      string aggTip = null;
+      if (buf.Count > 1)
+      {
+        var sb = new StringBuilder();
+        for (int i = 0; i < buf.Count; i++)
+        {
+          if (i > 0)
+            sb.AppendLine().AppendLine();
+          var t = string.IsNullOrEmpty(buf[i].tip) ? "—" : buf[i].tip;
+          sb.Append("Цикл ").Append(buf[i].id).Append(": ").Append(t);
+        }
+        aggTip = sb.ToString();
+      }
+
+      foreach (var e in group)
+      {
+        string tip = buf.Count > 1 ? (aggTip ?? "") : (e.MainThinkingCycleTooltip ?? "");
+        e.ApplyPulseMainCycleDisplay(segments, tip);
       }
     }
 
@@ -752,7 +821,7 @@ namespace AIStudio.Common
     /// <summary>
     /// Запись системного лога для отображения в пользовательском интерфейсе
     /// </summary>
-    public class LogEntry
+    public class LogEntry : INotifyPropertyChanged
     {
       /// <summary>
       /// Временная метка создания записи
@@ -931,6 +1000,32 @@ namespace AIStudio.Common
       /// <summary>Статус задачи главного цикла для фона ячейки: Awaiting / NoSolution / Solved.</summary>
       public string MainThinkingCycleTaskStatus { get; set; }
 
+      public event PropertyChangedEventHandler PropertyChanged;
+
+      private string _mainCycleAggregatedCellTooltip;
+
+      /// <summary>Текст подсказки ячейки «Цикл М» (на пульсе с несколькими циклами — объединённый).</summary>
+      public string MainCycleAggregatedCellTooltip => _mainCycleAggregatedCellTooltip ?? "";
+
+      /// <summary>Сегменты отображения «Цикл М» на пульсе (цвет номера по статусу).</summary>
+      public ObservableCollection<AgentLogMainCycleLiveSegment> MainCycleLiveSegments { get; } =
+          new ObservableCollection<AgentLogMainCycleLiveSegment>();
+
+      public int MainCycleLiveSegmentCount => MainCycleLiveSegments.Count;
+
+      internal void ApplyPulseMainCycleDisplay(IEnumerable<AgentLogMainCycleLiveSegment> segments, string cellTooltip)
+      {
+        MainCycleLiveSegments.Clear();
+        if (segments != null)
+        {
+          foreach (var s in segments)
+            MainCycleLiveSegments.Add(s);
+        }
+        _mainCycleAggregatedCellTooltip = cellTooltip ?? "";
+        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(MainCycleAggregatedCellTooltip)));
+        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(MainCycleLiveSegmentCount)));
+      }
+
       /// <summary>Признак опасной ситуации в информационной среде (для столбца «Опасно»).</summary>
       public bool InformationEnvironmentDanger { get; set; }
 
@@ -946,8 +1041,8 @@ namespace AIStudio.Common
       /// <summary>Для файлов лога: «1» или «0».</summary>
       public string DisplayVeryActual => InformationEnvironmentVeryActual ? "1" : "0";
 
-      /// <summary>Текст ячейки: «-» если не актуально, пусто если актуально (красный фон в стиле).</summary>
-      public string DisplayVeryActualCell => InformationEnvironmentVeryActual ? "" : "-";
+      /// <summary>Текст ячейки живых логов: «!» если актуально, иначе «-».</summary>
+      public string DisplayVeryActualCell => InformationEnvironmentVeryActual ? "!" : "-";
 
       /// <summary>
       /// Строковое представление результата УМ для привязок в шаблоне (избегаем bool? в XAML): "True", "False" или ""
