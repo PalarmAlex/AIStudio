@@ -202,8 +202,9 @@
                          FontWeight="SemiBold" FontSize="13"
                          Foreground="#FFC62828" VerticalAlignment="Center" HorizontalAlignment="Left"/>
               <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center" HorizontalAlignment="Right">
-                <CheckBox Content="Эмоции" IsChecked="{Binding CollapseEmotionsBad}" Margin="0,0,12,0" FontSize="11" VerticalAlignment="Center"/>
-                <CheckBox Content="NodePID" IsChecked="{Binding CollapseNodePidBad}" Margin="0,0,12,0" FontSize="11" VerticalAlignment="Center"/>
+                <CheckBox Content="Эмоции" IsChecked="{Binding CollapseEmotionsBad}" Margin="0,0,8,0" FontSize="11" VerticalAlignment="Center"/>
+                <CheckBox Content="Поним." IsChecked="{Binding CollapseUnderstandingBad}" Margin="0,0,8,0" FontSize="11" VerticalAlignment="Center" ToolTip="Узел дерева Understanding"/>
+                <CheckBox Content="NodePID" IsChecked="{Binding CollapseNodePidBad}" Margin="0,0,8,0" FontSize="11" VerticalAlignment="Center"/>
                 <CheckBox Content="Триггер" IsChecked="{Binding CollapseTriggerBad}" FontSize="11" VerticalAlignment="Center"/>
               </StackPanel>
             </Grid>
@@ -221,6 +222,7 @@
                     <MultiBinding Converter="{StaticResource EpisodicTreeExpandConverter}">
                       <Binding Path="Level"/>
                       <Binding RelativeSource="{RelativeSource AncestorType=UserControl}" Path="DataContext.CollapseEmotionsBad"/>
+                      <Binding RelativeSource="{RelativeSource AncestorType=UserControl}" Path="DataContext.CollapseUnderstandingBad"/>
                       <Binding RelativeSource="{RelativeSource AncestorType=UserControl}" Path="DataContext.CollapseNodePidBad"/>
                       <Binding RelativeSource="{RelativeSource AncestorType=UserControl}" Path="DataContext.CollapseTriggerBad"/>
                     </MultiBinding>
@@ -248,8 +250,9 @@
                          FontWeight="SemiBold" FontSize="13"
                          Foreground="#FF8B6914" VerticalAlignment="Center" HorizontalAlignment="Left"/>
               <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center" HorizontalAlignment="Right">
-                <CheckBox Content="Эмоции" IsChecked="{Binding CollapseEmotionsNormal}" Margin="0,0,12,0" FontSize="11" VerticalAlignment="Center"/>
-                <CheckBox Content="NodePID" IsChecked="{Binding CollapseNodePidNormal}" Margin="0,0,12,0" FontSize="11" VerticalAlignment="Center"/>
+                <CheckBox Content="Эмоции" IsChecked="{Binding CollapseEmotionsNormal}" Margin="0,0,8,0" FontSize="11" VerticalAlignment="Center"/>
+                <CheckBox Content="Поним." IsChecked="{Binding CollapseUnderstandingNormal}" Margin="0,0,8,0" FontSize="11" VerticalAlignment="Center" ToolTip="Узел дерева Understanding"/>
+                <CheckBox Content="NodePID" IsChecked="{Binding CollapseNodePidNormal}" Margin="0,0,8,0" FontSize="11" VerticalAlignment="Center"/>
                 <CheckBox Content="Триггер" IsChecked="{Binding CollapseTriggerNormal}" FontSize="11" VerticalAlignment="Center"/>
               </StackPanel>
             </Grid>
@@ -267,6 +270,7 @@
                     <MultiBinding Converter="{StaticResource EpisodicTreeExpandConverter}">
                       <Binding Path="Level"/>
                       <Binding RelativeSource="{RelativeSource AncestorType=UserControl}" Path="DataContext.CollapseEmotionsNormal"/>
+                      <Binding RelativeSource="{RelativeSource AncestorType=UserControl}" Path="DataContext.CollapseUnderstandingNormal"/>
                       <Binding RelativeSource="{RelativeSource AncestorType=UserControl}" Path="DataContext.CollapseNodePidNormal"/>
                       <Binding RelativeSource="{RelativeSource AncestorType=UserControl}" Path="DataContext.CollapseTriggerNormal"/>
                     </MultiBinding>
@@ -294,8 +298,9 @@
                          FontWeight="SemiBold" FontSize="13"
                          Foreground="#FF2E7D32" VerticalAlignment="Center" HorizontalAlignment="Left"/>
               <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center" HorizontalAlignment="Right">
-                <CheckBox Content="Эмоции" IsChecked="{Binding CollapseEmotionsGood}" Margin="0,0,12,0" FontSize="11" VerticalAlignment="Center"/>
-                <CheckBox Content="NodePID" IsChecked="{Binding CollapseNodePidGood}" Margin="0,0,12,0" FontSize="11" VerticalAlignment="Center"/>
+                <CheckBox Content="Эмоции" IsChecked="{Binding CollapseEmotionsGood}" Margin="0,0,8,0" FontSize="11" VerticalAlignment="Center"/>
+                <CheckBox Content="Поним." IsChecked="{Binding CollapseUnderstandingGood}" Margin="0,0,8,0" FontSize="11" VerticalAlignment="Center" ToolTip="Узел дерева Understanding"/>
+                <CheckBox Content="NodePID" IsChecked="{Binding CollapseNodePidGood}" Margin="0,0,8,0" FontSize="11" VerticalAlignment="Center"/>
                 <CheckBox Content="Триггер" IsChecked="{Binding CollapseTriggerGood}" FontSize="11" VerticalAlignment="Center"/>
               </StackPanel>
             </Grid>
@@ -313,6 +318,7 @@
                     <MultiBinding Converter="{StaticResource EpisodicTreeExpandConverter}">
                       <Binding Path="Level"/>
                       <Binding RelativeSource="{RelativeSource AncestorType=UserControl}" Path="DataContext.CollapseEmotionsGood"/>
+                      <Binding RelativeSource="{RelativeSource AncestorType=UserControl}" Path="DataContext.CollapseUnderstandingGood"/>
                       <Binding RelativeSource="{RelativeSource AncestorType=UserControl}" Path="DataContext.CollapseNodePidGood"/>
                       <Binding RelativeSource="{RelativeSource AncestorType=UserControl}" Path="DataContext.CollapseTriggerGood"/>
                     </MultiBinding>

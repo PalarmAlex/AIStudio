@@ -428,7 +428,7 @@ namespace AIStudio
             ShowProjectSettings();
             break;
           case "26": // Справка: руководство пользователя
-            OpenWebPage("https://scorcher.ru/isida/iadaptive_agents_guide.php");
+            OpenWebPage("https://scorcher.ru/isida/index.php");
             break;
           case "27": // Сенсорная система
             OpenSensors();

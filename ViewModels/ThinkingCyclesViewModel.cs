@@ -314,6 +314,19 @@ namespace AIStudio.ViewModels
       }
     }
 
+    private string _detailMentalChainText;
+    /// <summary>Текущий буфер цепочки инфо-функций (ментальная эпизодика), общий для диспетчера циклов.</summary>
+    public string DetailMentalChainText
+    {
+      get => _detailMentalChainText;
+      private set
+      {
+        if (_detailMentalChainText == value) return;
+        _detailMentalChainText = value;
+        OnPropertyChanged(nameof(DetailMentalChainText));
+      }
+    }
+
     private string _detailLogText;
     public string DetailLogText
     {
@@ -556,6 +569,7 @@ namespace AIStudio.ViewModels
         DetailContextLine =
           $"{snap.UnresolvedNodeId} / {snap.ProblemNodeId} / {snap.ThemeId} / {snap.PurposeId}";
         DetailStrategyText = string.IsNullOrWhiteSpace(snap.LastStrategyId) ? "—" : snap.LastStrategyId;
+        DetailMentalChainText = FormatMentalChainUi(_psychicSystem.GetMentalAutomatizmSessionTrace());
         DetailLogText = (snap.Log != null && snap.Log.Count > 0)
           ? string.Join(Environment.NewLine, snap.Log)
           : "—";
@@ -584,7 +598,13 @@ namespace AIStudio.ViewModels
       DetailPurposeText = "—";
       DetailContextLine = "—";
       DetailStrategyText = "—";
+      DetailMentalChainText = "—";
       DetailLogText = "—";
+    }
+
+    private static string FormatMentalChainUi(string trace)
+    {
+      return string.IsNullOrWhiteSpace(trace) ? "—" : trace;
     }
 
     private void OnPropertyChanged(string propertyName)

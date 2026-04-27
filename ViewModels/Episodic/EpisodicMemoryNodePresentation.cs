@@ -65,7 +65,7 @@ namespace AIStudio.ViewModels.Episodic
     {
       if (node == null) return "—";
       var lines = new List<string>();
-      for (int depth = 0; depth <= 4; depth++)
+      for (int depth = 0; depth <= EpisodicMemoryTree.LeafLevelIndex; depth++)
       {
         var (text, _, _) = GetNodeDisplayAndTooltip(node, depth);
         if (depth == 0)
@@ -102,14 +102,18 @@ namespace AIStudio.ViewModels.Episodic
           tooltip = emotionText + $"\nEmotionID: {node.EmotionID}";
           break;
         case 2:
+          text = $"Understanding: {node.UnderstandingNodeId}";
+          tooltip = $"Узел дерева понимания (Understanding), ID: {node.UnderstandingNodeId}";
+          break;
+        case 3:
           text = $"NodePID: {node.NodePID}";
           tooltip = GetNodePidTooltip(node.NodePID);
           break;
-        case 3:
+        case 4:
           text = $"Тригггер: {node.TriggerId}";
           tooltip = GetTriggerTooltip(node.TriggerId);
           break;
-        case 4:
+        case 5:
           if (node.Params != null)
           {
             text = node.Params.IsTeacher

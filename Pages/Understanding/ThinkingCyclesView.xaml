@@ -235,6 +235,7 @@
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
               </Grid.RowDefinitions>
 
               <TextBlock Grid.Row="0" Grid.Column="0" Text="Id:" Style="{StaticResource KeyTextStyle}"/>
@@ -269,6 +270,9 @@
 
               <TextBlock Grid.Row="10" Grid.Column="0" Text="Стратегия:" Style="{StaticResource KeyTextStyle}"/>
               <TextBlock Grid.Row="10" Grid.Column="1" Text="{Binding DetailStrategyText}" Style="{StaticResource ValueTextStyle}"/>
+
+              <TextBlock Grid.Row="11" Grid.Column="0" Text="Ментальная цепочка (ИФ):" Style="{StaticResource KeyTextStyle}"/>
+              <TextBlock Grid.Row="11" Grid.Column="1" Text="{Binding DetailMentalChainText}" Style="{StaticResource ValueTextStyle}"/>
             </Grid>
           </Grid>
         </Border>
