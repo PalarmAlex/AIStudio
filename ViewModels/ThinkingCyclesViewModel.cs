@@ -315,7 +315,7 @@ namespace AIStudio.ViewModels
     }
 
     private string _detailMentalChainText;
-    /// <summary>Текущий буфер цепочки инфо-функций (ментальная эпизодика), общий для диспетчера циклов.</summary>
+    /// <summary>Текущий буфер цепочки инфо-функций (ментальная эпизодика): общий для диспетчера циклов; обновляется независимо от выбранного цикла.</summary>
     public string DetailMentalChainText
     {
       get => _detailMentalChainText;
@@ -356,6 +356,7 @@ namespace AIStudio.ViewModels
       {
         _lastList = _psychicSystem.GetThinkingCyclesListSnapshot();
         RebuildMatrixFromLastSnapshot();
+        DetailMentalChainText = FormatMentalChainUi(_psychicSystem.GetMentalAutomatizmSessionTrace());
 
         if (_tickCounter % 3 == 0 && _selectedCycleId > 0)
           RefreshDetail();
@@ -569,7 +570,6 @@ namespace AIStudio.ViewModels
         DetailContextLine =
           $"{snap.UnresolvedNodeId} / {snap.ProblemNodeId} / {snap.ThemeId} / {snap.PurposeId}";
         DetailStrategyText = string.IsNullOrWhiteSpace(snap.LastStrategyId) ? "—" : snap.LastStrategyId;
-        DetailMentalChainText = FormatMentalChainUi(_psychicSystem.GetMentalAutomatizmSessionTrace());
         DetailLogText = (snap.Log != null && snap.Log.Count > 0)
           ? string.Join(Environment.NewLine, snap.Log)
           : "—";
@@ -598,7 +598,6 @@ namespace AIStudio.ViewModels
       DetailPurposeText = "—";
       DetailContextLine = "—";
       DetailStrategyText = "—";
-      DetailMentalChainText = "—";
       DetailLogText = "—";
     }
 

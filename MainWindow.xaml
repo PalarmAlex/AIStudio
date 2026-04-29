@@ -191,6 +191,11 @@
               Command="{Binding VerticalMenuItemClickedCommand}"
               CommandParameter="13"/>
 
+            <Button Content="Ментальные цепочки" Margin="20,2,5,2" 
+              Style="{StaticResource MenuButtonStyle}"
+              Command="{Binding VerticalMenuItemClickedCommand}"
+              CommandParameter="42"/>
+
             <Button Content="Циклы осмысления" Margin="20,2,5,2" 
               Style="{StaticResource MenuButtonStyle}"
               Command="{Binding VerticalMenuItemClickedCommand}"

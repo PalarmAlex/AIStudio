@@ -275,6 +275,9 @@
     <Compile Include="Pages\Understanding\ProblemTreeView.xaml.cs">
       <DependentUpon>ProblemTreeView.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Pages\Understanding\MentalEpisodicTreeView.xaml.cs">
+      <DependentUpon>MentalEpisodicTreeView.xaml</DependentUpon>
+    </Compile>
     <Compile Include="ViewModels\Understanding\PropertyRowTemplateSelector.cs" />
     <Compile Include="Pages\Understanding\SituationTypesView.xaml.cs">
       <DependentUpon>SituationTypesView.xaml</DependentUpon>
@@ -313,6 +316,7 @@
     <Compile Include="ViewModels\Episodic\EpisodicMemoryTreeViewModel.cs" />
     <Compile Include="ViewModels\Episodic\MotorRulesViewModel.cs" />
     <Compile Include="ViewModels\Understanding\ProblemTreeViewModel.cs" />
+    <Compile Include="ViewModels\Understanding\MentalEpisodicTreeViewModel.cs" />
     <Compile Include="ViewModels\BehaviorStylesViewModel.cs" />
     <Compile Include="ViewModels\AgentInfo.cs" />
     <Compile Include="ViewModels\ExterInalInfluencesViewModel.cs" />
@@ -444,6 +448,10 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="Pages\Understanding\ProblemTreeView.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Pages\Understanding\MentalEpisodicTreeView.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

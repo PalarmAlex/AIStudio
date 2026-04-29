@@ -475,6 +475,9 @@ namespace AIStudio
           case "41": // Исследования: группы сценариев
             ShowScenarioGroupRegistry();
             break;
+          case "42": // Ментальные цепочки (эпизодика ИФ)
+            ShowMentalEpisodicTree();
+            break;
           default:
             ShowStub($"Меню {menuItem}");
             break;
@@ -570,6 +573,14 @@ namespace AIStudio
     {
       var view = new ThinkingCyclesView();
       var viewModel = new ThinkingCyclesViewModel(_psychicSystem);
+      view.DataContext = viewModel;
+      CurrentContent = view;
+    }
+
+    private void ShowMentalEpisodicTree()
+    {
+      var view = new MentalEpisodicTreeView();
+      var viewModel = new MentalEpisodicTreeViewModel(_isidaContext?.MentalEpisodicTreeSystem);
       view.DataContext = viewModel;
       CurrentContent = view;
     }
