@@ -58,6 +58,11 @@ public static class AppConfig
   public static int CompareLevel => GetIntSetting("CompareLevel", (int)GetDefaultValueSettings("CompareLevel"));
   public static float DifSensorPar => GetFloatSetting("DifSensorPar", (float)GetDefaultValueSettings("DifSensorPar"));
   public static int DynamicTime => GetIntSetting("DynamicTime", (int)GetDefaultValueSettings("DynamicTime"));
+
+  /// <summary>При true параметры гомеостаза сдвигаются по Speed на каждом пульсе; при false — только при воздействии.</summary>
+  public static bool HomeostasisPulseSpeedDriftEnabled =>
+      GetBoolSetting("HomeostasisPulseSpeedDriftEnabled", (bool)GetDefaultValueSettings("HomeostasisPulseSpeedDriftEnabled"));
+
   public static int ReflexActionDisplayDuration => GetIntSetting("ReflexActionDisplayDuration", (int)GetDefaultValueSettings("ReflexActionDisplayDuration"));
   public static int WaitingPeriodForActionsVal => GetIntSetting("WaitingPeriodForActionsVal", (int)GetDefaultValueSettings("WaitingPeriodForActionsVal"));
 
@@ -161,6 +166,7 @@ public static class AppConfig
           new XElement("RecognitionThreshold", 3),
           new XElement("CompareLevel", 30),
           new XElement("DifSensorPar", 0.02),
+          new XElement("HomeostasisPulseSpeedDriftEnabled", true),
           new XElement("DynamicTime", 50),
           new XElement("ReflexActionDisplayDuration", 3),
           new XElement("WaitingPeriodForActionsVal", 30),
@@ -417,6 +423,8 @@ public static class AppConfig
         return 30;
       case "DifSensorPar":
         return 0.02f;
+      case "HomeostasisPulseSpeedDriftEnabled":
+        return true;
       case "FirstRun":
         return 0;
       case "LogEnabled":

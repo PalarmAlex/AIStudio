@@ -274,6 +274,17 @@
           IsReadOnly="False"/>
       </StackPanel>
 
+      <!-- Дрейф параметров по Speed на пульсе -->
+      <StackPanel Grid.Column="0" Grid.Row="5" Grid.ColumnSpan="2" Orientation="Horizontal" Margin="100,0,0,5">
+        <TextBlock Text="Изменение параметров по Speed на каждом пульсе:"
+          Width="470"
+          VerticalAlignment="Center"
+          TextWrapping="Wrap"/>
+        <CheckBox IsChecked="{Binding HomeostasisPulseSpeedDriftEnabled}"
+          VerticalAlignment="Center"
+          Margin="8,0,0,0"/>
+      </StackPanel>
+
       <!-- Стиль реагирования по умолчанию -->
       <StackPanel Grid.Column="1" Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,5">
         <TextBlock Text="Стиль реагирования по умолчанию:" 

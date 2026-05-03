@@ -42,6 +42,8 @@ namespace AIStudio.ViewModels
     private int _thinkingCycleMainMaxAgePulses;
     private int _noOperatorStimulusSilencePulses;
 
+    private bool _homeostasisPulseSpeedDriftEnabled;
+
     private int _recognitionThreshold;
     private int _previousRecognitionThreshold;
 
@@ -218,6 +220,17 @@ namespace AIStudio.ViewModels
         }
         _noOperatorStimulusSilencePulses = value;
         OnPropertyChanged(nameof(NoOperatorStimulusSilencePulses));
+      }
+    }
+
+    /// <summary>При true — сдвиг параметров по Speed на каждом пульсе; при false — только при воздействии.</summary>
+    public bool HomeostasisPulseSpeedDriftEnabled
+    {
+      get => _homeostasisPulseSpeedDriftEnabled;
+      set
+      {
+        _homeostasisPulseSpeedDriftEnabled = value;
+        OnPropertyChanged(nameof(HomeostasisPulseSpeedDriftEnabled));
       }
     }
 
@@ -443,6 +456,7 @@ namespace AIStudio.ViewModels
       _thinkingCycleDecayBase = AppConfig.ThinkingCycleDecayBase;
       _thinkingCycleMainMaxAgePulses = AppConfig.ThinkingCycleMainMaxAgePulses;
       _noOperatorStimulusSilencePulses = AppConfig.NoOperatorStimulusSilencePulses;
+      _homeostasisPulseSpeedDriftEnabled = AppConfig.HomeostasisPulseSpeedDriftEnabled;
       DefaultAdaptiveActionId = AppConfig.DefaultAdaptiveActionId;
       DefaultThemeTypeId = AppConfig.DefaultThemeTypeId;
       LogEnabled = AppConfig.LogEnabled;
@@ -678,6 +692,7 @@ namespace AIStudio.ViewModels
         AppConfig.SetIntSetting(nameof(ThinkingCycleDecayBase), ThinkingCycleDecayBase);
         AppConfig.SetIntSetting(nameof(ThinkingCycleMainMaxAgePulses), ThinkingCycleMainMaxAgePulses);
         AppConfig.SetIntSetting(nameof(NoOperatorStimulusSilencePulses), NoOperatorStimulusSilencePulses);
+        AppConfig.SetBoolSetting(nameof(HomeostasisPulseSpeedDriftEnabled), HomeostasisPulseSpeedDriftEnabled);
         AppConfig.SetIntSetting(nameof(DefaultAdaptiveActionId), DefaultAdaptiveActionId);
         AppConfig.SetIntSetting(nameof(DefaultThemeTypeId), DefaultThemeTypeId);
         AppConfig.SetIntSetting(nameof(RecognitionThreshold), RecognitionThreshold);

@@ -172,6 +172,7 @@ namespace AIStudio
         config.DefaultStileId = AppConfig.DefaultStileId;
         config.CompareLevel = AppConfig.CompareLevel;
         config.DifSensorPar = AppConfig.DifSensorPar;
+        config.HomeostasisPulseSpeedDriftEnabled = AppConfig.HomeostasisPulseSpeedDriftEnabled;
         config.DynamicTime = AppConfig.DynamicTime;
         config.ReflexActionDisplayDuration = AppConfig.ReflexActionDisplayDuration;
         config.DefaultAdaptiveActionId = AppConfig.DefaultAdaptiveActionId;
