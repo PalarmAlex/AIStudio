@@ -6,7 +6,10 @@
              mc:Ignorable="d" 
              Height="Auto" Width="Auto">
 
-  <StackPanel Margin="10" VerticalAlignment="Top">
+  <ScrollViewer VerticalScrollBarVisibility="Auto"
+                HorizontalScrollBarVisibility="Disabled"
+                CanContentScroll="False">
+    <StackPanel Margin="10" VerticalAlignment="Top">
     <!-- Настройки путей приложения -->
     <TextBlock Text="Настройки путей приложения" 
       FontSize="16"
@@ -277,7 +280,7 @@
       <!-- Дрейф параметров по Speed на пульсе -->
       <StackPanel Grid.Column="0" Grid.Row="5" Grid.ColumnSpan="2" Orientation="Horizontal" Margin="100,0,0,5">
         <TextBlock Text="Изменение параметров по Speed на каждом пульсе:"
-          Width="470"
+          Width="300"
           VerticalAlignment="Center"
           TextWrapping="Wrap"/>
         <CheckBox IsChecked="{Binding HomeostasisPulseSpeedDriftEnabled}"
@@ -447,5 +450,6 @@
       Margin="0,15,0,0"
       Padding="10,3"
       MinWidth="120"/>
-  </StackPanel>
+    </StackPanel>
+  </ScrollViewer>
 </UserControl>
