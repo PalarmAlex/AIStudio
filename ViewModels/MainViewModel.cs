@@ -428,7 +428,7 @@ namespace AIStudio
             ShowProjectSettings();
             break;
           case "26": // Справка: руководство пользователя
-            OpenWebPage("https://scorcher.ru/isida/index.php");
+            OpenWebPage("https://scorcher.ru/isida/iadaptive_agents_guide.php");
             break;
           case "27": // Сенсорная система
             OpenSensors();
@@ -437,7 +437,7 @@ namespace AIStudio
             ShowExtInfluence();
             break;
           case "29": // Справка: руководство разработчика
-            OpenWebPage("https://scorcher.ru/isida/index.php");
+            OpenWebPage("https://scorcher.ru/isida/iadaptive_agents_guide.php");
             break;
           case "30": // Справка: теория МВАП
             OpenWebPage("https://p-mvap.ru");
