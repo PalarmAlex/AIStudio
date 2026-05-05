@@ -1,4 +1,4 @@
-﻿using AIStudio.Common;
+using AIStudio.Common;
 using AIStudio.Pages;
 using ISIDA.Common;
 using ISIDA.Gomeostas;
@@ -165,18 +165,60 @@ namespace AIStudio.ViewModels
       }
     }
 
+    /// <summary>
+    /// Валидация параметров с предложением автокоррекции конфликтов стилей в зонах активации.
+    /// </summary>
+    private bool TryValidateParametersWithStyleActivationAutofix()
+    {
+      if (_gomeostas.ValidateParameterIds(SystemParameters, out string erroMsg))
+        return true;
+
+      if (erroMsg.IndexOf("конфликты стилей", StringComparison.OrdinalIgnoreCase) < 0)
+      {
+        MessageBox.Show($"Ошибка валидации параметров:\n{erroMsg}",
+            "Ошибка сохранения",
+            MessageBoxButton.OK,
+            MessageBoxImage.Error);
+        return false;
+      }
+
+      var result = MessageBox.Show(
+          erroMsg + "\n\n" +
+          "Да — автоматически убрать конфликтующие стили из зон (остаётся совместимое подмножество по возрастанию ID).\n" +
+          "Нет — не сохранять и править данные вручную.\n" +
+          "Отмена — не сохранять.",
+          "Конфликты стилей в активациях параметров",
+          MessageBoxButton.YesNoCancel,
+          MessageBoxImage.Warning);
+
+      if (result == MessageBoxResult.Cancel || result == MessageBoxResult.No)
+        return false;
+
+      int removed = _gomeostas.FixParameterStyleActivationConflicts(SystemParameters);
+      MessageBox.Show(
+          $"Удалено ссылок на стили в зонах: {removed.ToString(CultureInfo.InvariantCulture)}.",
+          "Автокоррекция активаций стилей",
+          MessageBoxButton.OK,
+          MessageBoxImage.Information);
+
+      if (!_gomeostas.ValidateParameterIds(SystemParameters, out erroMsg))
+      {
+        MessageBox.Show($"Ошибка валидации после автокоррекции:\n{erroMsg}",
+            "Ошибка сохранения",
+            MessageBoxButton.OK,
+            MessageBoxImage.Error);
+        return false;
+      }
+
+      return true;
+    }
+
     private void SaveParameters()
     {
       try
       {
-        if (!_gomeostas.ValidateParameterIds(SystemParameters, out string erroMsg))
-        {
-          MessageBox.Show($"Ошибка валидации параметров:\n{erroMsg}",
-              "Ошибка сохранения",
-              MessageBoxButton.OK,
-              MessageBoxImage.Error);
+        if (!TryValidateParametersWithStyleActivationAutofix())
           return;
-        }
 
         // Сохраняем новые параметры
         foreach (var param in SystemParameters)
