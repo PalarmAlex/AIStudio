@@ -9,7 +9,13 @@ using System.Xml.Linq;
 
 public static class AppConfig
 {
-  private const string ConfigFileName = "AIStudio.Settings.xml";
+  /// <summary>Имя файла настроек студии (в каталоге Settings проекта или в ProgramData).</summary>
+  public const string StudioSettingsFileName = "Settings.xml";
+
+  /// <summary>Прежнее имя файла настроек; используется для переименования при обновлении и для чтения старых копий в папке проекта.</summary>
+  public const string LegacyStudioSettingsFileName = "AIStudio.Settings.xml";
+
+  private const string ConfigFileName = StudioSettingsFileName;
   private static string ConfigDirectory = Path.Combine(
       Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData),
       "ISIDA", "Settings"
@@ -103,6 +109,22 @@ public static class AppConfig
     }
   }
 
+  /// <summary>При первом запуске с новым именем файла переименовывает прежний AIStudio.Settings.xml в Settings.xml.</summary>
+  private static void MigrateLegacyStudioSettingsFileIfNeeded()
+  {
+    try
+    {
+      Directory.CreateDirectory(ConfigDirectory);
+      string legacyPath = Path.Combine(ConfigDirectory, LegacyStudioSettingsFileName);
+      if (!File.Exists(ConfigFullPath) && File.Exists(legacyPath))
+        File.Move(legacyPath, ConfigFullPath);
+    }
+    catch (Exception ex)
+    {
+      Logger.Error(ex.Message);
+    }
+  }
+
   /// <summary>
   /// Инициализирует конфигурацию и проверяет первый запуск
   /// </summary>
@@ -110,6 +132,8 @@ public static class AppConfig
   {
     try
     {
+      MigrateLegacyStudioSettingsFileIfNeeded();
+
       // Если конфиг не существует -создаем
       if (!File.Exists(ConfigFullPath))
         CreateDefaultConfig();

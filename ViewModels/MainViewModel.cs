@@ -42,30 +42,30 @@ namespace AIStudio
   {
     #region Объявление констант и переменных
 
-    private readonly IsidaContext _isidaContext;
-    private readonly GomeostasSystem _gomeostas;
-    private readonly SensorySystem _sensorySystem;
-    private readonly AdaptiveActionsSystem _actionsSystem;
-    private readonly InfluenceActionSystem _influenceActionSystem;
-    private readonly GeneticReflexesSystem _geneticReflexesSystem;
-    private readonly ConditionedReflexesSystem _conditionedReflexesSystem;
-    private readonly PerceptionImagesSystem _perceptionImagesSystem;
-    private readonly ActionsImagesSystem _actionsImagesSystem;
-    private readonly AutomatizmSystem _automatizmSystem;
-    private readonly AutomatizmTreeSystem _automatizmTreeSystem;
-    private readonly PsychicSystem _psychicSystem;
-    private readonly ReflexesActivator _reflexesActivator;
-    private readonly ReflexTreeSystem _reflexTree;
-    private readonly ReflexChainsSystem _reflexChains;
-    private readonly ReflexExecutionService _reflexExecution;
-    private readonly ResearchLogger _researchLogger;
-    private readonly InfluenceActionsImagesSystem _influenceActionsImagesSystem;
-    private readonly EmotionsImageSystem _emotionsImageSystem;
-    private readonly VerbalBrocaImagesSystem _verbalBrocaImages;
-    private readonly ConditionedReflexToAutomatizmConverter _conditionedReflexToAutomatizm;
-    private readonly AutomatizmChainsSystem _automatizmChains;
-    private readonly AutomatizmFileLoader _automatizmFileLoader;
-    private readonly Stage2PrimitivesLoader _stage2PrimitivesLoader;
+    private IsidaContext _isidaContext;
+    private GomeostasSystem _gomeostas;
+    private SensorySystem _sensorySystem;
+    private AdaptiveActionsSystem _actionsSystem;
+    private InfluenceActionSystem _influenceActionSystem;
+    private GeneticReflexesSystem _geneticReflexesSystem;
+    private ConditionedReflexesSystem _conditionedReflexesSystem;
+    private PerceptionImagesSystem _perceptionImagesSystem;
+    private ActionsImagesSystem _actionsImagesSystem;
+    private AutomatizmSystem _automatizmSystem;
+    private AutomatizmTreeSystem _automatizmTreeSystem;
+    private PsychicSystem _psychicSystem;
+    private ReflexesActivator _reflexesActivator;
+    private ReflexTreeSystem _reflexTree;
+    private ReflexChainsSystem _reflexChains;
+    private ReflexExecutionService _reflexExecution;
+    private ResearchLogger _researchLogger;
+    private InfluenceActionsImagesSystem _influenceActionsImagesSystem;
+    private EmotionsImageSystem _emotionsImageSystem;
+    private VerbalBrocaImagesSystem _verbalBrocaImages;
+    private ConditionedReflexToAutomatizmConverter _conditionedReflexToAutomatizm;
+    private AutomatizmChainsSystem _automatizmChains;
+    private AutomatizmFileLoader _automatizmFileLoader;
+    private Stage2PrimitivesLoader _stage2PrimitivesLoader;
     private readonly OperatorScenarioRunner _scenarioRunner = new OperatorScenarioRunner();
     private bool _wasPulsatingForScenario;
     private ScenarioRunProgressWindow _scenarioRunProgressWindow;
@@ -80,6 +80,7 @@ namespace AIStudio
     private Action<int> _homeostasisSettlePulseHandler;
     private bool _scenarioLaunchCommitActive;
     private AgentLogCellTooltipProvider _agentLogCellTooltips;
+    private CoalescingAgentLogWriter _agentDisplayCoalescer;
 
     public event PropertyChangedEventHandler PropertyChanged;
     private AgentViewModel _agentViewModel;
@@ -154,83 +155,21 @@ namespace AIStudio
       {
         _stepInzialized = 1;
 
-        var config = new IsidaConfig();
-
-        config.BaseDirectory = Path.Combine(
-            Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData),
-            "ISIDA");
-
-        config.GomeostasFolder = AppConfig.DataGomeostasFolderPath;
-        config.ActionsFolder = AppConfig.DataActionsFolderPath;
-        config.SensorsFolder = AppConfig.SensorsFolderPath;
-        config.ReflexesFolder = AppConfig.ReflexesFolderPath;
-        config.PsychicDataFolder = AppConfig.PsychicDataFolderPath;
-        config.LogsFolder = AppConfig.LogsFolderPath;
-        config.BootDataFolder = AppConfig.BootDataFolderPath;
-        config.LogFormat = AppConfig.LogFormat;
-        config.LogEnabled = AppConfig.LogEnabled;
-        config.DefaultStileId = AppConfig.DefaultStileId;
-        config.CompareLevel = AppConfig.CompareLevel;
-        config.DifSensorPar = AppConfig.DifSensorPar;
-        config.HomeostasisPulseSpeedDriftEnabled = AppConfig.HomeostasisPulseSpeedDriftEnabled;
-        config.DynamicTime = AppConfig.DynamicTime;
-        config.ReflexActionDisplayDuration = AppConfig.ReflexActionDisplayDuration;
-        config.DefaultAdaptiveActionId = AppConfig.DefaultAdaptiveActionId;
-        config.DefaultThemeTypeId = AppConfig.DefaultThemeTypeId;
-        config.RecognitionThreshold = AppConfig.RecognitionThreshold;
-        config.WaitingPeriodForActionsVal = AppConfig.WaitingPeriodForActionsVal;
-        config.ThinkingCycleDecayAgeDivisor = AppConfig.ThinkingCycleDecayAgeDivisor;
-        config.ThinkingCycleDecayBase = AppConfig.ThinkingCycleDecayBase;
-        config.ThinkingCycleMainMaxAgePulses = AppConfig.ThinkingCycleMainMaxAgePulses;
-        config.NoOperatorStimulusSilencePulses = AppConfig.NoOperatorStimulusSilencePulses;
-        config.MemoryLogWriter = MemoryLogManager.Instance;
+        var config = BuildIsidaConfigFromAppConfig();
 
         _stepInzialized = 2;
 
         _isidaContext = IsidaEngine.Create(config);
 
-        var agentDisplayCoalescer = new CoalescingAgentLogWriter(MemoryLogManager.Instance.CreateAgentDisplayLogSink());
-        MemoryLogManager.SetAgentDisplayCoalescerResetHandler(() => agentDisplayCoalescer.ResetPending());
-        _isidaContext.ResearchLogger.SetDisplayLogWriter(agentDisplayCoalescer);
+        _agentDisplayCoalescer = new CoalescingAgentLogWriter(MemoryLogManager.Instance.CreateAgentDisplayLogSink());
+        MemoryLogManager.SetAgentDisplayCoalescerResetHandler(() => _agentDisplayCoalescer.ResetPending());
+        _isidaContext.ResearchLogger.SetDisplayLogWriter(_agentDisplayCoalescer);
 
         _stepInzialized = 3;
 
-        _gomeostas = _isidaContext.Gomeostas;
-        _sensorySystem = _isidaContext.SensorySystem;
-        _actionsSystem = _isidaContext.AdaptiveActions;
-        _influenceActionSystem = _isidaContext.InfluenceActions;
-        _geneticReflexesSystem = _isidaContext.GeneticReflexes;
-        _conditionedReflexesSystem = _isidaContext.ConditionedReflexes;
-        _perceptionImagesSystem = _isidaContext.PerceptionImages;
-        _actionsImagesSystem = _isidaContext.ActionsImages;
-        _automatizmSystem = _isidaContext.AutomatizmSystem;
-        _automatizmTreeSystem = _isidaContext.AutomatizmTree;
-        _psychicSystem = _isidaContext.PsychicSystem;
-        _reflexesActivator = _isidaContext.ReflexesActivator;
-        _reflexTree = _isidaContext.ReflexTree;
-        _reflexChains = _isidaContext.ReflexChains;
-        _reflexExecution = _isidaContext.ReflexExecution;
-        _researchLogger = _isidaContext.ResearchLogger;
-        _influenceActionsImagesSystem = _isidaContext.InfluenceActionsImages;
-        _emotionsImageSystem = _isidaContext.EmotionsImageSystem;
-        _verbalBrocaImages = _isidaContext.VerbalBrocaImagesSystem;
-        _conditionedReflexToAutomatizm = _isidaContext.ConditionedReflexToAutomatizm;
-        _automatizmChains = _isidaContext.AutomatizmChainsSystem;
-        _automatizmFileLoader = _isidaContext.AutomatizmFileLoader;
-        _stage2PrimitivesLoader = _isidaContext.Stage2PrimitivesLoader;
+        AssignSubsystemReferencesFromContext(_isidaContext);
 
         _stepInzialized = 4;
-
-        _agentLogCellTooltips = new AgentLogCellTooltipProvider(
-            _gomeostas,
-            _perceptionImagesSystem,
-            _influenceActionSystem,
-            _sensorySystem.VerbalChannel,
-            _actionsSystem,
-            _geneticReflexesSystem,
-            _conditionedReflexesSystem,
-            _automatizmSystem,
-            _actionsImagesSystem);
       }
       catch (IsidaInitializationException ex)
       {
@@ -312,6 +251,118 @@ namespace AIStudio
       catch (Exception ex)
       {
         Logger.Error(ex.Message);
+      }
+    }
+
+    private static IsidaConfig BuildIsidaConfigFromAppConfig()
+    {
+      var config = new IsidaConfig();
+
+      config.BaseDirectory = Path.Combine(
+          Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData),
+          "ISIDA");
+
+      config.GomeostasFolder = AppConfig.DataGomeostasFolderPath;
+      config.ActionsFolder = AppConfig.DataActionsFolderPath;
+      config.SensorsFolder = AppConfig.SensorsFolderPath;
+      config.ReflexesFolder = AppConfig.ReflexesFolderPath;
+      config.PsychicDataFolder = AppConfig.PsychicDataFolderPath;
+      config.LogsFolder = AppConfig.LogsFolderPath;
+      config.BootDataFolder = AppConfig.BootDataFolderPath;
+      config.LogFormat = AppConfig.LogFormat;
+      config.LogEnabled = AppConfig.LogEnabled;
+      config.DefaultStileId = AppConfig.DefaultStileId;
+      config.CompareLevel = AppConfig.CompareLevel;
+      config.DifSensorPar = AppConfig.DifSensorPar;
+      config.HomeostasisPulseSpeedDriftEnabled = AppConfig.HomeostasisPulseSpeedDriftEnabled;
+      config.DynamicTime = AppConfig.DynamicTime;
+      config.ReflexActionDisplayDuration = AppConfig.ReflexActionDisplayDuration;
+      config.DefaultAdaptiveActionId = AppConfig.DefaultAdaptiveActionId;
+      config.DefaultThemeTypeId = AppConfig.DefaultThemeTypeId;
+      config.RecognitionThreshold = AppConfig.RecognitionThreshold;
+      config.WaitingPeriodForActionsVal = AppConfig.WaitingPeriodForActionsVal;
+      config.ThinkingCycleDecayAgeDivisor = AppConfig.ThinkingCycleDecayAgeDivisor;
+      config.ThinkingCycleDecayBase = AppConfig.ThinkingCycleDecayBase;
+      config.ThinkingCycleMainMaxAgePulses = AppConfig.ThinkingCycleMainMaxAgePulses;
+      config.NoOperatorStimulusSilencePulses = AppConfig.NoOperatorStimulusSilencePulses;
+      config.MemoryLogWriter = MemoryLogManager.Instance;
+
+      return config;
+    }
+
+    private void AssignSubsystemReferencesFromContext(IsidaContext ctx)
+    {
+      _gomeostas = ctx.Gomeostas;
+      _sensorySystem = ctx.SensorySystem;
+      _actionsSystem = ctx.AdaptiveActions;
+      _influenceActionSystem = ctx.InfluenceActions;
+      _geneticReflexesSystem = ctx.GeneticReflexes;
+      _conditionedReflexesSystem = ctx.ConditionedReflexes;
+      _perceptionImagesSystem = ctx.PerceptionImages;
+      _actionsImagesSystem = ctx.ActionsImages;
+      _automatizmSystem = ctx.AutomatizmSystem;
+      _automatizmTreeSystem = ctx.AutomatizmTree;
+      _psychicSystem = ctx.PsychicSystem;
+      _reflexesActivator = ctx.ReflexesActivator;
+      _reflexTree = ctx.ReflexTree;
+      _reflexChains = ctx.ReflexChains;
+      _reflexExecution = ctx.ReflexExecution;
+      _researchLogger = ctx.ResearchLogger;
+      _influenceActionsImagesSystem = ctx.InfluenceActionsImages;
+      _emotionsImageSystem = ctx.EmotionsImageSystem;
+      _verbalBrocaImages = ctx.VerbalBrocaImagesSystem;
+      _conditionedReflexToAutomatizm = ctx.ConditionedReflexToAutomatizm;
+      _automatizmChains = ctx.AutomatizmChainsSystem;
+      _automatizmFileLoader = ctx.AutomatizmFileLoader;
+      _stage2PrimitivesLoader = ctx.Stage2PrimitivesLoader;
+
+      _agentLogCellTooltips = new AgentLogCellTooltipProvider(
+          _gomeostas,
+          _perceptionImagesSystem,
+          _influenceActionSystem,
+          _sensorySystem.VerbalChannel,
+          _actionsSystem,
+          _geneticReflexesSystem,
+          _conditionedReflexesSystem,
+          _automatizmSystem,
+          _actionsImagesSystem);
+    }
+
+    /// <summary>Пересоздаёт движок ISIDA после смены корня проекта на странице настроек (пути уже применены к переданной VM).</summary>
+    private void ReloadRuntimeAfterProjectSwitch(ProjectSettingsViewModel vm)
+    {
+      vm.PushSettingsToAppConfig();
+
+      if (IsPulsating)
+        IsPulsating = false;
+
+      _isidaContext?.Dispose();
+      _isidaContext = null;
+
+      var config = BuildIsidaConfigFromAppConfig();
+      _isidaContext = IsidaEngine.Create(config);
+
+      _isidaContext.ResearchLogger.SetDisplayLogWriter(_agentDisplayCoalescer);
+
+      AssignSubsystemReferencesFromContext(_isidaContext);
+
+      RefreshUiAfterEngineReload();
+      UpdateAgentState();
+      OnPropertyChanged(nameof(LifeTimeStatus));
+    }
+
+    private void RefreshUiAfterEngineReload()
+    {
+      if (CurrentContent is ProjectSettingsView projectSettingsView)
+      {
+        projectSettingsView.DataContext = new ProjectSettingsViewModel(_gomeostas, ReloadRuntimeAfterProjectSwitch);
+        return;
+      }
+
+      if (CurrentContent is AgentView agentView)
+      {
+        _agentViewModel = new AgentViewModel(_gomeostas, () => _isidaContext.CancelWaitingPeriodAndResetMirror());
+        agentView.DataContext = _agentViewModel;
       }
     }
 
@@ -2191,7 +2242,7 @@ namespace AIStudio
     private void ShowProjectSettings()
     {
       var projectSettingsView = new ProjectSettingsView();
-      var viewModel = new ProjectSettingsViewModel(_gomeostas);
+      var viewModel = new ProjectSettingsViewModel(_gomeostas, ReloadRuntimeAfterProjectSwitch);
 
       projectSettingsView.DataContext = viewModel;
       CurrentContent = projectSettingsView;

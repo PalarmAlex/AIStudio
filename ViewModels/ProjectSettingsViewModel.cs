@@ -3,6 +3,7 @@ using ISIDA.Psychic.Understanding;
 using ISIDA.Reflexes;
 using ISIDA.Actions;
 using ISIDA.Gomeostas;
+using AIStudio.Windows;
 using Ookii.Dialogs.Wpf;
 using System;
 using System.Collections.Generic;
@@ -11,8 +12,10 @@ using System.ComponentModel;
 using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Text;
 using System.Windows;
 using System.Windows.Input;
+using System.Xml.Linq;
 
 namespace AIStudio.ViewModels
 {
@@ -20,8 +23,11 @@ namespace AIStudio.ViewModels
   {
     private readonly GomeostasSystem _gomeostas;
     private readonly AdaptiveActionsSystem _actionsSystem;
+    /// <summary>При смене корня проекта вызывается после подстановки путей и параметров из XML — перезагрузка движка ISIDA в AIStudio.</summary>
+    private readonly Action<ProjectSettingsViewModel> _reloadRuntimeAfterProjectRootSwitch;
 
     private bool _isInitialized = false;
+    private bool _bulkApplyingProjectSettings = false;
     private bool _logEnabled = false;
     private string _settingsPath;
     private string _dataGomeostasFolderPath;
@@ -58,6 +64,79 @@ namespace AIStudio.ViewModels
 
     private int _reflexActionDisplayDuration;
     private int _previousReflexActionDisplayDuration;
+
+    private bool _settingsPathNotMatchingTemplate;
+    private bool _dataGomeostasNotMatchingTemplate;
+    private bool _dataActionsNotMatchingTemplate;
+    private bool _sensorsNotMatchingTemplate;
+    private bool _reflexesNotMatchingTemplate;
+    private bool _psychicNotMatchingTemplate;
+    private bool _logsNotMatchingTemplate;
+    private bool _bootDataNotMatchingTemplate;
+    private bool _scenarioReportsNotMatchingTemplate;
+
+    /// <summary>Видимость предупреждения рядом с путём «Каталог настроек».</summary>
+    public bool SettingsPathNotMatchingTemplate
+    {
+      get => _settingsPathNotMatchingTemplate;
+      set { _settingsPathNotMatchingTemplate = value; OnPropertyChanged(nameof(SettingsPathNotMatchingTemplate)); }
+    }
+
+    /// <summary>Видимость предупреждения для каталога данных гомеостаза.</summary>
+    public bool DataGomeostasNotMatchingTemplate
+    {
+      get => _dataGomeostasNotMatchingTemplate;
+      set { _dataGomeostasNotMatchingTemplate = value; OnPropertyChanged(nameof(DataGomeostasNotMatchingTemplate)); }
+    }
+
+    /// <summary>Видимость предупреждения для каталога адаптивных действий.</summary>
+    public bool DataActionsNotMatchingTemplate
+    {
+      get => _dataActionsNotMatchingTemplate;
+      set { _dataActionsNotMatchingTemplate = value; OnPropertyChanged(nameof(DataActionsNotMatchingTemplate)); }
+    }
+
+    /// <summary>Видимость предупреждения для каталога вербальных сенсоров.</summary>
+    public bool SensorsNotMatchingTemplate
+    {
+      get => _sensorsNotMatchingTemplate;
+      set { _sensorsNotMatchingTemplate = value; OnPropertyChanged(nameof(SensorsNotMatchingTemplate)); }
+    }
+
+    /// <summary>Видимость предупреждения для каталога рефлексов.</summary>
+    public bool ReflexesNotMatchingTemplate
+    {
+      get => _reflexesNotMatchingTemplate;
+      set { _reflexesNotMatchingTemplate = value; OnPropertyChanged(nameof(ReflexesNotMatchingTemplate)); }
+    }
+
+    /// <summary>Видимость предупреждения для каталога психики.</summary>
+    public bool PsychicNotMatchingTemplate
+    {
+      get => _psychicNotMatchingTemplate;
+      set { _psychicNotMatchingTemplate = value; OnPropertyChanged(nameof(PsychicNotMatchingTemplate)); }
+    }
+
+    /// <summary>Видимость предупреждения для каталога логов.</summary>
+    public bool LogsNotMatchingTemplate
+    {
+      get => _logsNotMatchingTemplate;
+      set { _logsNotMatchingTemplate = value; OnPropertyChanged(nameof(LogsNotMatchingTemplate)); }
+    }
+
+    /// <summary>Видимость предупреждения для каталога загрузочных данных.</summary>
+    public bool BootDataNotMatchingTemplate
+    {
+      get => _bootDataNotMatchingTemplate;
+      set { _bootDataNotMatchingTemplate = value; OnPropertyChanged(nameof(BootDataNotMatchingTemplate)); }
+    }
+
+    /// <summary>Видимость предупреждения для каталога отчётов сценариев.</summary>
+    public bool ScenarioReportsNotMatchingTemplate
+    {
+      get => _scenarioReportsNotMatchingTemplate;
+      set { _scenarioReportsNotMatchingTemplate = value; OnPropertyChanged(nameof(ScenarioReportsNotMatchingTemplate)); }
+    }
 
     public string SettingsPath
     {
@@ -167,6 +246,13 @@ namespace AIStudio.ViewModels
       get => _thinkingCycleDecayAgeDivisor;
       set
       {
+        if (_bulkApplyingProjectSettings)
+        {
+          _thinkingCycleDecayAgeDivisor = value;
+          OnPropertyChanged(nameof(ThinkingCycleDecayAgeDivisor));
+          return;
+        }
+
         if (value < 1)
         {
           MessageBox.Show("Делитель возраста цикла (A) должен быть не меньше 1.", "Ошибка ввода");
@@ -182,6 +268,13 @@ namespace AIStudio.ViewModels
       get => _thinkingCycleDecayBase;
       set
       {
+        if (_bulkApplyingProjectSettings)
+        {
+          _thinkingCycleDecayBase = value;
+          OnPropertyChanged(nameof(ThinkingCycleDecayBase));
+          return;
+        }
+
         if (value < 0)
         {
           MessageBox.Show("Базовое снятие веса (B) не может быть отрицательным.", "Ошибка ввода");
@@ -197,6 +290,13 @@ namespace AIStudio.ViewModels
       get => _thinkingCycleMainMaxAgePulses;
       set
       {
+        if (_bulkApplyingProjectSettings)
+        {
+          _thinkingCycleMainMaxAgePulses = value;
+          OnPropertyChanged(nameof(ThinkingCycleMainMaxAgePulses));
+          return;
+        }
+
         if (value < 1)
         {
           MessageBox.Show("Максимальный возраст главного цикла (пульсов) должен быть не меньше 1.", "Ошибка ввода");
@@ -213,6 +313,13 @@ namespace AIStudio.ViewModels
       get => _noOperatorStimulusSilencePulses;
       set
       {
+        if (_bulkApplyingProjectSettings)
+        {
+          _noOperatorStimulusSilencePulses = value;
+          OnPropertyChanged(nameof(NoOperatorStimulusSilencePulses));
+          return;
+        }
+
         if (value < 1)
         {
           MessageBox.Show("Порог тишины для события «долго без оператора» должен быть не меньше 1 пульса.", "Ошибка ввода");
@@ -351,6 +458,17 @@ namespace AIStudio.ViewModels
       set
       {
         var validation = SettingsValidator.ValidateDifSensorPar(value);
+        if (_bulkApplyingProjectSettings)
+        {
+          if (!validation.isValid)
+            return;
+          _difSensorPar = value;
+          _difSensorParText = value.ToString(CultureInfo.InvariantCulture);
+          OnPropertyChanged(nameof(DifSensorPar));
+          OnPropertyChanged(nameof(DifSensorParText));
+          return;
+        }
+
         if (validation.isValid)
         {
           _difSensorPar = value;
@@ -426,6 +544,10 @@ namespace AIStudio.ViewModels
     }
     public ICommand BrowseFolderCommand { get; }
     public ICommand SaveSettingsCommand { get; }
+    /// <summary>Выбор корня проекта данных и подстановка путей по шаблону ISIDA.</summary>
+    public ICommand SwitchProjectRootCommand { get; }
+    /// <summary>Открывает текстовое описание шаблона каталогов в редакторе по умолчанию.</summary>
+    public ICommand OpenProjectDirectoryTemplateCommand { get; }
 
     public ObservableCollection<SelectableItem> BehaviorStylesWithNone { get; } = new ObservableCollection<SelectableItem>();
     public ObservableCollection<SelectableItem> AdaptiveActionsWithNone { get; } = new ObservableCollection<SelectableItem>();
@@ -439,8 +561,11 @@ namespace AIStudio.ViewModels
       public string Name { get; set; }
     }
 
-    public ProjectSettingsViewModel(GomeostasSystem gomeostas)
+    public ProjectSettingsViewModel(
+        GomeostasSystem gomeostas,
+        Action<ProjectSettingsViewModel> reloadRuntimeAfterProjectRootSwitch = null)
     {
+      _reloadRuntimeAfterProjectRootSwitch = reloadRuntimeAfterProjectRootSwitch;
       SettingsPath = AppConfig.SettingsPath;
       DataGomeostasFolderPath = AppConfig.DataGomeostasFolderPath;
       DataActionsFolderPath = AppConfig.DataActionsFolderPath;
@@ -505,12 +630,16 @@ namespace AIStudio.ViewModels
       DefaultFormatLog = (int)AppConfig.LogFormat;
       BrowseFolderCommand = new RelayCommand(BrowseFolderWithParameter);
       SaveSettingsCommand = new RelayCommand(SaveSettingsWithParameter);
+      SwitchProjectRootCommand = new RelayCommand(SwitchProjectRoot);
+      OpenProjectDirectoryTemplateCommand = new RelayCommand(OpenProjectDirectoryTemplate);
 
       _isInitialized = true;
       OnPropertyChanged(nameof(ThinkingCycleDecayAgeDivisor));
       OnPropertyChanged(nameof(ThinkingCycleDecayBase));
       OnPropertyChanged(nameof(ThinkingCycleMainMaxAgePulses));
       OnPropertyChanged(nameof(NoOperatorStimulusSilencePulses));
+
+      RefreshProjectPathTemplateWarnings();
     }
     private void LoadLogFormats()
     {
@@ -620,33 +749,599 @@ namespace AIStudio.ViewModels
         {
           case nameof(SettingsPath):
             SettingsPath = dialog.SelectedPath;
+            RefreshProjectPathTemplateWarnings();
             break;
           case nameof(DataGomeostasFolderPath):
             DataGomeostasFolderPath = dialog.SelectedPath;
+            RefreshProjectPathTemplateWarnings();
             break;
           case nameof(DataActionsFolderPath):
             DataActionsFolderPath = dialog.SelectedPath;
+            RefreshProjectPathTemplateWarnings();
             break;
           case nameof(SensorsFolderPath):
             SensorsFolderPath = dialog.SelectedPath;
+            RefreshProjectPathTemplateWarnings();
             break;
           case nameof(ReflexesFolderPath):
             ReflexesFolderPath = dialog.SelectedPath;
+            RefreshProjectPathTemplateWarnings();
             break;
           case nameof(PsychicDataFolderPath):
             PsychicDataFolderPath = dialog.SelectedPath;
+            RefreshProjectPathTemplateWarnings();
             break;
           case nameof(LogsFolderPath):
             LogsFolderPath = dialog.SelectedPath;
+            RefreshProjectPathTemplateWarnings();
             break;
           case nameof(BootDataFolderPath):
             BootDataFolderPath = dialog.SelectedPath;
+            RefreshProjectPathTemplateWarnings();
             break;
           case nameof(ScenarioReportsFolderPath):
             ScenarioReportsFolderPath = dialog.SelectedPath;
+            RefreshProjectPathTemplateWarnings();
             break;
         }
       }
+    }
+
+    private void RefreshProjectPathTemplateWarnings()
+    {
+      string root;
+      if (!SettingsValidator.TryInferProjectRoot(SettingsPath, DataGomeostasFolderPath, out root))
+      {
+        SettingsPathNotMatchingTemplate = false;
+        DataGomeostasNotMatchingTemplate = false;
+        DataActionsNotMatchingTemplate = false;
+        SensorsNotMatchingTemplate = false;
+        ReflexesNotMatchingTemplate = false;
+        PsychicNotMatchingTemplate = false;
+        LogsNotMatchingTemplate = false;
+        BootDataNotMatchingTemplate = false;
+        ScenarioReportsNotMatchingTemplate = false;
+        return;
+      }
+
+      SettingsPathNotMatchingTemplate = !SettingsValidator.IsFolderPathMatchingProjectTemplate(root, SettingsPath, nameof(SettingsPath));
+      DataGomeostasNotMatchingTemplate = !SettingsValidator.IsFolderPathMatchingProjectTemplate(root, DataGomeostasFolderPath, nameof(DataGomeostasFolderPath));
+      DataActionsNotMatchingTemplate = !SettingsValidator.IsFolderPathMatchingProjectTemplate(root, DataActionsFolderPath, nameof(DataActionsFolderPath));
+      SensorsNotMatchingTemplate = !SettingsValidator.IsFolderPathMatchingProjectTemplate(root, SensorsFolderPath, nameof(SensorsFolderPath));
+      ReflexesNotMatchingTemplate = !SettingsValidator.IsFolderPathMatchingProjectTemplate(root, ReflexesFolderPath, nameof(ReflexesFolderPath));
+      PsychicNotMatchingTemplate = !SettingsValidator.IsFolderPathMatchingProjectTemplate(root, PsychicDataFolderPath, nameof(PsychicDataFolderPath));
+      LogsNotMatchingTemplate = !SettingsValidator.IsFolderPathMatchingProjectTemplate(root, LogsFolderPath, nameof(LogsFolderPath));
+      BootDataNotMatchingTemplate = !SettingsValidator.IsFolderPathMatchingProjectTemplate(root, BootDataFolderPath, nameof(BootDataFolderPath));
+      ScenarioReportsNotMatchingTemplate = !SettingsValidator.IsFolderPathMatchingProjectTemplate(root, ScenarioReportsFolderPath, nameof(ScenarioReportsFolderPath));
+    }
+
+    private void OpenProjectDirectoryTemplate(object _)
+    {
+      try
+      {
+        var w = new ProjectDirectoryTemplateWindow
+        {
+          Owner = Application.Current != null ? Application.Current.MainWindow : null
+        };
+        w.ShowDialog();
+      }
+      catch (Exception ex)
+      {
+        MessageBox.Show("Не удалось открыть шаблон: " + ex.Message, "Ошибка");
+      }
+    }
+
+    private void SwitchProjectRoot(object _)
+    {
+      var dialog = new VistaFolderBrowserDialog
+      {
+        Description = "Укажите корневой каталог данных проекта...",
+        UseDescriptionForTitle = true
+      };
+
+      if (dialog.ShowDialog() != true)
+        return;
+
+      string projectRoot = dialog.SelectedPath;
+      List<string> missingRoots;
+      if (!SettingsValidator.MandatoryProjectRootFoldersExist(projectRoot, out missingRoots))
+      {
+        MessageBox.Show(
+            "В выбранном каталоге отсутствуют обязательные папки шаблона: " + string.Join(", ", missingRoots) + ".",
+            "Структура проекта");
+        return;
+      }
+
+      if (SettingsValidator.TryInferProjectRoot(SettingsPath, DataGomeostasFolderPath, out string currentProjectRoot)
+          && PathsReferToSameDirectory(projectRoot, currentProjectRoot))
+      {
+        MessageBox.Show(
+            "Указан тот же каталог данных проекта, что уже задан на этой странице. Переключение и перезагрузка не выполняются.",
+            "Переключение проекта",
+            MessageBoxButton.OK,
+            MessageBoxImage.Information);
+        return;
+      }
+
+      var errors = new List<string>();
+      string[] pathKeys =
+      {
+        nameof(SettingsPath),
+        nameof(LogsFolderPath),
+        nameof(BootDataFolderPath),
+        nameof(DataGomeostasFolderPath),
+        nameof(DataActionsFolderPath),
+        nameof(SensorsFolderPath),
+        nameof(ReflexesFolderPath),
+        nameof(PsychicDataFolderPath),
+        nameof(ScenarioReportsFolderPath)
+      };
+
+      var newPaths = new Dictionary<string, string>();
+      for (int i = 0; i < pathKeys.Length; i++)
+      {
+        string key = pathKeys[i];
+        string expected;
+        try
+        {
+          expected = SettingsValidator.GetExpectedFolderPathForSetting(projectRoot, key);
+        }
+        catch
+        {
+          errors.Add(GetPathSettingDisplayName(key) + ": ошибка вычисления пути.");
+          continue;
+        }
+
+        if (Directory.Exists(expected))
+          newPaths[key] = expected;
+        else
+          errors.Add(GetPathSettingDisplayName(key) + " (каталог): " + expected);
+      }
+
+      string projectSettingsXml = Path.Combine(projectRoot, "Settings", AppConfig.StudioSettingsFileName);
+      if (!File.Exists(projectSettingsXml))
+      {
+        string legacyProjectSettings = Path.Combine(projectRoot, "Settings", AppConfig.LegacyStudioSettingsFileName);
+        if (File.Exists(legacyProjectSettings))
+          projectSettingsXml = legacyProjectSettings;
+      }
+
+      XElement appSettings = null;
+      if (File.Exists(projectSettingsXml))
+      {
+        try
+        {
+          var doc = XDocument.Load(projectSettingsXml);
+          appSettings = doc.Root?.Element("AppSettings");
+        }
+        catch (Exception ex)
+        {
+          errors.Add("Не удалось прочитать файл настроек проекта: " + ex.Message);
+        }
+      }
+      else
+      {
+        errors.Add("Файл «" + AppConfig.StudioSettingsFileName + "» (или «" + AppConfig.LegacyStudioSettingsFileName + "») в каталоге Settings не найден; параметры со страницы не загружены из проекта.");
+      }
+
+      bool wasInit = _isInitialized;
+      _isInitialized = false;
+      _bulkApplyingProjectSettings = true;
+
+      try
+      {
+        foreach (var kv in newPaths)
+          ApplyPathSetting(kv.Key, kv.Value);
+
+        if (appSettings != null)
+          ApplyScalarSettingsFromAppSettings(appSettings, errors);
+      }
+      finally
+      {
+        _bulkApplyingProjectSettings = false;
+        _isInitialized = wasInit;
+      }
+
+      bool useRuntimeReload = _reloadRuntimeAfterProjectRootSwitch != null;
+      bool reloadExecuted = false;
+
+      if (useRuntimeReload)
+      {
+        if (!ValidateAllSettings())
+        {
+          RefreshProjectPathTemplateWarnings();
+          LoadBehaviorStylesWithNone();
+          LoadAdaptiveActionsWithNone();
+          LoadThemeTypesWithNone();
+          LoadLogFormats();
+          OnPropertyChanged(nameof(DefaultFormatLog));
+          OnPropertyChanged(nameof(DifSensorParText));
+          return;
+        }
+
+        if (MessageBox.Show(
+                "Сейчас будет записан файл конфигурации студии и полностью перезагружен движок ISIDA из файлов выбранного проекта. Продолжить?",
+                "Переключение проекта",
+                MessageBoxButton.YesNo,
+                MessageBoxImage.Question) != MessageBoxResult.Yes)
+        {
+          RefreshProjectPathTemplateWarnings();
+          LoadBehaviorStylesWithNone();
+          LoadAdaptiveActionsWithNone();
+          LoadThemeTypesWithNone();
+          LoadLogFormats();
+          OnPropertyChanged(nameof(DefaultFormatLog));
+          OnPropertyChanged(nameof(DifSensorParText));
+        }
+        else
+        {
+          try
+          {
+            _reloadRuntimeAfterProjectRootSwitch.Invoke(this);
+            reloadExecuted = true;
+          }
+          catch (Exception ex)
+          {
+            MessageBox.Show(
+                "Не удалось перезагрузить данные движка из нового проекта: " + ex.Message,
+                "Переключение проекта",
+                MessageBoxButton.OK,
+                MessageBoxImage.Error);
+            RefreshProjectPathTemplateWarnings();
+            LoadBehaviorStylesWithNone();
+            LoadAdaptiveActionsWithNone();
+            LoadThemeTypesWithNone();
+            LoadLogFormats();
+            OnPropertyChanged(nameof(DefaultFormatLog));
+            OnPropertyChanged(nameof(DifSensorParText));
+            return;
+          }
+        }
+      }
+      else
+      {
+        RefreshProjectPathTemplateWarnings();
+        LoadBehaviorStylesWithNone();
+        LoadAdaptiveActionsWithNone();
+        LoadThemeTypesWithNone();
+        LoadLogFormats();
+        OnPropertyChanged(nameof(DefaultFormatLog));
+        OnPropertyChanged(nameof(DifSensorParText));
+      }
+
+      if (errors.Count > 0)
+      {
+        var sb = new StringBuilder();
+        sb.AppendLine("По указанному пути не обнаружены следующие настройки или не удалось их применить:");
+        for (int i = 0; i < errors.Count; i++)
+          sb.AppendLine(errors[i]);
+
+        MessageBox.Show(sb.ToString(), "Переключение проекта", MessageBoxButton.OK, MessageBoxImage.Warning);
+      }
+      else if (reloadExecuted)
+      {
+        MessageBox.Show(
+            "Каталоги и параметры проекта применены; данные движка перезагружены из файлов нового проекта. Настройки студии записаны в файл конфигурации.",
+            "Переключение проекта",
+            MessageBoxButton.OK,
+            MessageBoxImage.Information);
+      }
+      else if (useRuntimeReload)
+      {
+        MessageBox.Show(
+            "Каталоги и параметры из файла проекта применены к странице. Перезагрузка движка отменена. Сохраните настройки и при необходимости перезапустите приложение, чтобы применить пути к работающему движку.",
+            "Переключение проекта",
+            MessageBoxButton.OK,
+            MessageBoxImage.Information);
+      }
+      else
+      {
+        MessageBox.Show(
+            "Каталоги и параметры из файла проекта применены к текущей странице. Сохраните настройки и при необходимости перезапустите приложение.",
+            "Переключение проекта",
+            MessageBoxButton.OK,
+            MessageBoxImage.Information);
+      }
+    }
+
+    /// <summary>Сравнивает пути к каталогам с учётом полной канонизации и регистра (Windows).</summary>
+    private static bool PathsReferToSameDirectory(string pathA, string pathB)
+    {
+      if (string.IsNullOrWhiteSpace(pathA) || string.IsNullOrWhiteSpace(pathB))
+        return false;
+      try
+      {
+        string fullA = Path.GetFullPath(pathA.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar));
+        string fullB = Path.GetFullPath(pathB.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar));
+        return string.Equals(fullA, fullB, StringComparison.OrdinalIgnoreCase);
+      }
+      catch
+      {
+        return false;
+      }
+    }
+
+    private static string GetPathSettingDisplayName(string pathSettingKey)
+    {
+      switch (pathSettingKey)
+      {
+        case nameof(SettingsPath): return "Каталог настроек";
+        case nameof(LogsFolderPath): return "Каталог логов проекта";
+        case nameof(BootDataFolderPath): return "Каталог загрузочных данных";
+        case nameof(DataGomeostasFolderPath): return "Каталог данных гомеостаза";
+        case nameof(DataActionsFolderPath): return "Каталог адаптивных действий";
+        case nameof(SensorsFolderPath): return "Каталог вербальных сенсоров";
+        case nameof(ReflexesFolderPath): return "Каталог безусл. и условн. рефлексов";
+        case nameof(PsychicDataFolderPath): return "Каталог файлов психики";
+        case nameof(ScenarioReportsFolderPath): return "Каталог отчётов сценариев (HTML)";
+        default: return pathSettingKey;
+      }
+    }
+
+    private void ApplyPathSetting(string key, string path)
+    {
+      switch (key)
+      {
+        case nameof(SettingsPath): SettingsPath = path; break;
+        case nameof(LogsFolderPath): LogsFolderPath = path; break;
+        case nameof(BootDataFolderPath): BootDataFolderPath = path; break;
+        case nameof(DataGomeostasFolderPath): DataGomeostasFolderPath = path; break;
+        case nameof(DataActionsFolderPath): DataActionsFolderPath = path; break;
+        case nameof(SensorsFolderPath): SensorsFolderPath = path; break;
+        case nameof(ReflexesFolderPath): ReflexesFolderPath = path; break;
+        case nameof(PsychicDataFolderPath): PsychicDataFolderPath = path; break;
+        case nameof(ScenarioReportsFolderPath): ScenarioReportsFolderPath = path; break;
+      }
+    }
+
+    private void ApplyScalarSettingsFromAppSettings(XElement appSettings, List<string> errors)
+    {
+      TryReadInt(appSettings, nameof(DefaultStileId), v => DefaultStileId = v, "Стиль реагирования по умолчанию", errors);
+      TryReadInt(appSettings, nameof(WaitingPeriodForActionsVal), v => WaitingPeriodForActionsVal = v, "Период ожидания ответа оператора (пульсов)", errors);
+
+      TryReadIntValidated(
+          appSettings,
+          nameof(ThinkingCycleDecayAgeDivisor),
+          v => v >= 1,
+          v => ThinkingCycleDecayAgeDivisor = v,
+          "Циклы: делитель возраста A",
+          errors);
+      TryReadIntValidated(
+          appSettings,
+          nameof(ThinkingCycleDecayBase),
+          v => v >= 0,
+          v => ThinkingCycleDecayBase = v,
+          "Циклы: базовое снятие веса B",
+          errors);
+      TryReadIntValidated(
+          appSettings,
+          nameof(ThinkingCycleMainMaxAgePulses),
+          v => v >= 1,
+          v => ThinkingCycleMainMaxAgePulses = v,
+          "Циклы: макс. возраст главного (пульсов)",
+          errors);
+      TryReadIntValidated(
+          appSettings,
+          nameof(NoOperatorStimulusSilencePulses),
+          v => v >= 1,
+          v => NoOperatorStimulusSilencePulses = v,
+          "Событие «долго без оператора»: порог тишины",
+          errors);
+
+      TryReadBool(appSettings, nameof(HomeostasisPulseSpeedDriftEnabled), v => HomeostasisPulseSpeedDriftEnabled = v, "Изменение параметров по Speed на каждом пульсе", errors);
+      TryReadInt(appSettings, nameof(DefaultAdaptiveActionId), v => DefaultAdaptiveActionId = v, "Адаптивное действие по умолчанию", errors);
+      TryReadInt(appSettings, nameof(DefaultThemeTypeId), v => DefaultThemeTypeId = v, "Тема мышления по умолчанию", errors);
+
+      TryReadIntWithValidator(
+          appSettings,
+          nameof(RecognitionThreshold),
+          v => SettingsValidator.ValidateRecognitionThreshold(v),
+          v => RecognitionThreshold = v,
+          "Число повторов для записи сенсора",
+          errors);
+      TryReadIntWithValidator(
+          appSettings,
+          nameof(CompareLevel),
+          v => SettingsValidator.ValidateCompareLevel(v),
+          v => CompareLevel = v,
+          "Интегральный порог состояния %",
+          errors);
+      TryReadFloatWithValidator(
+          appSettings,
+          nameof(DifSensorPar),
+          v => SettingsValidator.ValidateDifSensorPar(v),
+          v => DifSensorPar = v,
+          "Мин. детектирование параметра",
+          errors);
+
+      TryReadIntWithValidator(
+          appSettings,
+          nameof(DynamicTime),
+          v => SettingsValidator.ValidateDynamicTime(v),
+          v => DynamicTime = v,
+          "Время удержания состояний (пульсов)",
+          errors);
+
+      XElement reflexEl = appSettings.Element(nameof(ReflexActionDisplayDuration));
+      if (reflexEl != null && !string.IsNullOrWhiteSpace(reflexEl.Value))
+      {
+        int reflexVal;
+        if (!int.TryParse(reflexEl.Value.Trim(), out reflexVal))
+          errors.Add("Время удержания действий (пульсов)");
+        else if (reflexVal >= _dynamicTime)
+          errors.Add("Время удержания действий (пульсов)");
+        else
+          ReflexActionDisplayDuration = reflexVal;
+      }
+      else
+        errors.Add("Время удержания действий (пульсов)");
+
+      TryReadBool(appSettings, nameof(LogEnabled), v => LogEnabled = v, "Включить логирование событий", errors);
+
+      XElement logFormatEl = appSettings.Element("DefaultFormatLog");
+      if (logFormatEl == null)
+        logFormatEl = appSettings.Element("LogFormat");
+      if (logFormatEl != null && !string.IsNullOrWhiteSpace(logFormatEl.Value))
+      {
+        string raw = logFormatEl.Value.Trim();
+        ResearchLogger.LogFormat parsed;
+        if (Enum.TryParse(raw, true, out parsed))
+          DefaultFormatLog = (int)parsed;
+        else
+        {
+          int intVal;
+          if (int.TryParse(raw, out intVal) && Enum.IsDefined(typeof(ResearchLogger.LogFormat), intVal))
+            DefaultFormatLog = intVal;
+          else
+            errors.Add("Формат логов");
+        }
+      }
+      else
+        errors.Add("Формат логов");
+
+      OnPropertyChanged(nameof(DefaultStileId));
+      OnPropertyChanged(nameof(WaitingPeriodForActionsVal));
+      OnPropertyChanged(nameof(ThinkingCycleDecayAgeDivisor));
+      OnPropertyChanged(nameof(ThinkingCycleDecayBase));
+      OnPropertyChanged(nameof(ThinkingCycleMainMaxAgePulses));
+      OnPropertyChanged(nameof(NoOperatorStimulusSilencePulses));
+      OnPropertyChanged(nameof(HomeostasisPulseSpeedDriftEnabled));
+      OnPropertyChanged(nameof(DefaultAdaptiveActionId));
+      OnPropertyChanged(nameof(DefaultThemeTypeId));
+      OnPropertyChanged(nameof(RecognitionThreshold));
+      OnPropertyChanged(nameof(CompareLevel));
+      OnPropertyChanged(nameof(DifSensorPar));
+      OnPropertyChanged(nameof(DynamicTime));
+      OnPropertyChanged(nameof(ReflexActionDisplayDuration));
+      OnPropertyChanged(nameof(LogEnabled));
+      OnPropertyChanged(nameof(DefaultFormatLog));
+    }
+
+    private static void TryReadIntValidated(
+        XElement appSettings,
+        string key,
+        Func<int, bool> rangeOk,
+        Action<int> apply,
+        string displayName,
+        List<string> errors)
+    {
+      XElement el = appSettings.Element(key);
+      if (el == null || string.IsNullOrWhiteSpace(el.Value))
+      {
+        errors.Add(displayName);
+        return;
+      }
+
+      int v;
+      if (!int.TryParse(el.Value.Trim(), out v) || !rangeOk(v))
+      {
+        errors.Add(displayName);
+        return;
+      }
+
+      apply(v);
+    }
+
+    private static void TryReadIntWithValidator(
+        XElement appSettings,
+        string key,
+        Func<int, (bool isValid, string errorMessage)> validator,
+        Action<int> apply,
+        string displayName,
+        List<string> errors)
+    {
+      XElement el = appSettings.Element(key);
+      if (el == null || string.IsNullOrWhiteSpace(el.Value))
+      {
+        errors.Add(displayName);
+        return;
+      }
+
+      int v;
+      if (!int.TryParse(el.Value.Trim(), out v))
+      {
+        errors.Add(displayName);
+        return;
+      }
+
+      var validation = validator(v);
+      if (!validation.isValid)
+      {
+        errors.Add(displayName);
+        return;
+      }
+
+      apply(v);
+    }
+
+    private static void TryReadFloatWithValidator(
+        XElement appSettings,
+        string key,
+        Func<float, (bool isValid, string errorMessage)> validator,
+        Action<float> apply,
+        string displayName,
+        List<string> errors)
+    {
+      XElement el = appSettings.Element(key);
+      if (el == null || string.IsNullOrWhiteSpace(el.Value))
+      {
+        errors.Add(displayName);
+        return;
+      }
+
+      float v;
+      if (!float.TryParse(el.Value.Trim(), NumberStyles.Float, CultureInfo.InvariantCulture, out v))
+      {
+        errors.Add(displayName);
+        return;
+      }
+
+      var validation = validator(v);
+      if (!validation.isValid)
+      {
+        errors.Add(displayName);
+        return;
+      }
+
+      apply(v);
+    }
+
+    private static void TryReadInt(XElement appSettings, string key, Action<int> apply, string displayName, List<string> errors)
+    {
+      XElement el = appSettings.Element(key);
+      if (el == null || string.IsNullOrWhiteSpace(el.Value))
+      {
+        errors.Add(displayName);
+        return;
+      }
+
+      int v;
+      if (!int.TryParse(el.Value.Trim(), out v))
+      {
+        errors.Add(displayName);
+        return;
+      }
+
+      apply(v);
+    }
+
+    private static void TryReadBool(XElement appSettings, string key, Action<bool> apply, string displayName, List<string> errors)
+    {
+      XElement el = appSettings.Element(key);
+      if (el == null || string.IsNullOrWhiteSpace(el.Value))
+      {
+        errors.Add(displayName);
+        return;
+      }
+
+      bool v;
+      if (!bool.TryParse(el.Value.Trim(), out v))
+      {
+        errors.Add(displayName);
+        return;
+      }
+
+      apply(v);
     }
 
     private bool ValidateAllSettings()
@@ -670,6 +1365,36 @@ namespace AIStudio.ViewModels
       return true;
     }
 
+    /// <summary>Записывает текущие значения страницы в AppConfig (файл настроек студии), без диалога об успехе.</summary>
+    public void PushSettingsToAppConfig()
+    {
+      AppConfig.SetSetting(nameof(SettingsPath), SettingsPath);
+      AppConfig.SetSetting(nameof(DataGomeostasFolderPath), DataGomeostasFolderPath);
+      AppConfig.SetSetting(nameof(DataActionsFolderPath), DataActionsFolderPath);
+      AppConfig.SetSetting(nameof(SensorsFolderPath), SensorsFolderPath);
+      AppConfig.SetSetting(nameof(ReflexesFolderPath), ReflexesFolderPath);
+      AppConfig.SetSetting(nameof(PsychicDataFolderPath), PsychicDataFolderPath);
+      AppConfig.SetSetting(nameof(LogsFolderPath), LogsFolderPath);
+      AppConfig.SetSetting(nameof(BootDataFolderPath), BootDataFolderPath);
+      AppConfig.SetSetting(nameof(ScenarioReportsFolderPath), ScenarioReportsFolderPath);
+      AppConfig.SetIntSetting(nameof(DefaultStileId), DefaultStileId);
+      AppConfig.SetIntSetting(nameof(WaitingPeriodForActionsVal), WaitingPeriodForActionsVal);
+      AppConfig.SetIntSetting(nameof(ThinkingCycleDecayAgeDivisor), ThinkingCycleDecayAgeDivisor);
+      AppConfig.SetIntSetting(nameof(ThinkingCycleDecayBase), ThinkingCycleDecayBase);
+      AppConfig.SetIntSetting(nameof(ThinkingCycleMainMaxAgePulses), ThinkingCycleMainMaxAgePulses);
+      AppConfig.SetIntSetting(nameof(NoOperatorStimulusSilencePulses), NoOperatorStimulusSilencePulses);
+      AppConfig.SetBoolSetting(nameof(HomeostasisPulseSpeedDriftEnabled), HomeostasisPulseSpeedDriftEnabled);
+      AppConfig.SetIntSetting(nameof(DefaultAdaptiveActionId), DefaultAdaptiveActionId);
+      AppConfig.SetIntSetting(nameof(DefaultThemeTypeId), DefaultThemeTypeId);
+      AppConfig.SetIntSetting(nameof(RecognitionThreshold), RecognitionThreshold);
+      AppConfig.SetIntSetting(nameof(CompareLevel), CompareLevel);
+      AppConfig.SetFloatSetting(nameof(DifSensorPar), DifSensorPar);
+      AppConfig.SetIntSetting(nameof(DynamicTime), DynamicTime);
+      AppConfig.SetIntSetting(nameof(ReflexActionDisplayDuration), ReflexActionDisplayDuration);
+      AppConfig.SetBoolSetting(nameof(LogEnabled), LogEnabled);
+      AppConfig.SetLogFormatSetting(nameof(DefaultFormatLog), (ResearchLogger.LogFormat)DefaultFormatLog);
+    }
+
     private void SaveSettingsWithParameter(object _)
     {
       if (!ValidateAllSettings())
@@ -677,42 +1402,24 @@ namespace AIStudio.ViewModels
 
       try
       {
-        AppConfig.SetSetting(nameof(SettingsPath), SettingsPath);
-        AppConfig.SetSetting(nameof(DataGomeostasFolderPath), DataGomeostasFolderPath);
-        AppConfig.SetSetting(nameof(DataActionsFolderPath), DataActionsFolderPath);
-        AppConfig.SetSetting(nameof(SensorsFolderPath), SensorsFolderPath);
-        AppConfig.SetSetting(nameof(ReflexesFolderPath), ReflexesFolderPath);
-        AppConfig.SetSetting(nameof(PsychicDataFolderPath), PsychicDataFolderPath);
-        AppConfig.SetSetting(nameof(LogsFolderPath), LogsFolderPath);
-        AppConfig.SetSetting(nameof(BootDataFolderPath), BootDataFolderPath);
-        AppConfig.SetSetting(nameof(ScenarioReportsFolderPath), ScenarioReportsFolderPath);
-        AppConfig.SetIntSetting(nameof(DefaultStileId), DefaultStileId);
-        AppConfig.SetIntSetting(nameof(WaitingPeriodForActionsVal), WaitingPeriodForActionsVal);
-        AppConfig.SetIntSetting(nameof(ThinkingCycleDecayAgeDivisor), ThinkingCycleDecayAgeDivisor);
-        AppConfig.SetIntSetting(nameof(ThinkingCycleDecayBase), ThinkingCycleDecayBase);
-        AppConfig.SetIntSetting(nameof(ThinkingCycleMainMaxAgePulses), ThinkingCycleMainMaxAgePulses);
-        AppConfig.SetIntSetting(nameof(NoOperatorStimulusSilencePulses), NoOperatorStimulusSilencePulses);
-        AppConfig.SetBoolSetting(nameof(HomeostasisPulseSpeedDriftEnabled), HomeostasisPulseSpeedDriftEnabled);
-        AppConfig.SetIntSetting(nameof(DefaultAdaptiveActionId), DefaultAdaptiveActionId);
-        AppConfig.SetIntSetting(nameof(DefaultThemeTypeId), DefaultThemeTypeId);
-        AppConfig.SetIntSetting(nameof(RecognitionThreshold), RecognitionThreshold);
-        AppConfig.SetIntSetting(nameof(CompareLevel), CompareLevel);
-        AppConfig.SetFloatSetting(nameof(DifSensorPar), DifSensorPar);
-        AppConfig.SetIntSetting(nameof(DynamicTime), DynamicTime);
-        AppConfig.SetIntSetting(nameof(ReflexActionDisplayDuration), ReflexActionDisplayDuration);
-        AppConfig.SetBoolSetting(nameof(LogEnabled), LogEnabled);
-        AppConfig.SetLogFormatSetting(nameof(DefaultFormatLog), (ResearchLogger.LogFormat)DefaultFormatLog);
+        PushSettingsToAppConfig();
 
-        var dialog = new TaskDialog
+        var reloadQuestion = MessageBox.Show(
+            "Настройки успешно сохранены.\n\nПерегрузить проект с изменёнными настройками?",
+            "Успех",
+            MessageBoxButton.YesNo,
+            MessageBoxImage.Question,
+            MessageBoxResult.No);
+
+        if (reloadQuestion == MessageBoxResult.Yes && _reloadRuntimeAfterProjectRootSwitch != null)
         {
-          WindowTitle = "Успех",
-          MainInstruction = "Настройки успешно сохранены!",
-          Content = "Для применения изменений перезапустите приложение.",
-          MainIcon = TaskDialogIcon.Information,
-          Buttons = { new TaskDialogButton(ButtonType.Ok) }
-        };
-
-        dialog.ShowDialog();
+          _reloadRuntimeAfterProjectRootSwitch(this);
+          MessageBox.Show(
+              "Проект успешно перезагружен; движок работает с сохранёнными настройками.",
+              "Перезагрузка",
+              MessageBoxButton.OK,
+              MessageBoxImage.Information);
+        }
       }
       catch (Exception ex)
       {

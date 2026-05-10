@@ -41,12 +41,37 @@ namespace AIStudio.Pages
 
       GlobalTimer.PulsationStateChanged += OnPulsationStateChanged;
       Unloaded += AgentPropertiesDialog_Unloaded;
+      BorderPromptParamsReference.SizeChanged += BorderPromptParamsReference_SizeChanged;
+      Loaded += AgentPropertiesDialog_Loaded;
+    }
+
+    private void AgentPropertiesDialog_Loaded(object sender, RoutedEventArgs e)
+    {
+      Loaded -= AgentPropertiesDialog_Loaded;
+      SyncThreatResponseFieldMaxWidth();
+    }
+
+    private void BorderPromptParamsReference_SizeChanged(object sender, SizeChangedEventArgs e)
+    {
+      SyncThreatResponseFieldMaxWidth();
+    }
+
+    /// <summary>
+    /// Ширина поля «Реакции на угрозу» не шире блока «Параметры для вставки в промпт», чтобы не сжимать соседние колонки.
+    /// </summary>
+    private void SyncThreatResponseFieldMaxWidth()
+    {
+      double w = BorderPromptParamsReference.ActualWidth;
+      if (double.IsNaN(w) || w < 1)
+        return;
+      TextThreatResponse.MaxWidth = w;
     }
 
     private void AgentPropertiesDialog_Unloaded(object sender, RoutedEventArgs e)
     {
       GlobalTimer.PulsationStateChanged -= OnPulsationStateChanged;
       Unloaded -= AgentPropertiesDialog_Unloaded;
+      BorderPromptParamsReference.SizeChanged -= BorderPromptParamsReference_SizeChanged;
     }
 
     private void OnPulsationStateChanged()

@@ -127,8 +127,21 @@
           <ColumnDefinition Width="Auto"/>
         </Grid.ColumnDefinitions>
         <TextBox x:Name="TextThreatResponse" Grid.Column="0" IsReadOnly="True" Padding="4,3"
-                 ToolTip="Первичная, инстинктивная реакция при обнаружении угрозы."
-                 Background="#FFF0F0F0"/>
+                 MaxWidth="220"
+                 TextWrapping="NoWrap"
+                 HorizontalScrollBarVisibility="Disabled"
+                 ClipToBounds="True"
+                 Background="#FFF0F0F0">
+          <TextBox.ToolTip>
+            <ToolTip MaxWidth="480" DataContext="{Binding PlacementTarget, RelativeSource={RelativeSource Self}}">
+              <StackPanel>
+                <TextBlock Text="Первичная, инстинктивная реакция при обнаружении угрозы." FontWeight="SemiBold" Margin="0,0,0,8" TextWrapping="Wrap"/>
+                <TextBlock FontWeight="SemiBold" Text="Значение:" Margin="0,0,0,2"/>
+                <TextBlock Text="{Binding Text, Mode=OneWay}" TextWrapping="Wrap"/>
+              </StackPanel>
+            </ToolTip>
+          </TextBox.ToolTip>
+        </TextBox>
         <Button x:Name="SetThreatResponseButton" Grid.Column="1" Content="Выбрать..." Margin="8,0,0,0" Padding="8,4" Click="ButtonSelectThreatResponse_Click"/>
       </Grid>
     </StackPanel>
@@ -166,7 +179,7 @@
         <ColumnDefinition Width="*"/>
       </Grid.ColumnDefinitions>
       <!-- Блок описания параметров (левый нижний угол) -->
-      <Border Grid.Column="0" Margin="0,0,8,0" Padding="8,6" Background="#FFF8F8F8"
+      <Border x:Name="BorderPromptParamsReference" Grid.Column="0" Margin="0,0,8,0" Padding="8,6" Background="#FFF8F8F8"
               BorderBrush="#FFE0E0E0" BorderThickness="1" CornerRadius="3">
         <StackPanel>
           <TextBlock Text="Параметры для вставки в промпт:" FontWeight="SemiBold" Margin="0,0,0,6"/>
