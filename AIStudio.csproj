@@ -256,7 +256,6 @@
     <Compile Include="Pages\SystemParameters\SystemParametersView.xaml.cs">
       <DependentUpon>SystemParametersView.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Common\AIStudioSettings.cs" />
     <Compile Include="AppConfig.cs" />
     <Compile Include="Common\ShowInputDialog.cs" />
     <Compile Include="Converters\BoolToVisibilityConverter.cs" />

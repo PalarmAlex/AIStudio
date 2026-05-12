@@ -136,7 +136,8 @@ namespace AIStudio
       }
     }
 
-    public bool IsPulseButtonEnabled => !IsAgentDead && !IsScenarioRunSessionBlockingPulse;
+    public bool IsPulseButtonEnabled =>
+        !IsAgentDead && !IsScenarioRunSessionBlockingPulse;
 
     /// <summary>Блокировка переключателя пульсации на время прогона, паузы стабилизации и группового пакета.</summary>
     public bool IsScenarioRunSessionBlockingPulse =>
@@ -361,7 +362,7 @@ namespace AIStudio
 
       if (CurrentContent is AgentView agentView)
       {
-        _agentViewModel = new AgentViewModel(_gomeostas, () => _isidaContext.CancelWaitingPeriodAndResetMirror());
+        _agentViewModel = new AgentViewModel(_gomeostas, () => _isidaContext.CancelWaitingPeriodAndResetMirror(), UpdateAgentState);
         agentView.DataContext = _agentViewModel;
       }
     }
@@ -397,13 +398,16 @@ namespace AIStudio
     #region Левое меню проекта
     private void ExecuteVerticalMenuItemClicked(object parameter)
     {
-      if (IsAgentDead)
+      if (parameter is string mid)
       {
-        MessageBox.Show("Невозможно выполнить операцию для мертвого агента",
-            "Агент мертв",
-            MessageBoxButton.OK,
-            MessageBoxImage.Error);
-        return;
+        if (IsAgentDead)
+        {
+          MessageBox.Show("Невозможно выполнить операцию для мертвого агента",
+              "Агент мертв",
+              MessageBoxButton.OK,
+              MessageBoxImage.Error);
+          return;
+        }
       }
 
       if (parameter is string menuItem)
@@ -2110,7 +2114,7 @@ namespace AIStudio
     private void OpenAgent()
     {
       var agentView = new AgentView();
-      _agentViewModel = new AgentViewModel(_gomeostas, () => _isidaContext.CancelWaitingPeriodAndResetMirror());
+      _agentViewModel = new AgentViewModel(_gomeostas, () => _isidaContext.CancelWaitingPeriodAndResetMirror(), UpdateAgentState);
       agentView.DataContext = _agentViewModel;
       CurrentContent = agentView;
       UpdateAgentState();

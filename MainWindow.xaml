@@ -287,7 +287,6 @@
               Style="{StaticResource MenuButtonStyle}"
               Command="{Binding VerticalMenuItemClickedCommand}"
               CommandParameter="25"/>
-
           </StackPanel>
         </Expander>
 

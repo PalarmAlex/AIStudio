@@ -41,6 +41,7 @@ namespace AIStudio.ViewModels
   {
     private readonly GomeostasSystem _gomeostas;
     private readonly Action _onCancelWaitingPeriod;
+    private readonly Action _onAgentEngineStateSynced;
     public GomeostasSystem Gomeostas => _gomeostas;
     private ICommand _updateCommand;
     public ICommand UpdateCommand => _updateCommand ?? (_updateCommand = new RelayCommand(_ => UpdateAgentProperties(), _ => !IsAgentDead));
@@ -50,6 +51,12 @@ namespace AIStudio.ViewModels
         _setNormalHomeostasisCommand ?? (_setNormalHomeostasisCommand = new RelayCommand(
             _ => ApplyNormalHomeostasisManually(),
             _ => IsAnyControlEnabled));
+    private ICommand _resurrectAgentCommand;
+    /// <summary>Доступна только для мёртвого агента и при остановленной пульсации.</summary>
+    public ICommand ResurrectAgentCommand =>
+        _resurrectAgentCommand ?? (_resurrectAgentCommand = new RelayCommand(
+            _ => ResurrectAgent(),
+            _ => IsAgentDead && !GlobalTimer.IsPulsationRunning));
     private ICommand _cancelWaitingPeriodCommand;
     public ICommand CancelWaitingPeriodCommand =>
         _cancelWaitingPeriodCommand ?? (_cancelWaitingPeriodCommand = new RelayCommand(_ => CancelWaitingPeriod()));
@@ -222,6 +229,7 @@ namespace AIStudio.ViewModels
 
           (_updateCommand as RelayCommand)?.RaiseCanExecuteChanged();
           (_setNormalHomeostasisCommand as RelayCommand)?.RaiseCanExecuteChanged();
+          (_resurrectAgentCommand as RelayCommand)?.RaiseCanExecuteChanged();
         }
       }
     }
@@ -390,10 +398,11 @@ namespace AIStudio.ViewModels
         ? Brushes.Black
         : AppConfig.GetBaseStateColor((int)(CurrentHomeostasisState?.OverallState ?? HomeostasisOverallState.Normal));
 
-    public AgentViewModel(GomeostasSystem gomeostas, Action onCancelWaitingPeriod = null)
+    public AgentViewModel(GomeostasSystem gomeostas, Action onCancelWaitingPeriod = null, Action onAgentEngineStateSynced = null)
     {
       _gomeostas = gomeostas;
       _onCancelWaitingPeriod = onCancelWaitingPeriod;
+      _onAgentEngineStateSynced = onAgentEngineStateSynced;
       _previousStage = _gomeostas.GetAgentState().EvolutionStage;
       AgentProperties = new ObservableCollection<AgentProperty>();
       ParametersViewModel = new AgentParametersViewModel(_gomeostas);
@@ -416,6 +425,41 @@ namespace AIStudio.ViewModels
       UpdateEditableProperties();
       UpdateWarningMessage();
       UpdateWaitingPeriodDisplay();
+    }
+
+    private void ResurrectAgent()
+    {
+      if (!IsAgentDead || GlobalTimer.IsPulsationRunning)
+        return;
+
+      var agentInfo = _gomeostas.GetAgentState();
+      string name = agentInfo?.Name?.Trim();
+      if (string.IsNullOrEmpty(name))
+        name = "агент";
+
+      if (MessageBox.Show(
+              $"Воскресить агента «{name}»?\nБудет снята отметка смерти, свойства сохранятся в AgentProperties.dat, параметры приведутся к состоянию «Норма».",
+              "Воскрешение агента",
+              MessageBoxButton.YesNo,
+              MessageBoxImage.Question) != MessageBoxResult.Yes)
+        return;
+
+      var (reviveOk, reviveErr) = _gomeostas.ReviveAgentSaveProperties();
+      if (!reviveOk)
+      {
+        MessageBox.Show(
+            $"Не удалось сохранить свойства агента:\n{reviveErr}",
+            "Воскрешение агента",
+            MessageBoxButton.OK,
+            MessageBoxImage.Warning);
+        return;
+      }
+
+      LoadAgentData();
+      _onAgentEngineStateSynced?.Invoke();
+      AgentPultViewModel.SyncAgentDeadFlagFromGomeostas();
+
+      ApplyNormalHomeostasisManually();
     }
 
     private void ApplyNormalHomeostasisManually()
@@ -666,6 +710,7 @@ namespace AIStudio.ViewModels
       OnPropertyChanged(nameof(IsEditingEnabled));
       OnPropertyChanged(nameof(IsAnyControlEnabled));
       (_setNormalHomeostasisCommand as RelayCommand)?.RaiseCanExecuteChanged();
+      (_resurrectAgentCommand as RelayCommand)?.RaiseCanExecuteChanged();
     }
 
     private void CancelWaitingPeriod()

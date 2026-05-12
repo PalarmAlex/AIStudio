@@ -58,6 +58,17 @@
 
       <!--Заголовок параметров и ручной сброс в «норму» (как при запуске сценария с флажком «Начальное состояние Норма») -->
       <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,2,0,2">
+        <Button Content="Воскресить"
+                Command="{Binding ResurrectAgentCommand}"
+                VerticalAlignment="Center"
+                Padding="12,3"
+                Margin="0,0,10,0"
+                FontSize="14"
+                FontWeight="DemiBold"
+                Background="#FF4CAF50"
+                Foreground="White"
+                BorderBrush="#FF2E7D32"
+                ToolTip="Снять IsDead, сохранить свойства и привести параметры к Норме (без ручного редактирования файла)"/>
         <TextBlock Text="{Binding AgentBaseSost}"
                    Foreground="{Binding HomeostasisStatusColor}"
                    FontSize="18"

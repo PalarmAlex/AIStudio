@@ -395,13 +395,11 @@ namespace AIStudio.ViewModels
 
     #endregion
 
-    #region Команды
-
     private ICommand _applyInfluenceCommand;
     public ICommand ApplyInfluenceCommand => _applyInfluenceCommand ??
-        (_applyInfluenceCommand = new RelayCommand(ApplyInfluenceActions, _ => IsEditingEnabled));
-
-    #endregion
+        (_applyInfluenceCommand = new RelayCommand(
+            ApplyInfluenceActions,
+            _ => IsEditingEnabled));
 
     public AgentPultViewModel()
     {
@@ -556,6 +554,8 @@ namespace AIStudio.ViewModels
     /// </summary>
     private void UpdateChainStepResult()
     {
+      if (_reflexesActivator == null)
+        return;
       try
       {
         if (!_isChainActive || ActiveChainId <= 0)
@@ -584,6 +584,8 @@ namespace AIStudio.ViewModels
 
     private void UpdateAgentState()
     {
+      if (_gomeostas == null)
+        return;
       try
       {
         var agentInfo = _gomeostas.GetAgentState();
@@ -598,11 +600,22 @@ namespace AIStudio.ViewModels
       }
     }
 
+    /// <summary>Синхронизирует флаг смерти пульта с текущим состоянием гомеостаза (например после «Воскресить»).</summary>
+    public void SyncAgentDeadFlagFromGomeostas() => UpdateAgentState();
+
     /// <summary>
     /// Обновляет отображение распознанного текста с заменой нераспознанных слов на xxxxx
     /// </summary>
     private void UpdateRecognitionDisplay()
     {
+      if (_sensorySystem == null)
+      {
+        RecognitionDisplayText = string.IsNullOrWhiteSpace(MessageText)
+            ? ""
+            : "Текст будет распознан на хосте после применения.";
+        return;
+      }
+
       if (string.IsNullOrWhiteSpace(MessageText))
       {
         RecognitionDisplayText = "";
@@ -729,6 +742,7 @@ namespace AIStudio.ViewModels
     {
       if (IsAgentDead)
         return "Агент мёртв";
+
       if (!GlobalTimer.IsPulsationRunning)
         return "Пульсация выключена";
 
