@@ -1,4 +1,4 @@
-﻿<UserControl x:Class="AIStudio.Pages.ExterInalInfluencesView"
+<UserControl x:Class="AIStudio.Pages.ExterInalInfluencesView"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
@@ -159,6 +159,17 @@
               </Style>
             </DataGridTextColumn.HeaderStyle>
             
+          </DataGridTextColumn>
+
+          <DataGridTextColumn Header="EnvironmentMetricProbeKey"
+                              Binding="{Binding EnvironmentMetricProbeKey, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                              Width="220">
+            <DataGridTextColumn.HeaderStyle>
+              <Style TargetType="DataGridColumnHeader">
+                <Setter Property="ToolTip"
+                    Value="Ключ пробы метрики среды. Пусто — воздействие не из среды."/>
+              </Style>
+            </DataGridTextColumn.HeaderStyle>
           </DataGridTextColumn>
 
         </DataGrid.Columns>

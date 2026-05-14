@@ -9,19 +9,29 @@ using System.Xml.Linq;
 
 public static class AppConfig
 {
-  /// <summary>Имя файла настроек студии (в каталоге Settings проекта или в ProgramData).</summary>
+  /// <summary>
+  /// Файл профиля в каталоге <c>{корень проекта}\Settings\</c> — скаляры и пути для этого проекта данных.
+  /// При переключении «Проект» читается именно он, чтобы базы не затирали друг друга.
+  /// </summary>
   public const string StudioSettingsFileName = "Settings.xml";
+
+  /// <summary>
+  /// Файл «хаба» студии в <c>CommonApplicationData\ISIDA\Settings\</c> — текущая рабочая копия настроек для запуска движка.
+  /// Отделён от <see cref="StudioSettingsFileName"/>, иначе при проекте по умолчанию <c>…\ProgramData\ISIDA</c>
+  /// хаб и профиль совпадали бы одним файлом и переключение на другую базу портило бы локальный <c>Settings.xml</c> ISIDA.
+  /// </summary>
+  public const string StudioHubSettingsFileName = "AIStudioHub.xml";
 
   /// <summary>Прежнее имя файла настроек; используется для переименования при обновлении и для чтения старых копий в папке проекта.</summary>
   public const string LegacyStudioSettingsFileName = "AIStudio.Settings.xml";
 
-  private const string ConfigFileName = StudioSettingsFileName;
   private static string ConfigDirectory = Path.Combine(
       Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData),
       "ISIDA", "Settings"
   );
 
-  private static string ConfigFullPath = Path.Combine(ConfigDirectory, ConfigFileName);
+  /// <summary>Полный путь к файлу хаба студии (не к профилю проекта в <see cref="StudioSettingsFileName"/>).</summary>
+  private static string ConfigFullPath = Path.Combine(ConfigDirectory, StudioHubSettingsFileName);
 
   static AppConfig()
   {
@@ -109,15 +119,88 @@ public static class AppConfig
     }
   }
 
-  /// <summary>При первом запуске с новым именем файла переименовывает прежний AIStudio.Settings.xml в Settings.xml.</summary>
+  /// <summary>При первом запуске с новым именем файла переименовывает прежний AIStudio.Settings.xml в Settings.xml (профиль в каталоге студии).</summary>
   private static void MigrateLegacyStudioSettingsFileIfNeeded()
   {
     try
     {
       Directory.CreateDirectory(ConfigDirectory);
       string legacyPath = Path.Combine(ConfigDirectory, LegacyStudioSettingsFileName);
-      if (!File.Exists(ConfigFullPath) && File.Exists(legacyPath))
-        File.Move(legacyPath, ConfigFullPath);
+      string projectProfileInStudioDir = Path.Combine(ConfigDirectory, StudioSettingsFileName);
+      if (!File.Exists(projectProfileInStudioDir) && File.Exists(legacyPath))
+        File.Move(legacyPath, projectProfileInStudioDir);
+    }
+    catch (Exception ex)
+    {
+      Logger.Error(ex.Message);
+    }
+  }
+
+  /// <summary>
+  /// Однократно копирует прежний объединённый <see cref="StudioSettingsFileName"/> из каталога студии в хаб
+  /// <see cref="StudioHubSettingsFileName"/>, если хаба ещё нет (обновление с версии без разделения файлов).
+  /// </summary>
+  private static void MigrateStudioHubFromLegacyCombinedSettingsIfNeeded()
+  {
+    try
+    {
+      Directory.CreateDirectory(ConfigDirectory);
+      string hubPath = Path.Combine(ConfigDirectory, StudioHubSettingsFileName);
+      if (File.Exists(hubPath))
+        return;
+
+      string legacyCombined = Path.Combine(ConfigDirectory, StudioSettingsFileName);
+      if (File.Exists(legacyCombined))
+        File.Copy(legacyCombined, hubPath, overwrite: false);
+    }
+    catch (Exception ex)
+    {
+      Logger.Error(ex.Message);
+    }
+  }
+
+  private static bool PathsEqualNormalized(string pathA, string pathB)
+  {
+    if (string.IsNullOrWhiteSpace(pathA) || string.IsNullOrWhiteSpace(pathB))
+      return false;
+    try
+    {
+      return string.Equals(
+          Path.GetFullPath(pathA.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar)),
+          Path.GetFullPath(pathB.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar)),
+          StringComparison.OrdinalIgnoreCase);
+    }
+    catch
+    {
+      return false;
+    }
+  }
+
+  /// <summary>
+  /// Дублирует XML хаба в <c>{корень активного проекта}\Settings\Settings.xml</c>, чтобы переключение баз
+  /// подхватывало сохранённый профиль, не затрагивая файлы других корней данных.
+  /// </summary>
+  public static void MirrorHubToProjectProfile()
+  {
+    try
+    {
+      if (!File.Exists(ConfigFullPath))
+        return;
+
+      string settingsFolder = GetSetting(nameof(SettingsPath));
+      string gomeostasFolder = GetSetting(nameof(DataGomeostasFolderPath));
+      if (!SettingsValidator.TryInferProjectRoot(settingsFolder ?? "", gomeostasFolder ?? "", out string projectRoot))
+        return;
+
+      string profilePath = Path.Combine(projectRoot, "Settings", StudioSettingsFileName);
+      if (PathsEqualNormalized(profilePath, ConfigFullPath))
+        return;
+
+      string profileDir = Path.GetDirectoryName(profilePath);
+      if (!string.IsNullOrEmpty(profileDir))
+        Directory.CreateDirectory(profileDir);
+
+      File.Copy(ConfigFullPath, profilePath, overwrite: true);
     }
     catch (Exception ex)
     {
@@ -133,8 +216,9 @@ public static class AppConfig
     try
     {
       MigrateLegacyStudioSettingsFileIfNeeded();
+      MigrateStudioHubFromLegacyCombinedSettingsIfNeeded();
 
-      // Если конфиг не существует -создаем
+      // Если хаба ещё нет — создаём (новая установка или после ручного удаления AIStudioHub.xml).
       if (!File.Exists(ConfigFullPath))
         CreateDefaultConfig();
 
@@ -155,6 +239,8 @@ public static class AppConfig
         UpdateConfigPaths();
         SetIntSetting("FirstRun", 1);
       }
+
+      MirrorHubToProjectProfile();
     }
     catch (Exception ex)
     {

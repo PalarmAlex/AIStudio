@@ -190,14 +190,13 @@ namespace AIStudio
       PulseIndicatorColor = new SolidColorBrush(Color.FromRgb(80, 80, 80));
 
       InitializePulseCommands();
-      SetupPulseHandlers();
+      WireGlobalTimerHostHandlers();
 
       _scenarioRunner.Finished += OnScenarioRunFinished;
       _scenarioRunner.RunningStateChanged += OnScenarioRunningStateChanged;
       _scenarioRunner.StepProgress += OnScenarioStepProgress;
       _scenarioRunner.WaitingForActivation += OnScenarioWaitingForActivation;
       _wasPulsatingForScenario = GlobalTimer.IsPulsationRunning;
-      GlobalTimer.PulsationStateChanged += OnPulsationStateChangedForScenario;
 
       ResetLifeTimeCommand = new RelayCommand(_ =>
       {
@@ -340,12 +339,21 @@ namespace AIStudio
       _isidaContext?.Dispose();
       _isidaContext = null;
 
+      // Лог в памяти не привязан к жизненному циклу движка; без очистки отчёты сценариев
+      // агрегируют записи от предыдущего проекта (другие пульсы/ID) — пустые или «сломанные» строки.
+      MemoryLogManager.Instance.Clear();
+
       var config = BuildIsidaConfigFromAppConfig();
       _isidaContext = IsidaEngine.Create(config);
 
       _isidaContext.ResearchLogger.SetDisplayLogWriter(_agentDisplayCoalescer);
 
       AssignSubsystemReferencesFromContext(_isidaContext);
+
+      // Dispose движка вызывает GlobalTimer.ClearSystems(), который обнуляет все делегаты событий таймера;
+      // MainViewModel не пересоздаётся — подписки из SetupPulseHandlers нужно восстановить.
+      WireGlobalTimerHostHandlers();
+      GlobalTimer.ClearPulseWallClockAcceleration();
 
       RefreshUiAfterEngineReload();
       UpdateAgentState();
@@ -2364,6 +2372,13 @@ namespace AIStudio
         }
         IsPulsating = !IsPulsating;
       }, _ => IsPulseButtonEnabled);
+    }
+
+    /// <summary>Подписка хоста на события <see cref="GlobalTimer"/> (после старта и после пересоздания движка).</summary>
+    private void WireGlobalTimerHostHandlers()
+    {
+      SetupPulseHandlers();
+      GlobalTimer.PulsationStateChanged += OnPulsationStateChangedForScenario;
     }
 
     private void SetupPulseHandlers()

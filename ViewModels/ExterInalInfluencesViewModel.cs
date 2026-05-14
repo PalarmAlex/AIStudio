@@ -1,4 +1,4 @@
-﻿using ISIDA.Actions;
+using ISIDA.Actions;
 using ISIDA.Common;
 using ISIDA.Gomeostas;
 using System;
@@ -98,7 +98,8 @@ namespace AIStudio.ViewModels
           Name = action.Name,
           Description = action.Description,
           Influences = new Dictionary<int, int>(action.Influences),
-          AntagonistInfluences = new List<int>(action.AntagonistInfluences)
+          AntagonistInfluences = new List<int>(action.AntagonistInfluences),
+          EnvironmentMetricProbeKey = action.EnvironmentMetricProbeKey ?? string.Empty
         });
       }
 
@@ -345,6 +346,7 @@ namespace AIStudio.ViewModels
           existingAction.Description = action.Description;
           existingAction.Influences = new Dictionary<int, int>(action.Influences);
           existingAction.AntagonistInfluences = new List<int>(action.AntagonistInfluences);
+          existingAction.EnvironmentMetricProbeKey = action.EnvironmentMetricProbeKey ?? string.Empty;
         }
         else
         {
@@ -352,7 +354,8 @@ namespace AIStudio.ViewModels
               action.Name,
               action.Description,
               new Dictionary<int, int>(action.Influences),
-              new List<int>(action.AntagonistInfluences)
+              new List<int>(action.AntagonistInfluences),
+              action.EnvironmentMetricProbeKey
           );
           action.Id = newId;
         }

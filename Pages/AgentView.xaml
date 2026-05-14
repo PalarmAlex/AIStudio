@@ -68,7 +68,7 @@
                 Background="#FF4CAF50"
                 Foreground="White"
                 BorderBrush="#FF2E7D32"
-                ToolTip="Снять IsDead, сохранить свойства и привести параметры к Норме (без ручного редактирования файла)"/>
+                ToolTip="Снять IsDead, сохранить свойства и привести параметры к Норме"/>
         <TextBlock Text="{Binding AgentBaseSost}"
                    Foreground="{Binding HomeostasisStatusColor}"
                    FontSize="18"

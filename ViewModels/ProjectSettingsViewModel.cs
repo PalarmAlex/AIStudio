@@ -1365,7 +1365,10 @@ namespace AIStudio.ViewModels
       return true;
     }
 
-    /// <summary>Записывает текущие значения страницы в AppConfig (файл настроек студии), без диалога об успехе.</summary>
+    /// <summary>
+    /// Записывает значения в хаб студии (<see cref="AppConfig.StudioHubSettingsFileName"/>), затем зеркалит их
+    /// в профиль текущего проекта (<c>{корень}\Settings\</c> + <see cref="AppConfig.StudioSettingsFileName"/>).
+    /// </summary>
     public void PushSettingsToAppConfig()
     {
       AppConfig.SetSetting(nameof(SettingsPath), SettingsPath);
@@ -1393,6 +1396,8 @@ namespace AIStudio.ViewModels
       AppConfig.SetIntSetting(nameof(ReflexActionDisplayDuration), ReflexActionDisplayDuration);
       AppConfig.SetBoolSetting(nameof(LogEnabled), LogEnabled);
       AppConfig.SetLogFormatSetting(nameof(DefaultFormatLog), (ResearchLogger.LogFormat)DefaultFormatLog);
+
+      AppConfig.MirrorHubToProjectProfile();
     }
 
     private void SaveSettingsWithParameter(object _)

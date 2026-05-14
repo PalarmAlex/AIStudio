@@ -438,7 +438,7 @@ namespace AIStudio.ViewModels
         name = "агент";
 
       if (MessageBox.Show(
-              $"Воскресить агента «{name}»?\nБудет снята отметка смерти, свойства сохранятся в AgentProperties.dat, параметры приведутся к состоянию «Норма».",
+              $"Воскресить агента «{name}»?\nБудет снята отметка смерти, параметры приведутся к состоянию «Норма».",
               "Воскрешение агента",
               MessageBoxButton.YesNo,
               MessageBoxImage.Question) != MessageBoxResult.Yes)
