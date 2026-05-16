@@ -685,7 +685,9 @@ namespace AIStudio.ViewModels
 
       try
       {
-        var allActions = _influenceActionSystem.GetAllInfluenceActions();
+        var allActions = _influenceActionSystem.GetAllInfluenceActions()
+            .Where(a => string.IsNullOrWhiteSpace(a.EnvironmentMetricProbeKey))
+            .ToList();
 
         int index = 0;
         foreach (var action in allActions)
