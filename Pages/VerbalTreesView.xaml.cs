@@ -35,18 +35,19 @@ namespace AIStudio.Pages
     {
       if (e.OriginalSource is TreeViewItem item &&
           item.DataContext is VerbalTreesViewModel.WordNode node &&
-          !node.IsLetter)
+          !node.IsLetter && !node.IsTypeGroup && !node.IsPrefixGroup)
       {
-        Logger.Info($"Selected word: {node.Text} (ID: {node.Id})");
+        Logger.Info($"Selected token: {node.Text} (ID: {node.Id})");
       }
     }
 
     private void PhraseTreeView_Selected(object sender, RoutedEventArgs e)
     {
       if (e.OriginalSource is TreeViewItem item &&
-          item.DataContext is VerbalTreesViewModel.PhraseNode node)
+          item.DataContext is VerbalTreesViewModel.PhraseNode node &&
+          !node.IsTypeGroup)
       {
-        Logger.Info($"Selected phrase: {node.Text} (ID: {node.Id})");
+        Logger.Info($"Selected pattern: {node.Text} (ID: {node.Id})");
       }
     }
   }
