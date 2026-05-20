@@ -10,290 +10,261 @@
              d:DesignHeight="600" d:DesignWidth="800">
 
   <UserControl.Resources>
-    <!-- Конвертеры -->
     <local:BoolToBoldConverter x:Key="BoolToBoldConverter"/>
     <local:SearchHighlightMultiConverter x:Key="SearchHighlightMultiConverter"/>
     <local:BoolToExpandedIconConverter x:Key="BoolToExpandedIconConverter"/>
     <converters:BoolToVisibilityConverter x:Key="BoolToVisibilityConverter"/>
 
-    <!-- Шаблон для дерева токенов -->
     <HierarchicalDataTemplate DataType="{x:Type viewmodels:VerbalTreesViewModel+WordNode}" 
-                      ItemsSource="{Binding Children}">
+                              ItemsSource="{Binding Children}">
       <StackPanel Orientation="Horizontal">
         <TextBlock Text="{Binding Text}" 
                    FontWeight="{Binding IsBoldHeader, Converter={StaticResource BoolToBoldConverter}}">
           <TextBlock.Background>
             <MultiBinding Converter="{StaticResource SearchHighlightMultiConverter}">
               <Binding Path="Text"/>
-              <Binding Path="DataContext.WordSearchText" 
-                             RelativeSource="{RelativeSource AncestorType=UserControl}"/>
+              <Binding Path="WordSearchText" RelativeSource="{RelativeSource AncestorType=ContentControl}"/>
             </MultiBinding>
           </TextBlock.Background>
         </TextBlock>
-        <!-- Индикатор раскрытия -->
         <TextBlock Text="{Binding IsExpanded, Converter={StaticResource BoolToExpandedIconConverter}}"
                    Margin="5,0,0,0"
                    Visibility="{Binding HasChildren, Converter={StaticResource BoolToVisibilityConverter}}"/>
       </StackPanel>
     </HierarchicalDataTemplate>
 
-    <!-- Шаблон для дерева паттернов -->
     <HierarchicalDataTemplate DataType="{x:Type viewmodels:VerbalTreesViewModel+PhraseNode}" 
-                  ItemsSource="{Binding Children}">
+                              ItemsSource="{Binding Children}">
       <StackPanel Orientation="Horizontal">
-        <TextBlock Text="{Binding Text}"
-                   FontWeight="{Binding IsTypeGroup, Converter={StaticResource BoolToBoldConverter}}">
+        <TextBlock Text="{Binding Text}">
           <TextBlock.Background>
             <MultiBinding Converter="{StaticResource SearchHighlightMultiConverter}">
               <Binding Path="Text"/>
-              <Binding Path="DataContext.PhraseSearchText" 
-                                 RelativeSource="{RelativeSource AncestorType=UserControl}"/>
+              <Binding Path="PhraseSearchText" RelativeSource="{RelativeSource AncestorType=ContentControl}"/>
             </MultiBinding>
           </TextBlock.Background>
         </TextBlock>
-        <!-- Индикатор раскрытия -->
         <TextBlock Text="{Binding IsExpanded, Converter={StaticResource BoolToExpandedIconConverter}}"
                    Margin="5,0,0,0"
                    Visibility="{Binding HasChildren, Converter={StaticResource BoolToVisibilityConverter}}"/>
       </StackPanel>
     </HierarchicalDataTemplate>
 
+    <DataTemplate x:Key="SensorTreesTabContentTemplate">
+      <Grid Margin="0,8,0,0">
+        <Grid.RowDefinitions>
+          <RowDefinition Height="Auto"/>
+          <RowDefinition Height="Auto"/>
+          <RowDefinition Height="*"/>
+          <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+        <Grid.ColumnDefinitions>
+          <ColumnDefinition Width="*"/>
+          <ColumnDefinition Width="*"/>
+        </Grid.ColumnDefinitions>
+
+        <Grid Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2" Margin="0,0,0,10">
+          <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*"/>
+            <ColumnDefinition Width="Auto"/>
+          </Grid.ColumnDefinitions>
+          <TextBox Grid.Column="0" 
+                   Text="{Binding InputText, UpdateSourceTrigger=PropertyChanged}"
+                   AcceptsReturn="True"
+                   VerticalScrollBarVisibility="Auto"
+                   MinHeight="60"
+                   Margin="0,0,5,0"/>
+          <Button Grid.Column="1" 
+                  Content="Добавить"
+                  Command="{Binding AddTextCommand}"
+                  Style="{StaticResource ActionButtonStyle}"
+                  ToolTip="Добавить строку токенов в сенсорные деревья (разделитель — пробел)"
+                  MinWidth="80"
+                  Height="60"/>
+        </Grid>
+
+        <StackPanel Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2" 
+                    Orientation="Horizontal" Margin="0,0,0,10"
+                    HorizontalAlignment="Center">
+          <CheckBox Content="Авторитарный режим"
+                    IsChecked="{Binding AuthoritativeMode}"
+                    Margin="0,0,20,0"
+                    ToolTip="Сразу записать токены и паттерны в деревья, без выдержки в «песочнице»"
+                    VerticalAlignment="Center"/>
+          <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="0,0,10,0">
+            <TextBlock Text="Порог подтверждения:" Margin="0,0,5,0"/>
+            <TextBox Text="{Binding RecognitionThreshold, UpdateSourceTrigger=PropertyChanged}"
+                     Width="40"
+                     ToolTip="Число повторений токена или паттерна, после которого запись из «песочницы» переносится в дерево"/>
+          </StackPanel>
+          <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+            <TextBlock Text="Макс. длина паттерна:" Margin="0,0,5,0"/>
+            <TextBox Text="{Binding MaxPhraseLength, UpdateSourceTrigger=PropertyChanged}"
+                     Width="40"
+                     ToolTip="Максимальная длина паттерна — число токенов в последовательности"/>
+          </StackPanel>
+        </StackPanel>
+
+        <GroupBox Grid.Row="2" Grid.Column="0" Header="{Binding TokenTreeHeader}" Margin="0,0,5,0">
+          <GroupBox.HeaderTemplate>
+            <DataTemplate>
+              <TextBlock Text="{Binding}" FontSize="16" FontWeight="SemiBold" Foreground="Black"/>
+            </DataTemplate>
+          </GroupBox.HeaderTemplate>
+          <Grid>
+            <Grid.RowDefinitions>
+              <RowDefinition Height="Auto"/>
+              <RowDefinition Height="*"/>
+              <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+            <DockPanel Grid.Row="0" Margin="0,0,0,5" LastChildFill="True">
+              <Button Content="Сброс" 
+                      Command="{Binding ResetWordSearchCommand}"
+                      Style="{StaticResource AgentButtonStyle}"
+                      MinWidth="50"
+                      DockPanel.Dock="Right"
+                      Margin="5,0,0,0"
+                      ToolTip="Сбросить фильтр, свернуть дерево"/>
+              <Button Content="Найти" 
+                      Command="{Binding SearchWordCommand}"
+                      Style="{StaticResource AgentButtonStyle}"
+                      MinWidth="50"
+                      DockPanel.Dock="Right"
+                      Margin="5,0,0,0"
+                      ToolTip="Поиск токенов по вхождению текста в поле фильтра"/>
+              <TextBox Text="{Binding WordSearchText, UpdateSourceTrigger=PropertyChanged}"
+                       VerticalContentAlignment="Center"/>
+            </DockPanel>
+            <TreeView Grid.Row="1"
+                      ItemsSource="{Binding VisibleWordNodes}"
+                      VirtualizingStackPanel.IsVirtualizing="True"
+                      VirtualizingStackPanel.VirtualizationMode="Recycling">
+              <TreeView.ItemContainerStyle>
+                <Style TargetType="{x:Type TreeViewItem}">
+                  <Setter Property="IsExpanded" Value="{Binding IsExpanded, Mode=TwoWay}"/>
+                  <EventSetter Event="Expanded" Handler="WordTreeView_Expanded"/>
+                  <EventSetter Event="Selected" Handler="WordTreeView_Selected"/>
+                </Style>
+              </TreeView.ItemContainerStyle>
+            </TreeView>
+            <DockPanel Grid.Row="2" Margin="0,5,0,0" LastChildFill="False">
+              <StackPanel Orientation="Horizontal" DockPanel.Dock="Left">
+                <TextBlock Text="Выводить узлов:" VerticalAlignment="Center" Margin="0,0,5,0"/>
+                <ComboBox ItemsSource="{Binding DisplayLimitOptions}"
+                          SelectedItem="{Binding WordDisplayLimit}"
+                          DisplayMemberPath="DisplayName"
+                          MinWidth="70"
+                          ToolTip="Лимит загружаемых узлов"/>
+              </StackPanel>
+              <TextBlock DockPanel.Dock="Right"
+                         Text="{Binding WordsCountSummary}"
+                         VerticalAlignment="Center"/>
+            </DockPanel>
+          </Grid>
+        </GroupBox>
+
+        <GroupBox Grid.Row="2" Grid.Column="1" Header="{Binding PatternTreeHeader}" Margin="5,0,0,0">
+          <GroupBox.HeaderTemplate>
+            <DataTemplate>
+              <TextBlock Text="{Binding}" FontSize="16" FontWeight="SemiBold" Foreground="Black"/>
+            </DataTemplate>
+          </GroupBox.HeaderTemplate>
+          <Grid>
+            <Grid.RowDefinitions>
+              <RowDefinition Height="Auto"/>
+              <RowDefinition Height="*"/>
+              <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+            <DockPanel Grid.Row="0" Margin="0,0,0,5" LastChildFill="True">
+              <Button Content="Сброс" 
+                      Command="{Binding ResetPhraseSearchCommand}"
+                      Style="{StaticResource AgentButtonStyle}"
+                      MinWidth="50"
+                      DockPanel.Dock="Right"
+                      Margin="5,0,0,0"
+                      ToolTip="Сбросить фильтр, свернуть дерево"/>
+              <Button Content="Найти" 
+                      Command="{Binding SearchPhraseCommand}"
+                      Style="{StaticResource AgentButtonStyle}"
+                      MinWidth="50"
+                      DockPanel.Dock="Right"
+                      Margin="5,0,0,0"
+                      ToolTip="Поиск паттернов по вхождению текста в поле фильтра"/>
+              <TextBox Text="{Binding PhraseSearchText, UpdateSourceTrigger=PropertyChanged}"
+                       VerticalContentAlignment="Center"/>
+            </DockPanel>
+            <TreeView Grid.Row="1"
+                      ItemsSource="{Binding VisiblePhraseNodes}"
+                      VirtualizingStackPanel.IsVirtualizing="True"
+                      VirtualizingStackPanel.VirtualizationMode="Recycling">
+              <TreeView.ItemContainerStyle>
+                <Style TargetType="{x:Type TreeViewItem}">
+                  <Setter Property="IsExpanded" Value="{Binding IsExpanded, Mode=TwoWay}"/>
+                  <EventSetter Event="Selected" Handler="PhraseTreeView_Selected"/>
+                </Style>
+              </TreeView.ItemContainerStyle>
+            </TreeView>
+            <DockPanel Grid.Row="2" Margin="0,5,0,0" LastChildFill="False">
+              <StackPanel Orientation="Horizontal" DockPanel.Dock="Left">
+                <TextBlock Text="Выводить узлов:" VerticalAlignment="Center" Margin="0,0,5,0"/>
+                <ComboBox ItemsSource="{Binding DisplayLimitOptions}"
+                          SelectedItem="{Binding PhraseDisplayLimit}"
+                          DisplayMemberPath="DisplayName"
+                          MinWidth="70"
+                          ToolTip="Лимит загружаемых узлов"/>
+              </StackPanel>
+              <TextBlock DockPanel.Dock="Right"
+                         Text="{Binding PhrasesCountSummary}"
+                         VerticalAlignment="Center"/>
+            </DockPanel>
+          </Grid>
+        </GroupBox>
+
+        <TextBlock Grid.Row="3" Grid.Column="0"
+                   Text="{Binding PulseWarningMessage}"
+                   Foreground="{Binding WarningMessageColor}"
+                   FontStyle="Italic"
+                   VerticalAlignment="Center"
+                   Margin="8,8,0,0"
+                   TextWrapping="Wrap"
+                   Visibility="{Binding IsEditingEnabled, Converter={StaticResource InverseBooleanToVisibilityConverter}}"/>
+
+        <StackPanel Grid.Row="3" Grid.Column="1"
+                    Orientation="Horizontal"
+                    HorizontalAlignment="Right"
+                    Margin="0,8,0,0">
+          <Button Content="Очистить"
+                  Command="{Binding RemoveAllCommand}"
+                  IsEnabled="{Binding IsEditingEnabled}"
+                  Style="{StaticResource RedButtonStyle}"
+                  ToolTip="Очистить деревья токенов и паттернов"/>
+        </StackPanel>
+      </Grid>
+    </DataTemplate>
   </UserControl.Resources>
 
   <Grid Margin="12">
     <Grid.RowDefinitions>
       <RowDefinition Height="Auto"/>
-      <RowDefinition Height="Auto"/>
-      <RowDefinition Height="Auto"/>
       <RowDefinition Height="*"/>
-      <RowDefinition Height="Auto"/>
     </Grid.RowDefinitions>
 
-    <Grid.ColumnDefinitions>
-      <ColumnDefinition Width="*"/>
-      <ColumnDefinition Width="*"/>
-    </Grid.ColumnDefinitions>
+    <TextBlock Grid.Row="0"
+               Text="Сенсорные деревья агента" 
+               FontSize="18"
+               FontWeight="SemiBold"
+               HorizontalAlignment="Center"
+               Margin="0,0,0,10"/>
 
-    <!-- Заголовок -->
-    <TextBlock Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2"
-             Text="Сенсорные деревья агента" 
-             FontSize="18"
-             FontWeight="SemiBold"
-             HorizontalAlignment="Center"
-             Margin="0,0,0,10"/>
-
-    <!-- Поле ввода текста -->
-    <Grid Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2" Margin="0,0,0,10">
-      <Grid.ColumnDefinitions>
-        <ColumnDefinition Width="*"/>
-        <ColumnDefinition Width="Auto"/>
-      </Grid.ColumnDefinitions>
-
-      <TextBox Grid.Column="0" 
-             Text="{Binding InputText, UpdateSourceTrigger=PropertyChanged}"
-             AcceptsReturn="True"
-             VerticalScrollBarVisibility="Auto"
-             MinHeight="60"
-             Margin="0,0,5,0"/>
-
-      <Button Grid.Column="1" 
-            Content="Добавить"
-            Command="{Binding AddTextCommand}"
-            Style="{StaticResource ActionButtonStyle}"
-            ToolTip="Добавить строку токенов в сенсорные деревья (разделитель — пробел)"
-            MinWidth="80"
-            Height="60"/>
-    </Grid>
-
-    <!-- Настройки -->
-    <StackPanel Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="2" 
-              Orientation="Horizontal" Margin="0,0,0,10"
-              HorizontalAlignment="Center">
-      <CheckBox Content="Авторитарный режим"
-              IsChecked="{Binding AuthoritativeMode}"
-              Margin="0,0,20,0"
-              ToolTip="Сразу записать токены и паттерны в деревья, без выдержки в «песочнице»"
-              VerticalAlignment="Center"/>
-
-      <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="0,0,10,0">
-        <TextBlock Text="Порог подтверждения:" Margin="0,0,5,0"/>
-        <TextBox Text="{Binding RecognitionThreshold, UpdateSourceTrigger=PropertyChanged}"
-               Width="40"
-               ToolTip="Число повторений токена или паттерна, после которого запись из «песочницы» переносится в дерево"/>
-      </StackPanel>
-
-      <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-        <TextBlock Text="Макс. длина паттерна:" Margin="0,0,5,0"/>
-        <TextBox Text="{Binding MaxPhraseLength, UpdateSourceTrigger=PropertyChanged}"
-               Width="40"
-               ToolTip="Максимальная длина паттерна — число токенов в последовательности"/>
-      </StackPanel>
-
-      <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="20,0,0,0">
-        <TextBlock Text="Тип узлов:" Margin="0,0,5,0"/>
-        <ComboBox ItemsSource="{Binding NodeTypeFilterOptions}"
-                  SelectedItem="{Binding SelectedNodeTypeFilter}"
-                  DisplayMemberPath="DisplayName"
-                  MinWidth="120"
-                  ToolTip="Фильтр по типу токенов: вербальные или командные (CAD)"/>
-      </StackPanel>
-    </StackPanel>
-
-    <!-- Дерево токенов -->
-    <GroupBox Grid.Row="3" Grid.Column="0" Header="Дерево токенов" Margin="0,0,5,0">
-      <GroupBox.HeaderTemplate>
-        <DataTemplate>
-          <TextBlock Text="{Binding}" 
-                       FontSize="16" 
-                       FontWeight="SemiBold" 
-                       Foreground="Black"/>
-        </DataTemplate>
-      </GroupBox.HeaderTemplate>
-      <Grid>
-        <Grid.RowDefinitions>
-          <RowDefinition Height="Auto"/>
-          <RowDefinition Height="*"/>
-          <RowDefinition Height="Auto"/>
-        </Grid.RowDefinitions>
-
-        <!-- Панель поиска с кнопкой сброса -->
-        <DockPanel Grid.Row="0" Margin="0,0,0,5" LastChildFill="True">
-          <Button Content="Сброс" 
-                    Command="{Binding ResetWordSearchCommand}"
-                    Style="{StaticResource AgentButtonStyle}"
-                    MinWidth="50"
-                    DockPanel.Dock="Right"
-                    Margin="5,0,0,0"
-                    ToolTip="Сбросить фильтр, свернуть дерево"/>
-
-          <Button Content="Найти" 
-                    Command="{Binding SearchWordCommand}"
-                    Style="{StaticResource AgentButtonStyle}"
-                    MinWidth="50"
-                    DockPanel.Dock="Right"
-                    Margin="5,0,0,0"
-                    ToolTip="Поиск токенов по вхождению текста в поле фильтра"/>
-
-          <TextBox Text="{Binding WordSearchText, UpdateSourceTrigger=PropertyChanged}"
-                     VerticalContentAlignment="Center"/>
-        </DockPanel>
-
-        <TreeView Grid.Row="1" x:Name="WordsTreeView" 
-                  ItemsSource="{Binding VisibleWordNodes}"
-                  VirtualizingStackPanel.IsVirtualizing="True"
-                  VirtualizingStackPanel.VirtualizationMode="Recycling">
-          <TreeView.ItemContainerStyle>
-            <Style TargetType="{x:Type TreeViewItem}">
-              <Setter Property="IsExpanded" Value="{Binding IsExpanded, Mode=TwoWay}"/>
-              <EventSetter Event="Expanded" Handler="WordTreeView_Expanded"/>
-              <EventSetter Event="Selected" Handler="WordTreeView_Selected"/>
-            </Style>
-          </TreeView.ItemContainerStyle>
-        </TreeView>
-
-        <!-- Нижняя строка: слева — фильтр кол-ва узлов, справа — счётчик -->
-        <DockPanel Grid.Row="2" Margin="0,5,0,0" LastChildFill="False">
-          <StackPanel Orientation="Horizontal" DockPanel.Dock="Left">
-            <TextBlock Text="Выводить узлов:" VerticalAlignment="Center" Margin="0,0,5,0"/>
-            <ComboBox ItemsSource="{Binding DisplayLimitOptions}"
-                      SelectedItem="{Binding WordDisplayLimit}"
-                      DisplayMemberPath="DisplayName"
-                      MinWidth="70"
-                      ToolTip="Лимит загружаемых узлов"/>
-          </StackPanel>
-          <TextBlock DockPanel.Dock="Right"
-                     Text="{Binding WordsCountSummary}"
-                     VerticalAlignment="Center"/>
-        </DockPanel>
-      </Grid>
-    </GroupBox>
-
-    <!-- Дерево паттернов -->
-    <GroupBox Grid.Row="3" Grid.Column="1" Header="Дерево паттернов" Margin="5,0,0,0">
-      <GroupBox.HeaderTemplate>
-        <DataTemplate>
-          <TextBlock Text="{Binding}" 
-                       FontSize="16" 
-                       FontWeight="SemiBold" 
-                       Foreground="Black"/>
-        </DataTemplate>
-      </GroupBox.HeaderTemplate>
-      <Grid>
-        <Grid.RowDefinitions>
-          <RowDefinition Height="Auto"/>
-          <RowDefinition Height="*"/>
-          <RowDefinition Height="Auto"/>
-        </Grid.RowDefinitions>
-
-        <!-- Панель поиска с кнопкой сброса -->
-        <DockPanel Grid.Row="0" Margin="0,0,0,5" LastChildFill="True">
-          <Button Content="Сброс" 
-                    Command="{Binding ResetPhraseSearchCommand}"
-                    Style="{StaticResource AgentButtonStyle}"
-                    MinWidth="50"
-                    DockPanel.Dock="Right"
-                    Margin="5,0,0,0"
-                    ToolTip="Сбросить фильтр, свернуть дерево"/>
-
-          <Button Content="Найти" 
-                    Command="{Binding SearchPhraseCommand}"
-                    Style="{StaticResource AgentButtonStyle}"
-                    MinWidth="50"
-                    DockPanel.Dock="Right"
-                    Margin="5,0,0,0"
-                    ToolTip="Поиск паттернов по вхождению текста в поле фильтра"/>
-
-          <TextBox Text="{Binding PhraseSearchText, UpdateSourceTrigger=PropertyChanged}"
-                     VerticalContentAlignment="Center"/>
-        </DockPanel>
-
-        <TreeView Grid.Row="1" x:Name="PhrasesTreeView" 
-                  ItemsSource="{Binding VisiblePhraseNodes}"
-                  VirtualizingStackPanel.IsVirtualizing="True"
-                  VirtualizingStackPanel.VirtualizationMode="Recycling">
-          <TreeView.ItemContainerStyle>
-            <Style TargetType="{x:Type TreeViewItem}">
-              <Setter Property="IsExpanded" Value="{Binding IsExpanded, Mode=TwoWay}"/>
-              <EventSetter Event="Selected" Handler="PhraseTreeView_Selected"/>
-            </Style>
-          </TreeView.ItemContainerStyle>
-        </TreeView>
-
-        <!-- Нижняя строка: слева — фильтр кол-ва узлов, справа — счётчик -->
-        <DockPanel Grid.Row="2" Margin="0,5,0,0" LastChildFill="False">
-          <StackPanel Orientation="Horizontal" DockPanel.Dock="Left">
-            <TextBlock Text="Выводить узлов:" VerticalAlignment="Center" Margin="0,0,5,0"/>
-            <ComboBox ItemsSource="{Binding DisplayLimitOptions}"
-                      SelectedItem="{Binding PhraseDisplayLimit}"
-                      DisplayMemberPath="DisplayName"
-                      MinWidth="70"
-                      ToolTip="Лимит загружаемых узлов"/>
-          </StackPanel>
-          <TextBlock DockPanel.Dock="Right"
-                     Text="{Binding PhrasesCountSummary}"
-                     VerticalAlignment="Center"/>
-        </DockPanel>
-      </Grid>
-    </GroupBox>
-
-     <!--Текст предупреждения--> 
-    <TextBlock Grid.Row="4" Grid.Column="0"
-                 Text="{Binding PulseWarningMessage}"
-                 Foreground="{Binding WarningMessageColor}"
-                 FontStyle="Italic"
-                 VerticalAlignment="Center"
-                 Margin="8,0,0,0"
-                 TextWrapping="Wrap"
-                 Visibility="{Binding IsEditingEnabled, Converter={StaticResource InverseBooleanToVisibilityConverter}}"/>
-
-    <!-- Кнопки управления -->
-    <StackPanel Grid.Row="4" Grid.Column="1"
-              Orientation="Horizontal" HorizontalAlignment="Right">
-      <Button Content="Очистить"
-                Command="{Binding RemoveAllCommand}"
-                IsEnabled="{Binding IsEditingEnabled}"
-                Style="{StaticResource RedButtonStyle}"
-                ToolTip="Очистить деревья токенов и паттернов"/>
-    </StackPanel>
+    <TabControl Grid.Row="1">
+      <TabItem Header="Речь">
+        <ContentControl x:Name="VerbalTabContent"
+                        ContentTemplate="{StaticResource SensorTreesTabContentTemplate}"/>
+      </TabItem>
+      <TabItem Header="Command">
+        <ContentControl x:Name="CadTabContent"
+                        ContentTemplate="{StaticResource SensorTreesTabContentTemplate}"/>
+      </TabItem>
+    </TabControl>
   </Grid>
 </UserControl>

@@ -2104,10 +2104,11 @@ namespace AIStudio
     // Открыть страницу сенсоров
     private void OpenSensors()
     {
-      var verbalTreesView = new VerbalTreesView();
-      var verbalTreesViewModel = new VerbalTreesViewModel(_gomeostas, _sensorySystem.VerbalChannel);
-      verbalTreesView.DataContext = verbalTreesViewModel;
-      CurrentContent = verbalTreesView;
+      var view = new VerbalTreesView();
+      view.SetViewModels(
+          new VerbalTreesViewModel(_gomeostas, _sensorySystem.VerbalChannel, SensorTreesPageLabels.Verbal),
+          new VerbalTreesViewModel(_gomeostas, _sensorySystem.CadChannel, SensorTreesPageLabels.Cad));
+      CurrentContent = view;
     }
 
     private void ShowExtInfluence()

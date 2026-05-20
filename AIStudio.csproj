@@ -335,6 +335,7 @@
     <Compile Include="ViewModels\RelayCommand.cs" />
     <Compile Include="ViewModels\StyleLogsViewModel.cs" />
     <Compile Include="ViewModels\SystemParametersViewModel.cs" />
+    <Compile Include="ViewModels\SensorTreesPageLabels.cs" />
     <Compile Include="ViewModels\VerbalTreesViewModel.cs" />
     <Compile Include="Common\ScenarioPaths.cs" />
     <Compile Include="Common\ScenarioStorage.cs" />

@@ -1,8 +1,6 @@
 using AIStudio.ViewModels;
 using ISIDA.Common;
 using System;
-using System.Diagnostics;
-using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
@@ -17,6 +15,14 @@ namespace AIStudio.Pages
       InitializeComponent();
     }
 
+    public void SetViewModels(VerbalTreesViewModel verbalVm, VerbalTreesViewModel cadVm)
+    {
+      VerbalTabContent.DataContext = verbalVm;
+      VerbalTabContent.Content = verbalVm;
+      CadTabContent.DataContext = cadVm;
+      CadTabContent.Content = cadVm;
+    }
+
     private void WordTreeView_Expanded(object sender, RoutedEventArgs e)
     {
       if (e.OriginalSource is TreeViewItem item &&
@@ -24,10 +30,7 @@ namespace AIStudio.Pages
           node.HasChildren &&
           node.Children.Count == 0)
       {
-        if (DataContext is VerbalTreesViewModel vm)
-        {
-          vm.LoadWordChildren(node.Id);
-        }
+        FindViewModel(item)?.LoadWordChildren(node.Id);
       }
     }
 
@@ -35,7 +38,7 @@ namespace AIStudio.Pages
     {
       if (e.OriginalSource is TreeViewItem item &&
           item.DataContext is VerbalTreesViewModel.WordNode node &&
-          !node.IsLetter && !node.IsTypeGroup && !node.IsPrefixGroup)
+          !node.IsLetter && !node.IsPrefixGroup)
       {
         Logger.Info($"Selected token: {node.Text} (ID: {node.Id})");
       }
@@ -45,10 +48,22 @@ namespace AIStudio.Pages
     {
       if (e.OriginalSource is TreeViewItem item &&
           item.DataContext is VerbalTreesViewModel.PhraseNode node &&
-          !node.IsTypeGroup)
+          node.Id > 0)
       {
         Logger.Info($"Selected pattern: {node.Text} (ID: {node.Id})");
       }
+    }
+
+    private static VerbalTreesViewModel FindViewModel(DependencyObject source)
+    {
+      var current = source;
+      while (current != null)
+      {
+        if (current is FrameworkElement fe && fe.DataContext is VerbalTreesViewModel vm)
+          return vm;
+        current = VisualTreeHelper.GetParent(current);
+      }
+      return null;
     }
   }
 

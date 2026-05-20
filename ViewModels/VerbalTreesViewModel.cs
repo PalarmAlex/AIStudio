@@ -6,12 +6,10 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
-using System.Diagnostics;
 using System.Linq;
 using System.Windows;
 using System.Windows.Input;
 using System.Windows.Media;
-using System.Windows.Threading;
 
 namespace AIStudio.ViewModels
 {
@@ -19,7 +17,8 @@ namespace AIStudio.ViewModels
   {
     #region Поля и свойства
 
-    private readonly VerbalSensorChannel _verbalChannel;
+    private readonly VerbalSensorChannel _channel;
+    private readonly SensorTreesPageLabels _labels;
     private readonly GomeostasSystem _gomeostas;
 
     private string _inputText;
@@ -34,16 +33,11 @@ namespace AIStudio.ViewModels
     private ObservableCollection<WordNode> _visibleWordNodes;
     private ObservableCollection<PhraseNode> _visiblePhraseNodes;
     private IEnumerable<WordNode> _wordTreeStructure;
-    private IEnumerable<PhraseNode> _phraseTreeStructure;
     private ObservableCollection<WordNode> _allWordNodes;
     private ObservableCollection<PhraseNode> _allPhraseNodes;
     private ObservableCollection<PhraseNode> _filteredPhraseNodes;
     private int? _wordDisplayLimit = 1000;
     private int? _phraseDisplayLimit = 1000;
-    private SensorTypeFilterOption _selectedNodeTypeFilter;
-
-    private const int VerbalTypeGroupId = -1000;
-    private const int CommandTypeGroupId = -1001;
 
     #region Блокировка страницы в зависимости от стажа
 
@@ -55,6 +49,9 @@ namespace AIStudio.ViewModels
         Brushes.Gray;
 
     #endregion
+
+    public string TokenTreeHeader => _labels.TokenTreeHeader;
+    public string PatternTreeHeader => _labels.PatternTreeHeader;
 
     public string InputText
     {
@@ -103,7 +100,7 @@ namespace AIStudio.ViewModels
         if (_authoritativeMode != value)
         {
           _authoritativeMode = value;
-          _verbalChannel.AuthoritativeMode = value;
+          _channel.AuthoritativeMode = value;
           OnPropertyChanged(nameof(AuthoritativeMode));
         }
       }
@@ -130,7 +127,7 @@ namespace AIStudio.ViewModels
         if (_recognitionThreshold != value && value > 0)
         {
           _recognitionThreshold = value;
-          _verbalChannel.RecognitionThreshold = value;
+          _channel.RecognitionThreshold = value;
           OnPropertyChanged(nameof(RecognitionThreshold));
         }
       }
@@ -169,20 +166,7 @@ namespace AIStudio.ViewModels
       }
     }
 
-    public IEnumerable<PhraseNode> PhraseTreeStructure
-    {
-      get => _phraseTreeStructure;
-      private set
-      {
-        if (_phraseTreeStructure != value)
-        {
-          _phraseTreeStructure = value;
-          OnPropertyChanged(nameof(PhraseTreeStructure));
-        }
-      }
-    }
-
-    public Dictionary<int, string> Words => _verbalChannel?.GetAllWords() ?? new Dictionary<int, string>();
+    public Dictionary<int, string> Words => _channel?.GetAllWords() ?? new Dictionary<int, string>();
     public Dictionary<int, string> Phrases
     {
       get
@@ -190,14 +174,15 @@ namespace AIStudio.ViewModels
         var result = new Dictionary<int, string>();
         try
         {
-          if (_verbalChannel?.PhraseTree?.Nodes == null)
+          if (_channel?.PhraseTree?.Nodes == null)
             return result;
 
-          foreach (var node in _verbalChannel.PhraseTree.Nodes.Values)
+          foreach (var node in _channel.PhraseTree.Nodes.Values)
           {
-            if (node.Id == 0) continue; // пропускаем корневой узел
+            if (node.Id == 0)
+              continue;
 
-            string phraseText = _verbalChannel.GetPhraseFromPhraseId(node.Id);
+            string phraseText = _channel.GetPhraseFromPhraseId(node.Id);
             if (!string.IsNullOrEmpty(phraseText))
               result[node.Id] = phraseText;
           }
@@ -209,7 +194,7 @@ namespace AIStudio.ViewModels
         return result;
       }
     }
-    /// <summary>Варианты лимита отображаемых узлов (только для ускорения загрузки).</summary>
+
     public static IReadOnlyList<NodeLimitOption> DisplayLimitOptionsStatic { get; } = new List<NodeLimitOption>
     {
       new NodeLimitOption(100),
@@ -217,7 +202,7 @@ namespace AIStudio.ViewModels
       new NodeLimitOption(1000),
       new NodeLimitOption(5000),
       new NodeLimitOption(10000),
-      new NodeLimitOption(null) // Все
+      new NodeLimitOption(null)
     };
 
     public IReadOnlyList<NodeLimitOption> DisplayLimitOptions => DisplayLimitOptionsStatic;
@@ -250,14 +235,8 @@ namespace AIStudio.ViewModels
 
     public int WordsCount => Words.Count;
 
-    public int VerbalWordsCount =>
-        Words.Count(w => GetWordNodeType(w.Key) == SensorNodeType.Verbal);
-
-    public int CommandWordsCount =>
-        Words.Count(w => GetWordNodeType(w.Key) == SensorNodeType.Command);
-
     public string WordsCountSummary =>
-        $"Всего токенов: {WordsCount} (верб.: {VerbalWordsCount}, ком.: {CommandWordsCount})";
+        $"Всего {_labels.TokenCountWord}: {WordsCount}";
 
     public int PhrasesCount
     {
@@ -265,39 +244,7 @@ namespace AIStudio.ViewModels
       {
         try
         {
-          return _verbalChannel.PhraseTree.Nodes.Count(n => n.Key != 0);
-        }
-        catch
-        {
-          return 0;
-        }
-      }
-    }
-
-    public int VerbalPhrasesCount
-    {
-      get
-      {
-        try
-        {
-          return _verbalChannel.PhraseTree.Nodes.Count(n =>
-              n.Key != 0 && n.Value.NodeType == SensorNodeType.Verbal);
-        }
-        catch
-        {
-          return 0;
-        }
-      }
-    }
-
-    public int CommandPhrasesCount
-    {
-      get
-      {
-        try
-        {
-          return _verbalChannel.PhraseTree.Nodes.Count(n =>
-              n.Key != 0 && BelongsToPatternForest(n.Value, SensorNodeType.Command));
+          return _channel.PhraseTree.Nodes.Count(n => n.Key != 0);
         }
         catch
         {
@@ -307,31 +254,7 @@ namespace AIStudio.ViewModels
     }
 
     public string PhrasesCountSummary =>
-        $"Всего паттернов: {PhrasesCount} (верб.: {VerbalPhrasesCount}, ком.: {CommandPhrasesCount})";
-
-    /// <summary>Варианты фильтра по типу узла сенсорного дерева.</summary>
-    public static IReadOnlyList<SensorTypeFilterOption> NodeTypeFilterOptionsStatic { get; } =
-        new List<SensorTypeFilterOption>
-        {
-          new SensorTypeFilterOption(null, "Все"),
-          new SensorTypeFilterOption(SensorNodeType.Verbal, "Вербальные"),
-          new SensorTypeFilterOption(SensorNodeType.Command, "Командные")
-        };
-
-    public IReadOnlyList<SensorTypeFilterOption> NodeTypeFilterOptions => NodeTypeFilterOptionsStatic;
-
-    public SensorTypeFilterOption SelectedNodeTypeFilter
-    {
-      get => _selectedNodeTypeFilter ?? NodeTypeFilterOptionsStatic[0];
-      set
-      {
-        if (value == null || _selectedNodeTypeFilter == value)
-          return;
-        _selectedNodeTypeFilter = value;
-        OnPropertyChanged(nameof(SelectedNodeTypeFilter));
-        ApplyNodeTypeFilter();
-      }
-    }
+        $"Всего {_labels.PatternCountWord}: {PhrasesCount}";
 
     #endregion
 
@@ -364,17 +287,21 @@ namespace AIStudio.ViewModels
 
     #region Конструктор и инициализация
 
-    public VerbalTreesViewModel(GomeostasSystem gomeostas, VerbalSensorChannel verbalChannel)
+    public VerbalTreesViewModel(
+        GomeostasSystem gomeostas,
+        VerbalSensorChannel channel,
+        SensorTreesPageLabels labels)
     {
-      _verbalChannel = verbalChannel ?? throw new ArgumentNullException(nameof(verbalChannel));
+      _channel = channel ?? throw new ArgumentNullException(nameof(channel));
+      _labels = labels ?? throw new ArgumentNullException(nameof(labels));
       _gomeostas = gomeostas ?? throw new ArgumentNullException(nameof(gomeostas));
 
       var agentInfo = _gomeostas.GetAgentState();
       _currentAgentStage = agentInfo?.EvolutionStage ?? 0;
 
-      _authoritativeMode = _verbalChannel.AuthoritativeMode;
-      _recognitionThreshold = _verbalChannel.RecognitionThreshold;
-      _maxPhraseLength = _verbalChannel.MaxPhraseLength;
+      _authoritativeMode = _channel.AuthoritativeMode;
+      _recognitionThreshold = _channel.RecognitionThreshold;
+      _maxPhraseLength = _channel.MaxPhraseLength;
 
       _allWordNodes = new ObservableCollection<WordNode>(LoadInitialWordNodes(_wordDisplayLimit));
       _allPhraseNodes = new ObservableCollection<PhraseNode>(LoadInitialPhraseNodes(_phraseDisplayLimit));
@@ -429,18 +356,6 @@ namespace AIStudio.ViewModels
       OnPropertyChanged(nameof(VisiblePhraseNodes));
     }
 
-    private void ApplyNodeTypeFilter()
-    {
-      ApplyWordDisplayLimit();
-      ApplyPhraseDisplayLimit();
-      OnPropertyChanged(nameof(WordsCountSummary));
-      OnPropertyChanged(nameof(PhrasesCountSummary));
-      OnPropertyChanged(nameof(VerbalWordsCount));
-      OnPropertyChanged(nameof(CommandWordsCount));
-      OnPropertyChanged(nameof(VerbalPhrasesCount));
-      OnPropertyChanged(nameof(CommandPhrasesCount));
-    }
-
     private void UpdateAgentStage()
     {
       var agentInfo = _gomeostas.GetAgentState();
@@ -464,105 +379,27 @@ namespace AIStudio.ViewModels
 
     #region Методы работы с деревьями
 
-    private SensorNodeType GetWordNodeType(int wordId)
-    {
-      if (_verbalChannel.WordTree.Nodes.TryGetValue(wordId, out var node))
-        return node.NodeType;
-      return SensorNodeType.Verbal;
-    }
-
-    /// <summary>
-    /// Содержит ли паттерн командные токены (по типам токенов в WordTree).
-    /// </summary>
-    private SensorNodeType GetPatternNodeType(SensorTree<int, int>.TreeNode<int> node)
-    {
-      var current = node;
-      while (current != null && current.Id != 0)
-      {
-        if (current.Element != 0 &&
-            GetWordNodeType(current.Element) == SensorNodeType.Command)
-          return SensorNodeType.Command;
-        current = current.Parent;
-      }
-      return SensorNodeType.Verbal;
-    }
-
-    /// <summary>
-    /// Принадлежность узла PhraseTree секции UI.
-    /// Verbal — по NodeType ветки; Command — только ветки Command с реальными командными токенами
-    /// (зеркальные Command-ветки с вербальными word id, как в VELUM, не показываются).
-    /// </summary>
-    private bool BelongsToPatternForest(SensorTree<int, int>.TreeNode<int> node, SensorNodeType forestType)
-    {
-      if (node.Id == 0)
-        return false;
-
-      if (forestType == SensorNodeType.Verbal)
-        return node.NodeType == SensorNodeType.Verbal;
-
-      return node.NodeType == SensorNodeType.Command &&
-             GetPatternNodeType(node) == SensorNodeType.Command;
-    }
-
-    private bool ShouldShowType(SensorNodeType type)
-    {
-      var filter = SelectedNodeTypeFilter?.Value;
-      return !filter.HasValue || filter.Value == type;
-    }
-
     private IEnumerable<WordNode> LoadInitialWordNodes(int? maxNodes = null)
     {
-      return BuildWordTreeRoots(_verbalChannel.GetAllWords(), maxNodes);
+      return BuildWordTreeRoots(_channel.GetAllWords(), maxNodes);
     }
 
     private List<WordNode> BuildWordTreeRoots(Dictionary<int, string> wordsSource, int? maxNodes)
     {
+      var entries = wordsSource.OrderBy(w => w.Value).ToList();
+      return _channel.UsesAtomicTokens
+          ? BuildAtomicWordTreeRoots(entries, maxNodes)
+          : BuildCharWordTreeRoots(entries, maxNodes);
+    }
+
+    private List<WordNode> BuildCharWordTreeRoots(
+        List<KeyValuePair<int, string>> entries,
+        int? maxNodes)
+    {
       var result = new List<WordNode>();
       int totalAdded = 0;
 
-      if (ShouldShowType(SensorNodeType.Verbal))
-      {
-        var verbalEntries = wordsSource
-            .Where(w => GetWordNodeType(w.Key) == SensorNodeType.Verbal)
-            .OrderBy(w => w.Value)
-            .ToList();
-        var verbalGroup = CreateVerbalTypeGroup(verbalEntries, ref totalAdded, maxNodes);
-        if (verbalGroup != null)
-          result.Add(verbalGroup);
-      }
-
-      if (ShouldShowType(SensorNodeType.Command))
-      {
-        var commandEntries = wordsSource
-            .Where(w => GetWordNodeType(w.Key) == SensorNodeType.Command)
-            .OrderBy(w => w.Value)
-            .ToList();
-        var commandGroup = CreateCommandTypeGroup(commandEntries, ref totalAdded, maxNodes);
-        if (commandGroup != null)
-          result.Add(commandGroup);
-      }
-
-      return result;
-    }
-
-    private WordNode CreateVerbalTypeGroup(
-        List<KeyValuePair<int, string>> verbalEntries,
-        ref int totalAdded,
-        int? maxNodes)
-    {
-      if (verbalEntries.Count == 0)
-        return null;
-
-      var typeGroup = new WordNode
-      {
-        Id = VerbalTypeGroupId,
-        Text = "Вербальные",
-        IsTypeGroup = true,
-        HasChildren = true,
-        NodeType = SensorNodeType.Verbal
-      };
-
-      foreach (var letterGroup in verbalEntries
+      foreach (var letterGroup in entries
           .GroupBy(w => char.ToUpper(GetFirstChar(w.Value)))
           .OrderBy(g => g.Key))
       {
@@ -574,8 +411,7 @@ namespace AIStudio.ViewModels
           Id = 0,
           Text = letterGroup.Key.ToString(),
           IsLetter = true,
-          HasChildren = true,
-          NodeType = SensorNodeType.Verbal
+          HasChildren = true
         };
 
         foreach (var word in letterGroup)
@@ -586,37 +422,26 @@ namespace AIStudio.ViewModels
           {
             Id = word.Key,
             Text = word.Value,
-            HasChildren = false,
-            NodeType = SensorNodeType.Verbal
+            HasChildren = false
           });
           totalAdded++;
         }
 
         if (letterNode.Children.Count > 0)
-          typeGroup.Children.Add(letterNode);
+          result.Add(letterNode);
       }
 
-      return typeGroup.Children.Count > 0 ? typeGroup : null;
+      return result;
     }
 
-    private WordNode CreateCommandTypeGroup(
-        List<KeyValuePair<int, string>> commandEntries,
-        ref int totalAdded,
+    private List<WordNode> BuildAtomicWordTreeRoots(
+        List<KeyValuePair<int, string>> entries,
         int? maxNodes)
     {
-      if (commandEntries.Count == 0)
-        return null;
+      var result = new List<WordNode>();
+      int totalAdded = 0;
 
-      var typeGroup = new WordNode
-      {
-        Id = CommandTypeGroupId,
-        Text = "Командные",
-        IsTypeGroup = true,
-        HasChildren = true,
-        NodeType = SensorNodeType.Command
-      };
-
-      foreach (var prefixGroup in commandEntries
+      foreach (var prefixGroup in entries
           .GroupBy(w => GetCommandPrefix(w.Value))
           .OrderBy(g => g.Key))
       {
@@ -628,8 +453,7 @@ namespace AIStudio.ViewModels
           Id = 0,
           Text = prefixGroup.Key,
           IsPrefixGroup = true,
-          HasChildren = true,
-          NodeType = SensorNodeType.Command
+          HasChildren = true
         };
 
         foreach (var word in prefixGroup.OrderBy(w => w.Value))
@@ -640,17 +464,16 @@ namespace AIStudio.ViewModels
           {
             Id = word.Key,
             Text = word.Value,
-            HasChildren = false,
-            NodeType = SensorNodeType.Command
+            HasChildren = false
           });
           totalAdded++;
         }
 
         if (prefixNode.Children.Count > 0)
-          typeGroup.Children.Add(prefixNode);
+          result.Add(prefixNode);
       }
 
-      return typeGroup.Children.Count > 0 ? typeGroup : null;
+      return result;
     }
 
     private static char GetFirstChar(string value)
@@ -672,68 +495,30 @@ namespace AIStudio.ViewModels
 
     private ObservableCollection<PhraseNode> LoadInitialPhraseNodes(int? maxNodes = null)
     {
-      var result = new ObservableCollection<PhraseNode>();
-
-      if (ShouldShowType(SensorNodeType.Verbal))
-      {
-        var verbalForest = BuildPhraseForestForType(SensorNodeType.Verbal, maxNodes);
-        if (verbalForest.Count > 0)
-        {
-          result.Add(CreatePhraseTypeGroup("Вербальные", VerbalTypeGroupId, SensorNodeType.Verbal, verbalForest));
-        }
-      }
-
-      if (ShouldShowType(SensorNodeType.Command))
-      {
-        var commandForest = BuildPhraseForestForType(SensorNodeType.Command, maxNodes);
-        if (commandForest.Count > 0)
-        {
-          result.Add(CreatePhraseTypeGroup("Командные", CommandTypeGroupId, SensorNodeType.Command, commandForest));
-        }
-      }
-
-      return result;
+      return BuildPhraseForest(maxNodes);
     }
 
-    private PhraseNode CreatePhraseTypeGroup(
-        string title,
-        int groupId,
-        SensorNodeType nodeType,
-        ObservableCollection<PhraseNode> children)
-    {
-      return new PhraseNode
-      {
-        Id = groupId,
-        Text = title,
-        IsTypeGroup = true,
-        HasChildren = children.Count > 0,
-        NodeType = nodeType,
-        Children = children
-      };
-    }
-
-    private ObservableCollection<PhraseNode> BuildPhraseForestForType(SensorNodeType nodeType, int? maxNodes)
+    private ObservableCollection<PhraseNode> BuildPhraseForest(int? maxNodes)
     {
       var rootNodes = new ObservableCollection<PhraseNode>();
 
       try
       {
-        var phraseNodes = _verbalChannel.PhraseTree.Nodes;
+        var phraseNodes = _channel.PhraseTree.Nodes;
         var nodeDict = new Dictionary<int, PhraseNode>();
 
         foreach (var node in phraseNodes.Values)
         {
-          if (!BelongsToPatternForest(node, nodeType))
+          if (node.Id == 0)
             continue;
 
-          string phraseText = _verbalChannel.GetPhraseFromPhraseId(node.Id);
+          string phraseText = _channel.GetPhraseFromPhraseId(node.Id);
           nodeDict[node.Id] = new PhraseNode
           {
             Id = node.Id,
             Text = GetLastWordFromPhrase(phraseText),
             FullPath = phraseText,
-            HasChildren = node.Children.Any(c => BelongsToPatternForest(c, nodeType)),
-            NodeType = nodeType
+            HasChildren = node.Children.Any(c => c.Id != 0)
           };
         }
 
@@ -742,8 +527,7 @@ namespace AIStudio.ViewModels
         {
           idsToInclude = new HashSet<int>();
           var roots = phraseNodes.Values
-              .Where(n => BelongsToPatternForest(n, nodeType) &&
-                          (n.Parent == null || n.Parent.Id == 0))
+              .Where(n => n.Id != 0 && (n.Parent == null || n.Parent.Id == 0))
               .OrderBy(n => n.Id)
               .ToList();
           int count = 0;
@@ -751,21 +535,20 @@ namespace AIStudio.ViewModels
           {
             if (count >= maxNodes.Value)
               break;
-            CountAndAddIdsForType(r, idsToInclude, maxNodes.Value, ref count, nodeType);
+            CountAndAddIds(r, idsToInclude, maxNodes.Value, ref count);
           }
         }
 
         foreach (var node in phraseNodes.Values)
         {
-          if (!BelongsToPatternForest(node, nodeType))
+          if (node.Id == 0)
             continue;
           if (idsToInclude != null && !idsToInclude.Contains(node.Id))
             continue;
 
           var phraseNode = nodeDict[node.Id];
 
-          if (node.Parent != null && node.Parent.Id != 0 &&
-              BelongsToPatternForest(node.Parent, nodeType))
+          if (node.Parent != null && node.Parent.Id != 0)
           {
             if (nodeDict.TryGetValue(node.Parent.Id, out var parentNode) &&
                 (idsToInclude == null || idsToInclude.Contains(node.Parent.Id)))
@@ -773,7 +556,7 @@ namespace AIStudio.ViewModels
               parentNode.Children.Add(phraseNode);
             }
           }
-          else if (node.Parent == null || node.Parent.Id == 0)
+          else
           {
             rootNodes.Add(phraseNode);
           }
@@ -786,20 +569,19 @@ namespace AIStudio.ViewModels
       }
       catch (Exception ex)
       {
-        Logger.Error($"Ошибка загрузки дерева паттернов ({nodeType}): {ex.Message}");
+        Logger.Error($"Ошибка загрузки дерева паттернов: {ex.Message}");
       }
 
       return rootNodes;
     }
 
-    private void CountAndAddIdsForType(
+    private void CountAndAddIds(
         SensorTree<int, int>.TreeNode<int> node,
         HashSet<int> ids,
         int max,
-        ref int count,
-        SensorNodeType nodeType)
+        ref int count)
     {
-      if (count >= max || !BelongsToPatternForest(node, nodeType))
+      if (count >= max || node.Id == 0)
         return;
       if (ids.Contains(node.Id))
         return;
@@ -809,13 +591,10 @@ namespace AIStudio.ViewModels
       {
         if (count >= max)
           return;
-        CountAndAddIdsForType(c, ids, max, ref count, nodeType);
+        CountAndAddIds(c, ids, max, ref count);
       }
     }
 
-    /// <summary>
-    /// Вспомогательный метод для получения последнего токена из паттерна
-    /// </summary>
     private string GetLastWordFromPhrase(string phrase)
     {
       if (string.IsNullOrEmpty(phrase))
@@ -831,31 +610,27 @@ namespace AIStudio.ViewModels
       if (parent == null || (parent.Children?.Count ?? 0) > 0)
         return;
 
-      if (parent.IsLetter && parent.NodeType == SensorNodeType.Verbal)
+      if (parent.IsLetter)
       {
-        var words = _verbalChannel.GetAllWords()
-            .Where(w => GetWordNodeType(w.Key) == SensorNodeType.Verbal &&
-                        char.ToUpper(GetFirstChar(w.Value)) == parent.Text[0])
+        var words = _channel.GetAllWords()
+            .Where(w => char.ToUpper(GetFirstChar(w.Value)) == parent.Text[0])
             .Select(w => new WordNode
             {
               Id = w.Key,
               Text = w.Value,
-              HasChildren = false,
-              NodeType = SensorNodeType.Verbal
+              HasChildren = false
             });
         parent.Children = new List<WordNode>(words);
       }
-      else if (parent.IsPrefixGroup && parent.NodeType == SensorNodeType.Command)
+      else if (parent.IsPrefixGroup)
       {
-        var words = _verbalChannel.GetAllWords()
-            .Where(w => GetWordNodeType(w.Key) == SensorNodeType.Command &&
-                        GetCommandPrefix(w.Value) == parent.Text)
+        var words = _channel.GetAllWords()
+            .Where(w => GetCommandPrefix(w.Value) == parent.Text)
             .Select(w => new WordNode
             {
               Id = w.Key,
               Text = w.Value,
-              HasChildren = false,
-              NodeType = SensorNodeType.Command
+              HasChildren = false
             });
         parent.Children = new List<WordNode>(words);
       }
@@ -876,20 +651,9 @@ namespace AIStudio.ViewModels
       return null;
     }
 
-    private PhraseNode FindNode(IEnumerable<PhraseNode> nodes, int id)
-    {
-      foreach (var node in nodes)
-      {
-        if (node.Id == id) return node;
-        var found = FindNode(node.Children, id);
-        if (found != null) return found;
-      }
-      return null;
-    }
-
     private IEnumerable<WordNode> GetFullWordTreeStructure()
     {
-      return BuildWordTreeRoots(_verbalChannel.GetAllWords(), null);
+      return BuildWordTreeRoots(_channel.GetAllWords(), null);
     }
 
     #endregion
@@ -898,16 +662,21 @@ namespace AIStudio.ViewModels
 
     private void AddText(object parameter)
     {
-      if (string.IsNullOrWhiteSpace(InputText)) return;
+      if (string.IsNullOrWhiteSpace(InputText))
+        return;
 
-      _verbalChannel.ProcessText(InputText, MaxPhraseLength);
+      _channel.ProcessText(InputText, MaxPhraseLength);
 
       try
       {
-        _verbalChannel.WordTree.Save();
-        _verbalChannel.PhraseTree.Save();
-        _verbalChannel.WordSandbox.Save();
-        _verbalChannel.PhraseSandbox.Save();
+        if (_channel.UsesAtomicTokens)
+          _channel.AtomicWordTree?.Save();
+        else
+          _channel.WordTree?.Save();
+        _channel.PhraseTree.Save();
+        _channel.WordSandbox.Save();
+        _channel.PhraseSandbox.Save();
+        _channel.PhraseTextSandbox.Save();
       }
       catch (Exception ex)
       {
@@ -935,10 +704,7 @@ namespace AIStudio.ViewModels
 
       try
       {
-        // Очищаем все деревья через сенсорный канал
-        _verbalChannel.ClearAllTrees();
-
-        // Обновляем интерфейс
+        _channel.ClearAllTrees();
         RefreshAllCollections();
 
         MessageBox.Show("Сенсорные деревья успешно очищены.",
@@ -960,12 +726,10 @@ namespace AIStudio.ViewModels
     {
       UpdateAgentStage();
 
-      // Полностью перезагружаем все коллекции (с учётом лимита отображения)
       _allWordNodes = new ObservableCollection<WordNode>(LoadInitialWordNodes(_wordDisplayLimit));
       _allPhraseNodes = new ObservableCollection<PhraseNode>(LoadInitialPhraseNodes(_phraseDisplayLimit));
       _filteredPhraseNodes = new ObservableCollection<PhraseNode>(_allPhraseNodes);
 
-      // Применяем текущий фильтр
       if (string.IsNullOrWhiteSpace(WordSearchText))
         VisibleWordNodes = _allWordNodes;
       else
@@ -981,17 +745,12 @@ namespace AIStudio.ViewModels
       CollapseAllWordNodes();
       CollapseAllPhraseNodes();
 
-      // Принудительно обновляем свойства
       OnPropertyChanged(nameof(Words));
       OnPropertyChanged(nameof(Phrases));
       OnPropertyChanged(nameof(WordsCount));
       OnPropertyChanged(nameof(WordsCountSummary));
       OnPropertyChanged(nameof(PhrasesCount));
       OnPropertyChanged(nameof(PhrasesCountSummary));
-      OnPropertyChanged(nameof(VerbalWordsCount));
-      OnPropertyChanged(nameof(CommandWordsCount));
-      OnPropertyChanged(nameof(VerbalPhrasesCount));
-      OnPropertyChanged(nameof(CommandPhrasesCount));
       OnPropertyChanged(nameof(VisibleWordNodes));
       OnPropertyChanged(nameof(VisiblePhraseNodes));
     }
@@ -1009,7 +768,7 @@ namespace AIStudio.ViewModels
       }
 
       var searchLower = searchText.ToLower();
-      var matchingWords = _verbalChannel.GetAllWords()
+      var matchingWords = _channel.GetAllWords()
           .Where(w => w.Value.ToLower().Contains(searchLower))
           .ToDictionary(w => w.Key, w => w.Value);
 
@@ -1025,8 +784,6 @@ namespace AIStudio.ViewModels
         return;
       }
 
-      // При поиске загружаем ВСЕ узлы паттернов (без display limit),
-      // иначе узлы за пределами лимита не находятся фильтром
       var allPhraseNodesForSearch = LoadInitialPhraseNodes(null);
 
       var filtered = new ObservableCollection<PhraseNode>();
@@ -1036,9 +793,7 @@ namespace AIStudio.ViewModels
       {
         var filteredRoot = FilterPhraseNodeRecursive(rootNode, searchLower);
         if (filteredRoot != null)
-        {
           filtered.Add(filteredRoot);
-        }
       }
 
       VisiblePhraseNodes = filtered;
@@ -1046,21 +801,14 @@ namespace AIStudio.ViewModels
 
     private PhraseNode FilterPhraseNodeRecursive(PhraseNode node, string searchText)
     {
-      // Получаем полный текст паттерна для этого узла
       string fullPhraseText = string.Empty;
       if (node.Id > 0)
-      {
-        fullPhraseText = _verbalChannel.GetPhraseFromPhraseId(node.Id);
-      }
+        fullPhraseText = _channel.GetPhraseFromPhraseId(node.Id);
 
-      // Проверяем, содержит ли текущий узел искомый текст
       bool matches = !string.IsNullOrEmpty(fullPhraseText) &&
                      fullPhraseText.ToLower().Contains(searchText);
-
-      // Также проверяем текст узла (для отображения)
       matches = matches || node.Text.ToLower().Contains(searchText);
 
-      // Рекурсивно фильтруем дочерние узлы
       var filteredChildren = new ObservableCollection<PhraseNode>();
       foreach (var child in node.Children)
       {
@@ -1080,8 +828,6 @@ namespace AIStudio.ViewModels
           Text = node.Text,
           FullPath = node.FullPath ?? fullPhraseText,
           HasChildren = filteredChildren.Count > 0,
-          IsTypeGroup = node.IsTypeGroup,
-          NodeType = node.NodeType,
           Children = filteredChildren
         };
       }
@@ -1093,26 +839,18 @@ namespace AIStudio.ViewModels
     {
       FilterWordNodes(WordSearchText);
       if (!string.IsNullOrEmpty(WordSearchText))
-      {
         ExpandAllWordNodes();
-      }
       else
-      {
         CollapseAllWordNodes();
-      }
     }
 
     private void SearchPhraseWrapper(object parameter)
     {
       FilterPhraseNodes(PhraseSearchText);
       if (!string.IsNullOrEmpty(PhraseSearchText))
-      {
         ExpandAllPhraseNodes();
-      }
       else
-      {
         CollapseAllPhraseNodes();
-      }
     }
 
     private void ResetWordSearch(object parameter)
@@ -1134,7 +872,6 @@ namespace AIStudio.ViewModels
       foreach (var node in VisibleWordNodes)
       {
         node.IsExpanded = false;
-        // Рекурсивно сворачиваем все дочерние узлы
         CollapseWordNodeRecursive(node);
       }
       OnPropertyChanged(nameof(VisibleWordNodes));
@@ -1154,7 +891,6 @@ namespace AIStudio.ViewModels
       foreach (var node in VisiblePhraseNodes)
       {
         node.IsExpanded = false;
-        // Рекурсивно сворачиваем все дочерние узлы
         CollapsePhraseNodeRecursive(node);
       }
       OnPropertyChanged(nameof(VisiblePhraseNodes));
@@ -1202,7 +938,6 @@ namespace AIStudio.ViewModels
       foreach (var node in VisiblePhraseNodes)
       {
         node.IsExpanded = true;
-        // Рекурсивно раскрываем все дочерние узлы
         ExpandPhraseNodeRecursive(node);
       }
       OnPropertyChanged(nameof(VisiblePhraseNodes));
@@ -1217,15 +952,6 @@ namespace AIStudio.ViewModels
       }
     }
 
-    private void SetPhraseNodeExpanded(PhraseNode node, bool isExpanded)
-    {
-      node.IsExpanded = isExpanded;
-      foreach (var child in node.Children)
-      {
-        SetPhraseNodeExpanded(child, isExpanded);
-      }
-    }
-
     #endregion
 
     #region Вложенные классы
@@ -1235,10 +961,8 @@ namespace AIStudio.ViewModels
       public int Id { get; set; }
       public string Text { get; set; }
       public bool IsLetter { get; set; }
-      public bool IsTypeGroup { get; set; }
       public bool IsPrefixGroup { get; set; }
-      public bool IsBoldHeader => IsLetter || IsTypeGroup || IsPrefixGroup;
-      public SensorNodeType NodeType { get; set; } = SensorNodeType.Verbal;
+      public bool IsBoldHeader => IsLetter || IsPrefixGroup;
       public bool HasChildren { get; set; }
       public bool IsExpanded { get; set; }
       public List<WordNode> Children { get; set; } = new List<WordNode>();
@@ -1249,43 +973,18 @@ namespace AIStudio.ViewModels
       public int Id { get; set; }
       public string Text { get; set; }
       public string FullPath { get; set; }
-      public bool IsTypeGroup { get; set; }
-      public SensorNodeType NodeType { get; set; } = SensorNodeType.Verbal;
       public bool HasChildren { get; set; }
       public bool IsExpanded { get; set; }
       public ObservableCollection<PhraseNode> Children { get; set; } =
           new ObservableCollection<PhraseNode>();
     }
 
-    public class TreeItemEventArgs : EventArgs
-    {
-      public int ItemId { get; }
-      public TreeItemEventArgs(int itemId)
-      {
-        ItemId = itemId;
-      }
-    }
-
-    /// <summary>Вариант лимита узлов для выпадающего списка (только ускорение загрузки).</summary>
     public class NodeLimitOption
     {
       public int? Value { get; }
       public string DisplayName => Value.HasValue ? Value.Value.ToString() : "Все";
 
       public NodeLimitOption(int? value) => Value = value;
-    }
-
-    /// <summary>Вариант фильтра по типу узла сенсорного дерева.</summary>
-    public class SensorTypeFilterOption
-    {
-      public SensorNodeType? Value { get; }
-      public string DisplayName { get; }
-
-      public SensorTypeFilterOption(SensorNodeType? value, string displayName)
-      {
-        Value = value;
-        DisplayName = displayName;
-      }
     }
 
     #endregion
