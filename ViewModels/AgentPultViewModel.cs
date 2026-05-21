@@ -43,7 +43,7 @@ namespace AIStudio.ViewModels
     private bool _isAgentDead;
     private bool _authoritativeMode;
     private string _messageText;
-    private string _cadMessageText;
+    private string _commandMessageText;
     private string _recognitionDisplayText;
 
     private int _selectedToneId = 0;
@@ -116,15 +116,15 @@ namespace AIStudio.ViewModels
       }
     }
 
-    /// <summary>Текст CAD-команды (Solid, атомарные контуры CadChannel).</summary>
-    public string CadMessageText
+    /// <summary>Текст команд (атомарные контуры CommandChannel).</summary>
+    public string CommandMessageText
     {
-      get => _cadMessageText;
+      get => _commandMessageText;
       set
       {
-        if (_cadMessageText != value)
+        if (_commandMessageText != value)
         {
-          _cadMessageText = value;
+          _commandMessageText = value;
           OnPropertyChanged();
           UpdateRecognitionDisplay();
         }
@@ -619,13 +619,13 @@ namespace AIStudio.ViewModels
     public void SyncAgentDeadFlagFromGomeostas() => UpdateAgentState();
 
     /// <summary>
-    /// Обновляет отображение распознанного текста (речь и CAD) с заменой нераспознанных слов на xxxxx
+    /// Обновляет отображение распознанного текста (речь и команды) с заменой нераспознанных слов на xxxxx
     /// </summary>
     private void UpdateRecognitionDisplay()
     {
       if (_sensorySystem == null)
       {
-        if (string.IsNullOrWhiteSpace(MessageText) && string.IsNullOrWhiteSpace(CadMessageText))
+        if (string.IsNullOrWhiteSpace(MessageText) && string.IsNullOrWhiteSpace(CommandMessageText))
         {
           RecognitionDisplayText = "";
           return;
@@ -637,8 +637,8 @@ namespace AIStudio.ViewModels
       var lines = new List<string>();
       if (!string.IsNullOrWhiteSpace(MessageText))
         lines.Add("Речь: " + BuildVerbalRecognitionPreview(MessageText));
-      if (!string.IsNullOrWhiteSpace(CadMessageText))
-        lines.Add(BuildCadRecognitionPreview(CadMessageText));
+      if (!string.IsNullOrWhiteSpace(CommandMessageText))
+        lines.Add(BuildCommandRecognitionPreview(CommandMessageText));
 
       RecognitionDisplayText = string.Join(Environment.NewLine, lines);
     }
@@ -675,36 +675,36 @@ namespace AIStudio.ViewModels
       }
     }
 
-    private string BuildCadRecognitionPreview(string text)
+    private string BuildCommandRecognitionPreview(string text)
     {
       try
       {
-        var ids = _sensorySystem.CadChannel.RecognizeText(text.Trim(), authoritativeWrite: false);
+        var ids = _sensorySystem.CommandChannel.RecognizeText(text.Trim(), authoritativeWrite: false);
         if (ids == null || ids.Count == 0)
-          return "CAD: xxxxx";
+          return "Команда: xxxxx";
 
         var parts = ids
-            .Select(id => _sensorySystem.CadChannel.GetPhraseFromPhraseId(id))
+            .Select(id => _sensorySystem.CommandChannel.GetPhraseFromPhraseId(id))
             .Where(s => !string.IsNullOrWhiteSpace(s))
             .ToList();
         if (parts.Count == 0)
-          return "CAD: xxxxx";
+          return "Команда: xxxxx";
 
-        return "CAD: " + string.Join(" ", parts);
+        return "Команда: " + string.Join(" ", parts);
       }
       catch (Exception ex)
       {
         Logger.Error(ex.Message);
-        return "CAD: " + text;
+        return "Команда: " + text;
       }
     }
 
-    private List<int> RecognizeCadPatterns(string cadText)
+    private List<int> RecognizeCommandPatterns(string commandText)
     {
-      if (string.IsNullOrWhiteSpace(cadText) || _sensorySystem == null)
+      if (string.IsNullOrWhiteSpace(commandText) || _sensorySystem == null)
         return new List<int>();
 
-      return _sensorySystem.CadChannel.RecognizeText(cadText.Trim(), AuthoritativeMode) ?? new List<int>();
+      return _sensorySystem.CommandChannel.RecognizeText(commandText.Trim(), AuthoritativeMode) ?? new List<int>();
     }
 
     public ObservableCollection<InfluenceActionItem> Column1Actions
@@ -822,7 +822,7 @@ namespace AIStudio.ViewModels
         var (success, errorMessage) = _influenceActionSystem.ApplyMultipleInfluenceActions(
             ids,
             phraseIds,
-            cadPatternIdList: null,
+            commandPatternIdList: null,
             authoritativeMode: AuthoritativeMode,
             toneId: SelectedToneId,
             moodId: SelectedMoodId,
@@ -875,10 +875,10 @@ namespace AIStudio.ViewModels
 
       var selectedActions = GetSelectedInfluenceActions();
       if (selectedActions.Count == 0 && string.IsNullOrWhiteSpace(MessageText) &&
-          string.IsNullOrWhiteSpace(CadMessageText) &&
+          string.IsNullOrWhiteSpace(CommandMessageText) &&
           SelectedVisualColorId == AgentVisualColor.White)
       {
-        MessageBox.Show("Не выбрано ни одного воздействия, не введено сообщение (речь/CAD) и цвет — белый (нет стимула)",
+        MessageBox.Show("Не выбрано ни одного воздействия, не введено сообщение (речь/команды) и цвет — белый (нет стимула)",
             "Внимание",
             MessageBoxButton.OK,
             MessageBoxImage.Information);
@@ -889,7 +889,7 @@ namespace AIStudio.ViewModels
       try
       {
         List<int> phraseIds = new List<int>();
-        List<int> cadPatternIds = new List<int>();
+        List<int> commandPatternIds = new List<int>();
 
         // Обрабатываем текстовое сообщение, если оно есть
         if (!string.IsNullOrWhiteSpace(MessageText))
@@ -901,21 +901,21 @@ namespace AIStudio.ViewModels
           MessageText = "";
         }
 
-        if (!string.IsNullOrWhiteSpace(CadMessageText))
+        if (!string.IsNullOrWhiteSpace(CommandMessageText))
         {
-          cadPatternIds = RecognizeCadPatterns(CadMessageText);
-          CadMessageText = "";
+          commandPatternIds = RecognizeCommandPatterns(CommandMessageText);
+          CommandMessageText = "";
         }
 
         UpdateRecognitionDisplay();
 
-        // Применяем воздействия, если есть выбранные действия, фраза или CAD
-        if (selectedActions.Any() || phraseIds.Any() || cadPatternIds.Any() || SelectedVisualColorId != AgentVisualColor.White)
+        // Применяем воздействия, если есть выбранные действия, фраза или команды
+        if (selectedActions.Any() || phraseIds.Any() || commandPatternIds.Any() || SelectedVisualColorId != AgentVisualColor.White)
         {
           var (success, errorMessage) = _influenceActionSystem.ApplyMultipleInfluenceActions(
               selectedActions,
               phraseIds,
-              cadPatternIdList: cadPatternIds,
+              commandPatternIdList: commandPatternIds,
               authoritativeMode: AuthoritativeMode,
               toneId: SelectedToneId,
               moodId: SelectedMoodId,

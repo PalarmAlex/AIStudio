@@ -262,7 +262,7 @@
                         ContentTemplate="{StaticResource SensorTreesTabContentTemplate}"/>
       </TabItem>
       <TabItem Header="Command">
-        <ContentControl x:Name="CadTabContent"
+        <ContentControl x:Name="CommandTabContent"
                         ContentTemplate="{StaticResource SensorTreesTabContentTemplate}"/>
       </TabItem>
     </TabControl>

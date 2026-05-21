@@ -29,8 +29,8 @@ namespace AIStudio.ViewModels
         "токенов",
         "паттернов");
 
-    public static readonly SensorTreesPageLabels Cad = new SensorTreesPageLabels(
-        "CAD (Solid)",
+    public static readonly SensorTreesPageLabels Command = new SensorTreesPageLabels(
+        "Команды",
         "Контуры",
         "Группы контуров",
         "контуров",

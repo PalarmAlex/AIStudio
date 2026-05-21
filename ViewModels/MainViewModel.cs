@@ -2107,7 +2107,7 @@ namespace AIStudio
       var view = new VerbalTreesView();
       view.SetViewModels(
           new VerbalTreesViewModel(_gomeostas, _sensorySystem.VerbalChannel, SensorTreesPageLabels.Verbal),
-          new VerbalTreesViewModel(_gomeostas, _sensorySystem.CadChannel, SensorTreesPageLabels.Cad));
+          new VerbalTreesViewModel(_gomeostas, _sensorySystem.CommandChannel, SensorTreesPageLabels.Command));
       CurrentContent = view;
     }
 

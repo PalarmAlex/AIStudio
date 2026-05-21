@@ -15,12 +15,12 @@ namespace AIStudio.Pages
       InitializeComponent();
     }
 
-    public void SetViewModels(VerbalTreesViewModel verbalVm, VerbalTreesViewModel cadVm)
+    public void SetViewModels(VerbalTreesViewModel verbalVm, VerbalTreesViewModel commandVm)
     {
       VerbalTabContent.DataContext = verbalVm;
       VerbalTabContent.Content = verbalVm;
-      CadTabContent.DataContext = cadVm;
-      CadTabContent.Content = cadVm;
+      CommandTabContent.DataContext = commandVm;
+      CommandTabContent.Content = commandVm;
     }
 
     private void WordTreeView_Expanded(object sender, RoutedEventArgs e)
