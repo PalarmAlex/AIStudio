@@ -1,4 +1,4 @@
-using ISIDA.Actions;
+﻿using ISIDA.Actions;
 using ISIDA.Common;
 using ISIDA.Gomeostas;
 using ISIDA.Reflexes;
@@ -49,7 +49,7 @@ namespace AIStudio.ViewModels
 
     public bool IsStageZero => _currentAgentStage == 0;
 
-    public string CurrentAgentTitle => $"Безусловные рефлексы Агента: {_currentAgentName ?? "Не определен"}";
+    public string CurrentAgentTitle => $"Безусловные рефлексы Симбионта: {_currentAgentName ?? "Не определен"}";
     private ObservableCollection<GeneticReflexesSystem.GeneticReflex> _allGeneticReflexes = new ObservableCollection<GeneticReflexesSystem.GeneticReflex>();
     private ICollectionView _geneticReflexesView;
     /// <summary>Множество записей, проходящих фильтр и лимит страницы (для отображения в таблице).</summary>
@@ -734,7 +734,7 @@ namespace AIStudio.ViewModels
     public void RemoveAllReflexes(object parameter)
     {
       var result = MessageBox.Show(
-          "Вы действительно хотите удалить ВСЕ безусловные рефлексы агента?\n\n" +
+          "Вы действительно хотите удалить ВСЕ безусловные рефлексы симбионта?\n\n" +
           "Будут также полностью очищены:\n" +
           "• дерево рефлексов (все узлы);\n" +
           "• все цепочки рефлексов (включая не привязанные).\n\n" +

@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
@@ -68,7 +68,7 @@ namespace AIStudio.Common
     }
 
     /// <summary>Группирует записи по пульсу: для каждого поля берётся последнее не «-» значение по времени.
-    /// Если на пульсе итогово есть автоматизм, б/у и условный рефлекс и цепочка РФ обнуляются (как в агентной строке лога при подавлении рефлекса автоматизмом).</summary>
+    /// Если на пульсе итогово есть автоматизм, б/у и условный рефлекс и цепочка РФ обнуляются (как в симбионтной строке лога при подавлении рефлекса автоматизмом).</summary>
     public static Dictionary<int, AggregatedLogSnapshot> AggregateByPulse(
         IEnumerable<MemoryLogManager.LogEntry> entries)
     {
@@ -182,7 +182,7 @@ namespace AIStudio.Common
 
         // На одном пульсе в CSV может быть несколько строк LogSystemState (промежуточные снимки внутри пульса).
         // Слияние по «последнему непустому» иначе смешивает рефлекс из ранней строки с автоматизмом из поздней.
-        // Как в ResearchLogger.CreateLogEntry (reflexSuppressedByAutomatizm): при выбранном автоматизме рефлексы в агентной строке не показываются.
+        // Как в ResearchLogger.CreateLogEntry (reflexSuppressedByAutomatizm): при выбранном автоматизме рефлексы в симбионтной строке не показываются.
         if (int.TryParse(NormalizeDisplay(snap.Automatizm), NumberStyles.Integer, CultureInfo.InvariantCulture, out int automatizmId)
             && automatizmId > 0)
         {

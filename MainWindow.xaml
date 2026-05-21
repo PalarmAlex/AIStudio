@@ -1,4 +1,4 @@
-<Window x:Class="AIStudio.MainWindow"
+﻿<Window x:Class="AIStudio.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
@@ -86,13 +86,26 @@
 
       <StackPanel Grid.Column="0" Grid.RowSpan="3" Background="#FFE0E0E0">
 
-        <Expander Header="Агент" Style="{StaticResource MenuExpanderStyle}" IsExpanded="{Binding IsAgentExpanded}">
+        <Expander Header="Проект" Style="{StaticResource MenuExpanderStyle}">
+          <StackPanel>
+            <Button Content="Создать проект" Margin="20,2,5,2"
+              Style="{StaticResource MenuButtonStyle}"
+              Command="{Binding VerticalMenuItemClickedCommand}"
+              CommandParameter="43"/>
+            <Button Content="Открыть проект" Margin="20,2,5,2"
+              Style="{StaticResource MenuButtonStyle}"
+              Command="{Binding VerticalMenuItemClickedCommand}"
+              CommandParameter="44"/>
+          </StackPanel>
+        </Expander>
+
+        <Expander Header="Симбионт" Style="{StaticResource MenuExpanderStyle}" IsExpanded="{Binding IsAgentExpanded}">
           <StackPanel>
             <Button Content="Пульт" Margin="20,2,5,2" 
               Style="{StaticResource MenuButtonStyle}"
               Command="{Binding VerticalMenuItemClickedCommand}"
               CommandParameter="33"/>
-            <Button Content="Свойства агента" Margin="20,2,5,2" 
+            <Button Content="Свойства симбионта" Margin="20,2,5,2" 
               Style="{StaticResource MenuButtonStyle}"
               Command="{Binding VerticalMenuItemClickedCommand}"
               CommandParameter="39"/>

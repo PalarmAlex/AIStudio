@@ -1,4 +1,4 @@
-using AIStudio.ViewModels;
+﻿using AIStudio.ViewModels;
 using AIStudio.Dialogs;
 using ISIDA.Actions;
 using ISIDA.Common;
@@ -200,7 +200,7 @@ namespace AIStudio.Pages
             }
             if (stageResult.Success && saveSuccess)
               MessageBox.Show(stageResult.Message,
-                "Изменение стадии развития агента",
+                "Изменение стадии развития симбионта",
                 MessageBoxButton.OK,
                 MessageBoxImage.Information);
           }
@@ -233,7 +233,7 @@ namespace AIStudio.Pages
           }
           if (stageResult.Success && saveSuccess)
             MessageBox.Show(stageResult.Message,
-              "Изменение стадии развития агента",
+              "Изменение стадии развития симбионта",
               MessageBoxButton.OK,
               MessageBoxImage.Information);
         }
@@ -414,7 +414,7 @@ namespace AIStudio.Pages
         if (success)
         {
           _gomeostas.UpdateAgentPropertiesPromptContent();
-          MessageBox.Show("Свойства агента сохранены.", "Сохранение", MessageBoxButton.OK, MessageBoxImage.Information);
+          MessageBox.Show("Свойства симбионта сохранены.", "Сохранение", MessageBoxButton.OK, MessageBoxImage.Information);
         }
         else
           MessageBox.Show($"Ошибка сохранения: {error}", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);

@@ -37,11 +37,11 @@ namespace AIStudio
 
     private void HandleGlobalException(Exception ex)
     {
-      if (ex is InvalidOperationException && ex.Message.Contains("Агент мертв"))
+      if (ex is InvalidOperationException && ex.Message.Contains("Симбионт мертв"))
       {
-        // Мягкая обработка смерти агента
-        MessageBox.Show("Операция невозможна: агент мертв",
-            "Агент мертв",
+        // Мягкая обработка смерти симбионта
+        MessageBox.Show("Операция невозможна: симбионт мертв",
+            "Симбионт мертв",
             MessageBoxButton.OK,
             MessageBoxImage.Information);
       }

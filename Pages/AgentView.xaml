@@ -1,4 +1,4 @@
-<UserControl x:Class="AIStudio.Pages.AgentView"
+﻿<UserControl x:Class="AIStudio.Pages.AgentView"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:converters="clr-namespace:AIStudio.Converters"
@@ -48,7 +48,7 @@
 
   <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
     <StackPanel Margin="5">
-      <!-- 1. Заголовок агента -->
+      <!-- 1. Заголовок симбионта -->
       <TextBlock Text="{Binding AgentName}"
                            Foreground="{Binding HeaderBackground}"
                            FontSize="18"
@@ -91,7 +91,7 @@
       <Border Height="2" Background="{Binding HeaderBackground}" Margin="0,0,0,2"/>
 
       <!-- Заголовок стилей реагирования -->
-      <TextBlock Text="Стили реагирования агента"
+      <TextBlock Text="Стили реагирования симбионта"
                        Foreground="{Binding HeaderBackground}"
                        FontSize="18"
                        FontWeight="DemiBold"
@@ -113,7 +113,7 @@
 
         <StackPanel Grid.Column="0" Grid.Row="0" HorizontalAlignment="Right">
           <!-- Заголовок действий -->
-          <TextBlock Text="Действия агента"
+          <TextBlock Text="Действия симбионта"
            Foreground="{Binding HeaderBackground}"
            FontSize="18"
            FontWeight="DemiBold"
@@ -194,7 +194,7 @@
       <Border Height="2" Background="{Binding HeaderBackground}" Margin="0,2,0,2"/>
 
       <!-- Заголовок пульта -->
-      <TextBlock Text="Пульт взаимодействия с агентом"
+      <TextBlock Text="Пульт взаимодействия с симбионтом"
                        Foreground="{Binding HeaderBackground}"
                        FontSize="18"
                        FontWeight="DemiBold"

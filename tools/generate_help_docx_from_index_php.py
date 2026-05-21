@@ -1,4 +1,4 @@
-# -*- coding: utf-8 -*-
+﻿# -*- coding: utf-8 -*-
 """
 Сборка справки Word из D:\\ISIDA\\help\\Справка юзера\\index.php (содержимое heredoc $str).
 
@@ -301,7 +301,7 @@ def build_document(html_fragment: str) -> Document:
 
     title = doc.add_paragraph()
     tr = title.add_run(
-        "Проектирование агентов с индивидуальной адаптивной архитектурой в системе ISIDA"
+        "Проектирование симбионтов с индивидуальной адаптивной архитектурой в системе ISIDA"
     )
     set_run_font(tr, bold=True)
     tr.font.size = Pt(16)

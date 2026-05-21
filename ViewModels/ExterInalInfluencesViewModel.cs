@@ -1,4 +1,4 @@
-using ISIDA.Actions;
+﻿using ISIDA.Actions;
 using ISIDA.Common;
 using ISIDA.Gomeostas;
 using System;
@@ -32,7 +32,7 @@ namespace AIStudio.ViewModels
 
     public ObservableCollection<InfluenceActionSystem.GomeostasisInfluenceAction> InfluenceActions { get; } = new ObservableCollection<InfluenceActionSystem.GomeostasisInfluenceAction>();
 
-    public string CurrentAgentTitle => $"Воздействия Оператора на Агента: {_currentAgentName ?? "Не определен"}";
+    public string CurrentAgentTitle => $"Воздействия Оператора на Симбионта: {_currentAgentName ?? "Не определен"}";
 
     public ICommand SaveCommand { get; }
     public ICommand RemoveActionCommand { get; }
@@ -388,7 +388,7 @@ namespace AIStudio.ViewModels
       {
         return new DescriptionWithLink
         {
-          Text = "Редактор воздействий на систему гомеостаза агента, имитирующих его физическое взаимодействие с внешней средой."
+          Text = "Редактор воздействий на систему гомеостаза симбионта, имитирующих его физическое взаимодействие с внешней средой."
         };
       }
     }

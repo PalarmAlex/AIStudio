@@ -30,7 +30,7 @@ namespace AIStudio.ViewModels
     public bool IsStageZero => _currentAgentStage == 0;
 
     public bool IsReadOnlyMode => !IsEditingEnabled;
-    public string CurrentAgentTitle => $"Адаптивные действия Агента: {_currentAgentName ?? "Не определен"}";
+    public string CurrentAgentTitle => $"Адаптивные действия Симбионта: {_currentAgentName ?? "Не определен"}";
     public ObservableCollection<AdaptiveActionsSystem.AdaptiveAction> AdaptiveActions { get; } = new ObservableCollection<AdaptiveActionsSystem.AdaptiveAction>();
 
     public ICommand SaveCommand { get; }

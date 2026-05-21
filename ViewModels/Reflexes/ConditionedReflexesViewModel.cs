@@ -1,4 +1,4 @@
-using AIStudio.Views;
+﻿using AIStudio.Views;
 using AIStudio.Dialogs;
 using ISIDA.Actions;
 using ISIDA.Common;
@@ -53,7 +53,7 @@ namespace AIStudio.ViewModels
     public GomeostasSystem GomeostasSystem => _gomeostas;
     public PerceptionImagesSystem PerceptionImagesSystem => _perceptionImagesSystem;
     public bool IsStageOneOrHigher => _currentAgentStage >= 1;
-    public string CurrentAgentTitle => $"Условные рефлексы Агента: {_currentAgentName ?? "Не определен"}";
+    public string CurrentAgentTitle => $"Условные рефлексы Симбионта: {_currentAgentName ?? "Не определен"}";
 
     private ObservableCollection<ConditionedReflexWithSourceActions> _allConditionedReflexes = new ObservableCollection<ConditionedReflexWithSourceActions>();
     private HashSet<ConditionedReflexWithSourceActions> _visibleSet = new HashSet<ConditionedReflexWithSourceActions>();
@@ -627,7 +627,7 @@ namespace AIStudio.ViewModels
     public void RemoveAllReflexes(object parameter)
     {
       var result = MessageBox.Show(
-          $"Вы действительно хотите удалить ВСЕ условные рефлексы агента? Это действие нельзя будет отменить.",
+          $"Вы действительно хотите удалить ВСЕ условные рефлексы симбионта? Это действие нельзя будет отменить.",
           "Подтверждение удаления",
           MessageBoxButton.YesNo,
           MessageBoxImage.Warning);
@@ -645,7 +645,7 @@ namespace AIStudio.ViewModels
             var (saveSuccess, error) = _conditionedReflexesSystem.SaveConditionedReflexes();
             if (saveSuccess)
             {
-              MessageBox.Show("Все условные рефлексы агента успешно удалены",
+              MessageBox.Show("Все условные рефлексы симбионта успешно удалены",
                   "Удаление завершено",
                   MessageBoxButton.OK,
                   MessageBoxImage.Information);
@@ -668,7 +668,7 @@ namespace AIStudio.ViewModels
         }
         catch (Exception ex)
         {
-          MessageBox.Show($"Ошибка удаления условных рефлексов агента: {ex.Message}",
+          MessageBox.Show($"Ошибка удаления условных рефлексов симбионта: {ex.Message}",
               "Ошибка",
               MessageBoxButton.OK,
               MessageBoxImage.Error);

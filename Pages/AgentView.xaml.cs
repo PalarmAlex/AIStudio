@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
@@ -83,7 +83,7 @@ namespace AIStudio.Pages
         }
         if(stageResult.Success && saveSuccess)
           MessageBox.Show($"{stageResult.Message}",
-            "Изменение стадии развития агента",
+            "Изменение стадии развития симбионта",
             MessageBoxButton.OK,
             MessageBoxImage.Information);
       }
@@ -112,7 +112,7 @@ namespace AIStudio.Pages
         var dialog = new TextInputDialog
         {
           Owner = Window.GetWindow(textBox),
-          Title = "Редактирование описания агента",
+          Title = "Редактирование описания симбионта",
           Text = currentDescription,
           Multiline = true
         };

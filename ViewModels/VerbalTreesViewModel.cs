@@ -1,4 +1,4 @@
-using AIStudio.Common;
+﻿using AIStudio.Common;
 using ISIDA.Common;
 using ISIDA.Gomeostas;
 using ISIDA.Sensors;
@@ -693,7 +693,7 @@ namespace AIStudio.ViewModels
     {
       var result = MessageBox.Show(
           "Вы уверены, что хотите полностью очистить сенсорные деревья?\n\n" +
-          "Это действие удалит все токены и паттерны из памяти агента и не может быть отменено.",
+          "Это действие удалит все токены и паттерны из памяти симбионта и не может быть отменено.",
           "Подтверждение очистки",
           MessageBoxButton.YesNo,
           MessageBoxImage.Warning,

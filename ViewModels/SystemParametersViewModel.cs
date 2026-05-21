@@ -1,4 +1,4 @@
-using AIStudio.Common;
+﻿using AIStudio.Common;
 using AIStudio.Pages;
 using ISIDA.Common;
 using ISIDA.Gomeostas;
@@ -49,7 +49,7 @@ namespace AIStudio.ViewModels
         OnPropertyChanged(nameof(CurrentAgentTitle));
       }
     }
-    public string CurrentAgentTitle => $"Параметры гомеостаза Агента: {_currentAgentName ?? "Не определен"}";
+    public string CurrentAgentTitle => $"Параметры гомеостаза Симбионта: {_currentAgentName ?? "Не определен"}";
     public ICommand SaveCommand { get; }
     public ICommand RemoveAllCommand { get; }
     public ICommand SelectAgentCommand { get; }
@@ -91,7 +91,7 @@ namespace AIStudio.ViewModels
     }
 
     /// <summary>
-    /// Получает все стили поведения агента
+    /// Получает все стили поведения симбионта
     /// </summary>
     public ReadOnlyDictionary<int, GomeostasSystem.BehaviorStyle> GetAllBehaviorStyles()
     {
@@ -351,7 +351,7 @@ namespace AIStudio.ViewModels
     public void RemoveAllParameters()
     {
       var result = MessageBox.Show(
-          $"Вы действительно хотите удалить ВСЕ параметры гомеостаза агента? Это действие нельзя будет отменить.",
+          $"Вы действительно хотите удалить ВСЕ параметры гомеостаза симбионта? Это действие нельзя будет отменить.",
           "Подтверждение удаления",
           MessageBoxButton.YesNo,
           MessageBoxImage.Warning);
@@ -374,14 +374,14 @@ namespace AIStudio.ViewModels
           var (success, error) = _gomeostas.SaveAgentParameters(false); // все удалено - не надо валидаций 
           if (success)
           {
-            MessageBox.Show("Все параметры гомеостаза агента успешно удалены",
+            MessageBox.Show("Все параметры гомеостаза симбионта успешно удалены",
                 "Удаление завершено",
                 MessageBoxButton.OK,
                 MessageBoxImage.Information);
           }
           else
           {
-            MessageBox.Show($"Не удалось удалить параметры гомеостаза агента:\n{error}",
+            MessageBox.Show($"Не удалось удалить параметры гомеостаза симбионта:\n{error}",
                 "Ошибка сохранения после удаления",
                 MessageBoxButton.OK,
                 MessageBoxImage.Error);
@@ -389,7 +389,7 @@ namespace AIStudio.ViewModels
         }
         catch (Exception ex)
         {
-          MessageBox.Show($"Ошибка удаления параметров гомеостаза агента: {ex.Message}",
+          MessageBox.Show($"Ошибка удаления параметров гомеостаза симбионта: {ex.Message}",
               "Ошибка",
               MessageBoxButton.OK,
               MessageBoxImage.Error);
@@ -423,7 +423,7 @@ namespace AIStudio.ViewModels
       {
         return new DescriptionWithLink
         {
-          Text = "Редактор жизненных параметров гомеостаза агента."
+          Text = "Редактор жизненных параметров гомеостаза симбионта."
         };
       }
     }

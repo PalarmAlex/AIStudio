@@ -1,4 +1,4 @@
-<UserControl x:Class="AIStudio.Pages.AdaptiveActionsView"
+﻿<UserControl x:Class="AIStudio.Pages.AdaptiveActionsView"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
@@ -166,7 +166,7 @@
             <DataGridTextColumn.HeaderStyle>
               <Style TargetType="DataGridColumnHeader" BasedOn="{StaticResource {x:Type DataGridColumnHeader}}">
                 <Setter Property="ToolTip" 
-                    Value="ID связанного действия с пульта (InfluenceAction) для отзеркаливания. Пустое поле = нет связи.&#x0a;При создании зеркального автоматизма по стимулу с пульта ищется это действие агента по данному полю."/>
+                    Value="ID связанного действия с пульта (InfluenceAction) для отзеркаливания. Пустое поле = нет связи.&#x0a;При создании зеркального автоматизма по стимулу с пульта ищется это действие симбионта по данному полю."/>
               </Style>
             </DataGridTextColumn.HeaderStyle>
             <DataGridTextColumn.EditingElementStyle>

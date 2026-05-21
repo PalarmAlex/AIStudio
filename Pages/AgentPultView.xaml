@@ -1,4 +1,4 @@
-<UserControl x:Class="AIStudio.Pages.AgentPultView"
+﻿<UserControl x:Class="AIStudio.Pages.AgentPultView"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
@@ -61,7 +61,7 @@
     <!-- Заголовки -->
     <TextBlock Grid.Column="0" Grid.Row="0" Text="Речь / команды" HorizontalAlignment="Left" Margin="0,0,0,5" FontSize="14" FontWeight="Bold"/>
     <TextBlock Grid.Column="1" Grid.Row="0" Text="Распознанный текст:" Style="{StaticResource PropertyNameStyle}" Margin="10,0,0,5" Width="200"/>
-    <TextBlock Grid.Column="2" Grid.Row="0" Text="Воздействие на агента:" Style="{StaticResource PropertyNameStyle}" Margin="10,0,0,5" Width="200"/>
+    <TextBlock Grid.Column="2" Grid.Row="0" Text="Воздействие на симбионта:" Style="{StaticResource PropertyNameStyle}" Margin="10,0,0,5" Width="200"/>
 
     <!-- Окно речевого сообщения -->
     <TextBox x:Name="MessageToAgentTextBox"
@@ -108,7 +108,7 @@
       <CheckBox Grid.Column="0"
                 Content="Режим наблюдения"
                 IsChecked="{Binding ObservationMode}"
-                ToolTip="Действия с пульта не оказывают влияния на гомеостаз агента, как будто он их наблюдает на другом"
+                ToolTip="Действия с пульта не оказывают влияния на гомеостаз симбионта, как будто он их наблюдает на другом"
                 VerticalAlignment="Center" Margin="0,3,0,0"/>
       <CheckBox Grid.Column="1"
                 Content="Авторитарная запись"

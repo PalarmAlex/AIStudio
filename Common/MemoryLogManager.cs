@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
@@ -59,7 +59,7 @@ namespace AIStudio.Common
     public ReadOnlyObservableCollection<LogEntry> LogEntries { get; }
 
     /// <summary>
-    /// Агентный лог для UI: по одному снимку на глобальный пульс (слияние как в отчёте сценария).
+    /// Симбионтный лог для UI: по одному снимку на глобальный пульс (слияние как в отчёте сценария).
     /// </summary>
     public ReadOnlyObservableCollection<LogEntry> AgentDisplayLogEntries { get; }
 

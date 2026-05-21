@@ -42,7 +42,7 @@ namespace AIStudio.ViewModels
       }
     }
 
-    public string CurrentAgentTitle => $"Стили реагирования Агента: {_currentAgentName ?? "Не определен"}";
+    public string CurrentAgentTitle => $"Стили реагирования Симбионта: {_currentAgentName ?? "Не определен"}";
     public ObservableCollection<GomeostasSystem.BehaviorStyle> BehaviorStyles { get; } = new ObservableCollection<GomeostasSystem.BehaviorStyle>();
 
     public ICommand SaveCommand { get; }
@@ -417,7 +417,7 @@ namespace AIStudio.ViewModels
     public void RemoveAllStyles(object parameter)
     {
       var result = MessageBox.Show(
-          $"Вы действительно хотите удалить ВСЕ стили реагирования агента? Это действие нельзя будет отменить.",
+          $"Вы действительно хотите удалить ВСЕ стили реагирования симбионта? Это действие нельзя будет отменить.",
           "Подтверждение удаления",
           MessageBoxButton.YesNo,
           MessageBoxImage.Warning);
@@ -443,14 +443,14 @@ namespace AIStudio.ViewModels
           var (success, error) = _gomeostas.SaveAgentBehaviorStyles(false); // все удалено - не надо валидаций 
           if (success)
           {
-            MessageBox.Show("Все стили реагирования агента, кроме заданного по умолчанию, успешно удалены",
+            MessageBox.Show("Все стили реагирования симбионта, кроме заданного по умолчанию, успешно удалены",
                 "Удаление завершено",
                 MessageBoxButton.OK,
                 MessageBoxImage.Information);
           }
           else
           {
-            MessageBox.Show($"Не удалось удалить стили реагирования агента:\n{error}",
+            MessageBox.Show($"Не удалось удалить стили реагирования симбионта:\n{error}",
                 "Ошибка сохранения после удаления",
                 MessageBoxButton.OK,
                 MessageBoxImage.Error);
@@ -458,7 +458,7 @@ namespace AIStudio.ViewModels
         }
         catch (Exception ex)
         {
-          MessageBox.Show($"Ошибка удаления стилей реагирования агента: {ex.Message}",
+          MessageBox.Show($"Ошибка удаления стилей реагирования симбионта: {ex.Message}",
               "Ошибка",
               MessageBoxButton.OK,
               MessageBoxImage.Error);

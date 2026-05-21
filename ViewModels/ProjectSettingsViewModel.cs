@@ -3,6 +3,7 @@ using ISIDA.Psychic.Understanding;
 using ISIDA.Reflexes;
 using ISIDA.Actions;
 using ISIDA.Gomeostas;
+using AIStudio.Common;
 using AIStudio.Windows;
 using Ookii.Dialogs.Wpf;
 using System;
@@ -545,7 +546,6 @@ namespace AIStudio.ViewModels
     public ICommand BrowseFolderCommand { get; }
     public ICommand SaveSettingsCommand { get; }
     /// <summary>Выбор корня проекта данных и подстановка путей по шаблону ISIDA.</summary>
-    public ICommand SwitchProjectRootCommand { get; }
     /// <summary>Открывает текстовое описание шаблона каталогов в редакторе по умолчанию.</summary>
     public ICommand OpenProjectDirectoryTemplateCommand { get; }
 
@@ -630,7 +630,6 @@ namespace AIStudio.ViewModels
       DefaultFormatLog = (int)AppConfig.LogFormat;
       BrowseFolderCommand = new RelayCommand(BrowseFolderWithParameter);
       SaveSettingsCommand = new RelayCommand(SaveSettingsWithParameter);
-      SwitchProjectRootCommand = new RelayCommand(SwitchProjectRoot);
       OpenProjectDirectoryTemplateCommand = new RelayCommand(OpenProjectDirectoryTemplate);
 
       _isInitialized = true;
@@ -831,18 +830,44 @@ namespace AIStudio.ViewModels
       }
     }
 
-    private void SwitchProjectRoot(object _)
+    /// <summary>
+    /// Открывает диалог выбора корня проекта. По умолчанию — <see cref="ProjectBootstrap.DefaultProjectsParentPath"/>.
+    /// </summary>
+    /// <param name="projectRoot">Выбранный каталог при успехе.</param>
+    /// <returns>True, если пользователь выбрал каталог.</returns>
+    public bool TryPickProjectRootFolder(out string projectRoot)
     {
+      projectRoot = null;
+
+      string initialPath = ProjectBootstrap.GetDefaultProjectsFolderDialogPath();
+      if (SettingsValidator.TryInferProjectRoot(SettingsPath, DataGomeostasFolderPath, out string currentRoot)
+          && Directory.Exists(currentRoot))
+      {
+        initialPath = ProjectBootstrap.ToFolderDialogInitialPath(currentRoot);
+      }
+
       var dialog = new VistaFolderBrowserDialog
       {
         Description = "Укажите корневой каталог данных проекта...",
-        UseDescriptionForTitle = true
+        UseDescriptionForTitle = true,
+        SelectedPath = initialPath
       };
 
       if (dialog.ShowDialog() != true)
-        return;
+        return false;
 
-      string projectRoot = dialog.SelectedPath;
+      projectRoot = dialog.SelectedPath;
+      return !string.IsNullOrWhiteSpace(projectRoot);
+    }
+
+    /// <summary>
+    /// Применяет корень проекта: пути, настройки из Settings.xml, при наличии колбэка — перезагрузка движка.
+    /// </summary>
+    /// <param name="projectRoot">Корневой каталог проекта данных.</param>
+    public void ApplyProjectRoot(string projectRoot)
+    {
+      if (string.IsNullOrWhiteSpace(projectRoot))
+        return;
       List<string> missingRoots;
       if (!SettingsValidator.MandatoryProjectRootFoldersExist(projectRoot, out missingRoots))
       {

@@ -208,7 +208,7 @@
             <DataGridTextColumn.HeaderStyle>
                 <Style TargetType="DataGridColumnHeader">
                   <Setter Property="ToolTip" 
-                    Value="Минимальное допустимое значение для жизненно важных параметров.&#x0a;Ниже приводит к смерти агента."/>
+                    Value="Минимальное допустимое значение для жизненно важных параметров.&#x0a;Ниже приводит к смерти симбионта."/>
                 </Style>
               </DataGridTextColumn.HeaderStyle>
 
@@ -223,7 +223,7 @@
             <DataGridTextColumn.HeaderStyle>
               <Style TargetType="DataGridColumnHeader">
                 <Setter Property="ToolTip" 
-                    Value="Максимальное допустимое значение для жизненно важных параметров.&#x0a;Выше приводит к смерти агента."/>
+                    Value="Максимальное допустимое значение для жизненно важных параметров.&#x0a;Выше приводит к смерти симбионта."/>
               </Style>
             </DataGridTextColumn.HeaderStyle>
            
@@ -251,7 +251,7 @@
             <DataGridTemplateColumn.HeaderStyle>
               <Style TargetType="DataGridColumnHeader">
                 <Setter Property="ToolTip" 
-                    Value="Флаг, указывающий что параметр является жизненно важным.&#x0a;Критические мин/макс значения только таких параметров могут вызвать 'смерть' агента."/>
+                    Value="Флаг, указывающий что параметр является жизненно важным.&#x0a;Критические мин/макс значения только таких параметров могут вызвать 'смерть' симбионта."/>
               </Style>
             </DataGridTemplateColumn.HeaderStyle>
          
@@ -317,7 +317,7 @@
           Command="{Binding SaveCommand}"
           IsEnabled="{Binding IsEditingEnabled}"
           Style="{StaticResource ActionButtonStyle}"
-          ToolTip="Сохранить данные гомеостаза агента"/>
+          ToolTip="Сохранить данные гомеостаза симбионта"/>
       </StackPanel>
     </Grid>
 

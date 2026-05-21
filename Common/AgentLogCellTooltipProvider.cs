@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -13,7 +13,7 @@ using ISIDA.Sensors;
 
 namespace AIStudio.Common
 {
-  /// <summary>Текстовые подсказки для ячеек агентного лога (живые логи, HTML-отчёты сценариев).</summary>
+  /// <summary>Текстовые подсказки для ячеек симбионтного лога (живые логи, HTML-отчёты сценариев).</summary>
   public sealed class AgentLogCellTooltipProvider
   {
     private readonly GomeostasSystem _gomeostas;

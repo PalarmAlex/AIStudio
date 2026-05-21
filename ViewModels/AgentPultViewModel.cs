@@ -1,4 +1,4 @@
-using AIStudio.Common;
+﻿using AIStudio.Common;
 using ISIDA.Actions;
 using ISIDA.Gomeostas;
 using ISIDA.Reflexes;
@@ -794,7 +794,7 @@ namespace AIStudio.ViewModels
         int visualColorId = 0)
     {
       if (IsAgentDead)
-        return "Агент мёртв";
+        return "Симбионт мёртв";
 
       if (!GlobalTimer.IsPulsationRunning)
         return "Пульсация выключена";
@@ -830,7 +830,7 @@ namespace AIStudio.ViewModels
 
         if (!success)
         {
-          if (errorMessage != null && errorMessage.Contains("Агент мертв"))
+          if (errorMessage != null && errorMessage.Contains("Симбионт мертв"))
             IsAgentDead = true;
           return errorMessage ?? "Ошибка применения воздействий";
         }
@@ -856,8 +856,8 @@ namespace AIStudio.ViewModels
     {
       if (IsAgentDead)
       {
-        MessageBox.Show("Невозможно применить воздействие к мертвому агенту",
-            "Агент мертв",
+        MessageBox.Show("Невозможно применить воздействие к мертвому симбионту",
+            "Симбионт мертв",
             MessageBoxButton.OK,
             MessageBoxImage.Error);
         MessageText = ""; // Очищаем только поле ввода
@@ -923,11 +923,11 @@ namespace AIStudio.ViewModels
 
           if (!success)
           {
-            if (errorMessage.Contains("Агент мертв"))
+            if (errorMessage.Contains("Симбионт мертв"))
             {
               IsAgentDead = true;
-              MessageBox.Show("Агент умер во время применения воздействий",
-                  "Агент мертв",
+              MessageBox.Show("Симбионт умер во время применения воздействий",
+                  "Симбионт мертв",
                   MessageBoxButton.OK,
                   MessageBoxImage.Warning);
               return;
@@ -942,7 +942,7 @@ namespace AIStudio.ViewModels
           // Оценка активного звена цепочки автоматизмов по эффекту стимула (в период ожидания)
           if (AppGlobalState.IsAutomatizmChainActive && AutomatismExecutionService.IsInitialized)
             AutomatismExecutionService.Instance.ApplyStimulusEffectAndAdvanceChain();
-          // Обновляем состояние агента после воздействий
+          // Обновляем состояние симбионта после воздействий
           UpdateAgentState();
           SelectedVisualColorId = AgentVisualColor.White;
         }

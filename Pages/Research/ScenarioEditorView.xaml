@@ -1,4 +1,4 @@
-<UserControl x:Class="AIStudio.Pages.Research.ScenarioEditorView"
+﻿<UserControl x:Class="AIStudio.Pages.Research.ScenarioEditorView"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         x:Name="EditorRoot"
@@ -133,7 +133,7 @@
                             ItemsSource="{Binding PulseTimingCoefficientChoices}"
                             SelectedValue="{Binding RunPulseTimingCoefficient, UpdateSourceTrigger=PropertyChanged}">
                     <ComboBox.ToolTip>
-                      <TextBlock MaxWidth="360" TextWrapping="Wrap">Сокращает паузы между фазами пульса в N раз. Фактическое ускорение ограничено временем вычислений агента (~15 пульс/сек), поэтому значения выше 20 не дают прироста.</TextBlock>
+                      <TextBlock MaxWidth="360" TextWrapping="Wrap">Сокращает паузы между фазами пульса в N раз. Фактическое ускорение ограничено временем вычислений симбионта (~15 пульс/сек), поэтому значения выше 20 не дают прироста.</TextBlock>
                     </ComboBox.ToolTip>
                   </ComboBox>
                   <TextBlock Grid.Row="2" Grid.Column="0" Text="Очистить данные" VerticalAlignment="Center" Margin="0,0,12,8"
@@ -143,7 +143,7 @@
                     <CheckBox.ToolTip>
                       <ToolTip>
                         <TextBlock MaxWidth="360" TextWrapping="Wrap"
-                                   Text="Очищать данные для текущей стадии (как при смене стадии в свойствах агента)."/>
+                                   Text="Очищать данные для текущей стадии (как при смене стадии в свойствах симбионта)."/>
                       </ToolTip>
                     </CheckBox.ToolTip>
                   </CheckBox>

@@ -1,4 +1,4 @@
-using ISIDA.Actions;
+﻿using ISIDA.Actions;
 using ISIDA.Psychic.Automatism;
 using ISIDA.Psychic.Understanding;
 using System;
@@ -8,7 +8,7 @@ using System.Windows.Data;
 
 namespace AIStudio.Converters
 {
-  /// <summary>Код события агента (слоты 1–20) → подпись из AgentEventsCatalog.</summary>
+  /// <summary>Код события симбионта (слоты 1–20) → подпись из AgentEventsCatalog.</summary>
   public sealed class SituationEventCodeDisplayConverter : IValueConverter
   {
     public object Convert(object value, Type targetType, object parameter, CultureInfo culture)

@@ -1,4 +1,4 @@
-using AIStudio.Common;
+﻿using AIStudio.Common;
 using ISIDA.Common;
 using ISIDA.Gomeostas;
 using System;
@@ -13,7 +13,7 @@ using static ISIDA.Gomeostas.GomeostasSystem;
 
 namespace AIStudio.ViewModels
 {
-  /// <summary>Элемент списка стадий развития агента: номер и описание.</summary>
+  /// <summary>Элемент списка стадий развития симбионта: номер и описание.</summary>
   public class EvolutionStageItem
   {
     public int StageNumber { get; set; }
@@ -52,7 +52,7 @@ namespace AIStudio.ViewModels
             _ => ApplyNormalHomeostasisManually(),
             _ => IsAnyControlEnabled));
     private ICommand _resurrectAgentCommand;
-    /// <summary>Доступна только для мёртвого агента и при остановленной пульсации.</summary>
+    /// <summary>Доступна только для мёртвого симбионта и при остановленной пульсации.</summary>
     public ICommand ResurrectAgentCommand =>
         _resurrectAgentCommand ?? (_resurrectAgentCommand = new RelayCommand(
             _ => ResurrectAgent(),
@@ -87,8 +87,8 @@ namespace AIStudio.ViewModels
     }
 
     public string AgentBaseSost => IsAgentDead
-        ? "АГЕНТ МЕРТВ, все операции заблокированы"
-        : $"Жизненные параметры агента. Состояние: {HomeostasisStatus}";
+        ? "СИМБИОНТ МЕРТВ, все операции заблокированы"
+        : $"Жизненные параметры симбионта. Состояние: {HomeostasisStatus}";
 
     private Brush _headerBackground;
     public Brush HeaderBackground
@@ -435,11 +435,11 @@ namespace AIStudio.ViewModels
       var agentInfo = _gomeostas.GetAgentState();
       string name = agentInfo?.Name?.Trim();
       if (string.IsNullOrEmpty(name))
-        name = "агент";
+        name = "симбионт";
 
       if (MessageBox.Show(
-              $"Воскресить агента «{name}»?\nБудет снята отметка смерти, параметры приведутся к состоянию «Норма».",
-              "Воскрешение агента",
+              $"Воскресить симбионта «{name}»?\nБудет снята отметка смерти, параметры приведутся к состоянию «Норма».",
+              "Воскрешение симбионта",
               MessageBoxButton.YesNo,
               MessageBoxImage.Question) != MessageBoxResult.Yes)
         return;
@@ -448,8 +448,8 @@ namespace AIStudio.ViewModels
       if (!reviveOk)
       {
         MessageBox.Show(
-            $"Не удалось сохранить свойства агента:\n{reviveErr}",
-            "Воскрешение агента",
+            $"Не удалось сохранить свойства симбионта:\n{reviveErr}",
+            "Воскрешение симбионта",
             MessageBoxButton.OK,
             MessageBoxImage.Warning);
         return;
@@ -485,7 +485,7 @@ namespace AIStudio.ViewModels
       if (!propsOk)
       {
         MessageBox.Show(
-            $"Не удалось сохранить свойства агента:\n{propsErr}",
+            $"Не удалось сохранить свойства симбионта:\n{propsErr}",
             "Состояние Норма",
             MessageBoxButton.OK,
             MessageBoxImage.Warning);
@@ -508,8 +508,8 @@ namespace AIStudio.ViewModels
     {
       if (IsAgentDead)
       {
-        MessageBox.Show("Невозможно изменить свойства мертвого агента",
-            "Агент мертв",
+        MessageBox.Show("Невозможно изменить свойства мертвого симбионта",
+            "Симбионт мертв",
             MessageBoxButton.OK,
             MessageBoxImage.Error);
         return;
@@ -565,7 +565,7 @@ namespace AIStudio.ViewModels
         }
         else
         {
-          MessageBox.Show($"Не удалось сохранить свойства агента:\n{error}",
+          MessageBox.Show($"Не удалось сохранить свойства симбионта:\n{error}",
               "Ошибка сохранения",
               MessageBoxButton.OK,
               MessageBoxImage.Error);
@@ -644,7 +644,7 @@ namespace AIStudio.ViewModels
           TextForeground = Brushes.Black;
         }
 
-        // Обновляем свойства агента
+        // Обновляем свойства симбионта
         if (AgentProperties.Count == 0)
         {
           AgentProperties.Add(new AgentProperty("Имя", agentInfo.Name, !IsAgentDead));
@@ -657,7 +657,7 @@ namespace AIStudio.ViewModels
           AgentProperties[1].Value = agentInfo.Description;
           AgentProperties[2].Value = agentInfo.EvolutionStage.ToString();
 
-          // Обновляем редактируемость только если агент жив
+          // Обновляем редактируемость только если симбионт жив
           if (!IsAgentDead)
           {
             foreach (var prop in AgentProperties)

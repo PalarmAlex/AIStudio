@@ -1,4 +1,4 @@
-using AIStudio.Common;
+﻿using AIStudio.Common;
 using ISIDA.Actions;
 using ISIDA.Common;
 using ISIDA.Gomeostas;
@@ -33,12 +33,12 @@ namespace AIStudio.ViewModels
     private readonly AgentLogCellTooltipProvider _tooltipProvider;
 
     /// <summary>
-    /// Полный агентный лог (для отчётов сценариев и отладки).
+    /// Полный симбионтный лог (для отчётов сценариев и отладки).
     /// </summary>
     public ReadOnlyObservableCollection<LogEntry> LogEntries => MemoryLogManager.Instance.LogEntries;
 
     /// <summary>
-    /// Агентный лог для таблицы: одна строка на глобальный пульс после слияния снимков в движке.
+    /// Симбионтный лог для таблицы: одна строка на глобальный пульс после слияния снимков в движке.
     /// </summary>
     public ReadOnlyObservableCollection<LogEntry> AgentDisplayLogEntries => MemoryLogManager.Instance.AgentDisplayLogEntries;
 

@@ -1,4 +1,4 @@
-using AIStudio.Common;
+﻿using AIStudio.Common;
 using AIStudio.Pages;
 using AIStudio.Pages.Automatizm;
 using AIStudio.Pages.Episodic;
@@ -202,8 +202,8 @@ namespace AIStudio
       {
         if (IsAgentDead)
         {
-          MessageBox.Show("Невозможно сбросить время жизни мертвого агента",
-              "Агент мертв",
+          MessageBox.Show("Невозможно сбросить время жизни мертвого симбионта",
+              "Симбионт мертв",
               MessageBoxButton.OK,
               MessageBoxImage.Error);
           return;
@@ -384,10 +384,10 @@ namespace AIStudio
         {
           bool wasDead = IsAgentDead;
           IsAgentDead = agentInfo.IsDead;
-          // Если агент только что умер и пульсация активна
+          // Если симбионт только что умер и пульсация активна
           if (!wasDead && IsAgentDead && IsPulsating)
           {
-            Logger.Info("Агент умер, останавливаем пульсацию");
+            Logger.Info("Симбионт умер, останавливаем пульсацию");
             StopPulsationDueToDeath();
           }
         }
@@ -400,28 +400,36 @@ namespace AIStudio
 
     private void StopPulsationDueToDeath()
     {
-      SafeStopPulsation("агент мертв");
+      SafeStopPulsation("симбионт мертв");
     }
 
     #region Левое меню проекта
     private void ExecuteVerticalMenuItemClicked(object parameter)
     {
-      if (parameter is string mid)
+      if (!(parameter is string menuItem))
+        return;
+
+      switch (menuItem)
       {
-        if (IsAgentDead)
-        {
-          MessageBox.Show("Невозможно выполнить операцию для мертвого агента",
-              "Агент мертв",
-              MessageBoxButton.OK,
-              MessageBoxImage.Error);
+        case "43": // Создать проект
+          CreateProject();
           return;
-        }
+        case "44": // Открыть проект
+          OpenProject();
+          return;
       }
 
-      if (parameter is string menuItem)
+      if (IsAgentDead)
       {
-        switch (menuItem)
-        {
+        MessageBox.Show("Невозможно выполнить операцию для мертвого симбионта",
+            "Симбионт мертв",
+            MessageBoxButton.OK,
+            MessageBoxImage.Error);
+        return;
+      }
+
+      switch (menuItem)
+      {
           case "1": // Жизненные параметры
             ShowSystemParameters();
             break;
@@ -512,10 +520,10 @@ namespace AIStudio
           case "32": // Справка: исходник
             OpenWebPage("https://github.com/PalarmAlex/AIStudio.git");
             break;
-          case "33": // Агент
+          case "33": // Симбионт
             OpenAgent();
             break;
-          case "39": // Свойства агента
+          case "39": // Свойства симбионта
             ShowAgentProperties();
             break;
           case "34":  // логи системы
@@ -545,7 +553,6 @@ namespace AIStudio
           default:
             ShowStub($"Меню {menuItem}");
             break;
-        }
       }
     }
 
@@ -834,11 +841,11 @@ namespace AIStudio
       if (_scenarioRunner.IsRunning)
         return "Дождитесь завершения текущего сценария.";
       if (_agentViewModel?.AgentPultViewModel == null)
-        return "Откройте раздел «Агент» (пульт), чтобы сценарий мог подавать воздействия.";
+        return "Откройте раздел «Симбионт» (пульт), чтобы сценарий мог подавать воздействия.";
       if (!GlobalTimer.IsPulsationRunning)
         return "Включите пульсацию перед запуском сценария.";
       if (_gomeostas.GetAgentState()?.IsDead == true)
-        return "Агент мёртв — запуск сценария невозможен.";
+        return "Симбионт мёртв — запуск сценария невозможен.";
       return null;
     }
 
@@ -1025,7 +1032,7 @@ namespace AIStudio
 
       if (_agentViewModel?.AgentPultViewModel == null)
       {
-        MessageBox.Show("Откройте раздел «Агент» (пульт), чтобы сценарий мог подавать воздействия.",
+        MessageBox.Show("Откройте раздел «Симбионт» (пульт), чтобы сценарий мог подавать воздействия.",
             "Запуск сценария", MessageBoxButton.OK, MessageBoxImage.Information);
         return false;
       }
@@ -1108,7 +1115,7 @@ namespace AIStudio
 
       if (_agentViewModel?.AgentPultViewModel == null)
       {
-        MessageBox.Show("Откройте раздел «Агент» (пульт), чтобы сценарий мог подавать воздействия.",
+        MessageBox.Show("Откройте раздел «Симбионт» (пульт), чтобы сценарий мог подавать воздействия.",
             "Группа сценариев", MessageBoxButton.OK, MessageBoxImage.Information);
         return false;
       }
@@ -1498,7 +1505,7 @@ namespace AIStudio
       var agent = _gomeostas.GetAgentState();
       if (agent == null)
       {
-        MessageBox.Show("Состояние агента недоступно.", "Запуск сценария", MessageBoxButton.OK, MessageBoxImage.Warning);
+        MessageBox.Show("Состояние симбионта недоступно.", "Запуск сценария", MessageBoxButton.OK, MessageBoxImage.Warning);
         return false;
       }
 
@@ -2119,7 +2126,7 @@ namespace AIStudio
       CurrentContent = extInfluencesView;
     }
 
-    // Открыть страницу данных агента
+    // Открыть страницу данных симбионта
     private void OpenAgent()
     {
       var agentView = new AgentView();
@@ -2251,6 +2258,57 @@ namespace AIStudio
         }
       }
     }
+    private void CreateProject()
+    {
+      if (!ProjectFolderPicker.TryPickFolderForNewProject(
+              Application.Current?.MainWindow,
+              out string projectRoot,
+              out string pickError))
+      {
+        if (!string.IsNullOrEmpty(pickError))
+          MessageBox.Show(pickError, "Создание проекта", MessageBoxButton.OK, MessageBoxImage.Warning);
+        return;
+      }
+
+      if (!ProjectBootstrap.TryCreateProject(projectRoot, out string error))
+      {
+        MessageBox.Show(error, "Создание проекта", MessageBoxButton.OK, MessageBoxImage.Warning);
+        return;
+      }
+
+      if (MessageBox.Show(
+              "Проект создан в каталоге:\n" + projectRoot + "\n\nОткрыть его сейчас?",
+              "Создание проекта",
+              MessageBoxButton.YesNo,
+              MessageBoxImage.Question) == MessageBoxResult.Yes)
+      {
+        OpenProjectAtRoot(projectRoot);
+      }
+      else
+      {
+        MessageBox.Show(
+            "Структура каталогов и начальные файлы данных созданы. Откройте проект через меню «Проект → Открыть проект».",
+            "Создание проекта",
+            MessageBoxButton.OK,
+            MessageBoxImage.Information);
+      }
+    }
+
+    private void OpenProject()
+    {
+      var viewModel = new ProjectSettingsViewModel(_gomeostas, ReloadRuntimeAfterProjectSwitch);
+      if (!viewModel.TryPickProjectRootFolder(out string projectRoot))
+        return;
+
+      OpenProjectAtRoot(projectRoot, viewModel);
+    }
+
+    private void OpenProjectAtRoot(string projectRoot, ProjectSettingsViewModel viewModel = null)
+    {
+      viewModel = viewModel ?? new ProjectSettingsViewModel(_gomeostas, ReloadRuntimeAfterProjectSwitch);
+      viewModel.ApplyProjectRoot(projectRoot);
+    }
+
     // Показать настройки проекта
     private void ShowProjectSettings()
     {
@@ -2321,16 +2379,16 @@ namespace AIStudio
       }
     }
 
-    public string PulseButtonText => IsAgentDead ? "АГЕНТ МЕРТВ" : (IsPulsating ? "СТОП" : "СТАРТ");
+    public string PulseButtonText => IsAgentDead ? "СИМБИОНТ МЕРТВ" : (IsPulsating ? "СТОП" : "СТАРТ");
     public Brush PulseButtonColor => IsAgentDead ? Brushes.DarkRed : (IsPulsating ? Brushes.Red : Brushes.Green);
-    public string PulseStatus => IsAgentDead ? "АГЕНТ МЕРТВ" : $"Пульсов: {GlobalTimer.GlobalPulsCount}";
+    public string PulseStatus => IsAgentDead ? "СИМБИОНТ МЕРТВ" : $"Пульсов: {GlobalTimer.GlobalPulsCount}";
 
     public string LifeTimeStatus
     {
       get
       {
         if (IsAgentDead)
-          return "АГЕНТ МЕРТВ";
+          return "СИМБИОНТ МЕРТВ";
 
         var agentInfo = _gomeostas.GetAgentState();
         var ts = TimeSpan.FromSeconds(agentInfo.Lifetime);
@@ -2346,8 +2404,8 @@ namespace AIStudio
       {
         if (IsAgentDead)
         {
-          MessageBox.Show("Невозможно управлять пульсацией мертвого агента",
-            "Агент мертв",
+          MessageBox.Show("Невозможно управлять пульсацией мертвого симбионта",
+            "Симбионт мертв",
             MessageBoxButton.OK,
             MessageBoxImage.Error);
 
@@ -2570,7 +2628,7 @@ namespace AIStudio
           // Сбрасываем отображение периода ожидания
           ResetWaitingPeriodDisplay();
 
-          // Обновляем состояние агента
+          // Обновляем состояние симбионта
           UpdateAgentState();
 
           if (IsAgentDead)
@@ -2579,8 +2637,8 @@ namespace AIStudio
             _agentViewModel.HeaderBackground = Brushes.Black;
             _agentViewModel.TextForeground = Brushes.Black;
 
-            MessageBox.Show($"Пульсация остановлена - агент мертв\nПричина: {reason}",
-              "Агент мертв",
+            MessageBox.Show($"Пульсация остановлена - симбионт мертв\nПричина: {reason}",
+              "Симбионт мертв",
               MessageBoxButton.OK,
               MessageBoxImage.Warning);
           }

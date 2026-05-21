@@ -1,4 +1,4 @@
-using AIStudio.Common;
+﻿using AIStudio.Common;
 using ISIDA.Common;
 using ISIDA.Gomeostas;
 using ISIDA.Psychic.Understanding;
@@ -54,7 +54,7 @@ namespace AIStudio.ViewModels
 
     public DescriptionWithLink CurrentAgentDescription => new DescriptionWithLink
     {
-      Text = "Темы мышления агента. Состав тем и их Id фиксированы в коде движка; здесь задаются только вес по умолчанию и списки инфо-функций. "
+      Text = "Темы мышления симбионта. Состав тем и их Id фиксированы в коде движка; здесь задаются только вес по умолчанию и списки инфо-функций. "
     };
 
     public ObservableCollection<ThemeTypeItem> ThemeTypes { get; } = new ObservableCollection<ThemeTypeItem>();

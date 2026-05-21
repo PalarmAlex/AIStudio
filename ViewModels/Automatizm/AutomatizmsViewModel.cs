@@ -1,4 +1,4 @@
-using AIStudio.Converters;
+﻿using AIStudio.Converters;
 using AIStudio.Dialogs;
 using AIStudio.Views;
 using ISIDA.Actions;
@@ -73,7 +73,7 @@ namespace AIStudio.ViewModels
     public GomeostasSystem GomeostasSystem => _gomeostas;
     public bool IsStageTwoOrHigher => _currentAgentStage >= 2;
 
-    public string CurrentAgentTitle => $"Автоматизмы Агента: {_currentAgentName ?? "Не определен"}";
+    public string CurrentAgentTitle => $"Автоматизмы Симбионта: {_currentAgentName ?? "Не определен"}";
 
     private ObservableCollection<AutomatizmDisplayItem> _allAutomatizms = new ObservableCollection<AutomatizmDisplayItem>();
     private ObservableCollection<AutomatizmDisplayItem> _displayAutomatizms = new ObservableCollection<AutomatizmDisplayItem>();
@@ -1100,7 +1100,7 @@ namespace AIStudio.ViewModels
       }
 
       var result = MessageBox.Show(
-          $"Вы действительно хотите удалить ВСЕ автоматизмы агента? Это действие нельзя будет отменить.",
+          $"Вы действительно хотите удалить ВСЕ автоматизмы симбионта? Это действие нельзя будет отменить.",
           "Подтверждение удаления",
           MessageBoxButton.YesNo,
           MessageBoxImage.Warning);
@@ -1127,7 +1127,7 @@ namespace AIStudio.ViewModels
                   var (saveSuccess, error) = _automatizmSystem.SaveAutomatizm();
                   if (saveSuccess)
                   {
-                    MessageBox.Show("Все автоматизмы агента успешно удалены",
+                    MessageBox.Show("Все автоматизмы симбионта успешно удалены",
                         "Удаление завершено",
                         MessageBoxButton.OK,
                         MessageBoxImage.Information);
@@ -1150,7 +1150,7 @@ namespace AIStudio.ViewModels
               }
               catch (Exception ex)
               {
-                MessageBox.Show($"Ошибка удаления автоматизмов агента: {ex.Message}",
+                MessageBox.Show($"Ошибка удаления автоматизмов симбионта: {ex.Message}",
                     "Ошибка",
                     MessageBoxButton.OK,
                     MessageBoxImage.Error);
@@ -1161,7 +1161,7 @@ namespace AIStudio.ViewModels
         catch (Exception ex)
         {
           IsClearingInProgress = false;
-          MessageBox.Show($"Ошибка удаления автоматизмов агента: {ex.Message}",
+          MessageBox.Show($"Ошибка удаления автоматизмов симбионта: {ex.Message}",
               "Ошибка",
               MessageBoxButton.OK,
               MessageBoxImage.Error);
