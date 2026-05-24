@@ -77,9 +77,11 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
-    <Compile Include="Common\NativeFolderDialogInterop.cs" />
     <Compile Include="Common\ProjectFolderPicker.cs" />
     <Compile Include="Common\ProjectBootstrap.cs" />
+    <Compile Include="Common\TriadProjectPaths.cs" />
+    <Compile Include="Common\TriadValidationScenarioBootstrap.cs" />
+    <Compile Include="Common\TriadValidationMetricsChecker.cs" />
     <Compile Include="Common\AntagonistItem.cs" />
     <Compile Include="Common\AntagonistManager.cs" />
     <Compile Include="Common\DataGridExtensions.cs" />
@@ -196,6 +198,9 @@
       <DependentUpon>ExterInalInfluencesView.xaml</DependentUpon>
     </Compile>
     <Compile Include="Pages\LiveLogsToolTipScope.cs" />
+    <Compile Include="Pages\TriadView.xaml.cs">
+      <DependentUpon>TriadView.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Pages\LiveLogsView.xaml.cs">
       <DependentUpon>LiveLogsView.xaml</DependentUpon>
     </Compile>
@@ -322,6 +327,7 @@
     <Compile Include="ViewModels\BehaviorStylesViewModel.cs" />
     <Compile Include="ViewModels\AgentInfo.cs" />
     <Compile Include="ViewModels\ExterInalInfluencesViewModel.cs" />
+    <Compile Include="ViewModels\TriadViewModel.cs" />
     <Compile Include="ViewModels\LiveLogsViewModel.cs" />
     <Compile Include="ViewModels\ThinkingCyclesViewModel.cs" />
     <Compile Include="ViewModels\MainViewModel.cs" />
@@ -502,6 +508,10 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="Pages\ExterInalInfluencesView.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Pages\TriadView.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

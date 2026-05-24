@@ -1,4 +1,4 @@
-﻿using AIStudio.Common;
+using AIStudio.Common;
 using AIStudio.Pages;
 using AIStudio.Pages.Automatizm;
 using AIStudio.Pages.Episodic;
@@ -286,6 +286,9 @@ namespace AIStudio
       config.ThinkingCycleMainMaxAgePulses = AppConfig.ThinkingCycleMainMaxAgePulses;
       config.NoOperatorStimulusSilencePulses = AppConfig.NoOperatorStimulusSilencePulses;
       config.MemoryLogWriter = MemoryLogManager.Instance;
+      config.TriadEnabled = true;
+      config.EnvironmentFolder = TriadProjectPaths.GetEnvironmentFolder();
+      config.NicheDataFolder = TriadProjectPaths.GetNicheDataFolder();
 
       return config;
     }
@@ -372,6 +375,15 @@ namespace AIStudio
       {
         _agentViewModel = new AgentViewModel(_gomeostas, () => _isidaContext.CancelWaitingPeriodAndResetMirror(), UpdateAgentState);
         agentView.DataContext = _agentViewModel;
+      }
+
+      if (CurrentContent is TriadView triadView)
+      {
+        (triadView.DataContext as IDisposable)?.Dispose();
+        triadView.DataContext = new TriadViewModel(
+            _isidaContext,
+            AppConfig.LogsFolderPath,
+            TriadProjectPaths.GetEnvironmentFolder());
       }
     }
 
@@ -475,8 +487,8 @@ namespace AIStudio
           case "17": // Моторные правила (эпизодика)
             ShowMotorRules();
             break;
-          case "18": // Информационная среда
-            ShowStub("Информационная среда");
+          case "18": // Триада Creature↔Niche
+            ShowTriad();
             break;
           case "19": // Экспортировать настройки
             ShowStub("Экспортировать настройки");
@@ -1249,7 +1261,8 @@ namespace AIStudio
             state.Completed,
             _influenceActionSystem,
             _perceptionImagesSystem,
-            _agentLogCellTooltips);
+            _agentLogCellTooltips,
+            AppConfig.LogsFolderPath);
         File.WriteAllText(reportPath, html, Encoding.UTF8);
 
         var msg = userAborted
@@ -1594,7 +1607,9 @@ namespace AIStudio
             Directory.CreateDirectory(folder);
             var fname = $"scenario_{e.Document.Header?.Id ?? 0}_{DateTime.Now:yyyyMMdd_HHmmss}.html";
             reportPath = Path.Combine(folder, fname);
-            var html = ScenarioReportHtmlBuilder.BuildHtml(e.Document, e, _influenceActionSystem, _perceptionImagesSystem, _agentLogCellTooltips);
+            var html = ScenarioReportHtmlBuilder.BuildHtml(
+                e.Document, e, _influenceActionSystem, _perceptionImagesSystem, _agentLogCellTooltips,
+                AppConfig.LogsFolderPath);
             File.WriteAllText(reportPath, html, Encoding.UTF8);
           }
           catch (Exception ex)
@@ -2213,6 +2228,20 @@ namespace AIStudio
     }
 
     // Метод-заглушка для отображения сообщения
+    /// <summary>
+    /// Открывает панель триады Creature↔Niche.
+    /// </summary>
+    private void ShowTriad()
+    {
+      var view = new TriadView();
+      var vm = new TriadViewModel(
+          _isidaContext,
+          AppConfig.LogsFolderPath,
+          TriadProjectPaths.GetEnvironmentFolder());
+      view.DataContext = vm;
+      CurrentContent = view;
+    }
+
     private void ShowStub(string menuTitle)
     {
       var stackPanel = new StackPanel

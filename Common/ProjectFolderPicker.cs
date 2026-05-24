@@ -1,11 +1,10 @@
 using System;
-using System.IO;
 using System.Windows;
-using System.Windows.Interop;
+using Ookii.Dialogs.Wpf;
 
 namespace AIStudio.Common
 {
-  /// <summary>Выбор каталога проекта с поддержкой ввода несуществующего имени в поле «Папка».</summary>
+  /// <summary>Выбор каталога для нового проекта (Vista folder browser).</summary>
   public static class ProjectFolderPicker
   {
     public static bool TryPickFolderForNewProject(
@@ -16,19 +15,26 @@ namespace AIStudio.Common
       projectRoot = null;
       errorMessage = null;
 
-      IntPtr ownerHwnd = owner != null ? new WindowInteropHelper(owner).Handle : IntPtr.Zero;
-      string initialPath = ProjectBootstrap.GetDefaultProjectsFolderDialogPath();
-
-      if (!NativeFolderDialogInterop.TryPickFolder(
-              ownerHwnd,
-              initialPath,
-              "Укажите каталог для нового проекта данных (можно ввести имя новой папки в поле «Папка»)...",
-              out string rawPath))
+      var dialog = new VistaFolderBrowserDialog
       {
+        Description = "Укажите каталог для нового проекта данных (при необходимости создайте папку кнопкой «Создать папку»)...",
+        UseDescriptionForTitle = true,
+        SelectedPath = ProjectBootstrap.GetDefaultProjectsFolderDialogPath()
+      };
+
+      if (dialog.ShowDialog(owner) != true)
+        return false;
+
+      if (string.IsNullOrWhiteSpace(dialog.SelectedPath))
+      {
+        errorMessage = "Не указан каталог проекта.";
         return false;
       }
 
-      return ProjectBootstrap.TryEnsureFolderFromDialogSelection(rawPath, out projectRoot, out errorMessage);
+      return ProjectBootstrap.TryEnsureFolderFromDialogSelection(
+          dialog.SelectedPath,
+          out projectRoot,
+          out errorMessage);
     }
   }
 }

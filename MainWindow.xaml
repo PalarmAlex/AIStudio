@@ -1,4 +1,4 @@
-﻿<Window x:Class="AIStudio.MainWindow"
+<Window x:Class="AIStudio.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
@@ -219,7 +219,7 @@
 
         <Expander Header="Сознание" Style="{StaticResource MenuExpanderStyle}">
           <StackPanel>
-            <Button Content="Информационная среда" Margin="20,2,5,2" 
+            <Button Content="Триада (Creature↔Niche)" Margin="20,2,5,2" 
               Style="{StaticResource MenuButtonStyle}"
               Command="{Binding VerticalMenuItemClickedCommand}"
               CommandParameter="18"/>

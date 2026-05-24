@@ -1,9 +1,9 @@
 using ISIDA.Common;
+using ISIDA.Niche;
 using System;
 using System.IO;
 using System.Text;
 using System.Xml.Linq;
-
 namespace AIStudio.Common
 {
   /// <summary>
@@ -112,6 +112,7 @@ namespace AIStudio.Common
 
         EnsureProjectDirectoryStructure(rootFull);
         WriteMinimalSeedData(rootFull);
+        TriadProjectPaths.EnsureTriadDataFoldersForRoot(rootFull);
         WriteProjectSettingsXml(rootFull);
         return true;
       }
@@ -192,10 +193,13 @@ namespace AIStudio.Common
       string gomeostasPath = SettingsValidator.GetExpectedFolderPathForSetting(projectRootFull, "DataGomeostasFolderPath");
       string actionsPath = SettingsValidator.GetExpectedFolderPathForSetting(projectRootFull, "DataActionsFolderPath");
 
+      string sensorsPath = SettingsValidator.GetExpectedFolderPathForSetting(projectRootFull, "SensorsFolderPath");
+
       WriteFileIfMissing(Path.Combine(gomeostasPath, "VitalParameters.dat"), MinimalVitalParametersContent);
       WriteFileIfMissing(Path.Combine(gomeostasPath, "BehaviorStyles.dat"), MinimalBehaviorStylesContent);
       WriteFileIfMissing(Path.Combine(actionsPath, "AdaptiveActions.dat"), MinimalAdaptiveActionsContent);
       WriteFileIfMissing(Path.Combine(actionsPath, "InfluenceActions.dat"), MinimalInfluenceActionsContent);
+      WriteFileIfMissing(Path.Combine(sensorsPath, "DefaultVerbalPrimaries.tmp"), MinimalDefaultVerbalPrimariesContent);
     }
 
     private static void WriteFileIfMissing(string path, string content)
@@ -292,6 +296,12 @@ namespace AIStudio.Common
 1|Наказать|Отрицательное подкрепление|1:3;2:2|2,3|
 2|Поощрить|Положительное подкрепление|1:-3;2:-2|1,3|
 3|Напугать|Повышение стресса|2:3|1,2|
+4|Подогреть среду|Contour probe → Niche (§6.8)|1:0|0|warm
+";
+
+    private const string MinimalDefaultVerbalPrimariesContent =
+@"# Формат: Символ|#|ID
+ |#|0
 ";
   }
 }
