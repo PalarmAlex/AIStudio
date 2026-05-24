@@ -200,6 +200,9 @@ namespace AIStudio.Common
       WriteFileIfMissing(Path.Combine(actionsPath, "AdaptiveActions.dat"), MinimalAdaptiveActionsContent);
       WriteFileIfMissing(Path.Combine(actionsPath, "InfluenceActions.dat"), MinimalInfluenceActionsContent);
       WriteFileIfMissing(Path.Combine(sensorsPath, "DefaultVerbalPrimaries.tmp"), MinimalDefaultVerbalPrimariesContent);
+
+      string nicheRoot = Path.Combine(projectRootFull, "Data", "Niche");
+      NicheSymbiontBootstrap.EnsureSymbiontLayout(nicheRoot);
     }
 
     private static void WriteFileIfMissing(string path, string content)

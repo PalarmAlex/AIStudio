@@ -80,6 +80,7 @@
     <Compile Include="Common\ProjectFolderPicker.cs" />
     <Compile Include="Common\ProjectBootstrap.cs" />
     <Compile Include="Common\TriadProjectPaths.cs" />
+    <Compile Include="Common\NicheSymbiontEditorService.cs" />
     <Compile Include="Common\TriadValidationScenarioBootstrap.cs" />
     <Compile Include="Common\TriadValidationMetricsChecker.cs" />
     <Compile Include="Common\AntagonistItem.cs" />

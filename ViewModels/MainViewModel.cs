@@ -490,6 +490,12 @@ namespace AIStudio
           case "18": // Триада Creature↔Niche
             ShowTriad();
             break;
+          case "51": // Niche: жизненные параметры
+            ShowNicheGomeostasis();
+            break;
+          case "52": // Niche: безусловные рефлексы
+            ShowNicheGeneticReflexes();
+            break;
           case "19": // Экспортировать настройки
             ShowStub("Экспортировать настройки");
             break;
@@ -2334,8 +2340,23 @@ namespace AIStudio
 
     private void OpenProjectAtRoot(string projectRoot, ProjectSettingsViewModel viewModel = null)
     {
+      NicheSymbiontEditorService.ResetEditorContext();
       viewModel = viewModel ?? new ProjectSettingsViewModel(_gomeostas, ReloadRuntimeAfterProjectSwitch);
       viewModel.ApplyProjectRoot(projectRoot);
+    }
+
+    private void ShowNicheGomeostasis()
+    {
+      var view = new SystemParametersView();
+      view.DataContext = NicheSymbiontEditorService.CreateGomeostasViewModel();
+      CurrentContent = view;
+    }
+
+    private void ShowNicheGeneticReflexes()
+    {
+      var view = new Pages.Reflexes.GeneticReflexesView();
+      view.DataContext = NicheSymbiontEditorService.CreateGeneticReflexesViewModel();
+      CurrentContent = view;
     }
 
     // Показать настройки проекта

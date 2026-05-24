@@ -224,6 +224,16 @@
               Command="{Binding VerticalMenuItemClickedCommand}"
               CommandParameter="18"/>
 
+            <Button Content="Niche: жизненные параметры" Margin="20,2,5,2"
+              Style="{StaticResource MenuButtonStyle}"
+              Command="{Binding VerticalMenuItemClickedCommand}"
+              CommandParameter="51"/>
+
+            <Button Content="Niche: безусловные рефлексы" Margin="20,2,5,2"
+              Style="{StaticResource MenuButtonStyle}"
+              Command="{Binding VerticalMenuItemClickedCommand}"
+              CommandParameter="52"/>
+
           </StackPanel>
         </Expander>
 

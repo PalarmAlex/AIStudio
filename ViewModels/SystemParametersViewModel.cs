@@ -24,9 +24,11 @@ namespace AIStudio.ViewModels
     private bool _disposed = false;
     private int _currentAgentStage;
     private string _currentAgentName;
+    private readonly bool _forceNicheEditorMode;
+    private readonly string _customAgentTitle;
 
     public GomeostasSystem Gomeostas => _gomeostas;
-    public bool IsStageZero => _currentAgentStage == 0;
+    public bool IsStageZero => _forceNicheEditorMode || _currentAgentStage == 0;
     public bool IsReadOnlyMode => !IsEditingEnabled;
     public Brush WarningMessageColor =>
         !IsStageZero ? Brushes.Red :
@@ -49,7 +51,9 @@ namespace AIStudio.ViewModels
         OnPropertyChanged(nameof(CurrentAgentTitle));
       }
     }
-    public string CurrentAgentTitle => $"Параметры гомеостаза Симбионта: {_currentAgentName ?? "Не определен"}";
+    public string CurrentAgentTitle => !string.IsNullOrWhiteSpace(_customAgentTitle)
+        ? _customAgentTitle
+        : $"Параметры гомеостаза Симбионта: {_currentAgentName ?? "Не определен"}";
     public ICommand SaveCommand { get; }
     public ICommand RemoveAllCommand { get; }
     public ICommand SelectAgentCommand { get; }
@@ -80,9 +84,14 @@ namespace AIStudio.ViewModels
       }
     }
 
-    public SystemParametersViewModel(GomeostasSystem gomeostas)
+    public SystemParametersViewModel(
+        GomeostasSystem gomeostas,
+        string agentTitle = null,
+        bool forceNicheEditorMode = false)
     {
       _gomeostas = gomeostas;
+      _customAgentTitle = agentTitle;
+      _forceNicheEditorMode = forceNicheEditorMode;
       SystemParameters = new ObservableCollection<GomeostasSystem.ParameterData>();
       SaveCommand = new RelayCommand(_ => SaveParameters());
       RemoveAllCommand = new RelayCommand(_ => RemoveAllParameters());

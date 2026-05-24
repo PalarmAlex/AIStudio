@@ -81,7 +81,19 @@ namespace AIStudio.Common
       Directory.CreateDirectory(env);
       Directory.CreateDirectory(niche);
       CouplingMappingLoader.EnsureTemplateFiles(env);
-      NicheReflexLoader.EnsureTemplateFile(niche);
+      NicheSymbiontBootstrap.EnsureSymbiontLayout(niche);
+    }
+
+    /// <summary>Data/Niche/Gomeostas для текущего проекта.</summary>
+    public static string GetNicheGomeostasFolder()
+    {
+      return NicheSymbiontBootstrap.GetGomeostasFolder(GetNicheDataFolder());
+    }
+
+    /// <summary>Data/Niche/Reflexes для текущего проекта.</summary>
+    public static string GetNicheReflexesFolder()
+    {
+      return NicheSymbiontBootstrap.GetReflexesFolder(GetNicheDataFolder());
     }
   }
 }
