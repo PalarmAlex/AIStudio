@@ -377,14 +377,6 @@ namespace AIStudio
         agentView.DataContext = _agentViewModel;
       }
 
-      if (CurrentContent is TriadView triadView)
-      {
-        (triadView.DataContext as IDisposable)?.Dispose();
-        triadView.DataContext = new TriadViewModel(
-            _isidaContext,
-            AppConfig.LogsFolderPath,
-            TriadProjectPaths.GetEnvironmentFolder());
-      }
     }
 
     private void UpdateAgentState()
@@ -429,6 +421,15 @@ namespace AIStudio
         case "44": // Открыть проект
           OpenProject();
           return;
+        case "18": // Сознание (заглушка)
+          ShowStub("Сознание");
+          return;
+      }
+
+      if (IsEnvironmentMenuItem(menuItem))
+      {
+        ExecuteEnvironmentMenuItem(menuItem);
+        return;
       }
 
       if (IsAgentDead)
@@ -486,15 +487,6 @@ namespace AIStudio
             break;
           case "17": // Моторные правила (эпизодика)
             ShowMotorRules();
-            break;
-          case "18": // Триада Creature↔Niche
-            ShowTriad();
-            break;
-          case "51": // Niche: жизненные параметры
-            ShowNicheGomeostasis();
-            break;
-          case "52": // Niche: безусловные рефлексы
-            ShowNicheGeneticReflexes();
             break;
           case "19": // Экспортировать настройки
             ShowStub("Экспортировать настройки");
@@ -2233,18 +2225,83 @@ namespace AIStudio
       CurrentContent = conditionedReflexesView;
     }
 
-    // Метод-заглушка для отображения сообщения
-    /// <summary>
-    /// Открывает панель триады Creature↔Niche.
-    /// </summary>
-    private void ShowTriad()
+    private static bool IsEnvironmentMenuItem(string menuItem)
     {
-      var view = new TriadView();
-      var vm = new TriadViewModel(
-          _isidaContext,
-          AppConfig.LogsFolderPath,
-          TriadProjectPaths.GetEnvironmentFolder());
-      view.DataContext = vm;
+      switch (menuItem)
+      {
+        case "61":
+        case "62":
+        case "63":
+        case "68":
+        case "64":
+        case "65":
+        case "66":
+          return true;
+        default:
+          return false;
+      }
+    }
+
+    private void ExecuteEnvironmentMenuItem(string menuItem)
+    {
+      switch (menuItem)
+      {
+        case "61":
+          ShowEnvironmentSystemParameters();
+          break;
+        case "62":
+          ShowEnvironmentBehaviorStyles();
+          break;
+        case "63":
+          ShowEnvironmentAdaptiveActions();
+          break;
+        case "68":
+          ShowEnvironmentInfluences();
+          break;
+        case "64":
+          ShowEnvironmentGeneticReflexes();
+          break;
+        case "65":
+          ShowStub("Цепочки безусловных рефлексов среды");
+          break;
+        case "66":
+          ShowStub("Условные рефлексы среды");
+          break;
+      }
+    }
+
+    private void ShowEnvironmentSystemParameters()
+    {
+      var view = new SystemParametersView();
+      view.DataContext = NicheSymbiontEditorService.CreateGomeostasViewModel();
+      CurrentContent = view;
+    }
+
+    private void ShowEnvironmentBehaviorStyles()
+    {
+      var view = new BehaviorStylesView();
+      view.DataContext = NicheSymbiontEditorService.CreateBehaviorStylesViewModel();
+      CurrentContent = view;
+    }
+
+    private void ShowEnvironmentAdaptiveActions()
+    {
+      var view = new AdaptiveActionsView();
+      view.DataContext = NicheSymbiontEditorService.CreateAdaptiveActionsViewModel();
+      CurrentContent = view;
+    }
+
+    private void ShowEnvironmentInfluences()
+    {
+      var view = new ExterInalInfluencesView();
+      view.DataContext = NicheSymbiontEditorService.CreateInfluenceActionsViewModel();
+      CurrentContent = view;
+    }
+
+    private void ShowEnvironmentGeneticReflexes()
+    {
+      var view = new GeneticReflexesView();
+      view.DataContext = NicheSymbiontEditorService.CreateGeneticReflexesViewModel();
       CurrentContent = view;
     }
 
@@ -2343,20 +2400,6 @@ namespace AIStudio
       NicheSymbiontEditorService.ResetEditorContext();
       viewModel = viewModel ?? new ProjectSettingsViewModel(_gomeostas, ReloadRuntimeAfterProjectSwitch);
       viewModel.ApplyProjectRoot(projectRoot);
-    }
-
-    private void ShowNicheGomeostasis()
-    {
-      var view = new SystemParametersView();
-      view.DataContext = NicheSymbiontEditorService.CreateGomeostasViewModel();
-      CurrentContent = view;
-    }
-
-    private void ShowNicheGeneticReflexes()
-    {
-      var view = new Pages.Reflexes.GeneticReflexesView();
-      view.DataContext = NicheSymbiontEditorService.CreateGeneticReflexesViewModel();
-      CurrentContent = view;
     }
 
     // Показать настройки проекта

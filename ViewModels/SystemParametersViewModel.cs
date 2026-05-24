@@ -24,11 +24,10 @@ namespace AIStudio.ViewModels
     private bool _disposed = false;
     private int _currentAgentStage;
     private string _currentAgentName;
-    private readonly bool _forceNicheEditorMode;
-    private readonly string _customAgentTitle;
+    private readonly EditorSubjectScope _scope;
 
     public GomeostasSystem Gomeostas => _gomeostas;
-    public bool IsStageZero => _forceNicheEditorMode || _currentAgentStage == 0;
+    public bool IsStageZero => EditorStageAccess.IsStageZeroForEditing(_currentAgentStage);
     public bool IsReadOnlyMode => !IsEditingEnabled;
     public Brush WarningMessageColor =>
         !IsStageZero ? Brushes.Red :
@@ -51,9 +50,8 @@ namespace AIStudio.ViewModels
         OnPropertyChanged(nameof(CurrentAgentTitle));
       }
     }
-    public string CurrentAgentTitle => !string.IsNullOrWhiteSpace(_customAgentTitle)
-        ? _customAgentTitle
-        : $"Параметры гомеостаза Симбионта: {_currentAgentName ?? "Не определен"}";
+    public string CurrentAgentTitle =>
+        $"Параметры гомеостаза {_scope.TitleLabel}: {_currentAgentName ?? "Не определен"}";
     public ICommand SaveCommand { get; }
     public ICommand RemoveAllCommand { get; }
     public ICommand SelectAgentCommand { get; }
@@ -68,7 +66,7 @@ namespace AIStudio.ViewModels
         var matrixView = new ParametersStylesMatrixView();
         var currentParameters = SystemParameters.ToList();
 
-        var matrixViewModel = new ParametersStylesMatrixViewModel(_gomeostas, currentParameters);
+        var matrixViewModel = new ParametersStylesMatrixViewModel(_gomeostas, currentParameters, _scope);
         matrixView.DataContext = matrixViewModel;
 
         var mainWindow = Application.Current.MainWindow as MainWindow;
@@ -86,12 +84,10 @@ namespace AIStudio.ViewModels
 
     public SystemParametersViewModel(
         GomeostasSystem gomeostas,
-        string agentTitle = null,
-        bool forceNicheEditorMode = false)
+        EditorSubjectScope scope = null)
     {
       _gomeostas = gomeostas;
-      _customAgentTitle = agentTitle;
-      _forceNicheEditorMode = forceNicheEditorMode;
+      _scope = scope ?? EditorSubjectScope.Symbiont;
       SystemParameters = new ObservableCollection<GomeostasSystem.ParameterData>();
       SaveCommand = new RelayCommand(_ => SaveParameters());
       RemoveAllCommand = new RelayCommand(_ => RemoveAllParameters());
@@ -152,7 +148,7 @@ namespace AIStudio.ViewModels
       try
       {
         var agentInfo = _gomeostas.GetAgentState();
-        _currentAgentStage = agentInfo?.EvolutionStage ?? 0;
+        _currentAgentStage = EditorStageAccess.ResolveEditingEvolutionStage(_gomeostas, _scope);
         _currentAgentName = agentInfo.Name;
 
         OnPropertyChanged(nameof(IsStageZero));
@@ -360,7 +356,7 @@ namespace AIStudio.ViewModels
     public void RemoveAllParameters()
     {
       var result = MessageBox.Show(
-          $"Вы действительно хотите удалить ВСЕ параметры гомеостаза симбионта? Это действие нельзя будет отменить.",
+          $"Вы действительно хотите удалить ВСЕ параметры гомеостаза {_scope.GenitiveLabel}? Это действие нельзя будет отменить.",
           "Подтверждение удаления",
           MessageBoxButton.YesNo,
           MessageBoxImage.Warning);
@@ -383,14 +379,14 @@ namespace AIStudio.ViewModels
           var (success, error) = _gomeostas.SaveAgentParameters(false); // все удалено - не надо валидаций 
           if (success)
           {
-            MessageBox.Show("Все параметры гомеостаза симбионта успешно удалены",
+            MessageBox.Show($"Все параметры гомеостаза {_scope.GenitiveLabel} успешно удалены",
                 "Удаление завершено",
                 MessageBoxButton.OK,
                 MessageBoxImage.Information);
           }
           else
           {
-            MessageBox.Show($"Не удалось удалить параметры гомеостаза симбионта:\n{error}",
+            MessageBox.Show($"Не удалось удалить параметры гомеостаза {_scope.GenitiveLabel}:\n{error}",
                 "Ошибка сохранения после удаления",
                 MessageBoxButton.OK,
                 MessageBoxImage.Error);
@@ -398,7 +394,7 @@ namespace AIStudio.ViewModels
         }
         catch (Exception ex)
         {
-          MessageBox.Show($"Ошибка удаления параметров гомеостаза симбионта: {ex.Message}",
+          MessageBox.Show($"Ошибка удаления параметров гомеостаза {_scope.GenitiveLabel}: {ex.Message}",
               "Ошибка",
               MessageBoxButton.OK,
               MessageBoxImage.Error);
@@ -432,7 +428,7 @@ namespace AIStudio.ViewModels
       {
         return new DescriptionWithLink
         {
-          Text = "Редактор жизненных параметров гомеостаза симбионта."
+          Text = $"Редактор жизненных параметров гомеостаза {_scope.GenitiveLabel}."
         };
       }
     }

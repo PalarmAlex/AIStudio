@@ -112,7 +112,7 @@
           </StackPanel>
         </Expander>
 
-        <Expander Header="Гомеостаз" Style="{StaticResource MenuExpanderStyle}">
+        <Expander Header="Гомеостаз симбионта" Style="{StaticResource MenuExpanderStyle}">
           <StackPanel>
             <Button Content="Адаптивные действия" Margin="20,2,5,2"
               Style="{StaticResource MenuButtonStyle}"
@@ -142,7 +142,31 @@
           </StackPanel>
         </Expander>
 
-        <Expander Header="Рефлексы" Style="{StaticResource MenuExpanderStyle}">
+        <Expander Header="Гомеостаз среды" Style="{StaticResource MenuExpanderStyle}">
+          <StackPanel>
+            <Button Content="Адаптивные действия" Margin="20,2,5,2"
+              Style="{StaticResource MenuButtonStyle}"
+              Command="{Binding VerticalMenuItemClickedCommand}"
+              CommandParameter="63"/>
+
+            <Button Content="Стили реагирования" Margin="20,2,5,2"
+              Style="{StaticResource MenuButtonStyle}"
+              Command="{Binding VerticalMenuItemClickedCommand}"
+              CommandParameter="62"/>
+
+            <Button Content="Жизненные параметры" Margin="20,2,5,2"
+              Style="{StaticResource MenuButtonStyle}"
+              Command="{Binding VerticalMenuItemClickedCommand}"
+              CommandParameter="61"/>
+
+            <Button Content="Воздействия на параметры" Margin="20,2,5,2"
+              Style="{StaticResource MenuButtonStyle}"
+              Command="{Binding VerticalMenuItemClickedCommand}"
+              CommandParameter="68"/>
+          </StackPanel>
+        </Expander>
+
+        <Expander Header="Рефлексы симбионта" Style="{StaticResource MenuExpanderStyle}">
           <StackPanel>
             <Button Content="Безусловные рефлексы" Margin="20,2,5,2" 
               Style="{StaticResource MenuButtonStyle}"
@@ -159,6 +183,25 @@
               Command="{Binding VerticalMenuItemClickedCommand}"
               CommandParameter="5"/>
 
+          </StackPanel>
+        </Expander>
+
+        <Expander Header="Рефлексы среды" Style="{StaticResource MenuExpanderStyle}">
+          <StackPanel>
+            <Button Content="Безусловные рефлексы" Margin="20,2,5,2"
+              Style="{StaticResource MenuButtonStyle}"
+              Command="{Binding VerticalMenuItemClickedCommand}"
+              CommandParameter="64"/>
+
+            <Button Content="Цепочки безусл. рефлексов" Margin="20,2,5,2"
+              Style="{StaticResource MenuButtonStyle}"
+              Command="{Binding VerticalMenuItemClickedCommand}"
+              CommandParameter="65"/>
+
+            <Button Content="Условные рефлексы" Margin="20,2,5,2"
+              Style="{StaticResource MenuButtonStyle}"
+              Command="{Binding VerticalMenuItemClickedCommand}"
+              CommandParameter="66"/>
           </StackPanel>
         </Expander>
 
@@ -219,21 +262,10 @@
 
         <Expander Header="Сознание" Style="{StaticResource MenuExpanderStyle}">
           <StackPanel>
-            <Button Content="Триада (Creature↔Niche)" Margin="20,2,5,2" 
+            <Button Content="Сознание" Margin="20,2,5,2"
               Style="{StaticResource MenuButtonStyle}"
               Command="{Binding VerticalMenuItemClickedCommand}"
               CommandParameter="18"/>
-
-            <Button Content="Niche: жизненные параметры" Margin="20,2,5,2"
-              Style="{StaticResource MenuButtonStyle}"
-              Command="{Binding VerticalMenuItemClickedCommand}"
-              CommandParameter="51"/>
-
-            <Button Content="Niche: безусловные рефлексы" Margin="20,2,5,2"
-              Style="{StaticResource MenuButtonStyle}"
-              Command="{Binding VerticalMenuItemClickedCommand}"
-              CommandParameter="52"/>
-
           </StackPanel>
         </Expander>
 

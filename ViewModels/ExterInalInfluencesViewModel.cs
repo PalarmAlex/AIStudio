@@ -1,4 +1,5 @@
-﻿using ISIDA.Actions;
+﻿using AIStudio.Common;
+using ISIDA.Actions;
 using ISIDA.Common;
 using ISIDA.Gomeostas;
 using System;
@@ -26,22 +27,29 @@ namespace AIStudio.ViewModels
 
     private readonly GomeostasSystem _gomeostas;
     private readonly InfluenceActionSystem _influenceActionSystem;
+    private readonly EditorSubjectScope _scope;
     private string _currentAgentName;
     private int _currentAgentStage;
-    public bool IsStageZero => _currentAgentStage == 0;
+    public bool IsStageZero => EditorStageAccess.IsStageZeroForEditing(_currentAgentStage);
 
     public ObservableCollection<InfluenceActionSystem.GomeostasisInfluenceAction> InfluenceActions { get; } = new ObservableCollection<InfluenceActionSystem.GomeostasisInfluenceAction>();
 
-    public string CurrentAgentTitle => $"Воздействия Оператора на Симбионта: {_currentAgentName ?? "Не определен"}";
+    public string CurrentAgentTitle => _scope.IsEnvironment
+        ? $"Воздействия на параметры {_scope.TitleLabel}: {_currentAgentName ?? "—"}"
+        : $"Воздействия оператора на {_scope.TitleLabel}: {_currentAgentName ?? "Не определен"}";
 
     public ICommand SaveCommand { get; }
     public ICommand RemoveActionCommand { get; }
     public ICommand RemoveAllCommand { get; }
 
-    public ExterInalInfluencesViewModel(GomeostasSystem gomeostas, InfluenceActionSystem influence)
+    public ExterInalInfluencesViewModel(
+        GomeostasSystem gomeostas,
+        InfluenceActionSystem influence,
+        EditorSubjectScope scope = null)
     {
       _gomeostas = gomeostas;
       _influenceActionSystem = influence ?? throw new ArgumentNullException(nameof(influence));
+      _scope = scope ?? EditorSubjectScope.Symbiont;
 
       SaveCommand = new RelayCommand(SaveData);
       RemoveActionCommand = new RelayCommand(RemoveSelectedInfluence);
@@ -85,7 +93,7 @@ namespace AIStudio.ViewModels
     private void RefreshAllCollections()
     {
       var agentInfo = _gomeostas.GetAgentState();
-      _currentAgentStage = agentInfo?.EvolutionStage ?? 0;
+      _currentAgentStage = EditorStageAccess.ResolveEditingEvolutionStage(_gomeostas, _scope);
       _currentAgentName = agentInfo.Name;
 
       InfluenceActions.Clear();
@@ -388,7 +396,9 @@ namespace AIStudio.ViewModels
       {
         return new DescriptionWithLink
         {
-          Text = "Редактор воздействий на систему гомеостаза симбионта, имитирующих его физическое взаимодействие с внешней средой."
+          Text = _scope.IsEnvironment
+              ? "Справочник воздействий на параметры гомеостаза среды (Niche): используется рефлексами и coupling."
+              : "Редактор воздействий оператора на гомеостаз симбионта, имитирующих внешнее взаимодействие."
         };
       }
     }

@@ -52,17 +52,35 @@ namespace AIStudio.Common
       }
     }
 
-    /// <summary>ViewModel параметров гомеостаза Niche.</summary>
+    /// <summary>ViewModel жизненных параметров гомеостаза среды.</summary>
     public static SystemParametersViewModel CreateGomeostasViewModel()
     {
       var ctx = GetOrCreateEditorContext();
-      return new SystemParametersViewModel(
-          ctx.Gomeostas,
-          agentTitle: "Параметры гомеостаза Niche (среда)",
-          forceNicheEditorMode: true);
+      return new SystemParametersViewModel(ctx.Gomeostas, EditorSubjectScope.Environment);
     }
 
-    /// <summary>ViewModel безусловных рефлексов Niche.</summary>
+    /// <summary>ViewModel стилей реагирования среды.</summary>
+    public static BehaviorStylesViewModel CreateBehaviorStylesViewModel()
+    {
+      var ctx = GetOrCreateEditorContext();
+      return new BehaviorStylesViewModel(ctx.Gomeostas, EditorSubjectScope.Environment);
+    }
+
+    /// <summary>ViewModel адаптивных действий среды.</summary>
+    public static AdaptiveActionsViewModel CreateAdaptiveActionsViewModel()
+    {
+      var ctx = GetOrCreateEditorContext();
+      return new AdaptiveActionsViewModel(ctx.Gomeostas, ctx.AdaptiveActions, EditorSubjectScope.Environment);
+    }
+
+    /// <summary>ViewModel воздействий на параметры гомеостаза среды.</summary>
+    public static ExterInalInfluencesViewModel CreateInfluenceActionsViewModel()
+    {
+      var ctx = GetOrCreateEditorContext();
+      return new ExterInalInfluencesViewModel(ctx.Gomeostas, ctx.InfluenceActions, EditorSubjectScope.Environment);
+    }
+
+    /// <summary>ViewModel безусловных рефлексов среды.</summary>
     public static GeneticReflexesViewModel CreateGeneticReflexesViewModel()
     {
       var ctx = GetOrCreateEditorContext();
@@ -75,7 +93,7 @@ namespace AIStudio.Common
           reflexChainsSystem: null,
           reflexFileLoader: null,
           bootDataFolder: null,
-          nicheSymbiontEditorMode: true);
+          scope: EditorSubjectScope.Environment);
     }
   }
 }

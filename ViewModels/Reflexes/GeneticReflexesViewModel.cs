@@ -1,4 +1,5 @@
-﻿using ISIDA.Actions;
+﻿using AIStudio.Common;
+using ISIDA.Actions;
 using ISIDA.Common;
 using ISIDA.Gomeostas;
 using ISIDA.Reflexes;
@@ -35,7 +36,7 @@ namespace AIStudio.ViewModels
     private readonly InfluenceActionSystem _influenceActionSystem;
     private readonly ReflexTreeSystem _reflexTreeSystem;
     private readonly ReflexChainsSystem _reflexChainsSystem;
-    private readonly bool _nicheSymbiontEditorMode;
+    private readonly EditorSubjectScope _scope;
 
     private readonly GomeostasSystem _gomeostas;
     public GomeostasSystem Gomeostas => _gomeostas;
@@ -48,14 +49,13 @@ namespace AIStudio.ViewModels
     private int? _selectedLevel3Filter;
     private int? _selectedAdaptiveActionsFilter;
 
-    public bool IsStageZero => _nicheSymbiontEditorMode || _currentAgentStage == 0;
+    public bool IsStageZero => EditorStageAccess.IsStageZeroForEditing(_currentAgentStage);
 
-    public string CurrentAgentTitle => _nicheSymbiontEditorMode
-        ? $"Безусловные рефлексы Niche (среда): {_currentAgentName ?? "—"}"
-        : $"Безусловные рефлексы Симбионта: {_currentAgentName ?? "Не определен"}";
+    public string CurrentAgentTitle =>
+        $"Безусловные рефлексы {_scope.TitleLabel}: {_currentAgentName ?? "Не определен"}";
 
-    /// <summary>Скрыть цепочки/дерево (режим Niche).</summary>
-    public bool IsNicheSymbiontEditorMode => _nicheSymbiontEditorMode;
+    /// <summary>Скрыть цепочки/дерево (режим среды).</summary>
+    public bool IsNicheSymbiontEditorMode => _scope.IsEnvironment;
     private ObservableCollection<GeneticReflexesSystem.GeneticReflex> _allGeneticReflexes = new ObservableCollection<GeneticReflexesSystem.GeneticReflex>();
     private ICollectionView _geneticReflexesView;
     /// <summary>Множество записей, проходящих фильтр и лимит страницы (для отображения в таблице).</summary>
@@ -114,9 +114,9 @@ namespace AIStudio.ViewModels
       ReflexChainsSystem reflexChainsSystem = null,
       GeneticReflexFileLoader reflexFileLoader = null,
       string bootDataFolder = null,
-      bool nicheSymbiontEditorMode = false)
+      EditorSubjectScope scope = null)
     {
-      _nicheSymbiontEditorMode = nicheSymbiontEditorMode;
+      _scope = scope ?? EditorSubjectScope.Symbiont;
       _gomeostas = gomeostasSystem;
       _geneticReflexesSystem = geneticReflexesSystem ?? throw new ArgumentNullException(nameof(geneticReflexesSystem));
       _actionsSystem = actionsSystem ?? throw new ArgumentNullException(nameof(actionsSystem));
@@ -144,7 +144,7 @@ namespace AIStudio.ViewModels
     /// </summary>
     public void UpdateChainBindingForReflex(GeneticReflexesSystem.GeneticReflex reflex)
     {
-      if (_nicheSymbiontEditorMode || _reflexTreeSystem == null)
+      if (_scope.IsEnvironment || _reflexTreeSystem == null)
         return;
 
       try
@@ -519,7 +519,7 @@ namespace AIStudio.ViewModels
     private void RefreshAllCollections()
     {
       var agentInfo = _gomeostas.GetAgentState();
-      _currentAgentStage = agentInfo?.EvolutionStage ?? 0;
+      _currentAgentStage = EditorStageAccess.ResolveEditingEvolutionStage(_gomeostas, _scope);
       _currentAgentName = agentInfo.Name;
       OnPropertyChanged(nameof(IsStageZero));
       OnPropertyChanged(nameof(IsLoadFromFileEnabled));
@@ -745,7 +745,7 @@ namespace AIStudio.ViewModels
     public void RemoveAllReflexes(object parameter)
     {
       var result = MessageBox.Show(
-          "Вы действительно хотите удалить ВСЕ безусловные рефлексы симбионта?\n\n" +
+          $"Вы действительно хотите удалить ВСЕ безусловные рефлексы {_scope.GenitiveLabel}?\n\n" +
           "Будут также полностью очищены:\n" +
           "• дерево рефлексов (все узлы);\n" +
           "• все цепочки рефлексов (включая не привязанные).\n\n" +
@@ -762,7 +762,7 @@ namespace AIStudio.ViewModels
 
           if (removeAll)
           {
-            if (!_nicheSymbiontEditorMode && _reflexTreeSystem != null && _reflexChainsSystem != null)
+            if (!_scope.IsEnvironment && _reflexTreeSystem != null && _reflexChainsSystem != null)
             {
               _reflexTreeSystem.ClearReflexTreeCompletely();
               _reflexChainsSystem.RemoveAllReflexChains();
@@ -832,7 +832,7 @@ namespace AIStudio.ViewModels
     /// </summary>
     public string GetChainDetailedInfo(int chainId)
     {
-      if (chainId <= 0 || _nicheSymbiontEditorMode || _reflexChainsSystem == null || !ReflexChainsSystem.IsInitialized)
+      if (chainId <= 0 || _scope.IsEnvironment || _reflexChainsSystem == null || !ReflexChainsSystem.IsInitialized)
         return "Цепочка не привязана";
 
       try

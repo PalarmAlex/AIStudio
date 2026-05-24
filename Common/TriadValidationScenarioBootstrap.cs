@@ -71,7 +71,7 @@ namespace AIStudio.Common
         log.AppendLine();
         log.AppendLine("Запуск: меню «Исследования» → «Группы сценариев», группа «" + GroupTitle + "» (id "
             + groupId.ToString(CultureInfo.InvariantCulture) + ").");
-        log.AppendLine("Перед каждым сценарием примените соответствующую фазу на панели «Триада» (A/B/C).");
+        log.AppendLine("Перед каждым сценарием задайте фазу A/B/C в Environment/triad_config.dat (поле Phase).");
         log.AppendLine("Метрики: A — УР или automatizm с AOE>0; B — Belief=2, StimulusOrigin в логе диады;");
         log.AppendLine("C — episodic rule, изменение Niche через Operator→Niche (AgentLogs_Dyad.jsonl).");
         log.AppendLine("Contour §6.8: воздействие «Подогреть среду» (probe warm) + UseProbeContour=1 → contourInputDelta в логе диады.");
@@ -203,7 +203,7 @@ namespace AIStudio.Common
     private const string ValidationReadmeText =
         "Валидация триады §6.14\r\n"
         + "========================\r\n\r\n"
-        + "Перед прогоном сценариев [Triad A/B/C] примените фазу на панели «Триада (Creature↔Niche)».\r\n\r\n"
+        + "Перед прогоном сценариев [Triad A/B/C] задайте фазу в Environment/triad_config.dat (Phase=A|B|C).\r\n\r\n"
         + "  A — CS/US через Operator (стадия 2); успех = УР или automatizm с AOE>0\r\n"
         + "  B — ритуал + coupling Niche (стадия 3); успех = Belief=2, StimulusOrigin в логе\r\n"
         + "  C — Operator только через Niche (стадия 4); успех = episodic rule, Δ Niche в AgentLogs_Dyad.jsonl\r\n\r\n"
@@ -271,7 +271,7 @@ namespace AIStudio.Common
         Id = groupId,
         Title = GroupTitle,
         Description =
-            "Последовательная валидация триады §6.14. Перед каждым сценарием примените фазу A/B/C на панели «Триада». "
+            "Последовательная валидация триады §6.14. Перед каждым сценарием задайте фазу A/B/C в Environment/triad_config.dat. "
             + "Проверяйте AgentLogs_Dyad.jsonl и отчёт сценария.",
         RunPulseTimingCoefficient = 10,
         ReportFormat = ScenarioGroupReportFormat.Detailed,
@@ -357,7 +357,7 @@ namespace AIStudio.Common
       var header = BaseHeader(
           "[Triad A] CS/US через Operator",
           "Фаза A, стадия 2. Условный стимул (фраза) + безусловное подкрепление (Поощрить). "
-          + "Перед запуском: фаза A на панели «Триада». Метрика: УР или automatizm с AOE>0 после повторного CS.",
+          + "Перед запуском: Phase=A в triad_config.dat. Метрика: УР или automatizm с AOE>0 после повторного CS.",
           2);
 
       var doc = new ScenarioDocument { Header = header };
@@ -380,7 +380,7 @@ namespace AIStudio.Common
       var header = BaseHeader(
           "[Triad B] Ритуал + coupling Niche",
           "Фаза B, стадия 3. Ритуальная фраза + подкрепление; coupling Creature→Niche активен. "
-          + "Перед запуском: фаза B на панели «Триада», перезагрузка конфига. "
+          + "Перед запуском: Phase=B в triad_config.dat, перезапуск движка. "
           + "Метрика: Belief=2 (эхо-автоматизм), StimulusOrigin=Niche в AgentLogs_Dyad.jsonl.",
           3);
 
@@ -404,7 +404,7 @@ namespace AIStudio.Common
       var header = BaseHeader(
           "[Triad C] Operator только через Niche",
           "Фаза C, стадия 4. Воздействия пульта маршрутизируются в Niche (operator_niche_coupling.dat). "
-          + "Перед запуском: фаза C на панели «Триада». "
+          + "Перед запуском: Phase=C в triad_config.dat. "
           + "Метрика: изменение параметра Niche 101 в AgentLogs_Dyad.jsonl; episodic rule при AOE Niche.",
           4);
 
