@@ -5,5 +5,8 @@ namespace AIStudio.Common
   {
     public static int? LastAnchorGlobalPulse { get; set; }
     public static int? LastScenarioId { get; set; }
+
+    /// <summary>Последний отчёт метрик триады §13.3 (если прогон был сценарием [Triad …]).</summary>
+    public static TriadValidationMetricsReport LastTriadMetricsReport { get; set; }
   }
 }

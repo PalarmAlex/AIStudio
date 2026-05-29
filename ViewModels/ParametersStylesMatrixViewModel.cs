@@ -20,6 +20,7 @@ namespace AIStudio.ViewModels
     public event PropertyChangedEventHandler PropertyChanged;
 
     private readonly GomeostasSystem _gomeostas;
+    private readonly EditorSubjectScope _scope;
     private ObservableCollection<ParameterStyleCell> _matrixCells;
     private ObservableCollection<StyleFilterItem> _styleFilterItems;
     private StyleFilterItem _selectedStyleFilter;
@@ -112,9 +113,13 @@ namespace AIStudio.ViewModels
     public ICommand BackCommand { get; }
     public ICommand RefreshCommand { get; }
 
-    public ParametersStylesMatrixViewModel(GomeostasSystem gomeostas, List<ParameterData> currentParameters = null)
+    public ParametersStylesMatrixViewModel(
+        GomeostasSystem gomeostas,
+        List<ParameterData> currentParameters = null,
+        EditorSubjectScope scope = null)
     {
       _gomeostas = gomeostas ?? throw new ArgumentNullException(nameof(gomeostas));
+      _scope = scope ?? EditorSubjectScope.Symbiont;
       BackCommand = new RelayCommand(_ => NavigateBack(currentParameters));
 
       MatrixCells = new ObservableCollection<ParameterStyleCell>();
@@ -129,6 +134,9 @@ namespace AIStudio.ViewModels
     {
       return _gomeostas.GetAgentState();
     }
+
+    public int EditingEvolutionStage =>
+        EditorStageAccess.ResolveEditingEvolutionStage(_gomeostas, _scope);
 
     internal void LoadMatrixFromParameters(List<ParameterData> parameters)
     {
@@ -523,7 +531,7 @@ namespace AIStudio.ViewModels
         var systemParametersView = new SystemParametersView();
 
         // Передаем текущие данные обратно в SystemParametersViewModel
-        var viewModel = new SystemParametersViewModel(_gomeostas);
+        var viewModel = new SystemParametersViewModel(_gomeostas, _scope);
         if (currentParameters != null)
         {
           // Обновляем локальные данные

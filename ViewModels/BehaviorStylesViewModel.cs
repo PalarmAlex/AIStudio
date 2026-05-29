@@ -23,9 +23,10 @@ namespace AIStudio.ViewModels
     }
 
     private readonly GomeostasSystem _gomeostas;
+    private readonly EditorSubjectScope _scope;
     private string _currentAgentName;
     private int _currentAgentStage;
-    public bool IsStageZero => _currentAgentStage == 0;
+    public bool IsStageZero => EditorStageAccess.IsStageZeroForEditing(_currentAgentStage);
     public bool IsReadOnlyMode => !IsEditingEnabled;
 
     private string _description;
@@ -42,7 +43,8 @@ namespace AIStudio.ViewModels
       }
     }
 
-    public string CurrentAgentTitle => $"Стили реагирования Симбионта: {_currentAgentName ?? "Не определен"}";
+    public string CurrentAgentTitle =>
+        $"Стили реагирования {_scope.TitleLabel}: {_currentAgentName ?? "Не определен"}";
     public ObservableCollection<GomeostasSystem.BehaviorStyle> BehaviorStyles { get; } = new ObservableCollection<GomeostasSystem.BehaviorStyle>();
 
     public ICommand SaveCommand { get; }
@@ -51,9 +53,13 @@ namespace AIStudio.ViewModels
     private ICommand _showMatrixCommand;
     public ICommand ShowMatrixCommand => _showMatrixCommand ?? (_showMatrixCommand = new RelayCommand(ShowAntagonistMatrix));
 
-    public BehaviorStylesViewModel(GomeostasSystem gomeostas, List<GomeostasSystem.BehaviorStyle> currentStyles = null)
+    public BehaviorStylesViewModel(
+        GomeostasSystem gomeostas,
+        EditorSubjectScope scope = null,
+        List<GomeostasSystem.BehaviorStyle> currentStyles = null)
     {
       _gomeostas = gomeostas;
+      _scope = scope ?? EditorSubjectScope.Symbiont;
       SaveCommand = new RelayCommand(SaveData);
       RemoveStyleCommand = new RelayCommand(RemoveSelectedStyle);
       RemoveAllCommand = new RelayCommand(RemoveAllStyles);
@@ -80,7 +86,7 @@ namespace AIStudio.ViewModels
     private void RefreshAllCollections()
     {
       var agentInfo = _gomeostas.GetAgentState();
-      _currentAgentStage = agentInfo?.EvolutionStage ?? 0;
+      _currentAgentStage = EditorStageAccess.ResolveEditingEvolutionStage(_gomeostas, _scope);
       _currentAgentName = agentInfo.Name;
 
       BehaviorStyles.Clear();
@@ -132,7 +138,7 @@ namespace AIStudio.ViewModels
           AntagonistStyles = bs.AntagonistStyles
         }).ToList();
 
-        var matrixViewModel = new AntagonistMatrixViewModel(_gomeostas, currentStyles);
+        var matrixViewModel = new AntagonistMatrixViewModel(_gomeostas, currentStyles, _scope);
         matrixView.DataContext = matrixViewModel;
 
         var mainWindow = Application.Current.MainWindow as MainWindow;
@@ -153,7 +159,7 @@ namespace AIStudio.ViewModels
       try
       {
         var agentInfo = _gomeostas.GetAgentState();
-        _currentAgentStage = agentInfo?.EvolutionStage ?? 0;
+        _currentAgentStage = EditorStageAccess.ResolveEditingEvolutionStage(_gomeostas, _scope);
         _currentAgentName = agentInfo.Name;
 
         BehaviorStyles.Clear();
@@ -417,7 +423,7 @@ namespace AIStudio.ViewModels
     public void RemoveAllStyles(object parameter)
     {
       var result = MessageBox.Show(
-          $"Вы действительно хотите удалить ВСЕ стили реагирования симбионта? Это действие нельзя будет отменить.",
+          $"Вы действительно хотите удалить ВСЕ стили реагирования {_scope.GenitiveLabel}? Это действие нельзя будет отменить.",
           "Подтверждение удаления",
           MessageBoxButton.YesNo,
           MessageBoxImage.Warning);
@@ -443,14 +449,14 @@ namespace AIStudio.ViewModels
           var (success, error) = _gomeostas.SaveAgentBehaviorStyles(false); // все удалено - не надо валидаций 
           if (success)
           {
-            MessageBox.Show("Все стили реагирования симбионта, кроме заданного по умолчанию, успешно удалены",
+            MessageBox.Show($"Все стили реагирования {_scope.GenitiveLabel}, кроме заданного по умолчанию, успешно удалены",
                 "Удаление завершено",
                 MessageBoxButton.OK,
                 MessageBoxImage.Information);
           }
           else
           {
-            MessageBox.Show($"Не удалось удалить стили реагирования симбионта:\n{error}",
+            MessageBox.Show($"Не удалось удалить стили реагирования {_scope.GenitiveLabel}:\n{error}",
                 "Ошибка сохранения после удаления",
                 MessageBoxButton.OK,
                 MessageBoxImage.Error);
@@ -458,7 +464,7 @@ namespace AIStudio.ViewModels
         }
         catch (Exception ex)
         {
-          MessageBox.Show($"Ошибка удаления стилей реагирования симбионта: {ex.Message}",
+          MessageBox.Show($"Ошибка удаления стилей реагирования {_scope.GenitiveLabel}: {ex.Message}",
               "Ошибка",
               MessageBoxButton.OK,
               MessageBoxImage.Error);

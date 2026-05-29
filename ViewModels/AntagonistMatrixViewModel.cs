@@ -18,6 +18,7 @@ namespace AIStudio.ViewModels
     public event PropertyChangedEventHandler PropertyChanged;
 
     private readonly GomeostasSystem _gomeostas;
+    private readonly EditorSubjectScope _scope;
     private ObservableCollection<MatrixCell> _matrixCells;
     private List<int> _unpairedStyleIds;
     private List<GomeostasSystem.BehaviorStyle> _currentStyles;
@@ -40,9 +41,13 @@ namespace AIStudio.ViewModels
     public ICommand RefreshCommand { get; }
     public ICommand CellClickCommand { get; }
 
-    public AntagonistMatrixViewModel(GomeostasSystem gomeostas, List<GomeostasSystem.BehaviorStyle> currentStyles)
+    public AntagonistMatrixViewModel(
+        GomeostasSystem gomeostas,
+        List<GomeostasSystem.BehaviorStyle> currentStyles,
+        EditorSubjectScope scope = null)
     {
       _gomeostas = gomeostas ?? throw new ArgumentNullException(nameof(gomeostas));
+      _scope = scope ?? EditorSubjectScope.Symbiont;
       _currentStyles = currentStyles;
 
       BackCommand = new RelayCommand(_ => NavigateBack(currentStyles));
@@ -353,7 +358,7 @@ namespace AIStudio.ViewModels
         var behaviorStylesView = new BehaviorStylesView();
 
         // Передаем текущие данные обратно в BehaviorStylesViewModel
-        var viewModel = new BehaviorStylesViewModel(_gomeostas, currentStyles);
+        var viewModel = new BehaviorStylesViewModel(_gomeostas, _scope, currentStyles);
         behaviorStylesView.DataContext = viewModel;
         mainViewModel.CurrentContent = behaviorStylesView;
       }
