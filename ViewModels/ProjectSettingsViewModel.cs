@@ -837,27 +837,11 @@ namespace AIStudio.ViewModels
     /// <returns>True, если пользователь выбрал каталог.</returns>
     public bool TryPickProjectRootFolder(out string projectRoot)
     {
-      projectRoot = null;
-
-      string initialPath = ProjectBootstrap.GetDefaultProjectsFolderDialogPath();
-      if (SettingsValidator.TryInferProjectRoot(SettingsPath, DataGomeostasFolderPath, out string currentRoot)
-          && Directory.Exists(currentRoot))
-      {
-        initialPath = ProjectBootstrap.ToFolderDialogInitialPath(currentRoot);
-      }
-
-      var dialog = new VistaFolderBrowserDialog
-      {
-        Description = "Укажите корневой каталог данных проекта...",
-        UseDescriptionForTitle = true,
-        SelectedPath = initialPath
-      };
-
-      if (dialog.ShowDialog() != true)
-        return false;
-
-      projectRoot = dialog.SelectedPath;
-      return !string.IsNullOrWhiteSpace(projectRoot);
+      return ProjectFolderPicker.TryPickProjectRootFolder(
+          Application.Current?.MainWindow,
+          SettingsPath,
+          DataGomeostasFolderPath,
+          out projectRoot);
     }
 
     /// <summary>
