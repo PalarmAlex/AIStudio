@@ -32,9 +32,8 @@ namespace AIStudio.Common
       sb.AppendLine("</head><body>");
 
       sb.AppendLine("<h1>Отчёт по прогону сценария оператора</h1>");
-      sb.AppendLine("<p>").Append(Escape(BuildSummaryParagraph(completion, doc, logsFolder))).AppendLine("</p>");
+      sb.AppendLine("<p>").Append(Escape(BuildSummaryParagraph(completion))).AppendLine("</p>");
       AppendScenarioReportMainBody(sb, doc, completion, influenceActions, perceptionImages, cellTooltips);
-      AppendTriadMetricsIfApplicable(sb, doc, completion, logsFolder);
 
       sb.AppendLine("<p class=\"muted\" style=\"margin-top:24px;font-size:11px;\">Сформировано AIStudio.</p>");
       sb.AppendLine("</body></html>");
@@ -66,7 +65,7 @@ namespace AIStudio.Common
 
       AppendGroupBatchReportHeader(sb, groupDef, runs);
 
-      AppendGroupCompositionTable(sb, groupDef, titleById, compact: false, compareByIndex: null, triadMetricsByIndex: null);
+      AppendGroupCompositionTable(sb, groupDef, titleById, compact: false, compareByIndex: null);
 
       int n = 0;
       foreach (var tuple in runs)
@@ -80,9 +79,8 @@ namespace AIStudio.Common
         sb.Append("<h2>Сценарий ").Append(Escape(n.ToString(CultureInfo.InvariantCulture)))
             .Append(": ID ").Append(Escape(doc.Header?.Id.ToString(CultureInfo.InvariantCulture) ?? ""))
             .Append(" — ").Append(Escape(doc.Header?.Title ?? "")).AppendLine("</h2>");
-        sb.AppendLine("<p>").Append(Escape(BuildSummaryParagraph(completion, doc, logsFolder))).AppendLine("</p>");
+        sb.AppendLine("<p>").Append(Escape(BuildSummaryParagraph(completion))).AppendLine("</p>");
         AppendScenarioReportMainBody(sb, doc, completion, influenceActions, perceptionImages, cellTooltips);
-        AppendTriadMetricsIfApplicable(sb, doc, completion, logsFolder);
       }
 
       sb.AppendLine("<p class=\"muted\" style=\"margin-top:24px;font-size:11px;\">Сформировано AIStudio.</p>");
@@ -146,8 +144,7 @@ namespace AIStudio.Common
         ScenarioGroupDocument groupDef,
         Dictionary<int, string> titleById,
         bool compact,
-        List<List<ScenarioLogComparer.StepCompareResult>> compareByIndex,
-        List<TriadValidationMetricsReport> triadMetricsByIndex)
+        List<List<ScenarioLogComparer.StepCompareResult>> compareByIndex)
     {
       sb.AppendLine("<h2>Состав группы (порядок прогона)</h2>");
       var tableClass = compact
@@ -180,26 +177,12 @@ namespace AIStudio.Common
         {
           sb.Append("<td>");
           var cmp = compareByIndex != null && mi < compareByIndex.Count ? compareByIndex[mi] : null;
-          var triad = triadMetricsByIndex != null && mi < triadMetricsByIndex.Count ? triadMetricsByIndex[mi] : null;
-          if (cmp == null && triad == null)
+          if (cmp == null)
             sb.Append("<span class=\"muted\">Нет данных прогона</span>");
+          else if (cmp.Any(c => !c.Ok))
+            sb.Append("<span class=\"summary-bad\">Лог: расхождения</span>");
           else
-          {
-            if (cmp == null)
-              sb.Append("<span class=\"muted\">Лог: нет данных</span>");
-            else if (cmp.Any(c => !c.Ok))
-              sb.Append("<span class=\"summary-bad\">Лог: расхождения</span>");
-            else
-              sb.Append("<span class=\"summary-ok\">Лог: OK</span>");
-
-            if (triad != null)
-            {
-              sb.Append("<br/>");
-              sb.Append(triad.AllPassed
-                  ? "<span class=\"summary-ok\">§13.3: OK</span>"
-                  : "<span class=\"summary-bad\">§13.3: FAIL</span>");
-            }
-          }
+            sb.Append("<span class=\"summary-ok\">Лог: OK</span>");
           sb.Append("</td>");
         }
         sb.AppendLine("</tr>");
@@ -234,19 +217,12 @@ namespace AIStudio.Common
     {
       var orderedMembers = groupDef.Members.OrderBy(x => x.SortOrderInGroup).ThenBy(x => x.ScenarioId).ToList();
       var compareByIndex = new List<List<ScenarioLogComparer.StepCompareResult>>();
-      var triadMetricsByIndex = new List<TriadValidationMetricsReport>();
       for (int i = 0; i < orderedMembers.Count; i++)
       {
         if (i < runs.Count && runs[i].Item1 != null)
-        {
           compareByIndex.Add(BuildCompareResultsForReport(runs[i].Item1, runs[i].Item2, perceptionImages));
-          triadMetricsByIndex.Add(BuildTriadMetricsReport(runs[i].Item1, runs[i].Item2, logsFolder));
-        }
         else
-        {
           compareByIndex.Add(null);
-          triadMetricsByIndex.Add(null);
-        }
       }
 
       var titleById = BuildScenarioTitleByIdMap(runs);
@@ -259,7 +235,7 @@ namespace AIStudio.Common
 
       AppendGroupBatchReportHeader(sb, groupDef, runs);
 
-      AppendGroupCompositionTable(sb, groupDef, titleById, compact: true, compareByIndex, triadMetricsByIndex);
+      AppendGroupCompositionTable(sb, groupDef, titleById, compact: true, compareByIndex);
 
       for (int i = 0; i < orderedMembers.Count; i++)
       {
@@ -275,9 +251,8 @@ namespace AIStudio.Common
         sb.Append("<h2>Сценарий ").Append(Escape((i + 1).ToString(CultureInfo.InvariantCulture)))
             .Append(": ID ").Append(Escape(doc.Header?.Id.ToString(CultureInfo.InvariantCulture) ?? ""))
             .Append(" — ").Append(Escape(doc.Header?.Title ?? "")).AppendLine("</h2>");
-        sb.AppendLine("<p>").Append(Escape(BuildSummaryParagraph(completion, doc, logsFolder))).AppendLine("</p>");
+        sb.AppendLine("<p>").Append(Escape(BuildSummaryParagraph(completion))).AppendLine("</p>");
         AppendComparisonSummary(sb, cmp);
-        AppendTriadMetricsIfApplicable(sb, doc, completion, logsFolder);
       }
 
       sb.AppendLine("<p class=\"muted\" style=\"margin-top:24px;font-size:11px;\">Сформировано AIStudio.</p>");
@@ -783,61 +758,21 @@ namespace AIStudio.Common
       sb.AppendLine("<tr><th class=\"meta-label\">").Append(Escape(name)).Append("</th><td class=\"meta-value\">").Append(valueHtmlEscaped).AppendLine("</td></tr>");
     }
 
-    private static string BuildSummaryParagraph(
-        OperatorScenarioCompletedEventArgs e,
-        ScenarioDocument doc = null,
-        string logsFolder = null)
+    private static string BuildSummaryParagraph(OperatorScenarioCompletedEventArgs e)
     {
       if (e == null)
         return "Нет данных о завершении.";
 
-      string baseText;
       if (e.Success)
-        baseText = "Сценарий завершён успешно. Последний выполненный № пульса: "
+        return "Сценарий завершён успешно. Последний выполненный № пульса: "
             + e.LastExecutedPulseWithinScenario.ToString(CultureInfo.InvariantCulture) + ".";
-      else if (e.AbortedByUser)
-        baseText = "Сценарий остановлен пользователем (кнопка «Стоп»).";
-      else if (e.AbortedByPulsationStop)
-        baseText = "Сценарий прерван: остановлена пульсация.";
-      else if (!string.IsNullOrEmpty(e.ErrorMessage))
-        baseText = "Ошибка: " + e.ErrorMessage;
-      else
-        baseText = "Прогон завершён с нестандартным исходом.";
-
-      if (doc != null && TriadValidationMetricsChecker.IsTriadValidationScenario(doc))
-      {
-        var triad = BuildTriadMetricsReport(doc, e, logsFolder);
-        return baseText + " " + triad.SummaryText;
-      }
-
-      return baseText;
-    }
-
-    private static TriadValidationMetricsReport BuildTriadMetricsReport(
-        ScenarioDocument doc,
-        OperatorScenarioCompletedEventArgs completion,
-        string logsFolder)
-    {
-      if (doc == null || !TriadValidationMetricsChecker.IsTriadValidationScenario(doc))
-        return null;
-
-      if (string.IsNullOrWhiteSpace(logsFolder))
-        logsFolder = AppConfig.LogsFolderPath;
-
-      var report = TriadValidationMetricsChecker.Evaluate(doc, completion, logsFolder);
-      ScenarioLogComparisonSession.LastTriadMetricsReport = report;
-      return report;
-    }
-
-    private static void AppendTriadMetricsIfApplicable(
-        StringBuilder sb,
-        ScenarioDocument doc,
-        OperatorScenarioCompletedEventArgs completion,
-        string logsFolder)
-    {
-      var report = BuildTriadMetricsReport(doc, completion, logsFolder);
-      if (report != null)
-        TriadValidationMetricsChecker.AppendHtmlSection(sb, report);
+      if (e.AbortedByUser)
+        return "Сценарий остановлен пользователем (кнопка «Стоп»).";
+      if (e.AbortedByPulsationStop)
+        return "Сценарий прерван: остановлена пульсация.";
+      if (!string.IsNullOrEmpty(e.ErrorMessage))
+        return "Ошибка: " + e.ErrorMessage;
+      return "Прогон завершён с нестандартным исходом.";
     }
 
     /// <summary>Допустимые значения коэфф. пульсации в UI/прогоне (как в MainViewModel).</summary>

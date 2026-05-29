@@ -1,12 +1,12 @@
 using ISIDA.Common;
 using Ookii.Dialogs.Wpf;
 using System;
+using System.IO;
 using System.Windows;
-using System.Windows.Interop;
 
 namespace AIStudio.Common
 {
-  /// <summary>Выбор каталога проекта с поддержкой ввода несуществующего имени в поле «Папка».</summary>
+  /// <summary>Выбор каталога проекта через Ookii <see cref="VistaFolderBrowserDialog"/>.</summary>
   public static class ProjectFolderPicker
   {
     public static bool TryPickFolderForNewProject(
@@ -47,12 +47,39 @@ namespace AIStudio.Common
         initialPath = ProjectBootstrap.ToFolderDialogInitialPath(currentRoot);
       }
 
-      if (!NativeFolderDialogInterop.TryPickFolder(
-              ownerHwnd,
+      if (!TryShowFolderDialog(
+              owner,
+              "Укажите корневой каталог данных проекта...",
               initialPath,
-              "Укажите каталог для нового проекта данных (можно ввести имя новой папки в поле «Папка»)...",
-              out string rawPath))
+              out string selectedPath))
       {
+        return false;
+      }
+
+      projectRoot = selectedPath;
+      return !string.IsNullOrWhiteSpace(projectRoot);
+    }
+
+    private static bool TryShowFolderDialog(
+        Window owner,
+        string description,
+        string selectedPath,
+        out string resultPath)
+    {
+      resultPath = null;
+
+      var dialog = new VistaFolderBrowserDialog
+      {
+        Description = description,
+        UseDescriptionForTitle = true,
+        SelectedPath = SanitizeSelectedPathForOokii(selectedPath)
+      };
+
+      bool? accepted = owner != null
+          ? dialog.ShowDialog(owner)
+          : dialog.ShowDialog();
+
+      if (accepted != true)
         return false;
 
       resultPath = dialog.SelectedPath;
@@ -76,7 +103,7 @@ namespace AIStudio.Common
         // невалидный путь — диалог откроется в каталоге по умолчанию Ookii
       }
 
-      return ProjectBootstrap.TryEnsureFolderFromDialogSelection(rawPath, out projectRoot, out errorMessage);
+      return string.Empty;
     }
   }
 }

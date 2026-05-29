@@ -25,14 +25,13 @@ namespace AIStudio.ViewModels
 
     private readonly AdaptiveActionsSystem _actionsSystem;
     private readonly GomeostasSystem _gomeostas;
-    private readonly EditorSubjectScope _scope;
     private string _currentAgentName;
     private int _currentAgentStage;
-    public bool IsStageZero => EditorStageAccess.IsStageZeroForEditing(_currentAgentStage);
+    public bool IsStageZero => _currentAgentStage == 0;
 
     public bool IsReadOnlyMode => !IsEditingEnabled;
     public string CurrentAgentTitle =>
-        $"Адаптивные действия {_scope.TitleLabel}: {_currentAgentName ?? "Не определен"}";
+        $"Адаптивные действия Симбионта: {_currentAgentName ?? "Не определен"}";
     public ObservableCollection<AdaptiveActionsSystem.AdaptiveAction> AdaptiveActions { get; } = new ObservableCollection<AdaptiveActionsSystem.AdaptiveAction>();
 
     public ICommand SaveCommand { get; }
@@ -41,12 +40,10 @@ namespace AIStudio.ViewModels
 
     public AdaptiveActionsViewModel(
         GomeostasSystem gomeostas,
-        AdaptiveActionsSystem actionsSystem,
-        EditorSubjectScope scope = null)
+        AdaptiveActionsSystem actionsSystem)
     {
       _gomeostas = gomeostas ?? throw new ArgumentNullException(nameof(gomeostas));
       _actionsSystem = actionsSystem ?? throw new ArgumentNullException(nameof(actionsSystem));
-      _scope = scope ?? EditorSubjectScope.Symbiont;
 
       SaveCommand = new RelayCommand(SaveData);
       RemoveActionCommand = new RelayCommand(RemoveSelectedAction);
@@ -74,7 +71,7 @@ namespace AIStudio.ViewModels
     private void RefreshAllCollections()
     {
       var agentInfo = _gomeostas.GetAgentState();
-      _currentAgentStage = EditorStageAccess.ResolveEditingEvolutionStage(_gomeostas, _scope);
+      _currentAgentStage = _gomeostas?.GetAgentState()?.EvolutionStage ?? 0;
       _currentAgentName = agentInfo.Name;
 
       AdaptiveActions.Clear();

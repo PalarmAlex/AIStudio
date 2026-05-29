@@ -1,5 +1,4 @@
-﻿using AIStudio.Common;
-using AIStudio.Dialogs;
+﻿using AIStudio.Dialogs;
 using AIStudio.ViewModels;
 using ISIDA.Gomeostas;
 using System.Collections.Generic;
@@ -35,7 +34,7 @@ namespace AIStudio.Pages
       {
         var currentAgentStage = viewModel.EditingEvolutionStage;
 
-        if (!EditorStageAccess.IsStageZeroForEditing(currentAgentStage))
+        if (currentAgentStage != 0)
         {
           MessageBox.Show(
             "Редактирование стилей поведения запрещено в стадиях развития больше 0.\n" +

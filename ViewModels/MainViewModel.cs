@@ -286,9 +286,6 @@ namespace AIStudio
       config.ThinkingCycleMainMaxAgePulses = AppConfig.ThinkingCycleMainMaxAgePulses;
       config.NoOperatorStimulusSilencePulses = AppConfig.NoOperatorStimulusSilencePulses;
       config.MemoryLogWriter = MemoryLogManager.Instance;
-      config.TriadEnabled = true;
-      config.EnvironmentFolder = TriadProjectPaths.GetEnvironmentFolder();
-      config.NicheDataFolder = TriadProjectPaths.GetNicheDataFolder();
 
       return config;
     }
@@ -424,12 +421,6 @@ namespace AIStudio
         case "18": // Сознание (заглушка)
           ShowStub("Сознание");
           return;
-      }
-
-      if (IsEnvironmentMenuItem(menuItem))
-      {
-        ExecuteEnvironmentMenuItem(menuItem);
-        return;
       }
 
       if (IsAgentDead)
@@ -2225,86 +2216,6 @@ namespace AIStudio
       CurrentContent = conditionedReflexesView;
     }
 
-    private static bool IsEnvironmentMenuItem(string menuItem)
-    {
-      switch (menuItem)
-      {
-        case "61":
-        case "62":
-        case "63":
-        case "68":
-        case "64":
-        case "65":
-        case "66":
-          return true;
-        default:
-          return false;
-      }
-    }
-
-    private void ExecuteEnvironmentMenuItem(string menuItem)
-    {
-      switch (menuItem)
-      {
-        case "61":
-          ShowEnvironmentSystemParameters();
-          break;
-        case "62":
-          ShowEnvironmentBehaviorStyles();
-          break;
-        case "63":
-          ShowEnvironmentAdaptiveActions();
-          break;
-        case "68":
-          ShowEnvironmentInfluences();
-          break;
-        case "64":
-          ShowEnvironmentGeneticReflexes();
-          break;
-        case "65":
-          ShowStub("Цепочки безусловных рефлексов среды");
-          break;
-        case "66":
-          ShowStub("Условные рефлексы среды");
-          break;
-      }
-    }
-
-    private void ShowEnvironmentSystemParameters()
-    {
-      var view = new SystemParametersView();
-      view.DataContext = NicheSymbiontEditorService.CreateGomeostasViewModel();
-      CurrentContent = view;
-    }
-
-    private void ShowEnvironmentBehaviorStyles()
-    {
-      var view = new BehaviorStylesView();
-      view.DataContext = NicheSymbiontEditorService.CreateBehaviorStylesViewModel();
-      CurrentContent = view;
-    }
-
-    private void ShowEnvironmentAdaptiveActions()
-    {
-      var view = new AdaptiveActionsView();
-      view.DataContext = NicheSymbiontEditorService.CreateAdaptiveActionsViewModel();
-      CurrentContent = view;
-    }
-
-    private void ShowEnvironmentInfluences()
-    {
-      var view = new ExterInalInfluencesView();
-      view.DataContext = NicheSymbiontEditorService.CreateInfluenceActionsViewModel();
-      CurrentContent = view;
-    }
-
-    private void ShowEnvironmentGeneticReflexes()
-    {
-      var view = new GeneticReflexesView();
-      view.DataContext = NicheSymbiontEditorService.CreateGeneticReflexesViewModel();
-      CurrentContent = view;
-    }
-
     private void ShowStub(string menuTitle)
     {
       var stackPanel = new StackPanel
@@ -2397,7 +2308,6 @@ namespace AIStudio
 
     private void OpenProjectAtRoot(string projectRoot, ProjectSettingsViewModel viewModel = null)
     {
-      NicheSymbiontEditorService.ResetEditorContext();
       viewModel = viewModel ?? new ProjectSettingsViewModel(_gomeostas, ReloadRuntimeAfterProjectSwitch);
       viewModel.ApplyProjectRoot(projectRoot);
     }

@@ -737,6 +737,7 @@ namespace AIStudio.ViewModels
       try
       {
         var allActions = _influenceActionSystem.GetAllInfluenceActions()
+            .Where(a => string.IsNullOrWhiteSpace(a.EnvironmentMetricProbeKey))
             .ToList();
 
         int index = 0;
