@@ -224,7 +224,7 @@ namespace AIStudio
     }
 
     /// <summary>
-    /// Завершение работы всех систем.
+    /// Завершение работы всех систем
     /// </summary>
     public void Shutdown()
     {
