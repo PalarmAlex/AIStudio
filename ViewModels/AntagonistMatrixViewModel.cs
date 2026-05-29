@@ -78,7 +78,7 @@ namespace AIStudio.ViewModels
           _pairedCell.IsSelected = true;
         }
 
-        // Обновляем отображение
+        // Обновляем отображение.
         RefreshAllCells();
       }
     }
