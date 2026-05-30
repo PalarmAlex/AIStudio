@@ -83,6 +83,7 @@
     <Compile Include="Common\AntagonistManager.cs" />
     <Compile Include="Common\DataGridExtensions.cs" />
     <Compile Include="Common\AgentLogMainCycleLiveSegment.cs" />
+    <Compile Include="Common\AgentLogSessionStorage.cs" />
     <Compile Include="Common\MemoryLogManager.cs" />
     <Compile Include="Common\ScenarioLogComparer.cs" />
     <Compile Include="Common\ScenarioLogComparisonSession.cs" />
@@ -321,6 +322,7 @@
     <Compile Include="ViewModels\BehaviorStylesViewModel.cs" />
     <Compile Include="ViewModels\AgentInfo.cs" />
     <Compile Include="ViewModels\ExterInalInfluencesViewModel.cs" />
+    <Compile Include="ViewModels\AgentLogSessionListItem.cs" />
     <Compile Include="ViewModels\LiveLogsViewModel.cs" />
     <Compile Include="ViewModels\ThinkingCyclesViewModel.cs" />
     <Compile Include="ViewModels\MainViewModel.cs" />

@@ -49,6 +49,9 @@ namespace AIStudio.Common
     private readonly object _lock = new object();
     private bool _disposed = false;
 
+    /// <summary>UTC-время начала текущей сессии логов (запуск процесса студии).</summary>
+    public DateTime CurrentSessionStartedUtc { get; } = DateTime.UtcNow;
+
     #endregion
 
     #region Public Properties
@@ -353,14 +356,23 @@ namespace AIStudio.Common
 
     private void RefreshAgentDisplayMainCycleAggregatesLocked()
     {
-      foreach (var g in _agentDisplayLogEntries.Where(e => e.Pulse.HasValue).GroupBy(e => e.Pulse.Value))
+      ApplyDisplayAggregatesToEntries(_agentDisplayLogEntries);
+    }
+
+    /// <summary>Пересчитывает сегменты «Цикл М» / «Циклы Ф» для произвольного списка (архив сессии).</summary>
+    public static void ApplyDisplayAggregatesToEntries(IList<LogEntry> entries)
+    {
+      if (entries == null || entries.Count == 0)
+        return;
+
+      foreach (var g in entries.Where(e => e.Pulse.HasValue).GroupBy(e => e.Pulse.Value))
       {
         var list = g.ToList();
         ApplyMainCyclePulseDisplayToGroup(list);
         ApplyBackgroundCyclePulseDisplayToGroup(list);
       }
 
-      foreach (var e in _agentDisplayLogEntries.Where(e => !e.Pulse.HasValue))
+      foreach (var e in entries.Where(en => !en.Pulse.HasValue))
       {
         e.ApplyPulseMainCycleDisplay(null, e.MainThinkingCycleTooltip ?? "");
         e.ApplyPulseBackgroundCycleDisplay(null, "");

@@ -18,7 +18,7 @@
       <Setter Property="SelectionUnit" Value="FullRow"/>
       <Setter Property="CanUserAddRows" Value="False"/>
       <Setter Property="CanUserDeleteRows" Value="False"/>
-      <Setter Property="CanUserSortColumns" Value="False"/>
+      <Setter Property="CanUserSortColumns" Value="True"/>
     </Style>
     <Style x:Key="ScenarioRegistryRowStyle" TargetType="DataGridRow">
       <Style.Triggers>
@@ -107,7 +107,7 @@
               </Style>
             </DataGridTextColumn.ElementStyle>
           </DataGridTextColumn>
-          <DataGridTextColumn Header="Стадия" Binding="{Binding PreRunStageNumberDisplay}" Width="SizeToHeader">
+          <DataGridTextColumn Header="Стадия" Binding="{Binding PreRunStageNumberDisplay}" SortMemberPath="PreRunTargetStage" Width="SizeToHeader">
             <DataGridTextColumn.ElementStyle>
               <Style TargetType="TextBlock">
                 <Setter Property="Padding" Value="6,4"/>

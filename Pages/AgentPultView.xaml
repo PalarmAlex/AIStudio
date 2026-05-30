@@ -113,7 +113,7 @@
       <CheckBox Grid.Column="1"
                 Content="Авторитарная запись"
                 IsChecked="{Binding AuthoritativeMode}"
-                ToolTip="Новые фразы сразу записываются в дерево, минуя песочницу"
+                ToolTip="Новые фразы и команды сразу записываются в дерево, минуя песочницу"
                 VerticalAlignment="Center"
                 HorizontalAlignment="Right" Margin="0,3,0,0"/>
     </Grid>

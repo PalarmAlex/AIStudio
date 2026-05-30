@@ -18,7 +18,7 @@
       <Setter Property="SelectionUnit" Value="FullRow"/>
       <Setter Property="CanUserAddRows" Value="False"/>
       <Setter Property="CanUserDeleteRows" Value="False"/>
-      <Setter Property="CanUserSortColumns" Value="False"/>
+      <Setter Property="CanUserSortColumns" Value="True"/>
     </Style>
     <Style x:Key="ScenarioRegistryRowStyle" TargetType="DataGridRow">
       <Style.Triggers>

@@ -10,6 +10,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.Linq;
 using System.Windows;
 using System.Windows.Input;
 using System.Windows.Threading;
@@ -31,6 +32,9 @@ namespace AIStudio.ViewModels
     private bool _disposed = false;
 
     private readonly AgentLogCellTooltipProvider _tooltipProvider;
+    private readonly ObservableCollection<LogEntry> _archivedDisplayEntries = new ObservableCollection<LogEntry>();
+    private AgentLogSessionListItem _selectedSession;
+    private string _loadedArchiveSessionId;
 
     /// <summary>
     /// Полный симбионтный лог (для отчётов сценариев и отладки).
@@ -38,9 +42,42 @@ namespace AIStudio.ViewModels
     public ReadOnlyObservableCollection<LogEntry> LogEntries => MemoryLogManager.Instance.LogEntries;
 
     /// <summary>
-    /// Симбионтный лог для таблицы: одна строка на глобальный пульс после слияния снимков в движке.
+    /// Список сессий: текущая и архивы прошлых запусков.
     /// </summary>
-    public ReadOnlyObservableCollection<LogEntry> AgentDisplayLogEntries => MemoryLogManager.Instance.AgentDisplayLogEntries;
+    public ObservableCollection<AgentLogSessionListItem> LogSessions { get; } = new ObservableCollection<AgentLogSessionListItem>();
+
+    /// <summary>
+    /// Выбранная сессия в комбобоксе.
+    /// </summary>
+    public AgentLogSessionListItem SelectedSession
+    {
+      get => _selectedSession;
+      set
+      {
+        if (_selectedSession == value)
+          return;
+        _selectedSession = value;
+        OnPropertyChanged(nameof(SelectedSession));
+        OnPropertyChanged(nameof(IsViewingCurrentSession));
+        OnPropertyChanged(nameof(CanClearLogs));
+        (ClearLogsCommand as RelayCommand)?.RaiseCanExecuteChanged();
+        ApplySelectedSessionView();
+      }
+    }
+
+    /// <summary>Просматривается ли сейчас живая сессия (а не архив).</summary>
+    public bool IsViewingCurrentSession => SelectedSession == null || SelectedSession.IsCurrent;
+
+    /// <summary>Можно ли очистить лог (только для текущей сессии).</summary>
+    public bool CanClearLogs => IsViewingCurrentSession;
+
+    /// <summary>
+    /// Симбионтный лог для таблицы: текущая сессия или загруженный архив.
+    /// </summary>
+    public object DisplayedAgentLogEntries =>
+        IsViewingCurrentSession
+            ? (object)MemoryLogManager.Instance.AgentDisplayLogEntries
+            : _archivedDisplayEntries;
 
     /// <summary>
     /// Коллекция записей логов цепочек рефлексов и автоматизмов только для чтения
@@ -77,15 +114,74 @@ namespace AIStudio.ViewModels
           automatizmSystem ?? throw new ArgumentNullException(nameof(automatizmSystem)),
           actionsImagesSystem ?? throw new ArgumentNullException(nameof(actionsImagesSystem)));
 
-      ClearLogsCommand = new RelayCommand(_ => ClearLogs());
+      ClearLogsCommand = new RelayCommand(_ => ClearLogs(), _ => CanClearLogs);
 
-      // Таймер для обновления интерфейса (автообновление всегда включено)
+      ReloadSessionList(selectCurrent: true);
+
       _refreshTimer = new DispatcherTimer
       {
-        Interval = TimeSpan.FromMilliseconds(100) // 10 FPS для плавной анимации
+        Interval = TimeSpan.FromMilliseconds(100)
       };
       _refreshTimer.Tick += (s, e) => RefreshDisplay();
       _refreshTimer.Start();
+    }
+
+    private void ReloadSessionList(bool selectCurrent)
+    {
+      var keepId = selectCurrent ? null : SelectedSession?.SessionId;
+
+      LogSessions.Clear();
+      int liveCount = MemoryLogManager.Instance.AgentDisplayLogEntries.Count;
+      LogSessions.Add(AgentLogSessionListItem.CreateCurrent(liveCount));
+
+      foreach (var archived in AgentLogSessionStorage.ListArchivedSessions())
+        LogSessions.Add(AgentLogSessionListItem.FromArchived(archived));
+
+      AgentLogSessionListItem pick = LogSessions.FirstOrDefault(s =>
+          (keepId == null && s.IsCurrent) ||
+          (!s.IsCurrent && s.SessionId == keepId));
+
+      if (pick == null)
+        pick = LogSessions.FirstOrDefault();
+
+      SelectedSession = pick;
+    }
+
+    private void UpdateCurrentSessionListItemLabel()
+    {
+      var current = LogSessions.FirstOrDefault(s => s.IsCurrent);
+      if (current == null)
+        return;
+
+      int count = MemoryLogManager.Instance.AgentDisplayLogEntries.Count;
+      current.UpdateCurrentEntryCount(count);
+    }
+
+    private void ApplySelectedSessionView()
+    {
+      if (IsViewingCurrentSession)
+      {
+        _loadedArchiveSessionId = null;
+        _archivedDisplayEntries.Clear();
+      }
+      else
+      {
+        LoadArchivedSession(SelectedSession.SessionId);
+      }
+
+      OnPropertyChanged(nameof(DisplayedAgentLogEntries));
+    }
+
+    private void LoadArchivedSession(string sessionId)
+    {
+      if (_loadedArchiveSessionId == sessionId && _archivedDisplayEntries.Count > 0)
+        return;
+
+      _archivedDisplayEntries.Clear();
+      _loadedArchiveSessionId = sessionId;
+
+      foreach (var entry in AgentLogSessionStorage.LoadSessionEntries(sessionId))
+        _archivedDisplayEntries.Add(entry);
     }
 
     /// <summary>
@@ -95,22 +191,27 @@ namespace AIStudio.ViewModels
     {
       if (_disposed) return;
 
-      // Принудительно обновляем привязку (автообновление всегда включено)
-      OnPropertyChanged(nameof(LogEntries));
-      OnPropertyChanged(nameof(AgentDisplayLogEntries));
-      OnPropertyChanged(nameof(ChainLogEntries));
+      UpdateCurrentSessionListItemLabel();
+
+      if (IsViewingCurrentSession)
+      {
+        OnPropertyChanged(nameof(DisplayedAgentLogEntries));
+        OnPropertyChanged(nameof(LogEntries));
+        OnPropertyChanged(nameof(ChainLogEntries));
+      }
     }
 
     /// <summary>
-    /// Очищает все логи
+    /// Очищает все логи текущей сессии
     /// </summary>
     private void ClearLogs()
     {
-      if (_disposed) return;
+      if (_disposed || !CanClearLogs) return;
 
       MemoryLogManager.Instance.Clear();
+      ReloadSessionList(selectCurrent: true);
       OnPropertyChanged(nameof(LogEntries));
-      OnPropertyChanged(nameof(AgentDisplayLogEntries));
+      OnPropertyChanged(nameof(DisplayedAgentLogEntries));
       OnPropertyChanged(nameof(ChainLogEntries));
     }
 
