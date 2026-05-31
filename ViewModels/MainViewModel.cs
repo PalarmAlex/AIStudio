@@ -2055,6 +2055,7 @@ namespace AIStudio
       var liveLogsView = new LiveLogsView();
       var viewModel = new LiveLogsViewModel(
           _gomeostas,
+          _researchLogger,
           _perceptionImagesSystem,
           _influenceActionSystem,
           _sensorySystem.VerbalChannel,
@@ -2073,7 +2074,7 @@ namespace AIStudio
     private void ShowStileLogs()
     {
       var stileLogsView = new StyleLogsView();
-      var viewModel = new StyleLogsViewModel(_gomeostas);
+      var viewModel = new StyleLogsViewModel(_gomeostas, _researchLogger);
       stileLogsView.DataContext = viewModel;
       CurrentContent = stileLogsView;
     }
@@ -2084,7 +2085,7 @@ namespace AIStudio
     private void ShowParametersLogs()
     {
       var parameterLogsView = new ParameterLogsView();
-      var viewModel = new ParameterLogsViewModel(_gomeostas);
+      var viewModel = new ParameterLogsViewModel(_gomeostas, _researchLogger);
       parameterLogsView.DataContext = viewModel;
       CurrentContent = parameterLogsView;
     }

@@ -1,9 +1,11 @@
 using AIStudio.Common;
+using ISIDA.Common;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Linq;
+using System.Windows;
 using System.Windows.Input;
 
 namespace AIStudio.ViewModels
@@ -39,26 +41,18 @@ namespace AIStudio.ViewModels
     public ICommand SelectAllCommand { get; }
     public ICommand ClearAllCommand { get; }
 
-    public LogSessionPickerViewModel(LogSessionPickerKind kind, IEnumerable<string> initiallySelectedKeys)
+    private readonly LogSessionPickerKind _kind;
+    private readonly ResearchLogger _researchLogger;
+
+    public LogSessionPickerViewModel(
+        LogSessionPickerKind kind,
+        ResearchLogger researchLogger,
+        IEnumerable<string> initiallySelectedKeys)
     {
+      _kind = kind;
+      _researchLogger = researchLogger;
       var selected = new HashSet<string>(initiallySelectedKeys ?? Enumerable.Empty<string>(), StringComparer.Ordinal);
-
-      int liveCount = GetLiveEntryCount(kind);
-      string currentSuffix = liveCount > 0 ? " (" + liveCount + ")" : " (пусто)";
-      Items.Add(new LiveLogSessionPickerItem(
-          LogFileSessionInfo.CurrentSessionKey,
-          true,
-          "Текущая сессия" + currentSuffix,
-          selected.Contains(LogFileSessionInfo.CurrentSessionKey)));
-
-      foreach (var fileSession in ListFileSessions(kind))
-      {
-        Items.Add(new LiveLogSessionPickerItem(
-            fileSession.SessionKey,
-            false,
-            fileSession.BuildDisplayLabel(),
-            selected.Contains(fileSession.SessionKey)));
-      }
+      LoadItems(selected);
 
       SelectAllCommand = new RelayCommand(_ =>
       {
@@ -71,6 +65,45 @@ namespace AIStudio.ViewModels
         foreach (var item in Items)
           item.IsChecked = false;
       });
+    }
+
+    public bool TryDeleteSelectedSessions(Window owner)
+    {
+      return LogSessionPickerDeleteOperations.TryDeleteSelected(
+          Items,
+          DeleteSessionsByIndex,
+          () => LoadItems(new HashSet<string>(new[] { LogFileSessionInfo.CurrentSessionKey }, StringComparer.Ordinal)),
+          owner);
+    }
+
+    private (bool ok, string error) DeleteSessionsByIndex(IEnumerable<int> indices)
+    {
+      bool ok = LogFileSessionDeletion.TryDeleteSessions(_researchLogger, _kind, indices, out string error);
+      return (ok, error);
+    }
+
+    private void LoadItems(HashSet<string> selected)
+    {
+      Items.Clear();
+
+      int liveCount = GetLiveEntryCount(_kind);
+      string currentSuffix = liveCount > 0 ? " (" + liveCount + ")" : " (пусто)";
+      Items.Add(new LiveLogSessionPickerItem(
+          LogFileSessionInfo.CurrentSessionKey,
+          true,
+          "Текущая сессия" + currentSuffix,
+          selected.Contains(LogFileSessionInfo.CurrentSessionKey)));
+
+      foreach (var fileSession in ListFileSessions(_kind))
+      {
+        Items.Add(new LiveLogSessionPickerItem(
+            fileSession.SessionKey,
+            false,
+            fileSession.BuildDisplayLabel(),
+            selected.Contains(fileSession.SessionKey)));
+      }
+
+      ApplyFilter();
     }
 
     public HashSet<string> GetSelectedKeys() =>

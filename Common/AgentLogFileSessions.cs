@@ -447,5 +447,144 @@ namespace AIStudio.Common
     }
 
     private static string NullIfEmpty(string s) => string.IsNullOrWhiteSpace(s) ? null : s.Trim();
+
+    /// <summary>Удаляет сохранённые сессии из AgentLogs.csv и при наличии — из AgentLogs.jsonl.</summary>
+    public static bool TryDeleteFileSessions(IEnumerable<int> blockIndicesToDelete, out string errorMessage)
+    {
+      errorMessage = null;
+      var toDelete = new HashSet<int>(blockIndicesToDelete ?? Enumerable.Empty<int>());
+      if (toDelete.Count == 0)
+        return true;
+
+      var path = ResolveAgentLogCsvPath();
+      if (!File.Exists(path))
+      {
+        errorMessage = "Файл логов не найден.";
+        return false;
+      }
+
+      try
+      {
+        var csvBlocks = ReadRawCsvBlocks(path);
+        var remainingCsv = csvBlocks.Where((_, i) => !toDelete.Contains(i)).ToList();
+        WriteRawCsvBlocks(path, remainingCsv);
+
+        var jsonlPath = Path.Combine(Path.GetDirectoryName(path) ?? "", "AgentLogs.jsonl");
+        if (File.Exists(jsonlPath))
+        {
+          var jsonlBlocks = ReadRawJsonlBlocks(jsonlPath);
+          var remainingJsonl = jsonlBlocks.Where((_, i) => !toDelete.Contains(i)).ToList();
+          WriteRawJsonlBlocks(jsonlPath, remainingJsonl);
+        }
+
+        return true;
+      }
+      catch (Exception ex)
+      {
+        errorMessage = ex.Message;
+        Logger.Error("Удаление сессий AgentLogs: " + ex.Message);
+        return false;
+      }
+    }
+
+    private sealed class RawCsvBlock
+    {
+      public string HeaderLine { get; set; }
+      public List<string> DataLines { get; } = new List<string>();
+    }
+
+    private sealed class RawJsonlBlock
+    {
+      public List<string> Lines { get; } = new List<string>();
+    }
+
+    private static List<RawCsvBlock> ReadRawCsvBlocks(string path)
+    {
+      var blocks = new List<RawCsvBlock>();
+      RawCsvBlock current = null;
+
+      foreach (var line in ReadLinesShared(path))
+      {
+        if (string.IsNullOrWhiteSpace(line))
+          continue;
+
+        if (IsHeaderRow(line))
+        {
+          current = new RawCsvBlock { HeaderLine = line };
+          blocks.Add(current);
+          continue;
+        }
+
+        current?.DataLines.Add(line);
+      }
+
+      return blocks;
+    }
+
+    private static void WriteRawCsvBlocks(string path, IReadOnlyList<RawCsvBlock> blocks)
+    {
+      var sb = new StringBuilder();
+      foreach (var block in blocks)
+      {
+        sb.AppendLine(block.HeaderLine);
+        foreach (var line in block.DataLines)
+          sb.AppendLine(line);
+      }
+
+      WriteFileAtomically(path, sb.ToString());
+    }
+
+    private static List<RawJsonlBlock> ReadRawJsonlBlocks(string jsonlPath)
+    {
+      var blocks = new List<RawJsonlBlock>();
+      RawJsonlBlock current = null;
+      int? lastPulse = null;
+
+      foreach (var line in ReadLinesShared(jsonlPath))
+      {
+        if (string.IsNullOrWhiteSpace(line) || line[0] != '{')
+          continue;
+
+        var entry = TryParseJsonlRow(line);
+        if (entry == null)
+          continue;
+
+        int pulse = entry.Pulse ?? 0;
+        bool newSession = current == null
+                          || (pulse == 1 && lastPulse.HasValue && lastPulse.Value > 1);
+
+        if (newSession)
+        {
+          current = new RawJsonlBlock();
+          blocks.Add(current);
+          lastPulse = null;
+        }
+
+        current.Lines.Add(line);
+        lastPulse = pulse;
+      }
+
+      return blocks;
+    }
+
+    private static void WriteRawJsonlBlocks(string jsonlPath, IReadOnlyList<RawJsonlBlock> blocks)
+    {
+      var sb = new StringBuilder();
+      foreach (var block in blocks)
+      {
+        foreach (var line in block.Lines)
+          sb.AppendLine(line);
+      }
+
+      WriteFileAtomically(jsonlPath, sb.ToString());
+    }
+
+    private static void WriteFileAtomically(string path, string content)
+    {
+      var tempPath = path + ".tmp";
+      File.WriteAllText(tempPath, content, new UTF8Encoding(encoderShouldEmitUTF8Identifier: true));
+      File.Copy(tempPath, path, overwrite: true);
+      File.Delete(tempPath);
+    }
   }
 }

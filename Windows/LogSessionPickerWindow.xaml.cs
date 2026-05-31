@@ -1,4 +1,5 @@
 using AIStudio.ViewModels;
+using ISIDA.Common;
 using System.Collections.Generic;
 using System.Windows;
 using System.Windows.Input;
@@ -9,12 +10,17 @@ namespace AIStudio.Windows
   {
     public LogSessionPickerViewModel ViewModel { get; }
 
-    public LogSessionPickerWindow(string title, string headerText, LogSessionPickerKind kind, IEnumerable<string> initiallySelectedKeys)
+    public LogSessionPickerWindow(
+        string title,
+        string headerText,
+        LogSessionPickerKind kind,
+        ResearchLogger researchLogger,
+        IEnumerable<string> initiallySelectedKeys)
     {
       InitializeComponent();
       Title = title;
       HeaderText.Text = headerText;
-      ViewModel = new LogSessionPickerViewModel(kind, initiallySelectedKeys);
+      ViewModel = new LogSessionPickerViewModel(kind, researchLogger, initiallySelectedKeys);
       DataContext = ViewModel;
     }
 
@@ -28,6 +34,11 @@ namespace AIStudio.Windows
     {
       DialogResult = false;
       Close();
+    }
+
+    private void DeleteButton_Click(object sender, RoutedEventArgs e)
+    {
+      ViewModel.TryDeleteSelectedSessions(this);
     }
 
     private void Window_PreviewKeyDown(object sender, KeyEventArgs e)

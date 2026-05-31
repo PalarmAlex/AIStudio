@@ -225,5 +225,83 @@ namespace AIStudio.Common
       raw = raw.Trim().Replace(',', '.');
       return float.TryParse(raw, NumberStyles.Float, CultureInfo.InvariantCulture, out float v) ? v : 0f;
     }
+
+    /// <summary>Удаляет блоки сессий по индексам в файле (как SessionIndex в LogFileSessionInfo).</summary>
+    public static bool TryDeleteSessionsByBlockIndex(
+        string csvFileName,
+        Func<string, bool> isHeaderRow,
+        IEnumerable<int> blockIndicesToDelete,
+        out string errorMessage)
+    {
+      errorMessage = null;
+      var toDelete = new HashSet<int>(blockIndicesToDelete ?? Enumerable.Empty<int>());
+      if (toDelete.Count == 0)
+        return true;
+
+      var path = LogFilePaths.ResolveLogFile(csvFileName);
+      if (!File.Exists(path))
+      {
+        errorMessage = "Файл логов не найден.";
+        return false;
+      }
+
+      try
+      {
+        var blocks = ReadRawBlocks(path, isHeaderRow);
+        var remaining = blocks.Where((_, i) => !toDelete.Contains(i)).ToList();
+        WriteRawBlocks(path, remaining);
+        return true;
+      }
+      catch (Exception ex)
+      {
+        errorMessage = ex.Message;
+        return false;
+      }
+    }
+
+    private sealed class RawBlock
+    {
+      public string HeaderLine { get; set; }
+      public List<string> DataLines { get; } = new List<string>();
+    }
+
+    private static List<RawBlock> ReadRawBlocks(string path, Func<string, bool> isHeaderRow)
+    {
+      var blocks = new List<RawBlock>();
+      RawBlock current = null;
+
+      foreach (var line in ReadLinesShared(path))
+      {
+        if (string.IsNullOrWhiteSpace(line))
+          continue;
+
+        if (isHeaderRow(line))
+        {
+          current = new RawBlock { HeaderLine = line };
+          blocks.Add(current);
+          continue;
+        }
+
+        current?.DataLines.Add(line);
+      }
+
+      return blocks;
+    }
+
+    private static void WriteRawBlocks(string path, IReadOnlyList<RawBlock> blocks)
+    {
+      var sb = new StringBuilder();
+      foreach (var block in blocks)
+      {
+        sb.AppendLine(block.HeaderLine);
+        foreach (var line in block.DataLines)
+          sb.AppendLine(line);
+      }
+
+      var tempPath = path + ".tmp";
+      File.WriteAllText(tempPath, sb.ToString(), new UTF8Encoding(encoderShouldEmitUTF8Identifier: true));
+      File.Copy(tempPath, path, overwrite: true);
+      File.Delete(tempPath);
+    }
   }
 }

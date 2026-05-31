@@ -35,7 +35,7 @@ namespace AIStudio.Common
       return data;
     }
 
-    private static bool IsHeaderRow(string line)
+    internal static bool IsHeaderRow(string line)
     {
       line = line ?? string.Empty;
       return line.IndexOf("ActivationDetails", StringComparison.Ordinal) >= 0

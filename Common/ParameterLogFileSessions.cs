@@ -31,7 +31,7 @@ namespace AIStudio.Common
       return list;
     }
 
-    private static bool IsHeaderRow(string line)
+    internal static bool IsHeaderRow(string line)
     {
       line = line ?? string.Empty;
       return line.IndexOf("ActivationZone", StringComparison.Ordinal) >= 0

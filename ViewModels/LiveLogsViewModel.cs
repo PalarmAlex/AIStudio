@@ -31,6 +31,7 @@ namespace AIStudio.ViewModels
 
     private readonly AgentLogCellTooltipProvider _tooltipProvider;
     private readonly GomeostasSystem _gomeostas;
+    private readonly ResearchLogger _researchLogger;
     private string _currentAgentName;
     private int _currentAgentStage;
     private readonly ObservableCollection<LogEntry> _mergedDisplayEntries = new ObservableCollection<LogEntry>();
@@ -63,6 +64,7 @@ namespace AIStudio.ViewModels
 
     public LiveLogsViewModel(
         GomeostasSystem gomeostas,
+        ResearchLogger researchLogger,
         PerceptionImagesSystem perceptionImagesSystem,
         InfluenceActionSystem influenceActionSystem,
         VerbalSensorChannel verbalSensor,
@@ -73,6 +75,7 @@ namespace AIStudio.ViewModels
         ActionsImagesSystem actionsImagesSystem)
     {
       _gomeostas = gomeostas ?? throw new ArgumentNullException(nameof(gomeostas));
+      _researchLogger = researchLogger ?? throw new ArgumentNullException(nameof(researchLogger));
       _tooltipProvider = new AgentLogCellTooltipProvider(
           _gomeostas,
           perceptionImagesSystem ?? throw new ArgumentNullException(nameof(perceptionImagesSystem)),
@@ -100,10 +103,14 @@ namespace AIStudio.ViewModels
 
     private void OpenSessionsPicker()
     {
+      if (!LogSessionPickerGate.EnsurePulsationStopped(Application.Current?.MainWindow))
+        return;
+
       var dlg = new LogSessionPickerWindow(
           "Сессии системных логов",
           "ВЫБОР СЕССИЙ ЛОГОВ",
           LogSessionPickerKind.Agent,
+          _researchLogger,
           _selectedSessionKeys)
       {
         Owner = Application.Current?.MainWindow

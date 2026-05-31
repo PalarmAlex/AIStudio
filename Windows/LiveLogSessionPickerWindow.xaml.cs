@@ -1,4 +1,5 @@
 using AIStudio.ViewModels;
+using ISIDA.Common;
 using System.Collections.Generic;
 using System.Windows;
 using System.Windows.Input;
@@ -9,10 +10,10 @@ namespace AIStudio.Windows
   {
     public LiveLogSessionPickerViewModel ViewModel { get; }
 
-    public LiveLogSessionPickerWindow(IEnumerable<string> initiallySelectedKeys)
+    public LiveLogSessionPickerWindow(ResearchLogger researchLogger, IEnumerable<string> initiallySelectedKeys)
     {
       InitializeComponent();
-      ViewModel = new LiveLogSessionPickerViewModel(initiallySelectedKeys);
+      ViewModel = new LiveLogSessionPickerViewModel(researchLogger, initiallySelectedKeys);
       DataContext = ViewModel;
     }
 
@@ -26,6 +27,11 @@ namespace AIStudio.Windows
     {
       DialogResult = false;
       Close();
+    }
+
+    private void DeleteButton_Click(object sender, RoutedEventArgs e)
+    {
+      ViewModel.TryDeleteSelectedSessions(this);
     }
 
     private void Window_PreviewKeyDown(object sender, KeyEventArgs e)

@@ -87,6 +87,8 @@
     <Compile Include="Common\CsvLogFileSessionReader.cs" />
     <Compile Include="Common\LogFilePaths.cs" />
     <Compile Include="Common\LogFileSessionInfo.cs" />
+    <Compile Include="Common\LogSessionPickerGate.cs" />
+    <Compile Include="Common\LogFileSessionDeletion.cs" />
     <Compile Include="Common\LogSessionsUiHelper.cs" />
     <Compile Include="Common\ParameterLogFileSessions.cs" />
     <Compile Include="Common\StyleLogFileSessions.cs" />
@@ -331,6 +333,7 @@
     <Compile Include="ViewModels\ExterInalInfluencesViewModel.cs" />
     <Compile Include="ViewModels\LiveLogSessionPickerItem.cs" />
     <Compile Include="ViewModels\LiveLogSessionPickerViewModel.cs" />
+    <Compile Include="ViewModels\LogSessionPickerDeleteOperations.cs" />
     <Compile Include="ViewModels\LogSessionPickerViewModel.cs" />
     <Compile Include="ViewModels\LiveLogsViewModel.cs" />
     <Compile Include="ViewModels\ThinkingCyclesViewModel.cs" />

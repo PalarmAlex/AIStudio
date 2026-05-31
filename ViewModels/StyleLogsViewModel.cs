@@ -8,6 +8,7 @@ using System.Windows.Input;
 using System.Windows.Threading;
 using AIStudio.Common;
 using AIStudio.Windows;
+using ISIDA.Common;
 using ISIDA.Gomeostas;
 using static AIStudio.Common.MemoryLogManager;
 
@@ -20,6 +21,7 @@ namespace AIStudio.ViewModels
     private readonly DispatcherTimer _refreshTimer;
     private bool _disposed = false;
     private readonly GomeostasSystem _gomeostas;
+    private readonly ResearchLogger _researchLogger;
     private string _currentAgentName;
     private int _currentAgentStage;
     private StyleLogGroup _selectedRow;
@@ -50,9 +52,10 @@ namespace AIStudio.ViewModels
       }
     }
 
-    public StyleLogsViewModel(GomeostasSystem gomeostas = null)
+    public StyleLogsViewModel(GomeostasSystem gomeostas, ResearchLogger researchLogger)
     {
-      _gomeostas = gomeostas;
+      _gomeostas = gomeostas ?? throw new ArgumentNullException(nameof(gomeostas));
+      _researchLogger = researchLogger ?? throw new ArgumentNullException(nameof(researchLogger));
       RefreshAgentTitleContext();
       ClearLogsCommand = new RelayCommand(_ => ClearLogs());
       OpenSessionsPickerCommand = new RelayCommand(_ => OpenSessionsPicker());
@@ -67,10 +70,14 @@ namespace AIStudio.ViewModels
 
     private void OpenSessionsPicker()
     {
+      if (!LogSessionPickerGate.EnsurePulsationStopped(Application.Current?.MainWindow))
+        return;
+
       var dlg = new LogSessionPickerWindow(
           "Сессии логов стилей",
           "ВЫБОР СЕССИЙ — СТИЛИ",
           LogSessionPickerKind.Style,
+          _researchLogger,
           _selectedSessionKeys)
       {
         Owner = Application.Current?.MainWindow

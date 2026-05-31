@@ -1,10 +1,12 @@
 using AIStudio.Common;
+using ISIDA.Common;
 using System;
 using static AIStudio.Common.MemoryLogManager;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Linq;
+using System.Windows;
 using System.Windows.Input;
 
 namespace AIStudio.ViewModels
@@ -33,9 +35,47 @@ namespace AIStudio.ViewModels
     public ICommand SelectAllCommand { get; }
     public ICommand ClearAllCommand { get; }
 
-    public LiveLogSessionPickerViewModel(IEnumerable<string> initiallySelectedKeys)
+    private readonly ResearchLogger _researchLogger;
+
+    public LiveLogSessionPickerViewModel(ResearchLogger researchLogger, IEnumerable<string> initiallySelectedKeys)
     {
+      _researchLogger = researchLogger;
       var selected = new HashSet<string>(initiallySelectedKeys ?? Enumerable.Empty<string>(), StringComparer.Ordinal);
+      LoadItems(selected);
+
+      SelectAllCommand = new RelayCommand(_ =>
+      {
+        foreach (var item in Items.Where(i => i.IsVisible))
+          item.IsChecked = true;
+      });
+
+      ClearAllCommand = new RelayCommand(_ =>
+      {
+        foreach (var item in Items)
+          item.IsChecked = false;
+      });
+    }
+
+    public bool TryDeleteSelectedSessions(Window owner)
+    {
+      return LogSessionPickerDeleteOperations.TryDeleteSelected(
+          Items,
+          indices =>
+          {
+            bool ok = LogFileSessionDeletion.TryDeleteSessions(
+                _researchLogger,
+                LogSessionPickerKind.Agent,
+                indices,
+                out string error);
+            return (ok, error);
+          },
+          () => LoadItems(new HashSet<string>(new[] { AgentLogFileSessions.CurrentSessionKey }, StringComparer.Ordinal)),
+          owner);
+    }
+
+    private void LoadItems(HashSet<string> selected)
+    {
+      Items.Clear();
 
       int liveCount = MemoryLogManager.Instance.AgentDisplayLogEntries.Count;
       string currentSuffix = liveCount > 0 ? " (" + liveCount + ")" : " (пусто)";
@@ -54,17 +94,7 @@ namespace AIStudio.ViewModels
             selected.Contains(fileSession.SessionKey)));
       }
 
-      SelectAllCommand = new RelayCommand(_ =>
-      {
-        foreach (var item in Items.Where(i => i.IsVisible))
-          item.IsChecked = true;
-      });
-
-      ClearAllCommand = new RelayCommand(_ =>
-      {
-        foreach (var item in Items)
-          item.IsChecked = false;
-      });
+      ApplyFilter();
     }
 
     public HashSet<string> GetSelectedKeys()
