@@ -92,6 +92,29 @@
       <Setter Property="ScrollViewer.VerticalScrollBarVisibility" Value="Auto"/>
     </Style>
 
+    <Style x:Key="MatrixLinkButtonStyle" TargetType="Button">
+      <Setter Property="Background" Value="Transparent"/>
+      <Setter Property="BorderThickness" Value="0"/>
+      <Setter Property="Padding" Value="0"/>
+      <Setter Property="Cursor" Value="Hand"/>
+      <Setter Property="FontFamily" Value="Consolas, Courier New"/>
+      <Setter Property="FontSize" Value="11"/>
+      <Setter Property="Foreground" Value="#00FF00"/>
+      <Setter Property="HorizontalContentAlignment" Value="Left"/>
+      <Setter Property="Template">
+        <Setter.Value>
+          <ControlTemplate TargetType="Button">
+            <ContentPresenter/>
+          </ControlTemplate>
+        </Setter.Value>
+      </Setter>
+      <Style.Triggers>
+        <Trigger Property="IsMouseOver" Value="True">
+          <Setter Property="Foreground" Value="#80FF80"/>
+        </Trigger>
+      </Style.Triggers>
+    </Style>
+
     <Style x:Key="MatrixButtonStyle" TargetType="Button">
       <Setter Property="Background" Value="#002000"/>
       <Setter Property="Foreground" Value="#00FF00"/>
@@ -180,11 +203,24 @@
 
     <!-- Панель управления -->
     <Border Grid.Row="2" Background="#101010" Padding="10" BorderBrush="#00FF00" BorderThickness="0,1,0,0">
-      <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
-        <Button Content="ОЧИСТИТЬ" 
+      <Grid>
+        <Grid.ColumnDefinitions>
+          <ColumnDefinition Width="*"/>
+          <ColumnDefinition Width="Auto"/>
+        </Grid.ColumnDefinitions>
+        <Button Grid.Column="0"
+                Style="{StaticResource MatrixLinkButtonStyle}"
+                Content="{Binding SessionsButtonLabel}"
+                Command="{Binding OpenSessionsPickerCommand}"
+                HorizontalAlignment="Left"
+                VerticalAlignment="Center"
+                ToolTip="Сессии из памяти и AgentLogs_Parameters.csv"/>
+        <Button Grid.Column="1"
+                Content="ОЧИСТИТЬ"
                 Command="{Binding ClearLogsCommand}"
-                Style="{StaticResource MatrixButtonStyle}"/>
-      </StackPanel>
+                Style="{StaticResource MatrixButtonStyle}"
+                ToolTip="Очистить данные на экране (память и выбранные сессии из файла)"/>
+      </Grid>
     </Border>
   </Grid>
 </UserControl>

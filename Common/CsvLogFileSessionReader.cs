@@ -1,0 +1,229 @@
+using ISIDA.Common;
+using System;
+using System.Collections.Generic;
+using System.Globalization;
+using System.IO;
+using System.Linq;
+using System.Text;
+
+namespace AIStudio.Common
+{
+  /// <summary>Чтение сессий из CSV с повторяющимися строками заголовка.</summary>
+  public static class CsvLogFileSessionReader
+  {
+    private static readonly string[] TimeFormats =
+    {
+      "yyyy-MM-dd HH:mm:ss",
+      "dd.MM.yyyy HH:mm:ss"
+    };
+
+    public static IReadOnlyList<LogFileSessionInfo> ListSessions(
+        string csvFileName,
+        Func<string, bool> isHeaderRow,
+        string timeColumnName)
+    {
+      var path = LogFilePaths.ResolveLogFile(csvFileName);
+      if (!File.Exists(path))
+        return Array.Empty<LogFileSessionInfo>();
+
+      try
+      {
+        var blocks = ReadBlocks(path, isHeaderRow, timeColumnName);
+        var list = new List<LogFileSessionInfo>();
+        for (int i = 0; i < blocks.Count; i++)
+        {
+          if (blocks[i].RowCount == 0)
+            continue;
+          list.Add(new LogFileSessionInfo
+          {
+            SessionKey = i.ToString(CultureInfo.InvariantCulture),
+            SessionIndex = i,
+            StartedLocal = blocks[i].StartedLocal,
+            EndedLocal = blocks[i].EndedLocal,
+            EntryCount = blocks[i].RowCount
+          });
+        }
+
+        return list.OrderByDescending(s => s.StartedLocal).ToList();
+      }
+      catch (Exception ex)
+      {
+        Logger.Error(csvFileName + " сессии: " + ex.Message);
+        return Array.Empty<LogFileSessionInfo>();
+      }
+    }
+
+    public static List<Dictionary<string, string>> ReadSessionRows(
+        string csvFileName,
+        int sessionIndex,
+        Func<string, bool> isHeaderRow)
+    {
+      var path = LogFilePaths.ResolveLogFile(csvFileName);
+      if (!File.Exists(path))
+        return new List<Dictionary<string, string>>();
+
+      var blocks = ReadBlocks(path, isHeaderRow, "Time");
+      if (sessionIndex < 0 || sessionIndex >= blocks.Count)
+        return new List<Dictionary<string, string>>();
+
+      return blocks[sessionIndex].Rows;
+    }
+
+    public static List<Dictionary<string, string>> ReadSessionRows(
+        string csvFileName,
+        int sessionIndex,
+        Func<string, bool> isHeaderRow,
+        string timeColumnName)
+    {
+      var path = LogFilePaths.ResolveLogFile(csvFileName);
+      if (!File.Exists(path))
+        return new List<Dictionary<string, string>>();
+
+      var blocks = ReadBlocks(path, isHeaderRow, timeColumnName);
+      if (sessionIndex < 0 || sessionIndex >= blocks.Count)
+        return new List<Dictionary<string, string>>();
+
+      return blocks[sessionIndex].Rows;
+    }
+
+    private sealed class Block
+    {
+      public List<Dictionary<string, string>> Rows { get; } = new List<Dictionary<string, string>>();
+      public int RowCount { get; set; }
+      public DateTime StartedLocal { get; set; }
+      public DateTime EndedLocal { get; set; }
+    }
+
+    private static List<Block> ReadBlocks(string path, Func<string, bool> isHeaderRow, string timeColumnName)
+    {
+      var blocks = new List<Block>();
+      Block current = null;
+      Dictionary<string, int> columns = null;
+
+      foreach (var line in ReadLinesShared(path))
+      {
+        if (string.IsNullOrWhiteSpace(line))
+          continue;
+
+        if (isHeaderRow(line))
+        {
+          current = new Block();
+          blocks.Add(current);
+          columns = ParseHeaderColumns(line);
+          continue;
+        }
+
+        if (current == null || columns == null)
+          continue;
+
+        var row = ParseDataRow(line, columns, timeColumnName);
+        if (row == null)
+          continue;
+
+        current.Rows.Add(row);
+        current.RowCount++;
+
+        if (TryParseTimestamp(row, timeColumnName, out DateTime ts))
+        {
+          if (current.RowCount == 1)
+            current.StartedLocal = ts;
+          current.EndedLocal = ts;
+        }
+      }
+
+      return blocks;
+    }
+
+    private static IEnumerable<string> ReadLinesShared(string path)
+    {
+      using (var fs = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite | FileShare.Delete))
+      using (var reader = new StreamReader(fs, Encoding.UTF8, detectEncodingFromByteOrderMarks: true))
+      {
+        string line;
+        while ((line = reader.ReadLine()) != null)
+          yield return StripBom(line);
+      }
+    }
+
+    private static string StripBom(string line)
+    {
+      if (string.IsNullOrEmpty(line))
+        return line;
+      if (line[0] == '\uFEFF')
+        return line.Substring(1);
+      return line;
+    }
+
+    private static Dictionary<string, int> ParseHeaderColumns(string headerLine)
+    {
+      var parts = StripBom(headerLine ?? string.Empty).Split(';');
+      var map = new Dictionary<string, int>(StringComparer.Ordinal);
+      for (int i = 0; i < parts.Length; i++)
+      {
+        var name = parts[i].Trim();
+        if (string.IsNullOrEmpty(name) || map.ContainsKey(name))
+          continue;
+        map[name] = i;
+      }
+      return map;
+    }
+
+    private static Dictionary<string, string> ParseDataRow(string line, Dictionary<string, int> columns, string timeColumnName)
+    {
+      var parts = line.Split(';');
+      if (parts.Length < 3)
+        return null;
+
+      string Get(string name)
+      {
+        if (!columns.TryGetValue(name, out int ix) || ix >= parts.Length)
+          return string.Empty;
+        return parts[ix]?.Trim() ?? string.Empty;
+      }
+
+      if (!TryParseTimestamp(Get(timeColumnName), out _))
+        return null;
+
+      var row = new Dictionary<string, string>(StringComparer.Ordinal);
+      foreach (var kv in columns)
+        row[kv.Key] = Get(kv.Key);
+      return row;
+    }
+
+    private static bool TryParseTimestamp(Dictionary<string, string> row, string timeColumnName, out DateTime timestamp)
+    {
+      timestamp = default;
+      return row != null && row.TryGetValue(timeColumnName, out string raw) && TryParseTimestamp(raw, out timestamp);
+    }
+
+    public static bool TryParseTimestamp(string raw, out DateTime timestamp)
+    {
+      timestamp = default;
+      if (string.IsNullOrWhiteSpace(raw))
+        return false;
+
+      if (DateTime.TryParseExact(raw, TimeFormats, CultureInfo.InvariantCulture,
+              DateTimeStyles.AssumeLocal, out timestamp))
+        return true;
+
+      return DateTime.TryParse(raw, CultureInfo.CurrentCulture, DateTimeStyles.AssumeLocal, out timestamp);
+    }
+
+    public static int ParseInt(string raw, int defaultValue = 0)
+    {
+      if (string.IsNullOrWhiteSpace(raw))
+        return defaultValue;
+      return int.TryParse(raw.Trim(), NumberStyles.Integer, CultureInfo.InvariantCulture, out int v)
+          ? v
+          : defaultValue;
+    }
+
+    public static float ParseFloat(string raw)
+    {
+      if (string.IsNullOrWhiteSpace(raw))
+        return 0f;
+      raw = raw.Trim().Replace(',', '.');
+      return float.TryParse(raw, NumberStyles.Float, CultureInfo.InvariantCulture, out float v) ? v : 0f;
+    }
+  }
+}

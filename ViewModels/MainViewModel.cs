@@ -232,17 +232,6 @@ namespace AIStudio
       {
         Logger.Info("Начало завершения работы...");
 
-        try
-        {
-          AgentLogSessionStorage.ArchiveCurrentSessionIfNotEmpty(
-              MemoryLogManager.Instance.AgentDisplayLogEntries,
-              MemoryLogManager.Instance.CurrentSessionStartedUtc);
-        }
-        catch (Exception archiveEx)
-        {
-          Logger.Error("Архивация сессии логов: " + archiveEx.Message);
-        }
-
         // 1. Останавливаем пульсацию если активна
         if (IsPulsating)
         {

@@ -1,4 +1,5 @@
 ﻿using AIStudio.Common;
+using AIStudio.Windows;
 using ISIDA.Actions;
 using ISIDA.Common;
 using ISIDA.Gomeostas;
@@ -23,75 +24,37 @@ namespace AIStudio.ViewModels
   /// </summary>
   public class LiveLogsViewModel : INotifyPropertyChanged, IDisposable
   {
-    /// <summary>
-    /// Событие изменения свойства
-    /// </summary>
     public event PropertyChangedEventHandler PropertyChanged;
 
     private readonly DispatcherTimer _refreshTimer;
     private bool _disposed = false;
 
     private readonly AgentLogCellTooltipProvider _tooltipProvider;
-    private readonly ObservableCollection<LogEntry> _archivedDisplayEntries = new ObservableCollection<LogEntry>();
-    private AgentLogSessionListItem _selectedSession;
-    private string _loadedArchiveSessionId;
+    private readonly ObservableCollection<LogEntry> _mergedDisplayEntries = new ObservableCollection<LogEntry>();
+    private HashSet<string> _selectedSessionKeys = new HashSet<string>(StringComparer.Ordinal)
+    {
+      LogFileSessionInfo.CurrentSessionKey
+    };
 
-    /// <summary>
-    /// Полный симбионтный лог (для отчётов сценариев и отладки).
-    /// </summary>
     public ReadOnlyObservableCollection<LogEntry> LogEntries => MemoryLogManager.Instance.LogEntries;
 
-    /// <summary>
-    /// Список сессий: текущая и архивы прошлых запусков.
-    /// </summary>
-    public ObservableCollection<AgentLogSessionListItem> LogSessions { get; } = new ObservableCollection<AgentLogSessionListItem>();
+    public string SessionsButtonLabel => LogSessionsUiHelper.BuildButtonLabel(_selectedSessionKeys);
 
-    /// <summary>
-    /// Выбранная сессия в комбобоксе.
-    /// </summary>
-    public AgentLogSessionListItem SelectedSession
-    {
-      get => _selectedSession;
-      set
-      {
-        if (_selectedSession == value)
-          return;
-        _selectedSession = value;
-        OnPropertyChanged(nameof(SelectedSession));
-        OnPropertyChanged(nameof(IsViewingCurrentSession));
-        OnPropertyChanged(nameof(CanClearLogs));
-        (ClearLogsCommand as RelayCommand)?.RaiseCanExecuteChanged();
-        ApplySelectedSessionView();
-      }
-    }
+    public bool IsLiveOnlyView => LogSessionsUiHelper.UsesOnlyCurrentSession(_selectedSessionKeys);
 
-    /// <summary>Просматривается ли сейчас живая сессия (а не архив).</summary>
-    public bool IsViewingCurrentSession => SelectedSession == null || SelectedSession.IsCurrent;
+    private bool _suppressFileSessionLoad;
 
-    /// <summary>Можно ли очистить лог (только для текущей сессии).</summary>
-    public bool CanClearLogs => IsViewingCurrentSession;
-
-    /// <summary>
-    /// Симбионтный лог для таблицы: текущая сессия или загруженный архив.
-    /// </summary>
     public object DisplayedAgentLogEntries =>
-        IsViewingCurrentSession
+        IsLiveOnlyView
             ? (object)MemoryLogManager.Instance.AgentDisplayLogEntries
-            : _archivedDisplayEntries;
+            : _mergedDisplayEntries;
 
-    /// <summary>
-    /// Коллекция записей логов цепочек рефлексов и автоматизмов только для чтения
-    /// </summary>
-    public ReadOnlyObservableCollection<MemoryLogManager.ChainLogEntry> ChainLogEntries => MemoryLogManager.Instance.ChainLogEntries;
+    public ReadOnlyObservableCollection<MemoryLogManager.ChainLogEntry> ChainLogEntries =>
+        MemoryLogManager.Instance.ChainLogEntries;
 
-    /// <summary>
-    /// Команда очистки логов
-    /// </summary>
     public ICommand ClearLogsCommand { get; }
+    public ICommand OpenSessionsPickerCommand { get; }
 
-    /// <summary>
-    /// Конструктор модели представления живых логов
-    /// </summary>
     public LiveLogsViewModel(
         GomeostasSystem gomeostas,
         PerceptionImagesSystem perceptionImagesSystem,
@@ -114,9 +77,10 @@ namespace AIStudio.ViewModels
           automatizmSystem ?? throw new ArgumentNullException(nameof(automatizmSystem)),
           actionsImagesSystem ?? throw new ArgumentNullException(nameof(actionsImagesSystem)));
 
-      ClearLogsCommand = new RelayCommand(_ => ClearLogs(), _ => CanClearLogs);
+      ClearLogsCommand = new RelayCommand(_ => ClearLogs());
+      OpenSessionsPickerCommand = new RelayCommand(_ => OpenSessionsPicker());
 
-      ReloadSessionList(selectCurrent: true);
+      RebuildDisplayedEntries();
 
       _refreshTimer = new DispatcherTimer
       {
@@ -126,156 +90,135 @@ namespace AIStudio.ViewModels
       _refreshTimer.Start();
     }
 
-    private void ReloadSessionList(bool selectCurrent)
+    private void OpenSessionsPicker()
     {
-      var keepId = selectCurrent ? null : SelectedSession?.SessionId;
+      var dlg = new LogSessionPickerWindow(
+          "Сессии системных логов",
+          "ВЫБОР СЕССИЙ ЛОГОВ",
+          LogSessionPickerKind.Agent,
+          _selectedSessionKeys)
+      {
+        Owner = Application.Current?.MainWindow
+      };
 
-      LogSessions.Clear();
-      int liveCount = MemoryLogManager.Instance.AgentDisplayLogEntries.Count;
-      LogSessions.Add(AgentLogSessionListItem.CreateCurrent(liveCount));
-
-      foreach (var archived in AgentLogSessionStorage.ListArchivedSessions())
-        LogSessions.Add(AgentLogSessionListItem.FromArchived(archived));
-
-      AgentLogSessionListItem pick = LogSessions.FirstOrDefault(s =>
-          (keepId == null && s.IsCurrent) ||
-          (!s.IsCurrent && s.SessionId == keepId));
-
-      if (pick == null)
-        pick = LogSessions.FirstOrDefault();
-
-      SelectedSession = pick;
-    }
-
-    private void UpdateCurrentSessionListItemLabel()
-    {
-      var current = LogSessions.FirstOrDefault(s => s.IsCurrent);
-      if (current == null)
+      if (dlg.ShowDialog() != true)
         return;
 
-      int count = MemoryLogManager.Instance.AgentDisplayLogEntries.Count;
-      current.UpdateCurrentEntryCount(count);
+      _selectedSessionKeys = dlg.ViewModel.GetSelectedKeys();
+      if (_selectedSessionKeys.Count == 0)
+        _selectedSessionKeys.Add(LogFileSessionInfo.CurrentSessionKey);
+
+      _suppressFileSessionLoad = false;
+      OnPropertyChanged(nameof(SessionsButtonLabel));
+      OnPropertyChanged(nameof(IsLiveOnlyView));
+      RebuildDisplayedEntries();
     }
 
-    private void ApplySelectedSessionView()
+    private void RebuildDisplayedEntries()
     {
-      if (IsViewingCurrentSession)
+      if (LogSessionsUiHelper.UsesOnlyCurrentSession(_selectedSessionKeys))
       {
-        _loadedArchiveSessionId = null;
-        _archivedDisplayEntries.Clear();
+        _mergedDisplayEntries.Clear();
+        OnPropertyChanged(nameof(DisplayedAgentLogEntries));
+        return;
       }
-      else
+
+      var combined = new List<LogEntry>();
+
+      if (_selectedSessionKeys.Contains(LogFileSessionInfo.CurrentSessionKey))
       {
-        LoadArchivedSession(SelectedSession.SessionId);
+        foreach (var e in MemoryLogManager.Instance.AgentDisplayLogEntries)
+          combined.Add(e);
       }
+
+      if (!_suppressFileSessionLoad)
+      {
+        foreach (var key in _selectedSessionKeys.Where(k => k != LogFileSessionInfo.CurrentSessionKey))
+        {
+          if (!int.TryParse(key, out int sessionIndex))
+            continue;
+
+          try
+          {
+            combined.AddRange(AgentLogFileSessions.LoadSessionDisplayEntries(sessionIndex));
+          }
+          catch
+          {
+          }
+        }
+      }
+
+      _mergedDisplayEntries.Clear();
+      foreach (var e in combined.OrderByDescending(x => x.Timestamp))
+        _mergedDisplayEntries.Add(e);
 
       OnPropertyChanged(nameof(DisplayedAgentLogEntries));
     }
 
-    private void LoadArchivedSession(string sessionId)
-    {
-      if (_loadedArchiveSessionId == sessionId && _archivedDisplayEntries.Count > 0)
-        return;
-
-      _archivedDisplayEntries.Clear();
-      _loadedArchiveSessionId = sessionId;
-
-      foreach (var entry in AgentLogSessionStorage.LoadSessionEntries(sessionId))
-        _archivedDisplayEntries.Add(entry);
-    }
-
-    /// <summary>
-    /// Обновляет отображение логов
-    /// </summary>
     private void RefreshDisplay()
     {
       if (_disposed) return;
 
-      UpdateCurrentSessionListItemLabel();
-
-      if (IsViewingCurrentSession)
+      if (IsLiveOnlyView)
       {
         OnPropertyChanged(nameof(DisplayedAgentLogEntries));
         OnPropertyChanged(nameof(LogEntries));
         OnPropertyChanged(nameof(ChainLogEntries));
+        OnPropertyChanged(nameof(SessionsButtonLabel));
+      }
+      else if (_selectedSessionKeys.Contains(LogFileSessionInfo.CurrentSessionKey))
+      {
+        RebuildDisplayedEntries();
+        OnPropertyChanged(nameof(SessionsButtonLabel));
       }
     }
 
-    /// <summary>
-    /// Очищает все логи текущей сессии
-    /// </summary>
     private void ClearLogs()
     {
-      if (_disposed || !CanClearLogs) return;
+      if (_disposed) return;
 
+      _suppressFileSessionLoad = _selectedSessionKeys.Any(k => k != LogFileSessionInfo.CurrentSessionKey);
       MemoryLogManager.Instance.Clear();
-      ReloadSessionList(selectCurrent: true);
+      _mergedDisplayEntries.Clear();
       OnPropertyChanged(nameof(LogEntries));
       OnPropertyChanged(nameof(DisplayedAgentLogEntries));
       OnPropertyChanged(nameof(ChainLogEntries));
+      OnPropertyChanged(nameof(SessionsButtonLabel));
+      if (!IsLiveOnlyView)
+        RebuildDisplayedEntries();
     }
 
-    /// <summary>
-    /// Вызывает событие изменения свойства
-    /// </summary>
-    /// <param name="propertyName">Имя измененного свойства</param>
     protected virtual void OnPropertyChanged(string propertyName)
     {
       PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
     }
 
-    /// <summary>
-    /// Освобождает ресурсы модели представления
-    /// </summary>
     public void Dispose()
     {
       if (_disposed) return;
-
       _refreshTimer?.Stop();
       _disposed = true;
     }
 
     #region Конвертеры для ToolTip'ов
 
-    /// <summary>
-    /// Получает текст подсказки для цепочки рефлексов (формат "ChainId:ActionId")
-    /// </summary>
     public string GetReflexChainTooltip(string chainInfo) => _tooltipProvider.GetReflexChainTooltip(chainInfo);
 
-    /// <summary>
-    /// Получает текст подсказки для цепочки автоматизмов (формат "ChainId:ActionId")
-    /// </summary>
     public string GetAutomatizmChainTooltip(string chainInfo) => _tooltipProvider.GetAutomatizmChainTooltip(chainInfo);
 
-    /// <summary>
-    /// Получает текст подсказки для стиля поведения
-    /// </summary>
     public string GetStyleTooltip(string displayBaseStyleID) => _tooltipProvider.GetStyleTooltip(displayBaseStyleID);
 
-    /// <summary>
-    /// Получает текст подсказки для триггера
-    /// </summary>
-    public string GetTriggerTooltip(string displayTriggerStimulusID) => _tooltipProvider.GetTriggerTooltip(displayTriggerStimulusID);
+    public string GetTriggerTooltip(string displayTriggerStimulusID) =>
+        _tooltipProvider.GetTriggerTooltip(displayTriggerStimulusID);
 
-    /// <summary>
-    /// Получает текст подсказки для безусловного рефлекса
-    /// </summary>
-    public string GetActionsForGeneticReflex(string displayReflexID) => _tooltipProvider.GetActionsForGeneticReflex(displayReflexID);
+    public string GetActionsForGeneticReflex(string displayReflexID) =>
+        _tooltipProvider.GetActionsForGeneticReflex(displayReflexID);
 
-    /// <summary>
-    /// Получает текст подсказки для условного рефлекса
-    /// </summary>
-    public string GetActionsForConditionReflex(string displayReflexID) => _tooltipProvider.GetActionsForConditionReflex(displayReflexID);
+    public string GetActionsForConditionReflex(string displayReflexID) =>
+        _tooltipProvider.GetActionsForConditionReflex(displayReflexID);
 
-    /// <summary>
-    /// Получает список действий для безусловного рефлекса
-    /// </summary>
     public List<int> GetActionsForGeneticReflexes(int reflexId) => _tooltipProvider.GetActionsForGeneticReflexes(reflexId);
 
-    /// <summary>
-    /// Получает образ действия автоматизма
-    /// </summary>
-    /// <param name="usefulnessAtSnapshot">Из строки лога; если null — берётся текущая из справочника (как в редакторе).</param>
     public AutomatizmsViewModel.ActionsImageDisplay GetActionsForAutomatizm(string displayAutomatizmID, int? usefulnessAtSnapshot = null)
     {
       var d = _tooltipProvider.TryGetAutomatizmActionsImageData(displayAutomatizmID);
@@ -303,15 +246,9 @@ namespace AIStudio.ViewModels
       };
     }
 
-    /// <summary>
-    /// Получает текст подсказки для ориентировочного рефлекса
-    /// </summary>
     public string GetOrientationReflexTooltip(string displayOrientationReflexType) =>
         _tooltipProvider.GetOrientationReflexTooltip(displayOrientationReflexType);
 
-    /// <summary>
-    /// Получает текст подсказки для уровня мышления (уровни 1 и 2) с результатом (успех/неудача)
-    /// </summary>
     public string GetThinkingLevelTooltip(string displayThinkingLevel, bool? thinkingLevelSuccess) =>
         _tooltipProvider.GetThinkingLevelTooltip(displayThinkingLevel, thinkingLevelSuccess);
 

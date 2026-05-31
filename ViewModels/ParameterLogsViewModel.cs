@@ -1,11 +1,10 @@
 ﻿using AIStudio.Common;
+using AIStudio.Windows;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
-using System.Diagnostics;
 using System.Linq;
-using System.Reflection;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
@@ -25,9 +24,19 @@ namespace AIStudio.ViewModels
     private DataGrid _dataGrid;
     private List<int> _knownParamIds = new List<int>();
     private ParameterLogGroup _selectedRow;
+    private HashSet<string> _selectedSessionKeys = new HashSet<string>(StringComparer.Ordinal)
+    {
+      LogFileSessionInfo.CurrentSessionKey
+    };
 
     public ObservableCollection<ParameterLogGroup> ParameterLogGroups { get; } = new ObservableCollection<ParameterLogGroup>();
     public ICommand ClearLogsCommand { get; }
+    public ICommand OpenSessionsPickerCommand { get; }
+
+    public string SessionsButtonLabel => LogSessionsUiHelper.BuildButtonLabel(_selectedSessionKeys);
+    public bool IsLiveOnlyView => LogSessionsUiHelper.UsesOnlyCurrentSession(_selectedSessionKeys);
+
+    private bool _suppressFileSessionLoad;
 
     public ParameterLogGroup SelectedRow
     {
@@ -53,6 +62,7 @@ namespace AIStudio.ViewModels
     public ParameterLogsViewModel()
     {
       ClearLogsCommand = new RelayCommand(_ => ClearLogs());
+      OpenSessionsPickerCommand = new RelayCommand(_ => OpenSessionsPicker());
 
       _refreshTimer = new DispatcherTimer
       {
@@ -70,15 +80,67 @@ namespace AIStudio.ViewModels
       }
     }
 
+    private void OpenSessionsPicker()
+    {
+      var dlg = new LogSessionPickerWindow(
+          "Сессии логов параметров",
+          "ВЫБОР СЕССИЙ — ПАРАМЕТРЫ",
+          LogSessionPickerKind.Parameter,
+          _selectedSessionKeys)
+      {
+        Owner = Application.Current?.MainWindow
+      };
+
+      if (dlg.ShowDialog() != true)
+        return;
+
+      _selectedSessionKeys = dlg.ViewModel.GetSelectedKeys();
+      if (_selectedSessionKeys.Count == 0)
+        _selectedSessionKeys.Add(LogFileSessionInfo.CurrentSessionKey);
+
+      _suppressFileSessionLoad = false;
+      OnPropertyChanged(nameof(SessionsButtonLabel));
+      OnPropertyChanged(nameof(IsLiveOnlyView));
+      _knownParamIds.Clear();
+      RefreshDisplay();
+    }
+
+    private List<ParameterLogEntry> CollectEntriesForDisplay()
+    {
+      var list = new List<ParameterLogEntry>();
+
+      if (_selectedSessionKeys.Contains(LogFileSessionInfo.CurrentSessionKey))
+        list.AddRange(MemoryLogManager.Instance.ParameterLogEntries);
+
+      var fileIndices = _selectedSessionKeys
+          .Where(k => k != LogFileSessionInfo.CurrentSessionKey)
+          .Select(k => int.TryParse(k, out int ix) ? ix : -1)
+          .Where(ix => ix >= 0)
+          .ToList();
+
+      if (!_suppressFileSessionLoad && fileIndices.Count > 0)
+        list.AddRange(ParameterLogFileSessions.LoadMergedSessions(fileIndices));
+
+      return list;
+    }
+
     private void RefreshDisplay()
     {
       if (_disposed || _dataGrid == null) return;
 
-      // Получаем текущие данные
-      var currentEntries = MemoryLogManager.Instance.ParameterLogEntries.ToList();
-      if (!currentEntries.Any()) return;
+      var currentEntries = CollectEntriesForDisplay();
+      if (!currentEntries.Any())
+      {
+        Application.Current.Dispatcher.Invoke(() =>
+        {
+          ParameterLogGroups.Clear();
+          SelectedRow = null;
+        });
+        if (IsLiveOnlyView)
+          OnPropertyChanged(nameof(SessionsButtonLabel));
+        return;
+      }
 
-      // Находим все уникальные ID параметров
       var currentParamIds = currentEntries
           .Select(e => e.ParamId)
           .Distinct()
@@ -88,7 +150,7 @@ namespace AIStudio.ViewModels
       // Проверяем, изменился ли список параметров
       if (!_knownParamIds.SequenceEqual(currentParamIds))
       {
-        UpdateDataGridColumns(currentParamIds);
+        UpdateDataGridColumns(currentParamIds, currentEntries);
         _knownParamIds = currentParamIds;
       }
 
@@ -125,10 +187,13 @@ namespace AIStudio.ViewModels
           _dataGrid.SelectedItem = rowToSelect;
           SelectedRow = rowToSelect;
         }
+
+        if (IsLiveOnlyView)
+          OnPropertyChanged(nameof(SessionsButtonLabel));
       });
     }
 
-    private void UpdateDataGridColumns(List<int> paramIds)
+    private void UpdateDataGridColumns(List<int> paramIds, IList<ParameterLogEntry> sourceEntries)
     {
       if (_dataGrid == null) return;
 
@@ -165,7 +230,7 @@ namespace AIStudio.ViewModels
         // Добавляем динамические колонки параметров
         foreach (var paramId in paramIds)
         {
-          var (paramName, weight) = GetParameterNameAndWeight(paramId);
+          var (paramName, weight) = GetParameterNameAndWeight(paramId, sourceEntries);
           var paramColumn = new DataGridTextColumn
           {
             Header = $"{paramName}\n(ID:{paramId}, Вес:{weight})",
@@ -296,15 +361,12 @@ namespace AIStudio.ViewModels
       };
     }
 
-    private (string name, int weight) GetParameterNameAndWeight(int paramId)
+    private (string name, int weight) GetParameterNameAndWeight(int paramId, IList<ParameterLogEntry> sourceEntries)
     {
-      var lastEntry = MemoryLogManager.Instance.ParameterLogEntries
-          .LastOrDefault(e => e.ParamId == paramId);
+      var lastEntry = sourceEntries?.LastOrDefault(e => e.ParamId == paramId);
 
       if (lastEntry != null)
-      {
         return (lastEntry.ParamName ?? $"Параметр {paramId}", lastEntry.Weight);
-      }
 
       return ($"Параметр {paramId}", 0);
     }
@@ -363,13 +425,17 @@ namespace AIStudio.ViewModels
     {
       if (_disposed) return;
 
+      _suppressFileSessionLoad = _selectedSessionKeys.Any(k => k != LogFileSessionInfo.CurrentSessionKey);
+
       Application.Current.Dispatcher.Invoke(() =>
       {
         ParameterLogGroups.Clear();
         _knownParamIds.Clear();
+        SelectedRow = null;
       });
 
       MemoryLogManager.Instance.ClearParameterLogs();
+      OnPropertyChanged(nameof(SessionsButtonLabel));
     }
 
     protected virtual void OnPropertyChanged(string propertyName)

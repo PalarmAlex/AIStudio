@@ -49,9 +49,6 @@ namespace AIStudio.Common
     private readonly object _lock = new object();
     private bool _disposed = false;
 
-    /// <summary>UTC-время начала текущей сессии логов (запуск процесса студии).</summary>
-    public DateTime CurrentSessionStartedUtc { get; } = DateTime.UtcNow;
-
     #endregion
 
     #region Public Properties
@@ -357,6 +354,45 @@ namespace AIStudio.Common
     private void RefreshAgentDisplayMainCycleAggregatesLocked()
     {
       ApplyDisplayAggregatesToEntries(_agentDisplayLogEntries);
+    }
+
+    /// <summary>Собирает таблицу отображения из сырых строк файла (слияние по пульсу как в живых логах).</summary>
+    public static List<LogEntry> BuildAgentDisplayEntriesFromRaw(IEnumerable<LogEntry> rawEntries)
+    {
+      var working = new List<LogEntry>();
+      if (rawEntries == null)
+        return working;
+
+      foreach (var entry in rawEntries.OrderBy(e => e.Timestamp))
+      {
+        if (entry.Pulse.HasValue &&
+            string.Equals(entry.Method, "LogSystemState", StringComparison.Ordinal))
+        {
+          bool replaced = false;
+          for (int i = 0; i < working.Count; i++)
+          {
+            var ex = working[i];
+            if (ex.Pulse == entry.Pulse &&
+                string.Equals(ex.Method, "LogSystemState", StringComparison.Ordinal))
+            {
+              working[i] = entry;
+              replaced = true;
+              break;
+            }
+          }
+
+          if (!replaced)
+            working.Add(entry);
+        }
+        else
+        {
+          working.Add(entry);
+        }
+      }
+
+      working.Reverse();
+      ApplyDisplayAggregatesToEntries(working);
+      return working;
     }
 
     /// <summary>Пересчитывает сегменты «Цикл М» / «Циклы Ф» для произвольного списка (архив сессии).</summary>

@@ -83,38 +83,26 @@
       </Style.Triggers>
     </Style>
 
-    <!-- ComboBox сессий: стандартный шаблон WPF (кастомный AgentComboBoxStyle на тёмной панели не показывает выпадающий список) -->
-    <Style x:Key="LiveLogSessionComboBoxStyle" TargetType="ComboBox">
-      <Setter Property="MinWidth" Value="300"/>
-      <Setter Property="MaxWidth" Value="520"/>
-      <Setter Property="Height" Value="28"/>
-      <Setter Property="Padding" Value="6,2"/>
-      <Setter Property="Background" Value="#002000"/>
-      <Setter Property="Foreground" Value="#00FF00"/>
-      <Setter Property="BorderBrush" Value="#00FF00"/>
-      <Setter Property="BorderThickness" Value="1"/>
-      <Setter Property="FontFamily" Value="Consolas, Courier New"/>
-      <Setter Property="FontSize" Value="11"/>
-      <Setter Property="VerticalContentAlignment" Value="Center"/>
+    <!-- Кнопка-надпись (без рамки, как текст) -->
+    <Style x:Key="MatrixLinkButtonStyle" TargetType="Button">
+      <Setter Property="Background" Value="Transparent"/>
+      <Setter Property="BorderThickness" Value="0"/>
+      <Setter Property="Padding" Value="0"/>
       <Setter Property="Cursor" Value="Hand"/>
-    </Style>
-
-    <Style x:Key="LiveLogSessionComboBoxItemStyle" TargetType="ComboBoxItem">
-      <Setter Property="Background" Value="#101010"/>
-      <Setter Property="Foreground" Value="#00FF00"/>
-      <Setter Property="BorderBrush" Value="#004000"/>
-      <Setter Property="BorderThickness" Value="0,0,0,1"/>
-      <Setter Property="Padding" Value="8,4"/>
       <Setter Property="FontFamily" Value="Consolas, Courier New"/>
       <Setter Property="FontSize" Value="11"/>
+      <Setter Property="Foreground" Value="#00FF00"/>
+      <Setter Property="HorizontalContentAlignment" Value="Left"/>
+      <Setter Property="Template">
+        <Setter.Value>
+          <ControlTemplate TargetType="Button">
+            <ContentPresenter/>
+          </ControlTemplate>
+        </Setter.Value>
+      </Setter>
       <Style.Triggers>
-        <Trigger Property="IsHighlighted" Value="True">
-          <Setter Property="Background" Value="#004000"/>
+        <Trigger Property="IsMouseOver" Value="True">
           <Setter Property="Foreground" Value="#80FF80"/>
-        </Trigger>
-        <Trigger Property="IsSelected" Value="True">
-          <Setter Property="Background" Value="#006000"/>
-          <Setter Property="Foreground" Value="#FFFFFF"/>
         </Trigger>
       </Style.Triggers>
     </Style>
@@ -697,29 +685,19 @@
           <ColumnDefinition Width="Auto"/>
         </Grid.ColumnDefinitions>
 
-        <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center" HorizontalAlignment="Left">
-          <TextBlock Text="Сессия:"
-                     Foreground="#00FF00"
-                     FontFamily="Consolas, Courier New"
-                     FontSize="11"
-                     VerticalAlignment="Center"
-                     Margin="0,0,8,0"/>
-          <ComboBox Style="{StaticResource LiveLogSessionComboBoxStyle}"
-                    ItemContainerStyle="{StaticResource LiveLogSessionComboBoxItemStyle}"
-                    ItemsSource="{Binding LogSessions}"
-                    SelectedItem="{Binding SelectedSession, Mode=TwoWay}"
-                    DisplayMemberPath="DisplayLabel"
-                    VerticalAlignment="Center"
-                    IsEditable="False"
-                    IsReadOnly="True"
-                    ToolTip="Выберите сессию: текущий запуск или архив после закрытия программы. Щёлкните по полю или стрелке справа."/>
-        </StackPanel>
+        <Button Grid.Column="0"
+                Style="{StaticResource MatrixLinkButtonStyle}"
+                Content="{Binding SessionsButtonLabel}"
+                Command="{Binding OpenSessionsPickerCommand}"
+                HorizontalAlignment="Left"
+                VerticalAlignment="Center"
+                ToolTip="Открыть выбор сессий: текущая в памяти и блоки из AgentLogs.csv (между строками заголовка)"/>
 
         <Button Grid.Column="1"
                 Content="ОЧИСТИТЬ"
                 Command="{Binding ClearLogsCommand}"
                 Style="{StaticResource MatrixButtonStyle}"
-                ToolTip="Очистить логи текущей сессии (недоступно при просмотре архива)"/>
+                ToolTip="Очистить логи текущей сессии в памяти (только если выбрана одна «текущая»)"/>
       </Grid>
     </Border>
   </Grid>

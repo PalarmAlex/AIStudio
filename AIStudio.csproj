@@ -83,7 +83,13 @@
     <Compile Include="Common\AntagonistManager.cs" />
     <Compile Include="Common\DataGridExtensions.cs" />
     <Compile Include="Common\AgentLogMainCycleLiveSegment.cs" />
-    <Compile Include="Common\AgentLogSessionStorage.cs" />
+    <Compile Include="Common\AgentLogFileSessions.cs" />
+    <Compile Include="Common\CsvLogFileSessionReader.cs" />
+    <Compile Include="Common\LogFilePaths.cs" />
+    <Compile Include="Common\LogFileSessionInfo.cs" />
+    <Compile Include="Common\LogSessionsUiHelper.cs" />
+    <Compile Include="Common\ParameterLogFileSessions.cs" />
+    <Compile Include="Common\StyleLogFileSessions.cs" />
     <Compile Include="Common\MemoryLogManager.cs" />
     <Compile Include="Common\ScenarioLogComparer.cs" />
     <Compile Include="Common\ScenarioLogComparisonSession.cs" />
@@ -322,7 +328,9 @@
     <Compile Include="ViewModels\BehaviorStylesViewModel.cs" />
     <Compile Include="ViewModels\AgentInfo.cs" />
     <Compile Include="ViewModels\ExterInalInfluencesViewModel.cs" />
-    <Compile Include="ViewModels\AgentLogSessionListItem.cs" />
+    <Compile Include="ViewModels\LiveLogSessionPickerItem.cs" />
+    <Compile Include="ViewModels\LiveLogSessionPickerViewModel.cs" />
+    <Compile Include="ViewModels\LogSessionPickerViewModel.cs" />
     <Compile Include="ViewModels\LiveLogsViewModel.cs" />
     <Compile Include="ViewModels\ThinkingCyclesViewModel.cs" />
     <Compile Include="ViewModels\MainViewModel.cs" />
@@ -378,6 +386,12 @@
     </Compile>
     <Compile Include="Windows\ScenarioGroupEditorWindow.xaml.cs">
       <DependentUpon>ScenarioGroupEditorWindow.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Windows\LiveLogSessionPickerWindow.xaml.cs">
+      <DependentUpon>LiveLogSessionPickerWindow.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Windows\LogSessionPickerWindow.xaml.cs">
+      <DependentUpon>LogSessionPickerWindow.xaml</DependentUpon>
     </Compile>
     <Compile Include="Windows\ScenarioGroupScenarioPickerWindow.xaml.cs">
       <DependentUpon>ScenarioGroupScenarioPickerWindow.xaml</DependentUpon>
@@ -639,6 +653,14 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="Windows\ScenarioGroupEditorWindow.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Windows\LiveLogSessionPickerWindow.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Windows\LogSessionPickerWindow.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
