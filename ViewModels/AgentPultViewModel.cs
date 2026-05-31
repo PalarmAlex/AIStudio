@@ -37,8 +37,8 @@ namespace AIStudio.ViewModels
     private DispatcherTimer _chainStatusTimer;
 
     private ObservableCollection<InfluenceActionItem> _influenceActions;
-    private ObservableCollection<InfluenceActionItem> _column1Actions;
-    private ObservableCollection<InfluenceActionItem> _column2Actions;
+    private ObservableCollection<InfluenceActionItem> _operatorActions;
+    private ObservableCollection<InfluenceActionItem> _environmentActions;
 
     private bool _isAgentDead;
     private bool _authoritativeMode;
@@ -423,8 +423,8 @@ namespace AIStudio.ViewModels
       _influenceActionSystem = InfluenceActionSystem.Instance;
       _reflexesActivator = ReflexesActivator.Instance;
       _influenceActions = new ObservableCollection<InfluenceActionItem>();
-      _column1Actions = new ObservableCollection<InfluenceActionItem>();
-      _column2Actions = new ObservableCollection<InfluenceActionItem>();
+      _operatorActions = new ObservableCollection<InfluenceActionItem>();
+      _environmentActions = new ObservableCollection<InfluenceActionItem>();
       _recognitionDisplayText = "";
       MessageText = "";
 
@@ -707,71 +707,75 @@ namespace AIStudio.ViewModels
       return _sensorySystem.CommandChannel.RecognizeText(commandText.Trim(), AuthoritativeMode) ?? new List<int>();
     }
 
-    public ObservableCollection<InfluenceActionItem> Column1Actions
+    public ObservableCollection<InfluenceActionItem> OperatorActions
     {
-      get => _column1Actions;
+      get => _operatorActions;
       set
       {
-        _column1Actions = value;
+        _operatorActions = value;
         OnPropertyChanged();
       }
     }
 
-    public ObservableCollection<InfluenceActionItem> Column2Actions
+    public ObservableCollection<InfluenceActionItem> EnvironmentActions
     {
-      get => _column2Actions;
+      get => _environmentActions;
       set
       {
-        _column2Actions = value;
+        _environmentActions = value;
         OnPropertyChanged();
       }
     }
 
     public void LoadInfluenceActions()
     {
+      _antagonistManager?.Dispose();
       _influenceActions.Clear();
 
-      var column1 = new ObservableCollection<InfluenceActionItem>();
-      var column2 = new ObservableCollection<InfluenceActionItem>();
+      var operatorActions = new ObservableCollection<InfluenceActionItem>();
+      var environmentActions = new ObservableCollection<InfluenceActionItem>();
 
       try
       {
-        var allActions = _influenceActionSystem.GetAllInfluenceActions()
+        var allActions = _influenceActionSystem.GetAllInfluenceActions().ToList();
+        var operatorSource = allActions
             .Where(a => string.IsNullOrWhiteSpace(a.EnvironmentMetricProbeKey))
             .ToList();
+        var environmentSource = allActions
+            .Where(a => !string.IsNullOrWhiteSpace(a.EnvironmentMetricProbeKey))
+            .ToList();
 
-        int index = 0;
-        foreach (var action in allActions)
-        {
-          var item = new InfluenceActionItem
-          {
-            Id = action.Id,
-            Name = action.Name,
-            Description = action.Description,
-            IsSelected = false,
-            AntagonistIds = new List<int>(action.AntagonistInfluences ?? new List<int>())
-          };
+        AddInfluenceActionItems(operatorSource, operatorActions);
+        AddInfluenceActionItems(environmentSource, environmentActions);
 
-          _influenceActions.Add(item);
-
-          // Распределяем по столбцам
-          if (index % 2 == 0)
-            column1.Add(item);
-          else
-            column2.Add(item);
-
-          index++;
-        }
-
-        // Инициализируем менеджер антагонистов
         _antagonistManager = new AntagonistManager(_influenceActions.Cast<AntagonistItem>().ToList());
 
-        Column1Actions = column1;
-        Column2Actions = column2;
+        OperatorActions = operatorActions;
+        EnvironmentActions = environmentActions;
       }
       catch (Exception ex)
       {
         Logger.Error(ex.Message);
+      }
+    }
+
+    private void AddInfluenceActionItems(
+        IList<InfluenceActionSystem.GomeostasisInfluenceAction> actions,
+        ObservableCollection<InfluenceActionItem> targetColumn)
+    {
+      foreach (var action in actions)
+      {
+        var item = new InfluenceActionItem
+        {
+          Id = action.Id,
+          Name = action.Name,
+          Description = action.Description,
+          IsSelected = false,
+          AntagonistIds = new List<int>(action.AntagonistInfluences ?? new List<int>())
+        };
+
+        _influenceActions.Add(item);
+        targetColumn.Add(item);
       }
     }
 

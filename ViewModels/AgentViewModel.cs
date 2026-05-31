@@ -86,6 +86,38 @@ namespace AIStudio.ViewModels
       }
     }
 
+    private bool _isAgentOverviewExpanded = true;
+    /// <summary>Свёрнутый блок «Состояние, параметры и стили» на главной странице симбионта.</summary>
+    public bool IsAgentOverviewExpanded
+    {
+      get => _isAgentOverviewExpanded;
+      set
+      {
+        if (_isAgentOverviewExpanded != value)
+        {
+          _isAgentOverviewExpanded = value;
+          OnPropertyChanged(nameof(IsAgentOverviewExpanded));
+          NotifyAgentActionsSectionHeaderChanged();
+        }
+      }
+    }
+
+    public string AgentActionsSectionTitle =>
+        IsAgentOverviewExpanded
+            ? "Действия симбионта"
+            : $"Действия симбионта. Стадия: {SelectedStage}. Состояние: {HomeostasisStatus}";
+
+    public Brush AgentActionsSectionForeground =>
+        IsAgentOverviewExpanded
+            ? HeaderBackground
+            : HomeostasisStatusColor;
+
+    private void NotifyAgentActionsSectionHeaderChanged()
+    {
+      OnPropertyChanged(nameof(AgentActionsSectionTitle));
+      OnPropertyChanged(nameof(AgentActionsSectionForeground));
+    }
+
     public string AgentBaseSost => IsAgentDead
         ? "СИМБИОНТ МЕРТВ, все операции заблокированы"
         : $"Жизненные параметры симбионта. Состояние: {HomeostasisStatus}";
@@ -98,6 +130,7 @@ namespace AIStudio.ViewModels
       {
         _headerBackground = value;
         OnPropertyChanged(nameof(HeaderBackground));
+        NotifyAgentActionsSectionHeaderChanged();
       }
     }
 
@@ -225,7 +258,9 @@ namespace AIStudio.ViewModels
           OnPropertyChanged(nameof(PulseWarningMessage));
           OnPropertyChanged(nameof(AgentBaseSost));
           OnPropertyChanged(nameof(IsAnyControlEnabled));
+          OnPropertyChanged(nameof(HomeostasisStatus));
           OnPropertyChanged(nameof(HomeostasisStatusColor));
+          NotifyAgentActionsSectionHeaderChanged();
 
           (_updateCommand as RelayCommand)?.RaiseCanExecuteChanged();
           (_setNormalHomeostasisCommand as RelayCommand)?.RaiseCanExecuteChanged();
@@ -318,6 +353,7 @@ namespace AIStudio.ViewModels
           OnPropertyChanged(nameof(IsEditingEnabled));
           OnPropertyChanged(nameof(PulseWarningMessage));
           OnPropertyChanged(nameof(WarningMessageColor));
+          NotifyAgentActionsSectionHeaderChanged();
 
           if (AgentProperties.Count > 0 && !IsAgentDead)
             AgentName = $"{AgentProperties[0].Value}. Стадия развития: {value}";
@@ -364,6 +400,7 @@ namespace AIStudio.ViewModels
           OnPropertyChanged(nameof(CurrentHomeostasisState));
           OnPropertyChanged(nameof(HomeostasisStatus));
           OnPropertyChanged(nameof(HomeostasisStatusColor));
+          NotifyAgentActionsSectionHeaderChanged();
         }
       }
     }
@@ -684,6 +721,7 @@ namespace AIStudio.ViewModels
         OnPropertyChanged(nameof(AgentBaseSost));
         OnPropertyChanged(nameof(HomeostasisStatus));
         OnPropertyChanged(nameof(HomeostasisStatusColor));
+        NotifyAgentActionsSectionHeaderChanged();
 
         UpdateEditableProperties();
         UpdateWaitingPeriodDisplay();

@@ -44,7 +44,8 @@
   <Grid PreviewKeyDown="OnRootPreviewKeyDown">
     <Grid.ColumnDefinitions>
       <ColumnDefinition Width="350"/>
-      <ColumnDefinition Width="300"/>
+      <ColumnDefinition Width="220"/>
+      <ColumnDefinition Width="*"/>
       <ColumnDefinition Width="*"/>
     </Grid.ColumnDefinitions>
     <Grid.RowDefinitions>
@@ -60,8 +61,9 @@
 
     <!-- Заголовки -->
     <TextBlock Grid.Column="0" Grid.Row="0" Text="Речь / команды" HorizontalAlignment="Left" Margin="0,0,0,5" FontSize="14" FontWeight="Bold"/>
-    <TextBlock Grid.Column="1" Grid.Row="0" Text="Распознанный текст:" Style="{StaticResource PropertyNameStyle}" Margin="10,0,0,5" Width="200"/>
-    <TextBlock Grid.Column="2" Grid.Row="0" Text="Воздействие на симбионта:" Style="{StaticResource PropertyNameStyle}" Margin="10,0,0,5" Width="200"/>
+    <TextBlock Grid.Column="1" Grid.Row="0" Text="Распознанные токены:" Style="{StaticResource PropertyNameStyle}" Margin="10,0,0,5" Width="198"/>
+    <TextBlock Grid.Column="2" Grid.Row="0" Text="Воздействие от оператора:" Style="{StaticResource PropertyNameStyle}" Margin="10,0,0,5" Width="200"/>
+    <TextBlock Grid.Column="3" Grid.Row="0" Text="Воздействие от среды:" Style="{StaticResource PropertyNameStyle}" Margin="10,0,0,5" Width="200"/>
 
     <!-- Окно речевого сообщения -->
     <TextBox x:Name="MessageToAgentTextBox"
@@ -170,7 +172,7 @@
     <StackPanel Grid.Column="1" Grid.Row="4" Grid.RowSpan="3"
                 Style="{StaticResource ChainPanelStyle}"
                 Orientation="Vertical"
-                Margin="5,0,0,0" VerticalAlignment="Top" Width="290">
+                Margin="5,0,0,0" VerticalAlignment="Top" Width="209">
 
       <!-- Индикатор активности цепочки рефлексов (плашка с оценкой) -->
       <Border BorderBrush="Gray" 
@@ -216,44 +218,50 @@
       </StackPanel>
     </StackPanel>
 
-    <!-- Окно воздействий в два столбца + кнопка -->
-    <Grid Grid.Column="2" Grid.Row="1" Grid.RowSpan="6" Margin="10,0,0,0">
+    <!-- Окно воздействий: оператор + среда (по одному столбцу), вертикальный скролл -->
+    <Grid Grid.Column="2" Grid.ColumnSpan="2" Grid.Row="1" Grid.RowSpan="7" Margin="10,0,0,0">
       <Grid.RowDefinitions>
         <RowDefinition Height="*"/>
         <RowDefinition Height="Auto"/>
       </Grid.RowDefinitions>
-      <Grid.ColumnDefinitions>
-        <ColumnDefinition Width="*"/>
-        <ColumnDefinition Width="*"/>
-      </Grid.ColumnDefinitions>
 
-      <!-- Первый столбец воздействий -->
-      <ItemsControl Grid.Column="0" Grid.Row="0" ItemsSource="{Binding Column1Actions}">
-        <ItemsControl.ItemTemplate>
-          <DataTemplate>
-            <CheckBox Content="{Binding Name}" 
-                      IsChecked="{Binding IsSelected}"
-                      IsEnabled="{Binding IsEnabled}"
-                      Margin="0,2"
-                      ToolTip="{Binding Description}"/>
-          </DataTemplate>
-        </ItemsControl.ItemTemplate>
-      </ItemsControl>
+      <ScrollViewer Grid.Row="0"
+                    VerticalScrollBarVisibility="Auto"
+                    HorizontalScrollBarVisibility="Disabled"
+                    MaxHeight="280">
+        <Grid>
+          <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*"/>
+            <ColumnDefinition Width="*"/>
+          </Grid.ColumnDefinitions>
 
-      <!-- Второй столбец воздействий -->
-      <ItemsControl Grid.Column="1" Grid.Row="0" ItemsSource="{Binding Column2Actions}" Margin="10,0,0,0">
-        <ItemsControl.ItemTemplate>
-          <DataTemplate>
-            <CheckBox Content="{Binding Name}" 
-                      IsChecked="{Binding IsSelected}"
-                      IsEnabled="{Binding IsEnabled}"
-                      Margin="0,2"
-                      ToolTip="{Binding Description}"/>
-          </DataTemplate>
-        </ItemsControl.ItemTemplate>
-      </ItemsControl>
+          <ItemsControl Grid.Column="0" ItemsSource="{Binding OperatorActions}">
+            <ItemsControl.ItemTemplate>
+              <DataTemplate>
+                <CheckBox Content="{Binding Name}"
+                          IsChecked="{Binding IsSelected}"
+                          IsEnabled="{Binding IsEnabled}"
+                          Margin="0,2"
+                          ToolTip="{Binding Description}"/>
+              </DataTemplate>
+            </ItemsControl.ItemTemplate>
+          </ItemsControl>
 
-      <Button Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2"
+          <ItemsControl Grid.Column="1" ItemsSource="{Binding EnvironmentActions}" Margin="10,0,0,0">
+            <ItemsControl.ItemTemplate>
+              <DataTemplate>
+                <CheckBox Content="{Binding Name}"
+                          IsChecked="{Binding IsSelected}"
+                          IsEnabled="{Binding IsEnabled}"
+                          Margin="0,2"
+                          ToolTip="{Binding Description}"/>
+              </DataTemplate>
+            </ItemsControl.ItemTemplate>
+          </ItemsControl>
+        </Grid>
+      </ScrollViewer>
+
+      <Button Grid.Row="1"
               Content="Отправить"
               Command="{Binding ApplyInfluenceCommand}"
               IsDefault="True"

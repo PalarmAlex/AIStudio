@@ -44,63 +44,82 @@
       <Setter Property="ToolTip" Value="{Binding Description}"/>
     </Style>
 
+    <Style x:Key="AgentOverviewExpanderStyle" TargetType="Expander">
+      <Setter Property="Margin" Value="0,0,0,4"/>
+      <Setter Property="IsExpanded" Value="True"/>
+      <Setter Property="ExpandDirection" Value="Down"/>
+    </Style>
+
   </UserControl.Resources>
 
   <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
     <StackPanel Margin="5">
-      <!-- 1. Заголовок симбионта -->
-      <TextBlock Text="{Binding AgentName}"
-                           Foreground="{Binding HeaderBackground}"
-                           FontSize="18"
-                           FontWeight="DemiBold"
-                           HorizontalAlignment="Center"
-                           Margin="0,2,0,2"/>
+      <Expander Style="{StaticResource AgentOverviewExpanderStyle}"
+                IsExpanded="{Binding IsAgentOverviewExpanded, Mode=TwoWay}">
+        <Expander.Header>
+          <TextBlock Text="Состояние, параметры и стили симбионта"
+                     Foreground="{Binding HeaderBackground}"
+                     FontSize="16"
+                     FontWeight="DemiBold"
+                     ToolTip="Свернуть, чтобы оставить на экране только действия и пульт"/>
+        </Expander.Header>
 
-      <!--Заголовок параметров и ручной сброс в «норму» (как при запуске сценария с флажком «Начальное состояние Норма») -->
-      <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,2,0,2">
-        <Button Content="Воскресить"
-                Command="{Binding ResurrectAgentCommand}"
-                VerticalAlignment="Center"
-                Padding="12,3"
-                Margin="0,0,10,0"
-                FontSize="14"
-                FontWeight="DemiBold"
-                Background="#FF4CAF50"
-                Foreground="White"
-                BorderBrush="#FF2E7D32"
-                ToolTip="Снять IsDead, сохранить свойства и привести параметры к Норме"/>
-        <TextBlock Text="{Binding AgentBaseSost}"
-                   Foreground="{Binding HomeostasisStatusColor}"
-                   FontSize="18"
-                   FontWeight="DemiBold"
-                   VerticalAlignment="Center"
-                   Margin="0,0,10,0"/>
-        <Button Content="Норма"
-                Command="{Binding SetNormalHomeostasisCommand}"
-                VerticalAlignment="Center"
-                Padding="12,3"
-                FontSize="14"
-                FontWeight="DemiBold"
-                Background="#FFFFE082"
-                BorderBrush="#FFD4A017"
-                ToolTip="Установить значения жизненных параметров для состояния Норма»"/>
-      </StackPanel>
+        <StackPanel>
+          <!-- 1. Заголовок симбионта -->
+          <TextBlock Text="{Binding AgentName}"
+                     Foreground="{Binding HeaderBackground}"
+                     FontSize="18"
+                     FontWeight="DemiBold"
+                     HorizontalAlignment="Center"
+                     Margin="0,2,0,2"/>
 
-      <local:AgentParametersView DataContext="{Binding ParametersViewModel}" Margin="0,2,0,2"/>
-
-      <Border Height="2" Background="{Binding HeaderBackground}" Margin="0,0,0,2"/>
-
-      <!-- Заголовок стилей реагирования -->
-      <TextBlock Text="Стили реагирования симбионта"
-                       Foreground="{Binding HeaderBackground}"
+          <!--Заголовок параметров и ручной сброс в «норму» (как при запуске сценария с флажком «Начальное состояние Норма») -->
+          <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,2,0,2">
+            <Button Content="Воскресить"
+                    Command="{Binding ResurrectAgentCommand}"
+                    VerticalAlignment="Center"
+                    Padding="12,3"
+                    Margin="0,0,10,0"
+                    FontSize="14"
+                    FontWeight="DemiBold"
+                    Background="#FF4CAF50"
+                    Foreground="White"
+                    BorderBrush="#FF2E7D32"
+                    ToolTip="Снять IsDead, сохранить свойства и привести параметры к Норме"/>
+            <TextBlock Text="{Binding AgentBaseSost}"
+                       Foreground="{Binding HomeostasisStatusColor}"
                        FontSize="18"
                        FontWeight="DemiBold"
-                       HorizontalAlignment="Center"
-                       Margin="0,2,0,2"/>
+                       VerticalAlignment="Center"
+                       Margin="0,0,10,0"/>
+            <Button Content="Норма"
+                    Command="{Binding SetNormalHomeostasisCommand}"
+                    VerticalAlignment="Center"
+                    Padding="12,3"
+                    FontSize="14"
+                    FontWeight="DemiBold"
+                    Background="#FFFFE082"
+                    BorderBrush="#FFD4A017"
+                    ToolTip="Установить значения жизненных параметров для состояния Норма»"/>
+          </StackPanel>
 
-      <local:AgentBehaviorStylesView DataContext="{Binding BehaviorStylesViewModel}"/>
+          <local:AgentParametersView DataContext="{Binding ParametersViewModel}" Margin="0,2,0,2"/>
 
-      <Border Height="2" Background="{Binding HeaderBackground}" Margin="0,0,0,2"/>
+          <Border Height="2" Background="{Binding HeaderBackground}" Margin="0,0,0,2"/>
+
+          <!-- Заголовок стилей реагирования -->
+          <TextBlock Text="Стили реагирования симбионта"
+                     Foreground="{Binding HeaderBackground}"
+                     FontSize="18"
+                     FontWeight="DemiBold"
+                     HorizontalAlignment="Center"
+                     Margin="0,2,0,2"/>
+
+          <local:AgentBehaviorStylesView DataContext="{Binding BehaviorStylesViewModel}"/>
+
+          <Border Height="2" Background="{Binding HeaderBackground}" Margin="0,0,0,2"/>
+        </StackPanel>
+      </Expander>
 
       <Grid>
         <Grid.ColumnDefinitions>
@@ -111,15 +130,27 @@
           <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
-        <StackPanel Grid.Column="0" Grid.Row="0" HorizontalAlignment="Right">
-          <!-- Заголовок действий -->
-          <TextBlock Text="Действия симбионта"
-           Foreground="{Binding HeaderBackground}"
-           FontSize="18"
-           FontWeight="DemiBold"
-           HorizontalAlignment="Center"
-           Margin="0,2,0,2"/>
-        </StackPanel>
+        <TextBlock Grid.Column="0" Grid.Row="0"
+                   Text="{Binding AgentActionsSectionTitle}"
+                   Foreground="{Binding AgentActionsSectionForeground}"
+                   FontSize="18"
+                   FontWeight="DemiBold"
+                   Margin="0,2,0,2"
+                   TextWrapping="Wrap"
+                   TextAlignment="Center">
+          <TextBlock.Style>
+            <Style TargetType="TextBlock">
+              <Setter Property="Grid.ColumnSpan" Value="1"/>
+              <Setter Property="HorizontalAlignment" Value="Right"/>
+              <Style.Triggers>
+                <DataTrigger Binding="{Binding IsAgentOverviewExpanded}" Value="False">
+                  <Setter Property="Grid.ColumnSpan" Value="2"/>
+                  <Setter Property="HorizontalAlignment" Value="Center"/>
+                </DataTrigger>
+              </Style.Triggers>
+            </Style>
+          </TextBlock.Style>
+        </TextBlock>
         <StackPanel Grid.Column="1" Grid.Row="0" HorizontalAlignment="Left">
           <!-- Блок периода ожидания оценки оператора -->
           <Border x:Name="WaitingPeriodPanel"
