@@ -51,7 +51,7 @@ namespace AIStudio.ViewModels
     public bool IsStageZero => _currentAgentStage == 0;
 
     public string CurrentAgentTitle =>
-        $"Безусловные рефлексы Симбионта: {_currentAgentName ?? "Не определен"}";
+        SymbiontPageTitleFormatter.Format("Безусловные рефлексы", _currentAgentName, _currentAgentStage);
     private ObservableCollection<GeneticReflexesSystem.GeneticReflex> _allGeneticReflexes = new ObservableCollection<GeneticReflexesSystem.GeneticReflex>();
     private ICollectionView _geneticReflexesView;
     /// <summary>Множество записей, проходящих фильтр и лимит страницы (для отображения в таблице).</summary>

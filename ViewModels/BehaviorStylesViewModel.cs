@@ -43,7 +43,7 @@ namespace AIStudio.ViewModels
     }
 
     public string CurrentAgentTitle =>
-        $"Стили реагирования Симбионта: {_currentAgentName ?? "Не определен"}";
+        SymbiontPageTitleFormatter.Format("Стили реагирования", _currentAgentName, _currentAgentStage);
     public ObservableCollection<GomeostasSystem.BehaviorStyle> BehaviorStyles { get; } = new ObservableCollection<GomeostasSystem.BehaviorStyle>();
 
     public ICommand SaveCommand { get; }

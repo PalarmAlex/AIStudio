@@ -113,8 +113,11 @@ namespace AIStudio.ViewModels.Episodic
     private string _filterPhrase = string.Empty;
     private string _filterPhrasePerceptionInput = string.Empty;
     private string _filterPhraseInput = string.Empty;
+    private string _currentAgentName;
+    private int _currentAgentStage;
 
-    public string CurrentAgentTitle => "Дерево эпизодической памяти";
+    public string CurrentAgentTitle =>
+        SymbiontPageTitleFormatter.Format("Дерево эпизодической памяти", _currentAgentName, _currentAgentStage);
 
     public DescriptionWithLink CurrentAgentDescription =>
       new DescriptionWithLink
@@ -278,7 +281,14 @@ namespace AIStudio.ViewModels.Episodic
       ApplyFiltersCommand = new RelayCommand(ApplyFilters);
       ClearFiltersCommand = new RelayCommand(ClearFilters);
 
+      RefreshAgentTitleContext();
       LoadTrees();
+    }
+
+    private void RefreshAgentTitleContext()
+    {
+      SymbiontPageTitleFormatter.ReadAgentContext(_gomeostas, out _currentAgentName, out _currentAgentStage);
+      OnPropertyChanged(nameof(CurrentAgentTitle));
     }
 
     private void LoadLevel2FilterOptions()

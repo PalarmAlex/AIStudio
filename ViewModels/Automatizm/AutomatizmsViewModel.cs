@@ -1,4 +1,5 @@
-﻿using AIStudio.Converters;
+﻿using AIStudio.Common;
+using AIStudio.Converters;
 using AIStudio.Dialogs;
 using AIStudio.Views;
 using ISIDA.Actions;
@@ -73,7 +74,8 @@ namespace AIStudio.ViewModels
     public GomeostasSystem GomeostasSystem => _gomeostas;
     public bool IsStageTwoOrHigher => _currentAgentStage >= 2;
 
-    public string CurrentAgentTitle => $"Автоматизмы Симбионта: {_currentAgentName ?? "Не определен"}";
+    public string CurrentAgentTitle =>
+        SymbiontPageTitleFormatter.Format("Автоматизмы", _currentAgentName, _currentAgentStage);
 
     private ObservableCollection<AutomatizmDisplayItem> _allAutomatizms = new ObservableCollection<AutomatizmDisplayItem>();
     private ObservableCollection<AutomatizmDisplayItem> _displayAutomatizms = new ObservableCollection<AutomatizmDisplayItem>();

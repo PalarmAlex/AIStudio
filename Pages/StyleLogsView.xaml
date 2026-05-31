@@ -159,7 +159,7 @@
 
     <!-- Заголовок -->
     <Border Grid.Row="0" Background="#101010" Padding="10" BorderBrush="#00FF00" BorderThickness="0,0,0,1">
-      <TextBlock Text="ЛОГИ СТИЛЕЙ ПОВЕДЕНИЯ" 
+      <TextBlock Text="{Binding CurrentAgentTitle}" 
                  Foreground="#00FF00"
                  FontFamily="Consolas, Courier New"
                  FontSize="16"

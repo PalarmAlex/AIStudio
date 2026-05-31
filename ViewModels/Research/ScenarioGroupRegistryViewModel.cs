@@ -2,6 +2,7 @@ using AIStudio;
 using AIStudio.Common;
 using AIStudio.ViewModels;
 using AIStudio.Windows;
+using ISIDA.Gomeostas;
 using ISIDA.Scenarios;
 using Microsoft.Win32;
 using Ookii.Dialogs.Wpf;
@@ -29,6 +30,12 @@ namespace AIStudio.ViewModels.Research
     private readonly Func<bool> _isScenarioRunSessionBusy;
     private readonly Action _requestStopScenarioSession;
     private readonly Func<bool> _canStopScenarioSession;
+    private readonly GomeostasSystem _gomeostas;
+    private string _currentAgentName;
+    private int _currentAgentStage;
+
+    public string CurrentAgentTitle =>
+        SymbiontPageTitleFormatter.Format("Группы сценариев оператора", _currentAgentName, _currentAgentStage);
 
     private ScenarioGroupHeader _selected;
     private readonly List<ScenarioGroupHeader> _registryAll = new List<ScenarioGroupHeader>();
@@ -43,7 +50,8 @@ namespace AIStudio.ViewModels.Research
         Func<string> getLaunchPrecheckError = null,
         Func<bool> isScenarioRunSessionBusy = null,
         Action requestStopScenarioSession = null,
-        Func<bool> canStopScenarioSession = null)
+        Func<bool> canStopScenarioSession = null,
+        GomeostasSystem gomeostas = null)
     {
       _runner = runner ?? throw new ArgumentNullException(nameof(runner));
       _tryStartGroup = tryStartGroup ?? throw new ArgumentNullException(nameof(tryStartGroup));
@@ -52,6 +60,8 @@ namespace AIStudio.ViewModels.Research
       _isScenarioRunSessionBusy = isScenarioRunSessionBusy ?? (() => runner.IsRunning);
       _requestStopScenarioSession = requestStopScenarioSession ?? (() => _runner.StopUser());
       _canStopScenarioSession = canStopScenarioSession ?? (() => _runner.IsRunning);
+      _gomeostas = gomeostas;
+      RefreshAgentTitleContext();
 
       _reportOutputFolder = AppConfig.ScenarioReportsFolderPath ?? "";
 
@@ -137,10 +147,17 @@ namespace AIStudio.ViewModels.Research
 
     public void Refresh()
     {
+      RefreshAgentTitleContext();
       _registryAll.Clear();
       foreach (var h in ScenarioGroupStorage.LoadGroupRegistry())
         _registryAll.Add(h);
       ApplyFilters();
+    }
+
+    private void RefreshAgentTitleContext()
+    {
+      SymbiontPageTitleFormatter.ReadAgentContext(_gomeostas, out _currentAgentName, out _currentAgentStage);
+      OnPropertyChanged(nameof(CurrentAgentTitle));
     }
 
     /// <summary>Удаление выбранных групп из реестра и с диска после подтверждения. Возвращает true, если клавиша Delete обработана (в т.ч. отказ).</summary>

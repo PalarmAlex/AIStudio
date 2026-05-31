@@ -1,7 +1,8 @@
+using AIStudio.Common;
 using ISIDA.Common;
+using ISIDA.Gomeostas;
 using ISIDA.Psychic.Thinking;
 using ISIDA.Psychic.Understanding;
-using AIStudio.Common;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -54,9 +55,13 @@ namespace AIStudio.ViewModels.Understanding
     }
 
     private readonly MentalEpisodicTreeSystem _mentalTree;
+    private readonly GomeostasSystem _gomeostas;
+    private string _currentAgentName;
+    private int _currentAgentStage;
     private MentalEpisodicTreeItem _selectedNode;
 
-    public string CurrentAgentTitle => "Ментальные цепочки";
+    public string CurrentAgentTitle =>
+        SymbiontPageTitleFormatter.Format("Ментальные цепочки", _currentAgentName, _currentAgentStage);
 
     public ProblemTreeViewModel.DescriptionWithLink CurrentAgentDescription => new ProblemTreeViewModel.DescriptionWithLink
     {
@@ -142,12 +147,20 @@ namespace AIStudio.ViewModels.Understanding
     public ICommand ApplyFiltersCommand { get; }
     public ICommand ClearFiltersCommand { get; }
 
-    public MentalEpisodicTreeViewModel(MentalEpisodicTreeSystem mentalTree)
+    public MentalEpisodicTreeViewModel(MentalEpisodicTreeSystem mentalTree, GomeostasSystem gomeostas = null)
     {
       _mentalTree = mentalTree;
+      _gomeostas = gomeostas;
+      RefreshAgentTitleContext();
       ApplyFiltersCommand = new RelayCommand(_ => LoadTree());
       ClearFiltersCommand = new RelayCommand(_ => ClearFilters());
       LoadTree();
+    }
+
+    private void RefreshAgentTitleContext()
+    {
+      SymbiontPageTitleFormatter.ReadAgentContext(_gomeostas, out _currentAgentName, out _currentAgentStage);
+      OnPropertyChanged(nameof(CurrentAgentTitle));
     }
 
     private void ClearFilters()

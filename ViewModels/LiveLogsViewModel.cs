@@ -30,6 +30,9 @@ namespace AIStudio.ViewModels
     private bool _disposed = false;
 
     private readonly AgentLogCellTooltipProvider _tooltipProvider;
+    private readonly GomeostasSystem _gomeostas;
+    private string _currentAgentName;
+    private int _currentAgentStage;
     private readonly ObservableCollection<LogEntry> _mergedDisplayEntries = new ObservableCollection<LogEntry>();
     private HashSet<string> _selectedSessionKeys = new HashSet<string>(StringComparer.Ordinal)
     {
@@ -55,6 +58,9 @@ namespace AIStudio.ViewModels
     public ICommand ClearLogsCommand { get; }
     public ICommand OpenSessionsPickerCommand { get; }
 
+    public string CurrentAgentTitle =>
+        SymbiontPageTitleFormatter.Format("СИСТЕМНЫЕ ЛОГИ", _currentAgentName, _currentAgentStage);
+
     public LiveLogsViewModel(
         GomeostasSystem gomeostas,
         PerceptionImagesSystem perceptionImagesSystem,
@@ -66,8 +72,9 @@ namespace AIStudio.ViewModels
         AutomatizmSystem automatizmSystem,
         ActionsImagesSystem actionsImagesSystem)
     {
+      _gomeostas = gomeostas ?? throw new ArgumentNullException(nameof(gomeostas));
       _tooltipProvider = new AgentLogCellTooltipProvider(
-          gomeostas ?? throw new ArgumentNullException(nameof(gomeostas)),
+          _gomeostas,
           perceptionImagesSystem ?? throw new ArgumentNullException(nameof(perceptionImagesSystem)),
           influenceActionSystem ?? throw new ArgumentNullException(nameof(influenceActionSystem)),
           verbalSensor ?? throw new ArgumentNullException(nameof(verbalSensor)),
@@ -80,6 +87,7 @@ namespace AIStudio.ViewModels
       ClearLogsCommand = new RelayCommand(_ => ClearLogs());
       OpenSessionsPickerCommand = new RelayCommand(_ => OpenSessionsPicker());
 
+      RefreshAgentTitleContext();
       RebuildDisplayedEntries();
 
       _refreshTimer = new DispatcherTimer
@@ -153,6 +161,12 @@ namespace AIStudio.ViewModels
         _mergedDisplayEntries.Add(e);
 
       OnPropertyChanged(nameof(DisplayedAgentLogEntries));
+    }
+
+    private void RefreshAgentTitleContext()
+    {
+      SymbiontPageTitleFormatter.ReadAgentContext(_gomeostas, out _currentAgentName, out _currentAgentStage);
+      OnPropertyChanged(nameof(CurrentAgentTitle));
     }
 
     private void RefreshDisplay()

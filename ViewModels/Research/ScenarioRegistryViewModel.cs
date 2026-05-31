@@ -3,6 +3,7 @@ using AIStudio.Common;
 using AIStudio.Pages.Research;
 using AIStudio.Windows;
 using ISIDA.Actions;
+using ISIDA.Gomeostas;
 using ISIDA.Scenarios;
 using System;
 using System.Collections.Generic;
@@ -30,6 +31,12 @@ namespace AIStudio.ViewModels.Research
     private readonly Func<bool> _isScenarioRunSessionBusy;
     private readonly Action _requestStopScenarioSession;
     private readonly Func<bool> _canStopScenarioSession;
+    private readonly GomeostasSystem _gomeostas;
+    private string _currentAgentName;
+    private int _currentAgentStage;
+
+    public string CurrentAgentTitle =>
+        SymbiontPageTitleFormatter.Format("Сценарии оператора", _currentAgentName, _currentAgentStage);
 
     private ScenarioHeader _selected;
     private readonly List<ScenarioHeader> _registryAll = new List<ScenarioHeader>();
@@ -63,7 +70,8 @@ namespace AIStudio.ViewModels.Research
         Func<string> getLaunchPrecheckError = null,
         Func<bool> isScenarioRunSessionBusy = null,
         Action requestStopScenarioSession = null,
-        Func<bool> canStopScenarioSession = null)
+        Func<bool> canStopScenarioSession = null,
+        GomeostasSystem gomeostas = null)
     {
       _influenceActions = influenceActions ?? throw new ArgumentNullException(nameof(influenceActions));
       _runner = runner ?? throw new ArgumentNullException(nameof(runner));
@@ -73,6 +81,8 @@ namespace AIStudio.ViewModels.Research
       _isScenarioRunSessionBusy = isScenarioRunSessionBusy ?? (() => runner.IsRunning);
       _requestStopScenarioSession = requestStopScenarioSession ?? (() => _runner.StopUser());
       _canStopScenarioSession = canStopScenarioSession ?? (() => _runner.IsRunning);
+      _gomeostas = gomeostas;
+      RefreshAgentTitleContext();
 
       Items = new ObservableCollection<ScenarioHeader>();
       RefreshCommand = new RelayCommand(_ => Refresh());
@@ -119,10 +129,17 @@ namespace AIStudio.ViewModels.Research
 
     public void Refresh()
     {
+      RefreshAgentTitleContext();
       _registryAll.Clear();
       foreach (var h in ScenarioStorage.LoadRegistry())
         _registryAll.Add(h);
       ApplyFilters();
+    }
+
+    private void RefreshAgentTitleContext()
+    {
+      SymbiontPageTitleFormatter.ReadAgentContext(_gomeostas, out _currentAgentName, out _currentAgentStage);
+      OnPropertyChanged(nameof(CurrentAgentTitle));
     }
 
     private void ApplyFilters()

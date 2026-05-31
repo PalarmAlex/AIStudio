@@ -31,7 +31,7 @@ namespace AIStudio.ViewModels
 
     public bool IsReadOnlyMode => !IsEditingEnabled;
     public string CurrentAgentTitle =>
-        $"Адаптивные действия Симбионта: {_currentAgentName ?? "Не определен"}";
+        SymbiontPageTitleFormatter.Format("Адаптивные действия", _currentAgentName, _currentAgentStage);
     public ObservableCollection<AdaptiveActionsSystem.AdaptiveAction> AdaptiveActions { get; } = new ObservableCollection<AdaptiveActionsSystem.AdaptiveAction>();
 
     public ICommand SaveCommand { get; }

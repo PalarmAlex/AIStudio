@@ -1,6 +1,7 @@
 using AIStudio.Common;
 using ISIDA.Actions;
 using ISIDA.Common;
+using ISIDA.Gomeostas;
 using ISIDA.Reflexes;
 using System;
 using System.Collections.Generic;
@@ -23,6 +24,12 @@ namespace AIStudio.ViewModels
     private readonly ReflexChainsSystem _chainsSystem;
     private readonly GeneticReflexesSystem _reflexesSystem;
     private readonly AdaptiveActionsSystem _actionsSystem;
+    private readonly GomeostasSystem _gomeostas;
+    private string _currentAgentName;
+    private int _currentAgentStage;
+
+    public string CurrentAgentTitle =>
+        SymbiontPageTitleFormatter.Format("Цепочки безусловных рефлексов", _currentAgentName, _currentAgentStage);
 
     private readonly ObservableCollection<ChainDisplayItem> _allChains = new ObservableCollection<ChainDisplayItem>();
     private readonly ObservableCollection<ChainDisplayItem> _displayChains = new ObservableCollection<ChainDisplayItem>();
@@ -113,11 +120,14 @@ namespace AIStudio.ViewModels
     public ReflexChainsViewModel(
       ReflexChainsSystem chainsSystem,
       GeneticReflexesSystem reflexesSystem,
-      AdaptiveActionsSystem actionsSystem)
+      AdaptiveActionsSystem actionsSystem,
+      GomeostasSystem gomeostas = null)
     {
       _chainsSystem = chainsSystem ?? throw new ArgumentNullException(nameof(chainsSystem));
       _reflexesSystem = reflexesSystem ?? throw new ArgumentNullException(nameof(reflexesSystem));
       _actionsSystem = actionsSystem ?? throw new ArgumentNullException(nameof(actionsSystem));
+      _gomeostas = gomeostas;
+      RefreshAgentTitleContext();
 
       ChainsView = CollectionViewSource.GetDefaultView(_displayChains);
 
@@ -127,6 +137,12 @@ namespace AIStudio.ViewModels
       LoadActionNames();
       InitializeActionFilterOptions();
       LoadChainsData();
+    }
+
+    private void RefreshAgentTitleContext()
+    {
+      SymbiontPageTitleFormatter.ReadAgentContext(_gomeostas, out _currentAgentName, out _currentAgentStage);
+      OnPropertyChanged(nameof(CurrentAgentTitle));
     }
 
     private void LoadActionNames()

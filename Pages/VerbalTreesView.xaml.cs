@@ -15,6 +15,15 @@ namespace AIStudio.Pages
       InitializeComponent();
     }
 
+    public void SetPageViewModel(VerbalTreesPageViewModel pageViewModel)
+    {
+      DataContext = pageViewModel;
+      VerbalTabContent.DataContext = pageViewModel.VerbalViewModel;
+      VerbalTabContent.Content = pageViewModel.VerbalViewModel;
+      CommandTabContent.DataContext = pageViewModel.CommandViewModel;
+      CommandTabContent.Content = pageViewModel.CommandViewModel;
+    }
+
     public void SetViewModels(VerbalTreesViewModel verbalVm, VerbalTreesViewModel commandVm)
     {
       VerbalTabContent.DataContext = verbalVm;

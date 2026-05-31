@@ -1,5 +1,6 @@
 ﻿using AIStudio.Common;
 using AIStudio.Windows;
+using ISIDA.Gomeostas;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -21,6 +22,9 @@ namespace AIStudio.ViewModels
 
     private readonly DispatcherTimer _refreshTimer;
     private bool _disposed = false;
+    private readonly GomeostasSystem _gomeostas;
+    private string _currentAgentName;
+    private int _currentAgentStage;
     private DataGrid _dataGrid;
     private List<int> _knownParamIds = new List<int>();
     private ParameterLogGroup _selectedRow;
@@ -35,6 +39,9 @@ namespace AIStudio.ViewModels
 
     public string SessionsButtonLabel => LogSessionsUiHelper.BuildButtonLabel(_selectedSessionKeys);
     public bool IsLiveOnlyView => LogSessionsUiHelper.UsesOnlyCurrentSession(_selectedSessionKeys);
+
+    public string CurrentAgentTitle =>
+        SymbiontPageTitleFormatter.Format("ЛОГИ ПАРАМЕТРОВ ГОМЕОСТАЗА", _currentAgentName, _currentAgentStage);
 
     private bool _suppressFileSessionLoad;
 
@@ -59,8 +66,10 @@ namespace AIStudio.ViewModels
       }
     }
 
-    public ParameterLogsViewModel()
+    public ParameterLogsViewModel(GomeostasSystem gomeostas = null)
     {
+      _gomeostas = gomeostas;
+      RefreshAgentTitleContext();
       ClearLogsCommand = new RelayCommand(_ => ClearLogs());
       OpenSessionsPickerCommand = new RelayCommand(_ => OpenSessionsPicker());
 
@@ -122,6 +131,12 @@ namespace AIStudio.ViewModels
         list.AddRange(ParameterLogFileSessions.LoadMergedSessions(fileIndices));
 
       return list;
+    }
+
+    private void RefreshAgentTitleContext()
+    {
+      SymbiontPageTitleFormatter.ReadAgentContext(_gomeostas, out _currentAgentName, out _currentAgentStage);
+      OnPropertyChanged(nameof(CurrentAgentTitle));
     }
 
     private void RefreshDisplay()

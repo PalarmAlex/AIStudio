@@ -1,5 +1,6 @@
 using AIStudio.Common;
 using ISIDA.Common;
+using ISIDA.Gomeostas;
 using ISIDA.Psychic.Automatism;
 using ISIDA.Psychic.Understanding;
 using System.Windows.Input;
@@ -61,11 +62,15 @@ namespace AIStudio.ViewModels.Understanding
     private readonly AutomatizmTreeSystem _automatizmTree;
     private readonly SituationTypeSystem _situationTypeSystem;
     private readonly SituationImageSystem _situationImageSystem;
+    private readonly GomeostasSystem _gomeostas;
     /// <summary>Делегат для получения полной расшифровки узла дерева автоматизмов (условия + образ действия).</summary>
     private readonly Func<int, string> _getAutNodeDetails;
     private ProblemTreeNodeItem _selectedNode;
+    private string _currentAgentName;
+    private int _currentAgentStage;
 
-    public string CurrentAgentTitle => "Дерево проблем";
+    public string CurrentAgentTitle =>
+        SymbiontPageTitleFormatter.Format("Дерево проблем", _currentAgentName, _currentAgentStage);
 
     public DescriptionWithLink CurrentAgentDescription => new DescriptionWithLink
     {
@@ -291,16 +296,25 @@ namespace AIStudio.ViewModels.Understanding
         AutomatizmTreeSystem automatizmTree = null,
         SituationTypeSystem situationTypeSystem = null,
         SituationImageSystem situationImageSystem = null,
-        Func<int, string> getAutNodeDetails = null)
+        Func<int, string> getAutNodeDetails = null,
+        GomeostasSystem gomeostas = null)
     {
       _problemTree = problemTree;
       _automatizmTree = automatizmTree;
       _situationTypeSystem = situationTypeSystem;
       _situationImageSystem = situationImageSystem;
       _getAutNodeDetails = getAutNodeDetails;
+      _gomeostas = gomeostas;
+      RefreshAgentTitleContext();
       ApplyFiltersCommand = new RelayCommand(ApplyFilters);
       ClearFiltersCommand = new RelayCommand(ClearFilters);
       LoadTree();
+    }
+
+    private void RefreshAgentTitleContext()
+    {
+      SymbiontPageTitleFormatter.ReadAgentContext(_gomeostas, out _currentAgentName, out _currentAgentStage);
+      OnPropertyChanged(nameof(CurrentAgentTitle));
     }
 
     private void ApplyFilters(object parameter = null)

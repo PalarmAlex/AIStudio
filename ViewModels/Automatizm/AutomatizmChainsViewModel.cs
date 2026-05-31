@@ -1,6 +1,8 @@
+using AIStudio.Common;
 using AIStudio.Views;
 using ISIDA.Actions;
 using ISIDA.Common;
+using ISIDA.Gomeostas;
 using ISIDA.Psychic.Automatism;
 using ISIDA.Sensors;
 using System;
@@ -27,6 +29,12 @@ namespace AIStudio.ViewModels
     private readonly ActionsImagesSystem _actionsImagesSystem;
     private readonly AdaptiveActionsSystem _adaptiveActionsSystem;
     private readonly SensorySystem _sensorySystem;
+    private readonly GomeostasSystem _gomeostas;
+    private string _currentAgentName;
+    private int _currentAgentStage;
+
+    public string CurrentAgentTitle =>
+        SymbiontPageTitleFormatter.Format("Цепочки автоматизмов", _currentAgentName, _currentAgentStage);
 
     private ObservableCollection<ChainDisplayItem> _allChains = new ObservableCollection<ChainDisplayItem>();
     private ObservableCollection<ChainDisplayItem> _displayChains = new ObservableCollection<ChainDisplayItem>();
@@ -149,13 +157,16 @@ namespace AIStudio.ViewModels
         AutomatizmChainsSystem chainsSystem,
         ActionsImagesSystem actionsImagesSystem,
         AdaptiveActionsSystem adaptiveActionsSystem,
-        SensorySystem sensorySystem)
+        SensorySystem sensorySystem,
+        GomeostasSystem gomeostas = null)
     {
       _automatizmSystem = automatizmSystem ?? throw new ArgumentNullException(nameof(automatizmSystem));
       _chainsSystem = chainsSystem ?? throw new ArgumentNullException(nameof(chainsSystem));
       _actionsImagesSystem = actionsImagesSystem ?? throw new ArgumentNullException(nameof(actionsImagesSystem));
       _adaptiveActionsSystem = adaptiveActionsSystem ?? throw new ArgumentNullException(nameof(adaptiveActionsSystem));
       _sensorySystem = sensorySystem ?? throw new ArgumentNullException(nameof(sensorySystem));
+      _gomeostas = gomeostas;
+      RefreshAgentTitleContext();
 
       _chainsView = CollectionViewSource.GetDefaultView(_displayChains);
 
@@ -164,6 +175,12 @@ namespace AIStudio.ViewModels
       InitializeActionFilterOptions();
       FilterImageKind = string.Empty;
       LoadChainsData();
+    }
+
+    private void RefreshAgentTitleContext()
+    {
+      SymbiontPageTitleFormatter.ReadAgentContext(_gomeostas, out _currentAgentName, out _currentAgentStage);
+      OnPropertyChanged(nameof(CurrentAgentTitle));
     }
 
     private void InitializeActionFilterOptions()

@@ -52,6 +52,8 @@ namespace AIStudio.ViewModels.Episodic
     private readonly ActionsImagesSystem _actionsImages;
     private readonly GomeostasSystem _gomeostas;
     private List<MotorEpisodicRuleRow> _allRows = new List<MotorEpisodicRuleRow>();
+    private string _currentAgentName;
+    private int _currentAgentStage;
 
     private ObservableCollection<MotorEpisodicRuleRow> _rules = new ObservableCollection<MotorEpisodicRuleRow>();
     public ObservableCollection<MotorEpisodicRuleRow> Rules
@@ -67,7 +69,8 @@ namespace AIStudio.ViewModels.Episodic
       set { _historyFrames = value; OnPropertyChanged(nameof(HistoryFrames)); }
     }
 
-    public string CurrentAgentTitle => "Моторные правила";
+    public string CurrentAgentTitle =>
+        SymbiontPageTitleFormatter.Format("Моторные правила", _currentAgentName, _currentAgentStage);
 
     public bool IsMotorRulesAvailable =>
       _episodicMemory != null && EpisodicMemorySystem.IsInitialized && AppGlobalState.EvolutionStage >= 4;
@@ -267,6 +270,9 @@ namespace AIStudio.ViewModels.Episodic
 
     private void ReloadAll()
     {
+      SymbiontPageTitleFormatter.ReadAgentContext(_gomeostas, out _currentAgentName, out _currentAgentStage);
+      OnPropertyChanged(nameof(CurrentAgentTitle));
+
       _allRows.Clear();
       if (IsMotorRulesAvailable && _episodicMemory?.Tree != null)
       {

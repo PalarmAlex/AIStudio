@@ -23,7 +23,7 @@
     </Grid.RowDefinitions>
 
     <TextBlock Grid.Row="0"
-               Text="Цепочки безусловных рефлексов"
+               Text="{Binding CurrentAgentTitle}"
                FontSize="18"
                FontWeight="SemiBold"
                HorizontalAlignment="Center"

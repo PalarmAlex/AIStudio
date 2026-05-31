@@ -50,7 +50,7 @@ namespace AIStudio.ViewModels
       }
     }
     public string CurrentAgentTitle =>
-        $"Параметры гомеостаза Симбионта: {_currentAgentName ?? "Не определен"}";
+        SymbiontPageTitleFormatter.Format("Параметры гомеостаза", _currentAgentName, _currentAgentStage);
     public ICommand SaveCommand { get; }
     public ICommand RemoveAllCommand { get; }
     public ICommand SelectAgentCommand { get; }
@@ -152,6 +152,7 @@ namespace AIStudio.ViewModels
         OnPropertyChanged(nameof(PulseWarningMessage));
         OnPropertyChanged(nameof(WarningMessageColor));
         OnPropertyChanged(nameof(IsReadOnlyMode));
+        OnPropertyChanged(nameof(CurrentAgentTitle));
 
         var parameters = _gomeostas.GetAllParameters()?
             .OrderBy(p => p.Id)

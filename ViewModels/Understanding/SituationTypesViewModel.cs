@@ -26,10 +26,12 @@ namespace AIStudio.ViewModels
     private readonly SituationTypeSystem _situationTypeSystem;
     private readonly GomeostasSystem _gomeostas;
     private int _currentAgentStage;
+    private string _currentAgentName;
 
     public bool IsStageFour => _currentAgentStage == 4;
 
-    public string CurrentAgentTitle => "Справочник типов ситуаций";
+    public string CurrentAgentTitle =>
+        SymbiontPageTitleFormatter.Format("Справочник типов ситуаций", _currentAgentName, _currentAgentStage);
 
     public DescriptionWithLink CurrentAgentDescription => new DescriptionWithLink
     {
@@ -160,6 +162,7 @@ namespace AIStudio.ViewModels
       {
         var agentInfo = _gomeostas.GetAgentState();
         _currentAgentStage = agentInfo?.EvolutionStage ?? 0;
+        _currentAgentName = agentInfo?.Name;
 
         if (_situationTypeSystem != null && ISIDA.Psychic.Understanding.SituationTypeSystem.IsInitialized)
         {

@@ -636,7 +636,8 @@ namespace AIStudio
           _automatizmTreeSystem,
           _isidaContext?.SituationTypeSystem,
           _isidaContext?.SituationImageSystem,
-          getAutNodeDetails: automatizmsVm.GetFullAutNodeDetails);
+          getAutNodeDetails: automatizmsVm.GetFullAutNodeDetails,
+          gomeostas: _gomeostas);
       view.DataContext = viewModel;
       CurrentContent = view;
     }
@@ -644,7 +645,7 @@ namespace AIStudio
     private void ShowThinkingCycles()
     {
       var view = new ThinkingCyclesView();
-      var viewModel = new ThinkingCyclesViewModel(_psychicSystem);
+      var viewModel = new ThinkingCyclesViewModel(_psychicSystem, _gomeostas);
       view.DataContext = viewModel;
       CurrentContent = view;
     }
@@ -652,7 +653,7 @@ namespace AIStudio
     private void ShowMentalEpisodicTree()
     {
       var view = new MentalEpisodicTreeView();
-      var viewModel = new MentalEpisodicTreeViewModel(_isidaContext?.MentalEpisodicTreeSystem);
+      var viewModel = new MentalEpisodicTreeViewModel(_isidaContext?.MentalEpisodicTreeSystem, _gomeostas);
       view.DataContext = viewModel;
       CurrentContent = view;
     }
@@ -674,7 +675,8 @@ namespace AIStudio
           getLaunchPrecheckError: GetScenarioGroupLaunchPrecheckError,
           isScenarioRunSessionBusy: () => IsScenarioRunSessionBusy,
           requestStopScenarioSession: RequestStopScenarioSession,
-          canStopScenarioSession: () => _scenarioRunner.IsRunning || _homeostasisSettleWaitActive || _scenarioBatchRun != null);
+          canStopScenarioSession: () => _scenarioRunner.IsRunning || _homeostasisSettleWaitActive || _scenarioBatchRun != null,
+          gomeostas: _gomeostas);
       CurrentContent = new ScenarioRegistryView { DataContext = scenariosVm };
     }
 
@@ -694,7 +696,8 @@ namespace AIStudio
           GetScenarioGroupLaunchPrecheckError,
           isScenarioRunSessionBusy: () => IsScenarioRunSessionBusy,
           requestStopScenarioSession: RequestStopScenarioSession,
-          canStopScenarioSession: () => _scenarioRunner.IsRunning || _homeostasisSettleWaitActive || _scenarioBatchRun != null);
+          canStopScenarioSession: () => _scenarioRunner.IsRunning || _homeostasisSettleWaitActive || _scenarioBatchRun != null,
+          gomeostas: _gomeostas);
       CurrentContent = new ScenarioGroupRegistryView { DataContext = groupRegistryVm };
     }
 
@@ -2070,7 +2073,7 @@ namespace AIStudio
     private void ShowStileLogs()
     {
       var stileLogsView = new StyleLogsView();
-      var viewModel = new StyleLogsViewModel();
+      var viewModel = new StyleLogsViewModel(_gomeostas);
       stileLogsView.DataContext = viewModel;
       CurrentContent = stileLogsView;
     }
@@ -2081,7 +2084,7 @@ namespace AIStudio
     private void ShowParametersLogs()
     {
       var parameterLogsView = new ParameterLogsView();
-      var viewModel = new ParameterLogsViewModel();
+      var viewModel = new ParameterLogsViewModel(_gomeostas);
       parameterLogsView.DataContext = viewModel;
       CurrentContent = parameterLogsView;
     }
@@ -2095,7 +2098,8 @@ namespace AIStudio
         _automatizmChains, 
         _actionsImagesSystem,
         _actionsSystem,
-        _sensorySystem);
+        _sensorySystem,
+        _gomeostas);
       automatizmChainsView.DataContext = viewModel;
       CurrentContent = automatizmChainsView;
     }
@@ -2107,7 +2111,8 @@ namespace AIStudio
       var viewModel = new ReflexChainsViewModel(
         _reflexChains,
         _geneticReflexesSystem,
-        _actionsSystem);
+        _actionsSystem,
+        _gomeostas);
       reflexChainsView.DataContext = viewModel;
       CurrentContent = reflexChainsView;
     }
@@ -2115,10 +2120,9 @@ namespace AIStudio
     // Открыть страницу сенсоров
     private void OpenSensors()
     {
+      var pageViewModel = new VerbalTreesPageViewModel(_gomeostas, _sensorySystem);
       var view = new VerbalTreesView();
-      view.SetViewModels(
-          new VerbalTreesViewModel(_gomeostas, _sensorySystem.VerbalChannel, SensorTreesPageLabels.Verbal),
-          new VerbalTreesViewModel(_gomeostas, _sensorySystem.CommandChannel, SensorTreesPageLabels.Command));
+      view.SetPageViewModel(pageViewModel);
       CurrentContent = view;
     }
 

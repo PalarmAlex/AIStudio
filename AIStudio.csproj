@@ -267,6 +267,7 @@
     </Compile>
     <Compile Include="AppConfig.cs" />
     <Compile Include="Common\ShowInputDialog.cs" />
+    <Compile Include="Common\SymbiontPageTitleFormatter.cs" />
     <Compile Include="Converters\BoolToVisibilityConverter.cs" />
     <Compile Include="Pages\AgentView.xaml.cs">
       <DependentUpon>AgentView.xaml</DependentUpon>
@@ -349,6 +350,7 @@
     <Compile Include="ViewModels\SystemParametersViewModel.cs" />
     <Compile Include="ViewModels\SensorTreesPageLabels.cs" />
     <Compile Include="ViewModels\VerbalTreesViewModel.cs" />
+    <Compile Include="ViewModels\VerbalTreesPageViewModel.cs" />
     <Compile Include="Common\ScenarioPaths.cs" />
     <Compile Include="Common\ScenarioStorage.cs" />
     <Compile Include="Common\ScenarioGroupModels.cs" />

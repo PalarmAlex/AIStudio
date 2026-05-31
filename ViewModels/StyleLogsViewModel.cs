@@ -8,6 +8,7 @@ using System.Windows.Input;
 using System.Windows.Threading;
 using AIStudio.Common;
 using AIStudio.Windows;
+using ISIDA.Gomeostas;
 using static AIStudio.Common.MemoryLogManager;
 
 namespace AIStudio.ViewModels
@@ -18,6 +19,9 @@ namespace AIStudio.ViewModels
 
     private readonly DispatcherTimer _refreshTimer;
     private bool _disposed = false;
+    private readonly GomeostasSystem _gomeostas;
+    private string _currentAgentName;
+    private int _currentAgentStage;
     private StyleLogGroup _selectedRow;
     private HashSet<string> _selectedSessionKeys = new HashSet<string>(StringComparer.Ordinal)
     {
@@ -31,6 +35,9 @@ namespace AIStudio.ViewModels
     public string SessionsButtonLabel => LogSessionsUiHelper.BuildButtonLabel(_selectedSessionKeys);
     public bool IsLiveOnlyView => LogSessionsUiHelper.UsesOnlyCurrentSession(_selectedSessionKeys);
 
+    public string CurrentAgentTitle =>
+        SymbiontPageTitleFormatter.Format("ЛОГИ СТИЛЕЙ ПОВЕДЕНИЯ", _currentAgentName, _currentAgentStage);
+
     private bool _suppressFileSessionLoad;
 
     public StyleLogGroup SelectedRow
@@ -43,8 +50,10 @@ namespace AIStudio.ViewModels
       }
     }
 
-    public StyleLogsViewModel()
+    public StyleLogsViewModel(GomeostasSystem gomeostas = null)
     {
+      _gomeostas = gomeostas;
+      RefreshAgentTitleContext();
       ClearLogsCommand = new RelayCommand(_ => ClearLogs());
       OpenSessionsPickerCommand = new RelayCommand(_ => OpenSessionsPicker());
 
@@ -78,6 +87,12 @@ namespace AIStudio.ViewModels
       OnPropertyChanged(nameof(SessionsButtonLabel));
       OnPropertyChanged(nameof(IsLiveOnlyView));
       RefreshDisplay();
+    }
+
+    private void RefreshAgentTitleContext()
+    {
+      SymbiontPageTitleFormatter.ReadAgentContext(_gomeostas, out _currentAgentName, out _currentAgentStage);
+      OnPropertyChanged(nameof(CurrentAgentTitle));
     }
 
     private void RefreshDisplay()

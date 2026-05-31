@@ -1,4 +1,5 @@
-﻿using AIStudio.Views;
+﻿using AIStudio.Common;
+using AIStudio.Views;
 using AIStudio.Dialogs;
 using ISIDA.Actions;
 using ISIDA.Common;
@@ -53,7 +54,8 @@ namespace AIStudio.ViewModels
     public GomeostasSystem GomeostasSystem => _gomeostas;
     public PerceptionImagesSystem PerceptionImagesSystem => _perceptionImagesSystem;
     public bool IsStageOneOrHigher => _currentAgentStage >= 1;
-    public string CurrentAgentTitle => $"Условные рефлексы Симбионта: {_currentAgentName ?? "Не определен"}";
+    public string CurrentAgentTitle =>
+        SymbiontPageTitleFormatter.Format("Условные рефлексы", _currentAgentName, _currentAgentStage);
 
     private ObservableCollection<ConditionedReflexWithSourceActions> _allConditionedReflexes = new ObservableCollection<ConditionedReflexWithSourceActions>();
     private HashSet<ConditionedReflexWithSourceActions> _visibleSet = new HashSet<ConditionedReflexWithSourceActions>();

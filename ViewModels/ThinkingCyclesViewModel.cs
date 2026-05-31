@@ -1,3 +1,5 @@
+using AIStudio.Common;
+using ISIDA.Gomeostas;
 using ISIDA.Psychic;
 using ISIDA.Psychic.Thinking;
 using System;
@@ -19,7 +21,10 @@ namespace AIStudio.ViewModels
     public event PropertyChangedEventHandler PropertyChanged;
 
     private readonly PsychicSystem _psychicSystem;
+    private readonly GomeostasSystem _gomeostas;
     private readonly DispatcherTimer _refreshTimer;
+    private string _currentAgentName;
+    private int _currentAgentStage;
     private int _tickCounter;
     private bool _disposed;
 
@@ -33,9 +38,12 @@ namespace AIStudio.ViewModels
 
     public ThinkingCyclesViewModel(
       PsychicSystem psychicSystem,
+      GomeostasSystem gomeostas = null,
       int detailLogLines = 80)
     {
       _psychicSystem = psychicSystem ?? throw new ArgumentNullException(nameof(psychicSystem));
+      _gomeostas = gomeostas;
+      RefreshAgentTitleContext();
       _detailLogLines = Math.Max(0, detailLogLines);
 
       BackgroundLimitOptions = new List<KeyValuePair<int, string>>
@@ -81,6 +89,9 @@ namespace AIStudio.ViewModels
     }
 
     public ICommand SelectCycleCommand { get; }
+
+    public string CurrentAgentTitle =>
+        SymbiontPageTitleFormatter.Format("Циклы осмысления", _currentAgentName, _currentAgentStage);
 
     public ThinkingCycleTileViewModel MainTile { get; private set; }
 
@@ -348,6 +359,12 @@ namespace AIStudio.ViewModels
       _selectedCycleId = id;
       RefreshDetail();
       RebuildMatrixFromLastSnapshot();
+    }
+
+    private void RefreshAgentTitleContext()
+    {
+      SymbiontPageTitleFormatter.ReadAgentContext(_gomeostas, out _currentAgentName, out _currentAgentStage);
+      OnPropertyChanged(nameof(CurrentAgentTitle));
     }
 
     private void RefreshFromEngine()
