@@ -139,9 +139,9 @@
           <TextBlock Text="Автоматизмы" Style="{StaticResource SectionHeaderStyle}"/>
         </StackPanel>
 
-        <!-- Колонка 4: Ответные фразы -->
+        <!-- Колонка 4: Ответные фразы/команды -->
         <StackPanel Grid.Column="3" Grid.Row="0">
-          <TextBlock Text="Ответные фразы" Style="{StaticResource SectionHeaderStyle}"/>
+          <TextBlock Text="Ответные фразы/команды" Style="{StaticResource SectionHeaderStyle}"/>
         </StackPanel>
 
         <!-- Колонка 1: Безусловные рефлексы -->

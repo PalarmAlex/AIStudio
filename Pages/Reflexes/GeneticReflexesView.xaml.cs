@@ -106,13 +106,24 @@ namespace AIStudio.Pages.Reflexes
 
     private void DataGrid_AddingNewItem(object sender, AddingNewItemEventArgs e)
     {
+      int nextId = GetNextId();
+
       e.NewItem = new GeneticReflexesSystem.GeneticReflex
       {
+        Id = nextId,
         Level1 = 0,
         Level2 = new List<int>(),
         Level3 = new List<int>(),
         AdaptiveActions = new List<int>()
       };
+    }
+
+    private int GetNextId()
+    {
+      if (DataContext is GeneticReflexesViewModel viewModel)
+        return viewModel.GetNextReflexId();
+
+      return 1;
     }
 
     private void Level2Cell_DoubleClick(object sender, MouseButtonEventArgs e)

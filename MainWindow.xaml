@@ -134,7 +134,7 @@
               Command="{Binding VerticalMenuItemClickedCommand}"
               CommandParameter="27"/>
 
-            <Button Content="Воздействия среды" Margin="20,2,5,2"
+            <Button Content="Воздействия на гомеостаз" Margin="20,2,5,2"
               Style="{StaticResource MenuButtonStyle}"
               Command="{Binding VerticalMenuItemClickedCommand}"
               CommandParameter="28"/>

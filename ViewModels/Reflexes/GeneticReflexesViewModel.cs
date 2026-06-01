@@ -121,7 +121,14 @@ namespace AIStudio.ViewModels
       _bootDataFolder = bootDataFolder;
 
       _geneticReflexesView = CollectionViewSource.GetDefaultView(_allGeneticReflexes);
-      _geneticReflexesView.Filter = item => _visibleSet != null && item is GeneticReflexesSystem.GeneticReflex r && _visibleSet.Contains(r);
+      _geneticReflexesView.Filter = item =>
+      {
+        if (!(item is GeneticReflexesSystem.GeneticReflex reflex))
+          return false;
+        if (IsPendingReflex(reflex))
+          return true;
+        return _visibleSet != null && _visibleSet.Contains(reflex);
+      };
 
       SaveCommand = new RelayCommand(SaveData);
       RemoveCommand = new RelayCommand(RemoveSelectedReflexes);
@@ -337,10 +344,33 @@ namespace AIStudio.ViewModels
       }
     }
 
+    /// <summary>
+    /// Строка ещё не сохранена на диск (кнопка «Сохранить») или не заполнена для валидации — всегда показывать в таблице.
+    /// </summary>
+    private bool IsPendingReflex(GeneticReflexesSystem.GeneticReflex reflex)
+    {
+      if (reflex == null)
+        return false;
+
+      if (_geneticReflexesSystem.GetGeneticReflex(reflex.Id) == null)
+        return true;
+
+      if (reflex.Level2 == null || !reflex.Level2.Any())
+        return true;
+
+      if (reflex.AdaptiveActions == null || !reflex.AdaptiveActions.Any())
+        return true;
+
+      return false;
+    }
+
     private bool FilterGeneticReflexes(object item)
     {
       if (!(item is GeneticReflexesSystem.GeneticReflex reflex))
         return false;
+
+      if (IsPendingReflex(reflex))
+        return true;
 
       bool level3Match = !SelectedLevel3Filter.HasValue
         || (SelectedLevel3Filter.Value == -1
@@ -442,9 +472,13 @@ namespace AIStudio.ViewModels
 
     private void RefreshDisplay()
     {
-      var filtered = _allGeneticReflexes.Where(FilterGeneticReflexes).ToList();
+      var pending = _allGeneticReflexes.Where(IsPendingReflex).ToList();
+      var filteredSaved = _allGeneticReflexes
+          .Where(r => !IsPendingReflex(r) && FilterGeneticReflexes(r))
+          .ToList();
       int take = SelectedPageSize ?? int.MaxValue;
-      _visibleSet = new HashSet<GeneticReflexesSystem.GeneticReflex>(filtered.Take(take));
+      var visible = pending.Concat(filteredSaved.Take(take)).ToList();
+      _visibleSet = new HashSet<GeneticReflexesSystem.GeneticReflex>(visible);
       _geneticReflexesView.Refresh();
       OnPropertyChanged(nameof(DisplayCountText));
     }
@@ -709,6 +743,28 @@ namespace AIStudio.ViewModels
       }
     }
 
+    /// <summary>
+    /// Следующий свободный ID для новой строки в таблице (макс. в таблице и в системе + 1).
+    /// </summary>
+    public int GetNextReflexId()
+    {
+      int maxId = 0;
+
+      foreach (var reflex in _allGeneticReflexes)
+      {
+        if (reflex.Id > maxId)
+          maxId = reflex.Id;
+      }
+
+      foreach (var reflex in _geneticReflexesSystem.GetAllGeneticReflexes())
+      {
+        if (reflex.Id > maxId)
+          maxId = reflex.Id;
+      }
+
+      return maxId + 1;
+    }
+
     public void RemoveSelectedReflexes(object parameter)
     {
       if (parameter is GeneticReflexesSystem.GeneticReflex reflex)
@@ -718,15 +774,6 @@ namespace AIStudio.ViewModels
           if (_allGeneticReflexes.Contains(reflex))
             _allGeneticReflexes.Remove(reflex);
           RefreshDisplay();
-
-          if (reflex.Id > 0)
-          {
-            if (_geneticReflexesSystem.RemoveGeneticReflex(reflex.Id))
-              _geneticReflexesSystem.SaveGeneticReflexes();
-            else
-              MessageBox.Show("Не удалось удалить безусловные рефлексы", "Ошибка",
-                            MessageBoxButton.OK, MessageBoxImage.Error);
-          }
         }
         catch (Exception ex)
         {

@@ -332,7 +332,6 @@
     <Compile Include="ViewModels\AgentInfo.cs" />
     <Compile Include="ViewModels\ExterInalInfluencesViewModel.cs" />
     <Compile Include="ViewModels\LiveLogSessionPickerItem.cs" />
-    <Compile Include="ViewModels\LiveLogSessionPickerViewModel.cs" />
     <Compile Include="ViewModels\LogSessionPickerDeleteOperations.cs" />
     <Compile Include="ViewModels\LogSessionPickerViewModel.cs" />
     <Compile Include="ViewModels\LiveLogsViewModel.cs" />
@@ -391,9 +390,6 @@
     </Compile>
     <Compile Include="Windows\ScenarioGroupEditorWindow.xaml.cs">
       <DependentUpon>ScenarioGroupEditorWindow.xaml</DependentUpon>
-    </Compile>
-    <Compile Include="Windows\LiveLogSessionPickerWindow.xaml.cs">
-      <DependentUpon>LiveLogSessionPickerWindow.xaml</DependentUpon>
     </Compile>
     <Compile Include="Windows\LogSessionPickerWindow.xaml.cs">
       <DependentUpon>LogSessionPickerWindow.xaml</DependentUpon>
@@ -658,10 +654,6 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="Windows\ScenarioGroupEditorWindow.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="Windows\LiveLogSessionPickerWindow.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

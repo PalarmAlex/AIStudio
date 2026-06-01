@@ -34,7 +34,7 @@ namespace AIStudio.ViewModels
     public ObservableCollection<InfluenceActionSystem.GomeostasisInfluenceAction> InfluenceActions { get; } = new ObservableCollection<InfluenceActionSystem.GomeostasisInfluenceAction>();
 
     public string CurrentAgentTitle =>
-        SymbiontPageTitleFormatter.Format("Воздействия оператора на", _currentAgentName, _currentAgentStage);
+        SymbiontPageTitleFormatter.Format("Воздействия оператора и среды на", _currentAgentName, _currentAgentStage);
 
     public ICommand SaveCommand { get; }
     public ICommand RemoveActionCommand { get; }

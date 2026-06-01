@@ -23,35 +23,9 @@ namespace AIStudio.Common
 
     public static string GetAgentLogCsvPath() => ResolveAgentLogCsvPath();
 
-    /// <summary>Путь к AgentLogs.csv: настройки проекта или ProgramData\ISIDA\Logs.</summary>
-    public static string ResolveAgentLogCsvPath()
-    {
-      var candidates = new List<string>();
-
-      var fromConfig = AppConfig.LogsFolderPath;
-      if (!string.IsNullOrWhiteSpace(fromConfig))
-        candidates.Add(Path.Combine(fromConfig.Trim(), AgentLogCsvFileName));
-
-      candidates.Add(Path.Combine(
-          Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData),
-          "ISIDA", "Logs", AgentLogCsvFileName));
-
-      string bestPath = null;
-      long bestSize = -1;
-      foreach (var path in candidates.Distinct(StringComparer.OrdinalIgnoreCase))
-      {
-        if (!File.Exists(path))
-          continue;
-        long size = new FileInfo(path).Length;
-        if (size > bestSize)
-        {
-          bestSize = size;
-          bestPath = path;
-        }
-      }
-
-      return bestPath ?? candidates[0];
-    }
+    /// <summary>Путь к AgentLogs.csv: каталог из настроек проекта или ProgramData\ISIDA\Logs.</summary>
+    public static string ResolveAgentLogCsvPath() =>
+        LogFilePaths.ResolveLogFile(AgentLogCsvFileName);
 
     /// <summary>Список сессий из файла (без текущей в памяти), от новых к старым.</summary>
     public static IReadOnlyList<LogFileSessionInfo> ListFileSessions()

@@ -1,4 +1,5 @@
 using ISIDA.Common;
+using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
@@ -226,7 +227,7 @@ namespace AIStudio.Common
       return float.TryParse(raw, NumberStyles.Float, CultureInfo.InvariantCulture, out float v) ? v : 0f;
     }
 
-    /// <summary>Удаляет блоки сессий по индексам в файле (как SessionIndex в LogFileSessionInfo).</summary>
+    /// <summary>Удаляет блоки сессий по индексам в CSV и при наличии — в одноимённом .jsonl.</summary>
     public static bool TryDeleteSessionsByBlockIndex(
         string csvFileName,
         Func<string, bool> isHeaderRow,
@@ -250,6 +251,15 @@ namespace AIStudio.Common
         var blocks = ReadRawBlocks(path, isHeaderRow);
         var remaining = blocks.Where((_, i) => !toDelete.Contains(i)).ToList();
         WriteRawBlocks(path, remaining);
+
+        var jsonlPath = Path.ChangeExtension(path, ".jsonl");
+        if (File.Exists(jsonlPath))
+        {
+          var jsonlBlocks = ReadRawJsonlBlocks(jsonlPath);
+          var remainingJsonl = jsonlBlocks.Where((_, i) => !toDelete.Contains(i)).ToList();
+          WriteRawJsonlBlocks(jsonlPath, remainingJsonl);
+        }
+
         return true;
       }
       catch (Exception ex)
@@ -263,6 +273,11 @@ namespace AIStudio.Common
     {
       public string HeaderLine { get; set; }
       public List<string> DataLines { get; } = new List<string>();
+    }
+
+    private sealed class RawJsonlBlock
+    {
+      public List<string> Lines { get; } = new List<string>();
     }
 
     private static List<RawBlock> ReadRawBlocks(string path, Func<string, bool> isHeaderRow)
@@ -298,8 +313,73 @@ namespace AIStudio.Common
           sb.AppendLine(line);
       }
 
+      WriteFileAtomically(path, sb.ToString());
+    }
+
+    private static List<RawJsonlBlock> ReadRawJsonlBlocks(string jsonlPath)
+    {
+      var blocks = new List<RawJsonlBlock>();
+      RawJsonlBlock current = null;
+      int? lastPulse = null;
+
+      foreach (var line in ReadLinesShared(jsonlPath))
+      {
+        if (string.IsNullOrWhiteSpace(line) || line[0] != '{')
+          continue;
+
+        if (!TryParseJsonlPulse(line, out int pulse))
+          continue;
+
+        bool newSession = current == null
+                          || (pulse == 1 && lastPulse.HasValue && lastPulse.Value > 1);
+
+        if (newSession)
+        {
+          current = new RawJsonlBlock();
+          blocks.Add(current);
+          lastPulse = null;
+        }
+
+        current.Lines.Add(line);
+        lastPulse = pulse;
+      }
+
+      return blocks;
+    }
+
+    private static void WriteRawJsonlBlocks(string jsonlPath, IReadOnlyList<RawJsonlBlock> blocks)
+    {
+      var sb = new StringBuilder();
+      foreach (var block in blocks)
+      {
+        foreach (var line in block.Lines)
+          sb.AppendLine(line);
+      }
+
+      WriteFileAtomically(jsonlPath, sb.ToString());
+    }
+
+    private static bool TryParseJsonlPulse(string line, out int pulse)
+    {
+      pulse = 0;
+      try
+      {
+        var token = JObject.Parse(line)["Pulse"];
+        if (token == null)
+          return false;
+
+        return int.TryParse(token.ToString(), NumberStyles.Integer, CultureInfo.InvariantCulture, out pulse);
+      }
+      catch
+      {
+        return false;
+      }
+    }
+
+    private static void WriteFileAtomically(string path, string content)
+    {
       var tempPath = path + ".tmp";
-      File.WriteAllText(tempPath, sb.ToString(), new UTF8Encoding(encoderShouldEmitUTF8Identifier: true));
+      File.WriteAllText(tempPath, content, new UTF8Encoding(encoderShouldEmitUTF8Identifier: true));
       File.Copy(tempPath, path, overwrite: true);
       File.Delete(tempPath);
     }
