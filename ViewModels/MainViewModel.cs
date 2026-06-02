@@ -8,6 +8,7 @@ using AIStudio.Pages.Understanding;
 using AIStudio.ViewModels;
 using AIStudio.ViewModels.Episodic;
 using AIStudio.ViewModels.Research;
+using AIStudio.ViewModels.SymbiontEnv;
 using AIStudio.Windows;
 using AIStudio.ViewModels.Understanding;
 using ISIDA.Actions;
@@ -551,6 +552,12 @@ namespace AIStudio
           case "42": // Ментальные цепочки (эпизодика ИФ)
             ShowMentalEpisodicTree();
             break;
+          case "45": // Рецепты среды
+            ShowEnvironmentRecipesRegistry();
+            break;
+          case "46": // Триггеры среды
+            ShowEnvironmentTriggers();
+            break;
           default:
             ShowStub($"Меню {menuItem}");
             break;
@@ -656,6 +663,25 @@ namespace AIStudio
       var viewModel = new MentalEpisodicTreeViewModel(_isidaContext?.MentalEpisodicTreeSystem, _gomeostas);
       view.DataContext = viewModel;
       CurrentContent = view;
+    }
+
+    private void ShowEnvironmentRecipesRegistry()
+    {
+      void OpenEditor(EnvironmentRecipeEditorViewModel vm)
+      {
+        vm.CloseAction = ShowEnvironmentRecipesRegistry;
+        vm.RequestClose += _ => ShowEnvironmentRecipesRegistry();
+        CurrentContent = new Pages.SymbiontEnv.EnvironmentRecipeEditorView { DataContext = vm };
+      }
+
+      var registryVm = new EnvironmentRecipesRegistryViewModel(_gomeostas, OpenEditor);
+      CurrentContent = new Pages.SymbiontEnv.EnvironmentRecipesRegistryView { DataContext = registryVm };
+    }
+
+    private void ShowEnvironmentTriggers()
+    {
+      var vm = new EnvironmentTriggersViewModel(_gomeostas);
+      CurrentContent = new Pages.SymbiontEnv.EnvironmentTriggersView { DataContext = vm };
     }
 
     private void ShowScenarioRegistry()

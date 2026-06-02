@@ -77,6 +77,14 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="Common\Environment\EnvironmentCatalogStorage.cs" />
+    <Compile Include="Common\Environment\EnvironmentModels.cs" />
+    <Compile Include="Common\Environment\EnvironmentPaths.cs" />
+    <Compile Include="Common\Environment\EnvironmentRecipeMapper.cs" />
+    <Compile Include="Common\Environment\EnvironmentTriggerMapper.cs" />
+    <Compile Include="Common\Environment\EnvironmentYamlCodec.cs" />
+    <Compile Include="Common\Environment\EnvironmentYamlCodec.Triggers.cs" />
+    <Compile Include="Common\Environment\EnvironmentYamlCodec.Writer.cs" />
     <Compile Include="Common\ProjectFolderPicker.cs" />
     <Compile Include="Common\ProjectBootstrap.cs" />
     <Compile Include="Common\AntagonistItem.cs" />
@@ -361,6 +369,26 @@
     <Compile Include="Common\AgentLogCellTooltipProvider.cs" />
     <Compile Include="Common\ScenarioReportHtmlBuilder.cs" />
     <Compile Include="Common\ScenarioReportLogDisplay.cs" />
+    <Compile Include="ViewModels\Environment\EnvironmentRecipeListItem.cs" />
+    <Compile Include="ViewModels\Environment\EnvironmentRecipeStepRow.cs" />
+    <Compile Include="ViewModels\Environment\EnvironmentRecipeEditorModel.cs" />
+    <Compile Include="ViewModels\Environment\EnvironmentTriggerRow.cs" />
+    <Compile Include="ViewModels\Environment\EnvironmentTriggerDetectRow.cs" />
+    <Compile Include="ViewModels\Environment\EnvironmentRecipesRegistryViewModel.cs" />
+    <Compile Include="ViewModels\Environment\EnvironmentRecipeEditorViewModel.cs" />
+    <Compile Include="ViewModels\Environment\EnvironmentTriggersViewModel.cs" />
+    <Compile Include="Dialogs\EnvironmentTriggerDetectEditorDialog.xaml.cs">
+      <DependentUpon>EnvironmentTriggerDetectEditorDialog.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Pages\Environment\EnvironmentRecipesRegistryView.xaml.cs">
+      <DependentUpon>EnvironmentRecipesRegistryView.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Pages\Environment\EnvironmentRecipeEditorView.xaml.cs">
+      <DependentUpon>EnvironmentRecipeEditorView.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Pages\Environment\EnvironmentTriggersView.xaml.cs">
+      <DependentUpon>EnvironmentTriggersView.xaml</DependentUpon>
+    </Compile>
     <Compile Include="ViewModels\Research\ScenarioEditorViewModel.cs" />
     <Compile Include="ViewModels\Research\ScenarioToneMoodChoiceItem.cs" />
     <Compile Include="ViewModels\Research\ScenarioPulseIncrementChoiceItem.cs" />
@@ -626,6 +654,22 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="Pages\Automatizm\AutomatizmChainsView.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Dialogs\EnvironmentTriggerDetectEditorDialog.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Pages\Environment\EnvironmentRecipesRegistryView.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Pages\Environment\EnvironmentRecipeEditorView.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Pages\Environment\EnvironmentTriggersView.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

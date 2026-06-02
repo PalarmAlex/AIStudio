@@ -15,11 +15,15 @@ namespace AIStudio.Dialogs
     private List<InfluenceActionItem> _influenceActions;
     private AntagonistManager _antagonistManager;
     private bool _isManualSelection = false;
+    private readonly int? _maxSelectionCount;
 
-    public InfluenceActionsSelectionDialog(List<int> initiallySelected)
+    public InfluenceActionsSelectionDialog(List<int> initiallySelected, int? maxSelectionCount = null)
     {
+      _maxSelectionCount = maxSelectionCount;
       InitializeComponent();
       LoadInfluenceActions(initiallySelected);
+      if (_maxSelectionCount == 1)
+        Title = "Выбор воздействия";
     }
 
     private void LoadInfluenceActions(List<int> initiallySelected)
@@ -171,6 +175,16 @@ namespace AIStudio.Dialogs
           .Where(x => x.IsSelected)
           .Select(x => x.Id)
           .ToList();
+
+      if (_maxSelectionCount == 1 && selectedIds.Count > 1)
+      {
+        MessageBox.Show(
+            "Выберите только одно воздействие.",
+            "Выбор",
+            MessageBoxButton.OK,
+            MessageBoxImage.Information);
+        return;
+      }
 
       var antagonistsMap = _influenceActions.ToDictionary(
           item => item.Id,

@@ -226,6 +226,19 @@
           </StackPanel>
         </Expander>
 
+        <Expander Header="Среда" Style="{StaticResource MenuExpanderStyle}">
+          <StackPanel>
+            <Button Content="Рецепты среды" Margin="20,2,5,2"
+              Style="{StaticResource MenuButtonStyle}"
+              Command="{Binding VerticalMenuItemClickedCommand}"
+              CommandParameter="45"/>
+            <Button Content="Триггеры среды" Margin="20,2,5,2"
+              Style="{StaticResource MenuButtonStyle}"
+              Command="{Binding VerticalMenuItemClickedCommand}"
+              CommandParameter="46"/>
+          </StackPanel>
+        </Expander>
+
         <Expander Header="Исследования" Style="{StaticResource MenuExpanderStyle}">
           <StackPanel>
             <Button Content="Сценарии" Margin="20,2,5,2"

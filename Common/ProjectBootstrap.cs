@@ -1,3 +1,4 @@
+using AIStudio.Common.SymbiontEnv;
 using ISIDA.Common;
 using System;
 using System.IO;
@@ -198,6 +199,9 @@ namespace AIStudio.Common
       WriteFileIfMissing(Path.Combine(actionsPath, "AdaptiveActions.dat"), MinimalAdaptiveActionsContent);
       WriteFileIfMissing(Path.Combine(actionsPath, "InfluenceActions.dat"), MinimalInfluenceActionsContent);
       WriteFileIfMissing(Path.Combine(sensorsPath, "DefaultVerbalPrimaries.tmp"), MinimalDefaultVerbalPrimariesContent);
+
+      string bootDataPath = SettingsValidator.GetExpectedFolderPathForSetting(projectRootFull, "BootDataFolderPath");
+      EnvironmentCatalogStorage.EnsureCatalogAt(bootDataPath);
     }
 
     private static void WriteFileIfMissing(string path, string content)
