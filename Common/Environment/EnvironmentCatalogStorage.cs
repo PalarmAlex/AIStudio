@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
@@ -19,8 +18,7 @@ namespace AIStudio.Common.SymbiontEnv
         "triggers: []\r\n";
 
     /// <summary>
-    /// Создаёт <c>BootData\Environment</c>, при необходимости переносит данные из <c>ReactiveCore</c>
-    /// и создаёт пустые каталоги YAML.
+    /// Создаёт <c>BootData\Environment</c> и пустые YAML-файлы, если их ещё нет.
     /// </summary>
     public static void EnsureCatalog()
     {
@@ -41,17 +39,8 @@ namespace AIStudio.Common.SymbiontEnv
       string envDir = Path.Combine(bootDataFolder, "Environment");
       Directory.CreateDirectory(envDir);
 
-      string recipesPath = Path.Combine(envDir, "EnvironmentRecipes.yaml");
-      string triggersPath = Path.Combine(envDir, "EnvironmentTriggers.yaml");
-
-      if (!File.Exists(triggersPath))
-        TryMigrateLegacyTriggers(bootDataFolder, triggersPath);
-
-      if (!File.Exists(recipesPath))
-        TryMigrateLegacyRecipes(bootDataFolder, recipesPath);
-
-      WriteSeedIfMissing(recipesPath, EmptyRecipesSeed);
-      WriteSeedIfMissing(triggersPath, EmptyTriggersSeed);
+      WriteSeedIfMissing(Path.Combine(envDir, "EnvironmentRecipes.yaml"), EmptyRecipesSeed);
+      WriteSeedIfMissing(Path.Combine(envDir, "EnvironmentTriggers.yaml"), EmptyTriggersSeed);
     }
 
     /// <summary>Загружает рецепты.</summary>
@@ -92,62 +81,6 @@ namespace AIStudio.Common.SymbiontEnv
         Directory.CreateDirectory(dir);
 
       File.WriteAllText(path, content, new UTF8Encoding(false));
-    }
-
-    private static void TryMigrateLegacyTriggers(string bootDataFolder, string targetPath)
-    {
-      string legacy = Path.Combine(bootDataFolder, "ReactiveCore", "SwUserTriggers.yaml");
-      if (!File.Exists(legacy))
-        return;
-
-      try
-      {
-        File.Copy(legacy, targetPath, overwrite: false);
-      }
-      catch
-      {
-        // ignore — пользователь может скопировать вручную
-      }
-    }
-
-    private static void TryMigrateLegacyRecipes(string bootDataFolder, string targetPath)
-    {
-      string legacyDir = Path.Combine(bootDataFolder, "ReactiveCore", "Recipes");
-      if (!Directory.Exists(legacyDir))
-        return;
-
-      var merged = new List<EnvironmentRecipeData>();
-      var readErrors = new List<string>();
-
-      foreach (string file in Directory.GetFiles(legacyDir, "*.yaml", SearchOption.TopDirectoryOnly))
-      {
-        List<EnvironmentRecipeData> batch = EnvironmentYamlCodec.ReadRecipes(file, readErrors);
-        if (batch == null || batch.Count == 0)
-          continue;
-
-        foreach (EnvironmentRecipeData recipe in batch)
-        {
-          if (recipe == null || string.IsNullOrWhiteSpace(recipe.Id))
-            continue;
-
-          if (merged.Exists(r => string.Equals(r.Id, recipe.Id, StringComparison.OrdinalIgnoreCase)))
-            continue;
-
-          merged.Add(recipe);
-        }
-      }
-
-      if (merged.Count == 0)
-        return;
-
-      try
-      {
-        EnvironmentYamlCodec.WriteRecipes(targetPath, merged);
-      }
-      catch
-      {
-        // ignore
-      }
     }
   }
 }

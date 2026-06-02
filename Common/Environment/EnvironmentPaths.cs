@@ -44,13 +44,5 @@ namespace AIStudio.Common.SymbiontEnv
 
     /// <summary>Файл триггеров среды.</summary>
     public static string TriggersFilePath => Path.Combine(EnvironmentFolder, "EnvironmentTriggers.yaml");
-
-    /// <summary>Устаревший каталог рецептов (по одному YAML на файл).</summary>
-    public static string LegacyRecipesFolder =>
-        Path.Combine(GetBootDataFolder(), "ReactiveCore", "Recipes");
-
-    /// <summary>Устаревший файл триггеров.</summary>
-    public static string LegacyTriggersFilePath =>
-        Path.Combine(GetBootDataFolder(), "ReactiveCore", "SwUserTriggers.yaml");
   }
 }
