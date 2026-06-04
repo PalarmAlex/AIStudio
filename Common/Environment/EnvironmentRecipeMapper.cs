@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using AIStudio.ViewModels.SymbiontEnv;
+using ISIDA.SymbiontEnv.Contract;
 
 namespace AIStudio.Common.SymbiontEnv
 {

@@ -96,6 +96,10 @@
               Style="{StaticResource MenuButtonStyle}"
               Command="{Binding VerticalMenuItemClickedCommand}"
               CommandParameter="44"/>
+            <Button Content="Адаптеры среды" Margin="20,2,5,2"
+              Style="{StaticResource MenuButtonStyle}"
+              Command="{Binding VerticalMenuItemClickedCommand}"
+              CommandParameter="47"/>
           </StackPanel>
         </Expander>
 

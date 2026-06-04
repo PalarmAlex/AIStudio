@@ -1,4 +1,5 @@
 using AIStudio.Common;
+using AIStudio.Common.SymbiontEnv;
 using AIStudio.Pages;
 using AIStudio.Pages.Automatizm;
 using AIStudio.Pages.Episodic;
@@ -9,6 +10,8 @@ using AIStudio.ViewModels;
 using AIStudio.ViewModels.Episodic;
 using AIStudio.ViewModels.Research;
 using AIStudio.ViewModels.SymbiontEnv;
+using AIStudio.ViewModels.Adapters;
+using AIStudio.Pages.Adapters;
 using AIStudio.Windows;
 using AIStudio.ViewModels.Understanding;
 using ISIDA.Actions;
@@ -553,10 +556,15 @@ namespace AIStudio
             ShowMentalEpisodicTree();
             break;
           case "45": // Рецепты среды
-            ShowEnvironmentRecipesRegistry();
+            if (TryShowEnvironmentPage(ShowEnvironmentRecipesRegistry))
+              break;
             break;
           case "46": // Триггеры среды
-            ShowEnvironmentTriggers();
+            if (TryShowEnvironmentPage(ShowEnvironmentTriggers))
+              break;
+            break;
+          case "47": // Адаптеры среды
+            ShowAdapters();
             break;
           default:
             ShowStub($"Меню {menuItem}");
@@ -665,6 +673,22 @@ namespace AIStudio
       CurrentContent = view;
     }
 
+    private bool TryShowEnvironmentPage(Action showPage)
+    {
+      if (SymbiontEnvironmentGate.IsEnvironmentEditingAllowed())
+      {
+        showPage();
+        return true;
+      }
+
+      MessageBox.Show(
+          SymbiontEnvironmentGate.BlockedMessage,
+          "Среда",
+          MessageBoxButton.OK,
+          MessageBoxImage.Information);
+      return false;
+    }
+
     private void ShowEnvironmentRecipesRegistry()
     {
       void OpenEditor(EnvironmentRecipeEditorViewModel vm)
@@ -682,6 +706,12 @@ namespace AIStudio
     {
       var vm = new EnvironmentTriggersViewModel(_gomeostas);
       CurrentContent = new Pages.SymbiontEnv.EnvironmentTriggersView { DataContext = vm };
+    }
+
+    private void ShowAdapters()
+    {
+      var vm = new AdaptersViewModel();
+      CurrentContent = new AdaptersView { DataContext = vm };
     }
 
     private void ShowScenarioRegistry()
@@ -2294,17 +2324,18 @@ namespace AIStudio
     }
     private void CreateProject()
     {
-      if (!ProjectFolderPicker.TryPickFolderForNewProject(
+      if (!SymbiontProjectCreateWizard.TryRun(
               Application.Current?.MainWindow,
               out string projectRoot,
-              out string pickError))
+              out string adapterId,
+              out string wizardError))
       {
-        if (!string.IsNullOrEmpty(pickError))
-          MessageBox.Show(pickError, "Создание проекта", MessageBoxButton.OK, MessageBoxImage.Warning);
+        if (!string.IsNullOrEmpty(wizardError))
+          MessageBox.Show(wizardError, "Создание проекта", MessageBoxButton.OK, MessageBoxImage.Warning);
         return;
       }
 
-      if (!ProjectBootstrap.TryCreateProject(projectRoot, out string error))
+      if (!ProjectBootstrap.TryCreateProject(projectRoot, adapterId, out string error))
       {
         MessageBox.Show(error, "Создание проекта", MessageBoxButton.OK, MessageBoxImage.Warning);
         return;

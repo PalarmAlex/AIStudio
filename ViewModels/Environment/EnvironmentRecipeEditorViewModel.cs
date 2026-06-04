@@ -1,5 +1,6 @@
 using AIStudio.Common;
 using AIStudio.Common.SymbiontEnv;
+using ISIDA.SymbiontEnv.Contract;
 using AIStudio.Dialogs;
 using ISIDA.Actions;
 using ISIDA.Common;
@@ -62,14 +63,17 @@ namespace AIStudio.ViewModels.SymbiontEnv
         SymbiontPageTitleFormatter.Format("Редактор рецепта среды", _currentAgentName, _currentAgentStage);
 
     public bool IsStageZero => _currentAgentStage == 0;
-    public bool IsEditingEnabled => IsStageZero && !GlobalTimer.IsPulsationRunning;
+    public bool HasAdapter => SymbiontEnvironmentGate.IsEnvironmentEditingAllowed();
+    public bool IsEditingEnabled => HasAdapter && IsStageZero && !GlobalTimer.IsPulsationRunning;
     public string PulseWarningMessage =>
-        !IsStageZero
-            ? "[КРИТИЧНО] Редактирование доступно только в стадии 0"
-            : GlobalTimer.IsPulsationRunning
-                ? "Редактирование доступно только при выключенной пульсации"
-                : string.Empty;
-    public Brush WarningMessageColor => !IsStageZero ? Brushes.Red : Brushes.Gray;
+        !HasAdapter
+            ? "Укажите AdapterId в проекте (новый проект с выбором адаптера)"
+            : !IsStageZero
+                ? "[КРИТИЧНО] Редактирование доступно только в стадии 0"
+                : GlobalTimer.IsPulsationRunning
+                    ? "Редактирование доступно только при выключенной пульсации"
+                    : string.Empty;
+    public Brush WarningMessageColor => !HasAdapter || !IsStageZero ? Brushes.Red : Brushes.Gray;
 
     public IReadOnlyList<EnvironmentRecipeRiskTier> RiskTierChoices { get; } = new[]
     {

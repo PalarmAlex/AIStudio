@@ -4,6 +4,7 @@ using ISIDA.Reflexes;
 using ISIDA.Actions;
 using ISIDA.Gomeostas;
 using AIStudio.Common;
+using AIStudio.Common.Adapters;
 using AIStudio.Windows;
 using Ookii.Dialogs.Wpf;
 using System;
@@ -75,6 +76,7 @@ namespace AIStudio.ViewModels
     private bool _logsNotMatchingTemplate;
     private bool _bootDataNotMatchingTemplate;
     private bool _scenarioReportsNotMatchingTemplate;
+    private string _adapterIdDisplay = string.Empty;
 
     /// <summary>Видимость предупреждения рядом с путём «Каталог настроек».</summary>
     public bool SettingsPathNotMatchingTemplate
@@ -146,6 +148,17 @@ namespace AIStudio.ViewModels
       {
         _settingsPath = value;
         OnPropertyChanged(nameof(SettingsPath));
+      }
+    }
+
+    /// <summary>Идентификатор адаптера среды (только чтение, задаётся при создании проекта).</summary>
+    public string AdapterIdDisplay
+    {
+      get => _adapterIdDisplay;
+      private set
+      {
+        _adapterIdDisplay = value ?? string.Empty;
+        OnPropertyChanged(nameof(AdapterIdDisplay));
       }
     }
     public string DataGomeostasFolderPath
@@ -943,12 +956,34 @@ namespace AIStudio.ViewModels
           ApplyPathSetting(kv.Key, kv.Value);
 
         if (appSettings != null)
+        {
           ApplyScalarSettingsFromAppSettings(appSettings, errors);
+          string adapterFromProject = appSettings.Element(SymbiontProjectAdapterSettings.AdapterIdElementName)?.Value?.Trim() ?? string.Empty;
+          AdapterIdDisplay = string.IsNullOrEmpty(adapterFromProject) ? "(не задан)" : adapterFromProject;
+          if (!string.IsNullOrEmpty(adapterFromProject))
+            AppConfig.SetSetting(SymbiontProjectAdapterSettings.AdapterIdElementName, adapterFromProject);
+        }
+        else
+        {
+          AdapterIdDisplay = "(не задан)";
+        }
       }
       finally
       {
         _bulkApplyingProjectSettings = false;
         _isInitialized = wasInit;
+      }
+
+      if (File.Exists(projectSettingsXml)
+          && !SymbiontProjectAdapterSettings.TryReadFromSettingsFile(projectSettingsXml, out _))
+      {
+        MessageBox.Show(
+            "В Settings.xml проекта не указан AdapterId.\n\n" +
+            "Редакторы меню «Среда» будут недоступны, пока не добавите элемент <AdapterId> (например velum) " +
+            "или не создадите новый проект с выбором адаптера.",
+            "Адаптер среды",
+            MessageBoxButton.OK,
+            MessageBoxImage.Warning);
       }
 
       bool useRuntimeReload = _reloadRuntimeAfterProjectRootSwitch != null;
@@ -1389,6 +1424,8 @@ namespace AIStudio.ViewModels
       AppConfig.SetSetting(nameof(LogsFolderPath), LogsFolderPath);
       AppConfig.SetSetting(nameof(BootDataFolderPath), BootDataFolderPath);
       AppConfig.SetSetting(nameof(ScenarioReportsFolderPath), ScenarioReportsFolderPath);
+      if (!string.IsNullOrWhiteSpace(_adapterIdDisplay) && _adapterIdDisplay != "(не задан)")
+        AppConfig.SetSetting(SymbiontProjectAdapterSettings.AdapterIdElementName, _adapterIdDisplay);
       AppConfig.SetIntSetting(nameof(DefaultStileId), DefaultStileId);
       AppConfig.SetIntSetting(nameof(WaitingPeriodForActionsVal), WaitingPeriodForActionsVal);
       AppConfig.SetIntSetting(nameof(ThinkingCycleDecayAgeDivisor), ThinkingCycleDecayAgeDivisor);

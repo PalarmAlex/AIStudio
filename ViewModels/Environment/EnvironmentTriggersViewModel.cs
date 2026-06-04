@@ -1,5 +1,6 @@
 using AIStudio.Common;
 using AIStudio.Common.SymbiontEnv;
+using ISIDA.SymbiontEnv.Contract;
 using ISIDA.Common;
 using ISIDA.Gomeostas;
 using System;
@@ -62,15 +63,18 @@ namespace AIStudio.ViewModels.SymbiontEnv
     public ICommand ResetFiltersCommand { get; }
 
     public bool IsStageZero => _currentAgentStage == 0;
-    public bool IsEditingEnabled => IsStageZero && !GlobalTimer.IsPulsationRunning;
+    public bool HasAdapter => SymbiontEnvironmentGate.IsEnvironmentEditingAllowed();
+    public bool IsEditingEnabled => HasAdapter && IsStageZero && !GlobalTimer.IsPulsationRunning;
     public bool IsReadOnlyMode => !IsEditingEnabled;
     public string PulseWarningMessage =>
-        !IsStageZero
-            ? "[КРИТИЧНО] Редактирование доступно только в стадии 0"
-            : GlobalTimer.IsPulsationRunning
-                ? "Редактирование доступно только при выключенной пульсации"
-                : string.Empty;
-    public Brush WarningMessageColor => !IsStageZero ? Brushes.Red : Brushes.Gray;
+        !HasAdapter
+            ? "Укажите AdapterId в проекте (новый проект с выбором адаптера)"
+            : !IsStageZero
+                ? "[КРИТИЧНО] Редактирование доступно только в стадии 0"
+                : GlobalTimer.IsPulsationRunning
+                    ? "Редактирование доступно только при выключенной пульсации"
+                    : string.Empty;
+    public Brush WarningMessageColor => !HasAdapter || !IsStageZero ? Brushes.Red : Brushes.Gray;
 
     /// <summary>
     /// Перезагрузка с диска.

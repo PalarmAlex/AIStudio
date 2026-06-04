@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using AIStudio.Common.SymbiontEnv;
+using ISIDA.SymbiontEnv.Contract;
 
 namespace AIStudio.ViewModels.SymbiontEnv
 {

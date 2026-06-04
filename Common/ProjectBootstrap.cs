@@ -1,3 +1,4 @@
+using AIStudio.Common.Adapters;
 using AIStudio.Common.SymbiontEnv;
 using ISIDA.Common;
 using System;
@@ -93,10 +94,24 @@ namespace AIStudio.Common
     /// <returns>True, если проект создан или дополнен без конфликтов.</returns>
     public static bool TryCreateProject(string projectRoot, out string errorMessage)
     {
+      return TryCreateProject(projectRoot, adapterId: null, out errorMessage);
+    }
+
+    /// <summary>
+    /// Создаёт проект с привязкой к адаптеру: BootData из <c>Adapters\{adapterId}</c>, <c>AdapterId</c> в Settings.
+    /// </summary>
+    public static bool TryCreateProject(string projectRoot, string adapterId, out string errorMessage)
+    {
       errorMessage = null;
       if (string.IsNullOrWhiteSpace(projectRoot))
       {
         errorMessage = "Не указан каталог проекта.";
+        return false;
+      }
+
+      if (string.IsNullOrWhiteSpace(adapterId))
+      {
+        errorMessage = "Не выбран адаптер среды.";
         return false;
       }
 
@@ -111,8 +126,8 @@ namespace AIStudio.Common
         }
 
         EnsureProjectDirectoryStructure(rootFull);
-        WriteMinimalSeedData(rootFull);
-        WriteProjectSettingsXml(rootFull);
+        WriteMinimalSeedData(rootFull, adapterId.Trim());
+        WriteProjectSettingsXml(rootFull, adapterId.Trim());
         return true;
       }
       catch (Exception ex)
@@ -187,7 +202,7 @@ namespace AIStudio.Common
       return false;
     }
 
-    private static void WriteMinimalSeedData(string projectRootFull)
+    private static void WriteMinimalSeedData(string projectRootFull, string adapterId)
     {
       string gomeostasPath = SettingsValidator.GetExpectedFolderPathForSetting(projectRootFull, "DataGomeostasFolderPath");
       string actionsPath = SettingsValidator.GetExpectedFolderPathForSetting(projectRootFull, "DataActionsFolderPath");
@@ -201,6 +216,9 @@ namespace AIStudio.Common
       WriteFileIfMissing(Path.Combine(sensorsPath, "DefaultVerbalPrimaries.tmp"), MinimalDefaultVerbalPrimariesContent);
 
       string bootDataPath = SettingsValidator.GetExpectedFolderPathForSetting(projectRootFull, "BootDataFolderPath");
+      if (!AdapterBootDataSeeder.TrySeedFromInstalledAdapter(adapterId, bootDataPath, out string seedError))
+        throw new InvalidOperationException(seedError);
+
       EnvironmentCatalogStorage.EnsureCatalogAt(bootDataPath);
     }
 
@@ -216,18 +234,22 @@ namespace AIStudio.Common
       File.WriteAllText(path, content, Encoding.UTF8);
     }
 
-    private static void WriteProjectSettingsXml(string projectRootFull)
+    private static void WriteProjectSettingsXml(string projectRootFull, string adapterId)
     {
       string settingsDir = SettingsValidator.GetExpectedFolderPathForSetting(projectRootFull, "SettingsPath");
       Directory.CreateDirectory(settingsDir);
 
       string settingsFile = Path.Combine(settingsDir, AppConfig.StudioSettingsFileName);
       if (File.Exists(settingsFile))
+      {
+        SymbiontProjectAdapterSettings.WriteAdapterIdToProjectSettings(projectRootFull, adapterId);
         return;
+      }
 
       var doc = new XDocument(
           new XElement("Configuration",
               new XElement("AppSettings",
+                  new XElement(SymbiontProjectAdapterSettings.AdapterIdElementName, adapterId),
                   new XElement("DataGomeostasFolderPath",
                       SettingsValidator.GetExpectedFolderPathForSetting(projectRootFull, "DataGomeostasFolderPath")),
                   new XElement("DataActionsFolderPath",

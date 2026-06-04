@@ -48,6 +48,8 @@
       <HintPath>packages\Ookii.Dialogs.Wpf.5.0.1\lib\net462\Ookii.Dialogs.Wpf.dll</HintPath>
     </Reference>
     <Reference Include="System" />
+    <Reference Include="System.IO.Compression" />
+    <Reference Include="System.IO.Compression.FileSystem" />
     <Reference Include="System.Configuration" />
     <Reference Include="System.Data" />
     <Reference Include="System.Design" />
@@ -71,6 +73,10 @@
       <HintPath>..\..\isida\bin\$(Configuration)\isida.dll</HintPath>
       <Private>True</Private>
     </Reference>
+    <Reference Include="SymbiontEnv.Contract">
+      <HintPath>..\SymbiontEnv.Contract\bin\$(Configuration)\SymbiontEnv.Contract.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
   </ItemGroup>
   <ItemGroup>
     <ApplicationDefinition Include="App.xaml">
@@ -78,13 +84,20 @@
       <SubType>Designer</SubType>
     </ApplicationDefinition>
     <Compile Include="Common\Environment\EnvironmentCatalogStorage.cs" />
-    <Compile Include="Common\Environment\EnvironmentModels.cs" />
     <Compile Include="Common\Environment\EnvironmentPaths.cs" />
     <Compile Include="Common\Environment\EnvironmentRecipeMapper.cs" />
     <Compile Include="Common\Environment\EnvironmentTriggerMapper.cs" />
-    <Compile Include="Common\Environment\EnvironmentYamlCodec.cs" />
-    <Compile Include="Common\Environment\EnvironmentYamlCodec.Triggers.cs" />
-    <Compile Include="Common\Environment\EnvironmentYamlCodec.Writer.cs" />
+    <Compile Include="Common\Adapters\AdapterPaths.cs" />
+    <Compile Include="Common\Adapters\AdapterRegistry.cs" />
+    <Compile Include="Common\Adapters\AdapterInstaller.cs" />
+    <Compile Include="Common\Adapters\AdapterValidator.cs" />
+    <Compile Include="Common\Adapters\AdapterValidationSeverity.cs" />
+    <Compile Include="Common\Adapters\AdapterValidationMessage.cs" />
+    <Compile Include="Common\Adapters\AdapterAuthorGuideLocator.cs" />
+    <Compile Include="Common\Adapters\AdapterBootDataSeeder.cs" />
+    <Compile Include="Common\Adapters\SymbiontProjectAdapterSettings.cs" />
+    <Compile Include="Common\SymbiontEnv\SymbiontEnvironmentGate.cs" />
+    <Compile Include="Common\SymbiontProjectCreateWizard.cs" />
     <Compile Include="Common\ProjectFolderPicker.cs" />
     <Compile Include="Common\ProjectBootstrap.cs" />
     <Compile Include="Common\AntagonistItem.cs" />
@@ -374,11 +387,16 @@
     <Compile Include="ViewModels\Environment\EnvironmentRecipeEditorModel.cs" />
     <Compile Include="ViewModels\Environment\EnvironmentTriggerRow.cs" />
     <Compile Include="ViewModels\Environment\EnvironmentTriggerDetectRow.cs" />
+    <Compile Include="ViewModels\Adapters\AdapterListItem.cs" />
+    <Compile Include="ViewModels\Adapters\AdaptersViewModel.cs" />
     <Compile Include="ViewModels\Environment\EnvironmentRecipesRegistryViewModel.cs" />
     <Compile Include="ViewModels\Environment\EnvironmentRecipeEditorViewModel.cs" />
     <Compile Include="ViewModels\Environment\EnvironmentTriggersViewModel.cs" />
     <Compile Include="Dialogs\EnvironmentTriggerDetectEditorDialog.xaml.cs">
       <DependentUpon>EnvironmentTriggerDetectEditorDialog.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Pages\Adapters\AdaptersView.xaml.cs">
+      <DependentUpon>AdaptersView.xaml</DependentUpon>
     </Compile>
     <Compile Include="Pages\Environment\EnvironmentRecipesRegistryView.xaml.cs">
       <DependentUpon>EnvironmentRecipesRegistryView.xaml</DependentUpon>
@@ -418,6 +436,9 @@
     </Compile>
     <Compile Include="Windows\ScenarioGroupEditorWindow.xaml.cs">
       <DependentUpon>ScenarioGroupEditorWindow.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Windows\NewSymbiontProjectWindow.xaml.cs">
+      <DependentUpon>NewSymbiontProjectWindow.xaml</DependentUpon>
     </Compile>
     <Compile Include="Windows\LogSessionPickerWindow.xaml.cs">
       <DependentUpon>LogSessionPickerWindow.xaml</DependentUpon>
@@ -661,6 +682,10 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
+    <Page Include="Pages\Adapters\AdaptersView.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="Pages\Environment\EnvironmentRecipesRegistryView.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
@@ -701,6 +726,10 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
+    <Page Include="Windows\NewSymbiontProjectWindow.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="Windows\LogSessionPickerWindow.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
@@ -738,6 +767,10 @@
     </None>
   </ItemGroup>
   <ItemGroup>
+    <Content Include="docs\AdapterAuthorGuide.md">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <Link>docs\AdapterAuthorGuide.md</Link>
+    </Content>
     <None Include="App.config" />
   </ItemGroup>
   <ItemGroup>
@@ -768,6 +801,9 @@
     <Resource Include="Resources\Delete.ico" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <Target Name="EnsureSymbiontEnvContractBuilt" BeforeTargets="PrepareForBuild">
+    <Error Condition="!Exists('..\SymbiontEnv.Contract\bin\$(Configuration)\SymbiontEnv.Contract.dll')" Text="Отсутствует SymbiontEnv.Contract.dll: ..\SymbiontEnv.Contract\bin\$(Configuration)\. Соберите SymbiontEnv.Contract.csproj (конфигурация $(Configuration))." />
+  </Target>
   <Target Name="CopyIsidaRuntimeAssemblies" AfterTargets="CopyFilesToOutputDirectory">
     <ItemGroup>
       <_IsidaBinaries Include="..\..\isida\bin\$(Configuration)\*.dll" />

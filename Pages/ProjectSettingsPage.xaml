@@ -27,6 +27,12 @@
       Margin="0,0,0,15"
       HorizontalAlignment="Center"/>
 
+    <StackPanel Orientation="Horizontal" Margin="0,5">
+      <TextBlock Text="Адаптер среды (AdapterId):" Width="265" VerticalAlignment="Center"/>
+      <TextBox Text="{Binding AdapterIdDisplay, Mode=OneWay}" Width="400" Margin="5,0"
+               Background="#FFF0F0F0" IsReadOnly="True" ToolTip="Задаётся при создании проекта; в MVP не редактируется"/>
+    </StackPanel>
+
     <!-- Каталог настроек -->
     <StackPanel Orientation="Horizontal" Margin="0,5">
       <TextBlock Text="Каталог настроек:" 
