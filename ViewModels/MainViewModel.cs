@@ -1,4 +1,5 @@
 using AIStudio.Common;
+using AIStudio.Common.Adapters;
 using AIStudio.Common.SymbiontEnv;
 using AIStudio.Pages;
 using AIStudio.Pages.Automatizm;
@@ -514,7 +515,7 @@ namespace AIStudio
             ShowExtInfluence();
             break;
           case "29": // Справка: руководство разработчика
-            OpenWebPage("https://scorcher.ru/isida/iadaptive_agents_guide.php");
+            AdapterAuthorGuideLocator.TryOpenGuide();
             break;
           case "30": // Справка: теория МВАП
             OpenWebPage("https://p-mvap.ru");
@@ -2331,19 +2332,19 @@ namespace AIStudio
               out string wizardError))
       {
         if (!string.IsNullOrEmpty(wizardError))
-          MessageBox.Show(wizardError, "Создание проекта", MessageBoxButton.OK, MessageBoxImage.Warning);
+          MessageBox.Show(wizardError, "Создание проекта симбионта", MessageBoxButton.OK, MessageBoxImage.Warning);
         return;
       }
 
       if (!ProjectBootstrap.TryCreateProject(projectRoot, adapterId, out string error))
       {
-        MessageBox.Show(error, "Создание проекта", MessageBoxButton.OK, MessageBoxImage.Warning);
+        MessageBox.Show(error, "Создание проекта симбионта", MessageBoxButton.OK, MessageBoxImage.Warning);
         return;
       }
 
       if (MessageBox.Show(
-              "Проект создан в каталоге:\n" + projectRoot + "\n\nОткрыть его сейчас?",
-              "Создание проекта",
+              "Проект симбионта создан в каталоге:\n" + projectRoot + "\n\nОткрыть его сейчас?",
+              "Создание проекта симбионта",
               MessageBoxButton.YesNo,
               MessageBoxImage.Question) == MessageBoxResult.Yes)
       {
@@ -2352,8 +2353,8 @@ namespace AIStudio
       else
       {
         MessageBox.Show(
-            "Структура каталогов и начальные файлы данных созданы. Откройте проект через меню «Проект → Открыть проект».",
-            "Создание проекта",
+            "Структура каталогов и начальные файлы данных созданы. Откройте проект через меню «Проект → Открыть проект симбионта».",
+            "Создание проекта симбионта",
             MessageBoxButton.OK,
             MessageBoxImage.Information);
       }

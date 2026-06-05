@@ -2,6 +2,7 @@ using AIStudio.Common.Adapters;
 using AIStudio.Common.SymbiontEnv;
 using ISIDA.Common;
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Text;
 using System.Xml.Linq;
@@ -98,7 +99,7 @@ namespace AIStudio.Common
     }
 
     /// <summary>
-    /// Создаёт проект с привязкой к адаптеру: BootData из <c>Adapters\{adapterId}</c>, <c>AdapterId</c> в Settings.
+    /// Создаёт проект симбионта. При непустом <paramref name="adapterId"/> — BootData из пакета и элемент AdapterId в Settings.
     /// </summary>
     public static bool TryCreateProject(string projectRoot, string adapterId, out string errorMessage)
     {
@@ -106,12 +107,6 @@ namespace AIStudio.Common
       if (string.IsNullOrWhiteSpace(projectRoot))
       {
         errorMessage = "Не указан каталог проекта.";
-        return false;
-      }
-
-      if (string.IsNullOrWhiteSpace(adapterId))
-      {
-        errorMessage = "Не выбран адаптер среды.";
         return false;
       }
 
@@ -125,9 +120,11 @@ namespace AIStudio.Common
           return false;
         }
 
+        string trimmedAdapterId = string.IsNullOrWhiteSpace(adapterId) ? null : adapterId.Trim();
+
         EnsureProjectDirectoryStructure(rootFull);
-        WriteMinimalSeedData(rootFull, adapterId.Trim());
-        WriteProjectSettingsXml(rootFull, adapterId.Trim());
+        WriteMinimalSeedData(rootFull, trimmedAdapterId);
+        WriteProjectSettingsXml(rootFull, trimmedAdapterId);
         return true;
       }
       catch (Exception ex)
@@ -216,8 +213,11 @@ namespace AIStudio.Common
       WriteFileIfMissing(Path.Combine(sensorsPath, "DefaultVerbalPrimaries.tmp"), MinimalDefaultVerbalPrimariesContent);
 
       string bootDataPath = SettingsValidator.GetExpectedFolderPathForSetting(projectRootFull, "BootDataFolderPath");
-      if (!AdapterBootDataSeeder.TrySeedFromInstalledAdapter(adapterId, bootDataPath, out string seedError))
-        throw new InvalidOperationException(seedError);
+      if (!string.IsNullOrWhiteSpace(adapterId))
+      {
+        if (!AdapterBootDataSeeder.TrySeedFromInstalledAdapter(adapterId, bootDataPath, out string seedError))
+          throw new InvalidOperationException(seedError);
+      }
 
       EnvironmentCatalogStorage.EnsureCatalogAt(bootDataPath);
     }
@@ -242,48 +242,53 @@ namespace AIStudio.Common
       string settingsFile = Path.Combine(settingsDir, AppConfig.StudioSettingsFileName);
       if (File.Exists(settingsFile))
       {
-        SymbiontProjectAdapterSettings.WriteAdapterIdToProjectSettings(projectRootFull, adapterId);
+        if (!string.IsNullOrWhiteSpace(adapterId))
+          SymbiontProjectAdapterSettings.WriteAdapterIdToProjectSettings(projectRootFull, adapterId);
         return;
       }
 
+      var appSettingsChildren = new List<XElement>();
+      if (!string.IsNullOrWhiteSpace(adapterId))
+        appSettingsChildren.Add(new XElement(SymbiontProjectAdapterSettings.AdapterIdElementName, adapterId.Trim()));
+
+      appSettingsChildren.Add(new XElement("DataGomeostasFolderPath",
+          SettingsValidator.GetExpectedFolderPathForSetting(projectRootFull, "DataGomeostasFolderPath")));
+      appSettingsChildren.Add(new XElement("DataActionsFolderPath",
+          SettingsValidator.GetExpectedFolderPathForSetting(projectRootFull, "DataActionsFolderPath")));
+      appSettingsChildren.Add(new XElement("SensorsFolderPath",
+          SettingsValidator.GetExpectedFolderPathForSetting(projectRootFull, "SensorsFolderPath")));
+      appSettingsChildren.Add(new XElement("ReflexesFolderPath",
+          SettingsValidator.GetExpectedFolderPathForSetting(projectRootFull, "ReflexesFolderPath")));
+      appSettingsChildren.Add(new XElement("PsychicDataFolderPath",
+          SettingsValidator.GetExpectedFolderPathForSetting(projectRootFull, "PsychicDataFolderPath")));
+      appSettingsChildren.Add(new XElement("SettingsPath", settingsDir));
+      appSettingsChildren.Add(new XElement("LogsFolderPath",
+          SettingsValidator.GetExpectedFolderPathForSetting(projectRootFull, "LogsFolderPath")));
+      appSettingsChildren.Add(new XElement("BootDataFolderPath",
+          SettingsValidator.GetExpectedFolderPathForSetting(projectRootFull, "BootDataFolderPath")));
+      appSettingsChildren.Add(new XElement("ScenarioReportsFolderPath",
+          SettingsValidator.GetExpectedFolderPathForSetting(projectRootFull, "ScenarioReportsFolderPath")));
+      appSettingsChildren.Add(new XElement("DefaultStileId", 1));
+      appSettingsChildren.Add(new XElement("DefaultAdaptiveActionId", 1));
+      appSettingsChildren.Add(new XElement("DefaultThemeTypeId", 0));
+      appSettingsChildren.Add(new XElement("RecognitionThreshold", 3));
+      appSettingsChildren.Add(new XElement("CompareLevel", 30));
+      appSettingsChildren.Add(new XElement("DifSensorPar", 0.02));
+      appSettingsChildren.Add(new XElement("DynamicTime", 7));
+      appSettingsChildren.Add(new XElement("ReflexActionDisplayDuration", 2));
+      appSettingsChildren.Add(new XElement("WaitingPeriodForActionsVal", 30));
+      appSettingsChildren.Add(new XElement("ThinkingCycleDecayAgeDivisor", 100));
+      appSettingsChildren.Add(new XElement("ThinkingCycleDecayBase", 1));
+      appSettingsChildren.Add(new XElement("ThinkingCycleMainMaxAgePulses", 1000));
+      appSettingsChildren.Add(new XElement("NoOperatorStimulusSilencePulses", 30));
+      appSettingsChildren.Add(new XElement("FirstRun", 1));
+      appSettingsChildren.Add(new XElement("LogEnabled", false));
+      appSettingsChildren.Add(new XElement("DefaultFormatLog", "All"));
+      appSettingsChildren.Add(new XElement("HomeostasisPulseSpeedDriftEnabled", true));
+
       var doc = new XDocument(
           new XElement("Configuration",
-              new XElement("AppSettings",
-                  new XElement(SymbiontProjectAdapterSettings.AdapterIdElementName, adapterId),
-                  new XElement("DataGomeostasFolderPath",
-                      SettingsValidator.GetExpectedFolderPathForSetting(projectRootFull, "DataGomeostasFolderPath")),
-                  new XElement("DataActionsFolderPath",
-                      SettingsValidator.GetExpectedFolderPathForSetting(projectRootFull, "DataActionsFolderPath")),
-                  new XElement("SensorsFolderPath",
-                      SettingsValidator.GetExpectedFolderPathForSetting(projectRootFull, "SensorsFolderPath")),
-                  new XElement("ReflexesFolderPath",
-                      SettingsValidator.GetExpectedFolderPathForSetting(projectRootFull, "ReflexesFolderPath")),
-                  new XElement("PsychicDataFolderPath",
-                      SettingsValidator.GetExpectedFolderPathForSetting(projectRootFull, "PsychicDataFolderPath")),
-                  new XElement("SettingsPath", settingsDir),
-                  new XElement("LogsFolderPath",
-                      SettingsValidator.GetExpectedFolderPathForSetting(projectRootFull, "LogsFolderPath")),
-                  new XElement("BootDataFolderPath",
-                      SettingsValidator.GetExpectedFolderPathForSetting(projectRootFull, "BootDataFolderPath")),
-                  new XElement("ScenarioReportsFolderPath",
-                      SettingsValidator.GetExpectedFolderPathForSetting(projectRootFull, "ScenarioReportsFolderPath")),
-                  new XElement("DefaultStileId", 1),
-                  new XElement("DefaultAdaptiveActionId", 1),
-                  new XElement("DefaultThemeTypeId", 0),
-                  new XElement("RecognitionThreshold", 3),
-                  new XElement("CompareLevel", 30),
-                  new XElement("DifSensorPar", 0.02),
-                  new XElement("DynamicTime", 7),
-                  new XElement("ReflexActionDisplayDuration", 2),
-                  new XElement("WaitingPeriodForActionsVal", 30),
-                  new XElement("ThinkingCycleDecayAgeDivisor", 100),
-                  new XElement("ThinkingCycleDecayBase", 1),
-                  new XElement("ThinkingCycleMainMaxAgePulses", 1000),
-                  new XElement("NoOperatorStimulusSilencePulses", 30),
-                  new XElement("FirstRun", 1),
-                  new XElement("LogEnabled", false),
-                  new XElement("DefaultFormatLog", "All"),
-                  new XElement("HomeostasisPulseSpeedDriftEnabled", true))));
+              new XElement("AppSettings", appSettingsChildren)));
 
       doc.Save(settingsFile);
     }

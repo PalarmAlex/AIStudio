@@ -1,0 +1,57 @@
+<Window x:Class="AIStudio.Windows.AdapterManifestEditorWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Пакет адаптера"
+        Height="460" Width="520"
+        WindowStartupLocation="CenterOwner"
+        ResizeMode="NoResize"
+        ShowInTaskbar="False">
+  <Grid Margin="16">
+    <Grid.RowDefinitions>
+      <RowDefinition Height="Auto"/>
+      <RowDefinition Height="Auto"/>
+      <RowDefinition Height="Auto"/>
+      <RowDefinition Height="Auto"/>
+      <RowDefinition Height="Auto"/>
+      <RowDefinition Height="Auto"/>
+      <RowDefinition Height="*"/>
+      <RowDefinition Height="Auto"/>
+      <RowDefinition Height="Auto"/>
+    </Grid.RowDefinitions>
+    <Grid.ColumnDefinitions>
+      <ColumnDefinition Width="150"/>
+      <ColumnDefinition Width="*"/>
+    </Grid.ColumnDefinitions>
+
+    <TextBlock Grid.Row="0" Grid.ColumnSpan="2" TextWrapping="Wrap" Margin="0,0,0,12" Foreground="#FF555555"
+               x:Name="HintTextBlock"/>
+
+    <TextBlock Grid.Row="1" Grid.Column="0" VerticalAlignment="Center" Text="Идентификатор (id):"/>
+    <TextBox Grid.Row="1" Grid.Column="1" x:Name="IdTextBox" Margin="0,0,0,8" MinHeight="26"
+             ToolTip="Уникальный ключ пакета: латиница, цифры, «_», «-»"/>
+
+    <TextBlock Grid.Row="2" Grid.Column="0" VerticalAlignment="Center" Text="Название:"/>
+    <TextBox Grid.Row="2" Grid.Column="1" x:Name="DisplayNameTextBox" Margin="0,0,0,8" MinHeight="26"/>
+
+    <TextBlock Grid.Row="3" Grid.Column="0" VerticalAlignment="Center" Text="Версия:"/>
+    <TextBox Grid.Row="3" Grid.Column="1" x:Name="VersionTextBox" Margin="0,0,0,8" MinHeight="26"/>
+
+    <TextBlock Grid.Row="4" Grid.Column="0" VerticalAlignment="Center" Text="Контракт:"/>
+    <TextBox Grid.Row="4" Grid.Column="1" x:Name="ContractVersionTextBox" Margin="0,0,0,8" MinHeight="26" IsReadOnly="True" Background="#FFF5F5F5"/>
+
+    <TextBlock Grid.Row="5" Grid.Column="0" VerticalAlignment="Center" Text="Автор:"/>
+    <TextBox Grid.Row="5" Grid.Column="1" x:Name="AuthorTextBox" Margin="0,0,0,8" MinHeight="26"/>
+
+    <TextBlock Grid.Row="6" Grid.Column="0" VerticalAlignment="Top" Margin="0,4,0,0" Text="Описание:"/>
+    <TextBox Grid.Row="6" Grid.Column="1" x:Name="DescriptionTextBox" Margin="0,0,0,8"
+             AcceptsReturn="True" TextWrapping="Wrap" VerticalScrollBarVisibility="Auto" MinHeight="72"/>
+
+    <TextBlock Grid.Row="7" Grid.ColumnSpan="2" x:Name="ValidationTextBlock" TextWrapping="Wrap"
+               Foreground="#FFC00000" Margin="0,0,0,8" Visibility="Collapsed"/>
+
+    <StackPanel Grid.Row="8" Grid.ColumnSpan="2" Orientation="Horizontal" HorizontalAlignment="Right">
+      <Button Content="Применить" Width="100" Margin="0,0,8,0" IsDefault="True" Click="Apply_Click"/>
+      <Button Content="Отмена" Width="90" IsCancel="True"/>
+    </StackPanel>
+  </Grid>
+</Window>

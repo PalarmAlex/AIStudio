@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>Руководство автора адаптера среды — AIStudio</title>
+  <style>
+    * { box-sizing: border-box; }
+    html, body { margin: 0; padding: 0; height: 100%; }
+    body {
+      font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+      font-size: 14px;
+      line-height: 1.5;
+      color: #1a1a1a;
+      background: #fff;
+    }
+    .help-shell {
+      display: flex;
+      min-height: 100vh;
+    }
+    .help-nav {
+      width: 280px;
+      min-width: 220px;
+      background: #f3f3f3;
+      border-right: 1px solid #d6d6d6;
+      padding: 16px 12px 24px;
+      overflow-y: auto;
+    }
+    .help-nav h2 {
+      margin: 0 0 12px;
+      font-size: 13px;
+      font-weight: 600;
+      color: #005a9e;
+      text-transform: uppercase;
+      letter-spacing: 0.02em;
+    }
+    .help-nav ul {
+      list-style: none;
+      margin: 0 0 16px;
+      padding: 0;
+    }
+    .help-nav li { margin: 2px 0; }
+    .help-nav a {
+      display: block;
+      padding: 4px 8px;
+      color: #005a9e;
+      text-decoration: none;
+      border-radius: 2px;
+    }
+    .help-nav a:hover {
+      background: #e5f1fb;
+      text-decoration: underline;
+    }
+    .help-nav .sub { padding-left: 16px; font-size: 13px; }
+    .help-content {
+      flex: 1;
+      padding: 28px 40px 48px;
+      max-width: 960px;
+      overflow-y: auto;
+    }
+    h1 {
+      font-size: 26px;
+      font-weight: 300;
+      color: #005a9e;
+      margin: 0 0 8px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid #d6d6d6;
+    }
+    .subtitle {
+      color: #5c5c5c;
+      margin: 0 0 24px;
+      font-size: 14px;
+    }
+    h2 {
+      font-size: 20px;
+      font-weight: 400;
+      color: #005a9e;
+      margin: 32px 0 12px;
+      padding-top: 8px;
+    }
+    h3 {
+      font-size: 16px;
+      font-weight: 600;
+      margin: 20px 0 8px;
+      color: #1a1a1a;
+    }
+    p { margin: 0 0 12px; }
+    ul, ol { margin: 0 0 12px; padding-left: 24px; }
+    li { margin-bottom: 4px; }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 12px 0 16px;
+      font-size: 13px;
+    }
+    th, td {
+      border: 1px solid #d6d6d6;
+      padding: 8px 10px;
+      text-align: left;
+      vertical-align: top;
+    }
+    th {
+      background: #f3f3f3;
+      font-weight: 600;
+    }
+    tr:nth-child(even) td { background: #fafafa; }
+    code, pre {
+      font-family: Consolas, "Courier New", monospace;
+      font-size: 12px;
+    }
+    pre {
+      background: #f8f8f8;
+      border: 1px solid #e0e0e0;
+      padding: 12px 14px;
+      overflow-x: auto;
+      margin: 12px 0 16px;
+      line-height: 1.4;
+    }
+    .note, .tip, .important {
+      margin: 16px 0;
+      padding: 12px 14px 12px 16px;
+      border-left: 4px solid #0078d4;
+      background: #f0f6fc;
+    }
+    .important { border-left-color: #d83b01; background: #fdf3f0; }
+    .tip { border-left-color: #107c10; background: #f0faf0; }
+    .note-title, .tip-title {
+      font-weight: 600;
+      margin-bottom: 6px;
+      color: #005a9e;
+    }
+    .checklist { list-style: none; padding-left: 0; }
+    .checklist li::before { content: "☐ "; color: #005a9e; }
+    .footer {
+      margin-top: 40px;
+      padding-top: 12px;
+      border-top: 1px solid #e0e0e0;
+      font-size: 12px;
+      color: #767676;
+    }
+    @media (max-width: 720px) {
+      .help-shell { flex-direction: column; }
+      .help-nav { width: 100%; border-right: none; border-bottom: 1px solid #d6d6d6; }
+      .help-content { padding: 20px 16px 32px; }
+    }
+  </style>
+</head>
+<body>
+<div class="help-shell">
+  <nav class="help-nav" aria-label="Содержание">
+    <h2>Содержание</h2>
+    <ul>
+      <li><a href="#intro">Введение</a></li>
+      <li><a href="#roles">1. Кто что делает</a></li>
+      <li><a href="#demo">2. Каркас demo</a></li>
+      <li><a href="#scenarios">3. Два сценария</a></li>
+      <li><a href="#studio">4. Раздел «Адаптеры»</a></li>
+      <li><a href="#wizard">5. Сборка через студию</a></li>
+      <li><a href="#structure">6. Структура пакета</a></li>
+      <li><a href="#manual">7. Сборка вручную</a></li>
+      <li class="sub"><a href="#manual-runtime">7.1 Host-адаптер</a></li>
+      <li class="sub"><a href="#manual-bootdata">7.4 BootData</a></li>
+      <li class="sub"><a href="#manual-schema">7.5 Schema</a></li>
+      <li class="sub"><a href="#manual-manifest">7.6 manifest.json</a></li>
+      <li><a href="#register">8. Регистрация</a></li>
+      <li><a href="#settings">9. Два вида настроек</a></li>
+      <li><a href="#verify">10. «Проверить»</a></li>
+      <li><a href="#errors">11. Частые ошибки</a></li>
+      <li><a href="#versioning">12. Версионирование</a></li>
+      <li><a href="#checklist">13. Чеклист</a></li>
+      <li><a href="#links">14. Связанные документы</a></li>
+    </ul>
+  </nav>
+
+  <main class="help-content">
+    <h1 id="intro">Руководство автора адаптера среды</h1>
+    <p class="subtitle">AIStudio — практическая инструкция для разработчика адаптера среды. Версия 0.2 (2026-06-03), contractVersion платформы: <strong>1.0</strong>.</p>
+
+    <p>Практическая инструкция для <strong>разработчика адаптера</strong>, у которого установлена та же AIStudio, что и у разработчика симбионта. Студия — единая среда: <strong>собрать пакет адаптера → зарегистрировать → настроить проект симбионта → собрать установщик</strong>.</p>
+    <p>Технические форматы описаны в <code>AdapterContract.md</code>. План функций студии — в <code>AdapterPlatform_ImplementationPlan.md</code>.</p>
+
+    <h2 id="roles">1. Кто что делает в одной студии</h2>
+    <table>
+      <thead><tr><th>Роль</th><th>Типичные задачи в AIStudio</th></tr></thead>
+      <tbody>
+        <tr><td><strong>Разработчик адаптера</strong></td><td>Сборка host (DLL), формирование пакета, «Проверить», при необходимости — публикация ZIP</td></tr>
+        <tr><td><strong>Разработчик симбионта</strong></td><td>Новый проект, гомеостаз, рецепты/триггеры по schema, виртуальные тесты, «Собрать установщик…»</td></tr>
+        <tr><td><strong>Один человек</strong></td><td>Все шаги подряд: частый случай при разработке адаптера «для себя»</td></tr>
+      </tbody>
+    </table>
+    <p>Оба направления используют <strong>одну</strong> установку студии: зарегистрированные пакеты — <code>%ProgramData%\ISIDA\Adapters\</code>, каркас для разработки — <code>%ProgramData%\ISIDA\AdapterPackageTemplates\demo\</code> (кладёт установщик AIStudio; кнопка <strong>«Каркас demo…»</strong> открывает этот каталог).</p>
+
+    <h2 id="demo">2. Каркас пакета (demo)</h2>
+    <p>Готовый скелет с пустым manifest, BootData, schema и каталогом <code>runtime\</code>:</p>
+    <table>
+      <thead><tr><th>Где</th><th>Путь</th></tr></thead>
+      <tbody>
+        <tr><td>Исходник в репозитории</td><td><code>docs/adapter-package-example/demo/</code></td></tr>
+        <tr><td>На машине пользователя</td><td><code>%ProgramData%\ISIDA\AdapterPackageTemplates\demo\</code></td></tr>
+      </tbody>
+    </table>
+    <div class="important">
+      <div class="note-title">Важно</div>
+      <p><strong>Не регистрируйте</strong> каталог demo как адаптер — <strong>скопируйте</strong> его, задайте уникальный <code>id</code> в <code>manifest.json</code>, заполните <code>schema\</code> и <code>runtime\</code>, затем <strong>Зарегистрировать из папки…</strong>.</p>
+    </div>
+    <p>Эталон с реальными образцами Velum — <code>docs/adapter-package-example/velum/</code>.</p>
+
+    <h2 id="scenarios">3. Два сценария (оба через студию)</h2>
+    <h3>Сценарий A — всё у себя</h3>
+    <ol>
+      <li>Собрать host-проект (<code>bin\Debug</code> / Release).</li>
+      <li><strong>Собрать пакет адаптера</strong> (мастер в студии или вручную).</li>
+      <li><strong>Зарегистрировать</strong> → копия в <code>Adapters\{id}\</code>.</li>
+      <li><strong>Проверить</strong>.</li>
+      <li><strong>Новый проект симбионта</strong> с этим <code>AdapterId</code>.</li>
+      <li>Настройка данных, тесты, <strong>Собрать установщик…</strong>.</li>
+    </ol>
+    <h3>Сценарий B — пакет передали коллеге</h3>
+    <ol>
+      <li>Автор выкладывает ZIP/папку пакета.</li>
+      <li>Коллега: <strong>Зарегистрировать</strong> → <strong>Проверить</strong> → новый проект → установщик.</li>
+    </ol>
+    <p>Состав пакета в обоих случаях <strong>одинаковый</strong>.</p>
+
+    <h2 id="studio">4. Раздел «Адаптеры» в студии</h2>
+    <table>
+      <thead><tr><th>Действие</th><th>Статус</th><th>Назначение</th></tr></thead>
+      <tbody>
+        <tr><td><strong>Собрать пакет адаптера…</strong></td><td>План: фаза 1.7</td><td>Мастер: bin → manifest/schema → BootData, Settings, ISS → папка/ZIP</td></tr>
+        <tr><td><strong>Зарегистрировать из папки… / ZIP…</strong></td><td>Реализовано</td><td>Копия пакета в <code>Adapters\{id}\</code></td></tr>
+        <tr><td><strong>Проверить</strong></td><td>Реализовано</td><td>Валидация зарегистрированной копии</td></tr>
+        <tr><td>Список адаптеров</td><td>Реализовано</td><td>Установленные <code>id</code>, версии</td></tr>
+      </tbody>
+    </table>
+    <p>До реализации мастера пакет собирают <strong>вручную</strong> (раздел 7).</p>
+
+    <h2 id="wizard">5. Сборка пакета через студию (план, фаза 1.7)</h2>
+    <p>Мастер <strong>«Собрать пакет адаптера…»</strong>:</p>
+    <ol>
+      <li><strong>Источник runtime</strong> — путь к каталогу сборки host-проекта. Студия копирует <code>*.dll</code> в <code>runtime\</code>.</li>
+      <li><strong>Метаданные</strong> — форма manifest: <code>id</code>, <code>displayName</code>, <code>version</code>, <code>author</code>, <code>contractVersion</code>.</li>
+      <li><strong>Schema</strong> — выбор JSON в проекте адаптера; проверка имён по Contract.</li>
+      <li><strong>BootData</strong> — копия <code>BootData\Environment\</code> в пакет.</li>
+      <li><strong>Настройки host</strong> — опционально <code>adapter-settings\Settings.xml</code>.</li>
+      <li><strong>Установщик</strong> — <code>.iss</code> → <code>installer\</code>.</li>
+      <li><strong>Выход</strong> — каталог пакета и опционально ZIP.</li>
+    </ol>
+
+    <h2 id="structure">6. Структура каталога пакета</h2>
+    <pre>MyAdapter\
+  manifest.json                     ← ОБЯЗАТЕЛЬНО
+  schema\                           ← ОБЯЗАТЕЛЬНО
+  runtime\                          ← ОБЯЗАТЕЛЬНО (DLL)
+  BootData\
+    Environment\
+      EnvironmentRecipes.yaml       ← ОБЯЗАТЕЛЬНО
+      EnvironmentTriggers.yaml      ← ОБЯЗАТЕЛЬНО
+  installer\                        ← если сборка установщика из студии
+    symbiont.iss
+  adapter-settings\                 ← РЕКОМЕНДУЕТСЯ
+    Settings.xml</pre>
+    <table>
+      <thead><tr><th>Элемент</th><th>Обязательность</th><th>Назначение</th></tr></thead>
+      <tbody>
+        <tr><td><code>manifest.json</code></td><td>Да</td><td>Идентификатор, версия, пути, <code>contractVersion</code></td></tr>
+        <tr><td><code>schema\</code></td><td>Да</td><td>Поля редакторов рецептов/триггеров в студии</td></tr>
+        <tr><td><code>runtime\</code></td><td>Да</td><td>DLL и зависимости host-среды</td></tr>
+        <tr><td><code>BootData\Environment\</code></td><td>Да</td><td>Образцы YAML для нового проекта</td></tr>
+        <tr><td><code>installer\</code></td><td>Да*</td><td>Шаблон Inno Setup</td></tr>
+        <tr><td><code>adapter-settings\</code></td><td>Нет**</td><td>Шаблон настроек host-среды</td></tr>
+      </tbody>
+    </table>
+    <p>* Если установка только вручную — укажите в README пакета.<br/>
+    ** Обязательно, если runtime читает пути из XML при первом запуске.</p>
+
+    <h2 id="manual">7. Сборка пакета вручную</h2>
+    <p>Используйте, если мастер из раздела 5 ещё не реализован.</p>
+
+    <h3 id="manual-runtime">7.1. Соберите host-адаптер</h3>
+    <p>Пример: Release или Debug, каталог сборки <code>D:\MyRepo\bin\Debug\</code>.</p>
+
+    <h3>7.2–7.3. Папка пакета и runtime</h3>
+    <p>Создайте папку пакета (например <code>D:\sld_Adapter\</code>). Скопируйте в <code>runtime\</code> все DLL без которых host не стартует. Целевая платформа: <strong>.NET Framework 4.8</strong>. Не кладите исходники <code>.cs</code>, <code>.csproj</code>.</p>
+
+    <h3 id="manual-bootdata">7.4. BootData\Environment\</h3>
+    <pre># EnvironmentRecipes.yaml
+recipes: []
+
+# EnvironmentTriggers.yaml
+triggers: []</pre>
+    <p>Для осмысленного старта добавьте примеры с валидными <code>adaptive_action_id</code> / <code>influence_action_id</code>.</p>
+
+    <h3 id="manual-schema">7.5. Schema</h3>
+    <table>
+      <thead><tr><th>Файл</th><th>Содержание</th></tr></thead>
+      <tbody>
+        <tr><td><code>recipe-preconditions.json</code></td><td>Поля блока <code>preconditions:</code></td></tr>
+        <tr><td><code>recipe-steps.json</code></td><td>Допустимые <code>type</code> шагов</td></tr>
+        <tr><td><code>trigger-filter.json</code></td><td>Фильтр документа/контекста</td></tr>
+        <tr><td><code>trigger-detect.json</code></td><td>Правила <code>detect:</code></td></tr>
+      </tbody>
+    </table>
+    <div class="tip">
+      <div class="tip-title">Совет</div>
+      <p>Каждый <code>key</code> в schema должен поддерживаться <strong>вашим runtime</strong> при чтении YAML.</p>
+    </div>
+
+    <h3 id="manual-manifest">7.6. manifest.json</h3>
+    <pre>{
+  "id": "sld_adapter",
+  "displayName": "SolidWorks Adapter (пример)",
+  "version": "1.0.0",
+  "contractVersion": "1.0",
+  "author": "Your Company",
+  "bootDataRelativePath": "BootData",
+  "installerTemplateRelativePath": "installer/symbiont.iss",
+  "schemaVersion": "1.0"
+}</pre>
+    <table>
+      <thead><tr><th>Поле</th><th>Описание</th></tr></thead>
+      <tbody>
+        <tr><td><code>id</code></td><td>Каталог в <code>Adapters\{id}\</code>; только <code>[a-z0-9_-]</code></td></tr>
+        <tr><td><code>contractVersion</code></td><td>Версия контракта платформы; студия 1.x → <code>1.0</code></td></tr>
+        <tr><td><code>bootDataRelativePath</code></td><td>Обычно <code>BootData</code></td></tr>
+        <tr><td><code>installerTemplateRelativePath</code></td><td>Путь к <code>.iss</code> от корня пакета</td></tr>
+      </tbody>
+    </table>
+
+    <h3>7.7–7.8. adapter-settings и installer</h3>
+    <p><code>adapter-settings\Settings.xml</code> — шаблон настроек <strong>среды исполнения</strong> (не проекта симбионта). <code>installer\symbiont.iss</code> — скрипт Inno Setup; студия вызывает <code>ISCC.exe</code> с define-параметрами проекта и адаптера.</p>
+
+    <h2 id="register">8. Регистрация и дальнейшая работа</h2>
+    <ol>
+      <li>AIStudio → <strong>Адаптеры</strong> → <strong>Зарегистрировать из папки…</strong> или ZIP.</li>
+      <li>Копия в <code>%ProgramData%\ISIDA\Adapters\{id}\</code>.</li>
+      <li><strong>Проверить</strong> — отчёт OK / предупреждения / ошибки.</li>
+      <li><strong>Новый проект</strong> → выбрать адаптер → BootData из пакета в проект.</li>
+      <li>Редактирование гомеостаза, виртуальные тесты.</li>
+      <li><strong>Собрать установщик…</strong></li>
+    </ol>
+
+    <h2 id="settings">9. Два вида настроек</h2>
+    <table>
+      <thead><tr><th>Файл</th><th>Где</th><th>Кто редактирует</th><th>Зачем</th></tr></thead>
+      <tbody>
+        <tr><td><code>adapter-settings\Settings.xml</code></td><td>В пакете адаптера</td><td>Автор адаптера</td><td>Дефолты host-среды у конечного пользователя</td></tr>
+        <tr><td><code>Settings\Settings.xml</code></td><td>В проекте симбионта</td><td>Студия</td><td>Пути Data, BootData, <code>AdapterId</code>, шаблон ISS</td></tr>
+      </tbody>
+    </table>
+
+    <h2 id="verify">10. Что делает «Проверить»</h2>
+    <table>
+      <thead><tr><th>Проверка</th><th>Ошибка, если</th></tr></thead>
+      <tbody>
+        <tr><td><code>manifest.json</code>, <code>contractVersion</code></td><td>Нет файла, неверный JSON, неизвестная версия</td></tr>
+        <tr><td><code>id</code> валиден</td><td>Пустой id, недопустимые символы</td></tr>
+        <tr><td>Файлы <code>schema\</code></td><td>Отсутствует файл, битый JSON</td></tr>
+        <tr><td>YAML BootData</td><td>Синтаксис, нет секций <code>recipes</code> / <code>triggers</code></td></tr>
+        <tr><td>Ключи YAML ⊆ schema</td><td>Лишние поля без schema</td></tr>
+        <tr><td><code>runtime\</code></td><td>Нет DLL</td></tr>
+        <tr><td><code>installer\*.iss</code></td><td>Путь битый (если указан в manifest)</td></tr>
+      </tbody>
+    </table>
+
+    <h2 id="errors">11. Частые ошибки</h2>
+    <table>
+      <thead><tr><th>Симптом</th><th>Причина</th><th>Что сделать</th></tr></thead>
+      <tbody>
+        <tr><td>Неподдерживаемый contractVersion</td><td>Версия новее студии</td><td>Поставить <code>1.0</code> или обновить студию</td></tr>
+        <tr><td>Нет секции recipes/triggers</td><td>Неверные имена YAML</td><td><code>EnvironmentRecipes.yaml</code>, <code>EnvironmentTriggers.yaml</code></td></tr>
+        <tr><td>Ключ не описан в schema</td><td>Лишнее поле в YAML</td><td>Добавить в schema и runtime, либо убрать</td></tr>
+        <tr><td>Пустой runtime</td><td>DLL не скопированы</td><td>Заполнить <code>runtime\</code> из bin</td></tr>
+        <tr><td>Студия не видит адаптер</td><td>Ошибка установки</td><td>Проверить <code>Adapters\{id}\</code></td></tr>
+      </tbody>
+    </table>
+
+    <h2 id="versioning">12. Версионирование</h2>
+    <ul>
+      <li><code>contractVersion</code> в manifest — согласование с AIStudio (<code>1.0</code> для первого релиза).</li>
+      <li><code>version</code> в manifest — ваша версия пакета (<code>1.0.0</code>, …).</li>
+      <li>Новые поля в YAML/schema → новая <code>contractVersion</code> или согласованное расширение.</li>
+    </ul>
+
+    <h2 id="checklist">13. Чеклист перед регистрацией</h2>
+    <ul class="checklist">
+      <li><code>manifest.json</code> с уникальным <code>id</code></li>
+      <li><code>contractVersion</code>: <code>1.0</code></li>
+      <li><code>schema\</code> — все четыре файла (или согласованный минимум)</li>
+      <li><code>runtime\</code> — полный набор DLL</li>
+      <li><code>BootData\Environment\</code> — оба YAML</li>
+      <li><code>installer\symbiont.iss</code> (если сборка из студии)</li>
+      <li><code>adapter-settings\Settings.xml</code> (если host использует)</li>
+      <li>ZIP/папка без мусора (<code>.git</code>, <code>obj</code>)</li>
+    </ul>
+
+    <h2 id="links">14. Связанные документы</h2>
+    <table>
+      <thead><tr><th>Документ</th><th>Назначение</th></tr></thead>
+      <tbody>
+        <tr><td><code>AdapterContract.md</code></td><td>Норматив: YAML, manifest, нормализация</td></tr>
+        <tr><td><code>AdapterPlatform_ImplementationPlan.md</code></td><td>План разработки платформы</td></tr>
+        <tr><td><code>docs/adapter-package-example/demo/</code></td><td>Исходник каркаса demo</td></tr>
+      </tbody>
+    </table>
+
+    <p class="footer">AIStudio — руководство автора адаптера среды. Черновик 0.2.</p>
+  </main>
+</div>
+</body>
+</html>

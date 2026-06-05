@@ -978,12 +978,12 @@ namespace AIStudio.ViewModels
           && !SymbiontProjectAdapterSettings.TryReadFromSettingsFile(projectSettingsXml, out _))
       {
         MessageBox.Show(
-            "В Settings.xml проекта не указан AdapterId.\n\n" +
-            "Редакторы меню «Среда» будут недоступны, пока не добавите элемент <AdapterId> (например velum) " +
-            "или не создадите новый проект с выбором адаптера.",
-            "Адаптер среды",
+            "В Settings.xml проекта не указан тип среды (AdapterId).\n\n" +
+            "Доступны гомеостаз, пульт оператора и виртуальные тесты. Редакторы меню «Среда» — после регистрации пакета " +
+            "и указания AdapterId (или при создании проекта с типом среды).",
+            "Тип среды не задан",
             MessageBoxButton.OK,
-            MessageBoxImage.Warning);
+            MessageBoxImage.Information);
       }
 
       bool useRuntimeReload = _reloadRuntimeAfterProjectRootSwitch != null;

@@ -28,9 +28,10 @@
       HorizontalAlignment="Center"/>
 
     <StackPanel Orientation="Horizontal" Margin="0,5">
-      <TextBlock Text="Адаптер среды (AdapterId):" Width="265" VerticalAlignment="Center"/>
+      <TextBlock Text="Тип среды (AdapterId):" Width="265" VerticalAlignment="Center"/>
       <TextBox Text="{Binding AdapterIdDisplay, Mode=OneWay}" Width="400" Margin="5,0"
-               Background="#FFF0F0F0" IsReadOnly="True" ToolTip="Задаётся при создании проекта; в MVP не редактируется"/>
+               Background="#FFF0F0F0" IsReadOnly="True"
+               ToolTip="Зарегистрированный пакет описания среды; не подключение к SolidWorks. Пусто — только гомеостаз и пульт."/>
     </StackPanel>
 
     <!-- Каталог настроек -->

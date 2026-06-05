@@ -89,6 +89,7 @@
     <Compile Include="Common\Environment\EnvironmentTriggerMapper.cs" />
     <Compile Include="Common\Adapters\AdapterPaths.cs" />
     <Compile Include="Common\Adapters\AdapterRegistry.cs" />
+    <Compile Include="Common\Adapters\AdapterPackageManager.cs" />
     <Compile Include="Common\Adapters\AdapterInstaller.cs" />
     <Compile Include="Common\Adapters\AdapterValidator.cs" />
     <Compile Include="Common\Adapters\AdapterValidationSeverity.cs" />
@@ -440,6 +441,9 @@
     <Compile Include="Windows\NewSymbiontProjectWindow.xaml.cs">
       <DependentUpon>NewSymbiontProjectWindow.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Windows\AdapterManifestEditorWindow.xaml.cs">
+      <DependentUpon>AdapterManifestEditorWindow.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Windows\LogSessionPickerWindow.xaml.cs">
       <DependentUpon>LogSessionPickerWindow.xaml</DependentUpon>
     </Compile>
@@ -730,6 +734,10 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
+    <Page Include="Windows\AdapterManifestEditorWindow.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="Windows\LogSessionPickerWindow.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
@@ -767,9 +775,9 @@
     </None>
   </ItemGroup>
   <ItemGroup>
-    <Content Include="docs\AdapterAuthorGuide.md">
+    <Content Include="docs\AdapterAuthorGuide.html">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-      <Link>docs\AdapterAuthorGuide.md</Link>
+      <Link>docs\AdapterAuthorGuide.html</Link>
     </Content>
     <None Include="App.config" />
   </ItemGroup>

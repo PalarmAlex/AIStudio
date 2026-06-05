@@ -88,18 +88,21 @@
 
         <Expander Header="Проект" Style="{StaticResource MenuExpanderStyle}">
           <StackPanel>
-            <Button Content="Создать проект" Margin="20,2,5,2"
+            <Button Content="Создать проект симбионта" Margin="20,2,5,2"
               Style="{StaticResource MenuButtonStyle}"
               Command="{Binding VerticalMenuItemClickedCommand}"
-              CommandParameter="43"/>
-            <Button Content="Открыть проект" Margin="20,2,5,2"
+              CommandParameter="43"
+              ToolTip="Каркас гомеостаза и настроек; тип среды — опционально"/>
+            <Button Content="Открыть проект симбионта" Margin="20,2,5,2"
               Style="{StaticResource MenuButtonStyle}"
               Command="{Binding VerticalMenuItemClickedCommand}"
-              CommandParameter="44"/>
-            <Button Content="Адаптеры среды" Margin="20,2,5,2"
+              CommandParameter="44"
+              ToolTip="Каталог данных симбионта для редактирования"/>
+            <Button Content="Зарегистрированные пакеты…" Margin="20,2,5,2"
               Style="{StaticResource MenuButtonStyle}"
               Command="{Binding VerticalMenuItemClickedCommand}"
-              CommandParameter="47"/>
+              CommandParameter="47"
+              ToolTip="Пакеты описания среды (не подключение к SolidWorks)"/>
           </StackPanel>
         </Expander>
 
@@ -326,10 +329,10 @@
               Command="{Binding VerticalMenuItemClickedCommand}"
               CommandParameter="26"/>
 
-            <!--<Button Content="Руководство разработчика" Margin="20,2,5,2" 
+            <Button Content="Руководство разработчика" Margin="20,2,5,2" 
               Style="{StaticResource MenuButtonStyle}"
               Command="{Binding VerticalMenuItemClickedCommand}"
-              CommandParameter="29"/>-->
+              CommandParameter="29"/>
 
             <Button Content="Теория МВАП" Margin="20,2,5,2" 
               Style="{StaticResource MenuButtonStyle}"

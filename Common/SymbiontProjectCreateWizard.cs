@@ -7,13 +7,14 @@ using System.Windows;
 namespace AIStudio.Common
 {
   /// <summary>
-  /// Мастер «Новый проект симбионта»: выбор адаптера и каталога (фаза 4).
+  /// Мастер «Новый проект симбионта»: каталог проекта и опциональный тип среды.
   /// </summary>
   public static class SymbiontProjectCreateWizard
   {
     /// <summary>
-    /// Запускает диалог выбора адаптера и каталога проекта.
+    /// Запускает диалог: опционально тип среды, затем каталог проекта.
     /// </summary>
+    /// <param name="adapterId">Идентификатор зарегистрированного пакета или null, если среда не нужна.</param>
     public static bool TryRun(Window owner, out string projectRoot, out string adapterId, out string errorMessage)
     {
       projectRoot = null;
@@ -21,23 +22,16 @@ namespace AIStudio.Common
       errorMessage = null;
 
       IReadOnlyList<AdapterManifest> adapters = AdapterRegistry.GetInstalledAdapters();
-      if (adapters == null || adapters.Count == 0)
-      {
-        errorMessage =
-            "Нет установленных адаптеров.\n\n" +
-            "Сначала установите пакет: Проект → Адаптеры среды → Установить из папки…";
-        return false;
-      }
 
       var dialog = new NewSymbiontProjectWindow(adapters)
       {
         Owner = owner
       };
 
-      if (dialog.ShowDialog() != true || dialog.SelectedAdapter == null)
+      if (dialog.ShowDialog() != true)
         return false;
 
-      adapterId = dialog.SelectedAdapter.Id;
+      adapterId = dialog.SelectedAdapterId;
 
       if (!ProjectFolderPicker.TryPickFolderForNewProject(owner, out projectRoot, out string pickError))
       {
