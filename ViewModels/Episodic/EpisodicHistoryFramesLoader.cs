@@ -14,7 +14,6 @@ namespace AIStudio.ViewModels.Episodic
       var list = new ObservableCollection<HistoryFrameItem>();
       var history = episodic?.History;
       if (history == null) return list;
-
       var entries = history.GetLastEntries(100);
       var chains = SplitIntoChains(entries);
       for (int i = chains.Count - 1; i >= 0; i--)

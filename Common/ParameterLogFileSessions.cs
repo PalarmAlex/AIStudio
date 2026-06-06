@@ -9,10 +9,8 @@ namespace AIStudio.Common
   public static class ParameterLogFileSessions
   {
     private const string CsvFileName = "AgentLogs_Parameters.csv";
-
     public static IReadOnlyList<LogFileSessionInfo> ListFileSessions() =>
         CsvLogFileSessionReader.ListSessions(CsvFileName, IsHeaderRow, "Time");
-
     public static List<ParameterLogEntry> LoadSessionEntries(int sessionIndex)
     {
       var rows = CsvLogFileSessionReader.ReadSessionRows(CsvFileName, sessionIndex, IsHeaderRow, "Time");
@@ -24,10 +22,8 @@ namespace AIStudio.Common
       var list = new List<ParameterLogEntry>();
       if (sessionIndices == null)
         return list;
-
       foreach (int ix in sessionIndices)
         list.AddRange(LoadSessionEntries(ix));
-
       return list;
     }
 
@@ -47,7 +43,6 @@ namespace AIStudio.Common
       {
         if (!CsvLogFileSessionReader.TryParseTimestamp(row["Time"], out DateTime ts))
           continue;
-
         list.Add(new ParameterLogEntry
         {
           Timestamp = ts,
@@ -63,7 +58,6 @@ namespace AIStudio.Common
           ActivationZone = row.TryGetValue("ActivationZone", out string az) ? az : ""
         });
       }
-
       return list;
     }
   }

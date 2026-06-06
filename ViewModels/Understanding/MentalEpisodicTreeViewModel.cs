@@ -19,7 +19,6 @@ namespace AIStudio.ViewModels.Understanding
     public MentalEpisodicRuleSnapshot Rule { get; }
     public string TextDisplay { get; }
     public ObservableCollection<MentalEpisodicTreeItem> Children { get; } = new ObservableCollection<MentalEpisodicTreeItem>();
-
     /// <summary>Папка контекста с дочерними правилами.</summary>
     public MentalEpisodicTreeItem(MentalEpisodicContextSnapshot ctx, string text, IEnumerable<MentalEpisodicTreeItem> ruleItems)
     {
@@ -48,7 +47,6 @@ namespace AIStudio.ViewModels.Understanding
   public sealed class MentalEpisodicTreeViewModel : INotifyPropertyChanged
   {
     public event PropertyChangedEventHandler PropertyChanged;
-
     private void OnPropertyChanged(string propertyName)
     {
       PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
@@ -59,15 +57,12 @@ namespace AIStudio.ViewModels.Understanding
     private string _currentAgentName;
     private int _currentAgentStage;
     private MentalEpisodicTreeItem _selectedNode;
-
     public string CurrentAgentTitle =>
         SymbiontPageTitleFormatter.Format("Ментальные цепочки", _currentAgentName, _currentAgentStage);
-
     public ProblemTreeViewModel.DescriptionWithLink CurrentAgentDescription => new ProblemTreeViewModel.DescriptionWithLink
     {
       Text = "Дерево ментальной эпизодики (файл mental_episodic_tree.dat): контекст — узел проблемы (NodePID), образ темы и цели; под ним — сохранённые цепочки инфо-функций с эффектом после оценки решения цикла. Выберите узел слева, справа — детали. "
     };
-
     private ObservableCollection<MentalEpisodicTreeItem> _treeItems = new ObservableCollection<MentalEpisodicTreeItem>();
     public ObservableCollection<MentalEpisodicTreeItem> TreeItems
     {
@@ -77,7 +72,6 @@ namespace AIStudio.ViewModels.Understanding
 
     private ObservableCollection<PropertyRow> _selectedRows = new ObservableCollection<PropertyRow>();
     public ObservableCollection<PropertyRow> SelectedNodePropertyRows => _selectedRows;
-
     public MentalEpisodicTreeItem SelectedNode
     {
       get => _selectedNode;
@@ -91,7 +85,6 @@ namespace AIStudio.ViewModels.Understanding
 
     public bool IsMentalTreeAvailable =>
       _mentalTree != null && MentalEpisodicTreeSystem.IsInitialized && AppGlobalState.EvolutionStage >= 4;
-
     public List<KeyValuePair<int, string>> MaxContextsOptions { get; } = new List<KeyValuePair<int, string>>
     {
       new KeyValuePair<int, string>(50, "50"),
@@ -100,7 +93,6 @@ namespace AIStudio.ViewModels.Understanding
       new KeyValuePair<int, string>(500, "500"),
       new KeyValuePair<int, string>(0, "Все")
     };
-
     private int _selectedMaxContexts = 100;
     public int SelectedMaxContexts
     {
@@ -113,7 +105,6 @@ namespace AIStudio.ViewModels.Understanding
     private string _filterPurposeId = "";
     private string _filterEffect = "";
     private string _filterChain = "";
-
     public string FilterNodePidInput
     {
       get => _filterNodePid;
@@ -146,7 +137,6 @@ namespace AIStudio.ViewModels.Understanding
 
     public ICommand ApplyFiltersCommand { get; }
     public ICommand ClearFiltersCommand { get; }
-
     public MentalEpisodicTreeViewModel(MentalEpisodicTreeSystem mentalTree, GomeostasSystem gomeostas = null)
     {
       _mentalTree = mentalTree;
@@ -187,19 +177,16 @@ namespace AIStudio.ViewModels.Understanding
         TreeItems = new ObservableCollection<MentalEpisodicTreeItem>();
         return;
       }
-
       var snap = _mentalTree.GetDisplaySnapshot();
       int limit = SelectedMaxContexts <= 0 ? int.MaxValue : SelectedMaxContexts;
       var roots = new ObservableCollection<MentalEpisodicTreeItem>();
       int added = 0;
-
       foreach (var ctx in snap)
       {
         if (added >= limit) break;
         if (!IdContainsFilter(ctx.NodePid, FilterNodePidInput)) continue;
         if (!IdContainsFilter(ctx.ThemeId, FilterThemeIdInput)) continue;
         if (!IdContainsFilter(ctx.PurposeId, FilterPurposeIdInput)) continue;
-
         var ruleItems = new List<MentalEpisodicTreeItem>();
         foreach (var rule in ctx.Rules.OrderBy(r => r.Id))
         {
@@ -214,16 +201,13 @@ namespace AIStudio.ViewModels.Understanding
           }
           ruleItems.Add(new MentalEpisodicTreeItem(ctx, rule, BuildRuleLine(rule)));
         }
-
         if (ruleItems.Count == 0 &&
             (!string.IsNullOrWhiteSpace(FilterEffectInput) || !string.IsNullOrWhiteSpace(FilterChainInput)))
           continue;
-
         string ctxText = BuildContextLine(ctx);
         roots.Add(new MentalEpisodicTreeItem(ctx, ctxText, ruleItems));
         added++;
       }
-
       TreeItems = roots;
     }
 
@@ -249,7 +233,6 @@ namespace AIStudio.ViewModels.Understanding
         OnPropertyChanged(nameof(SelectedNodePropertyRows));
         return;
       }
-
       if (_selectedNode.IsContextFolder && _selectedNode.Context != null)
       {
         var c = _selectedNode.Context;
@@ -280,7 +263,6 @@ namespace AIStudio.ViewModels.Understanding
       }
       else
         _selectedRows.Add(new PropertyRow { Label = "", Value = "—" });
-
       OnPropertyChanged(nameof(SelectedNodePropertyRows));
     }
 

@@ -12,10 +12,8 @@ namespace AIStudio.Common.Adapters
   {
     /// <summary>Ключ в <see cref="AppConfig"/> (runtime студии).</summary>
     public const string AdapterIdElementName = "AdapterId";
-
     /// <summary>Legacy: элемент в Settings.xml до миграции в AgentProperties.dat.</summary>
     internal const string LegacySettingsXmlElementName = "AdapterId";
-
     /// <summary>
     /// AdapterId активного проекта из <see cref="AppConfig"/> (после синхронизации с AgentProperties).
     /// </summary>
@@ -32,7 +30,6 @@ namespace AIStudio.Common.Adapters
     {
       if (!TryGetCurrentAdapterId(out adapterId))
         return false;
-
       return AdapterRegistry.TryGetById(adapterId) != null;
     }
 
@@ -44,7 +41,6 @@ namespace AIStudio.Common.Adapters
       string adapterId = string.Empty;
       if (!string.IsNullOrWhiteSpace(agentPropertiesPath))
         AgentPropertiesAdapterBinding.TryReadAdapterId(agentPropertiesPath, out adapterId);
-
       adapterId = (adapterId ?? string.Empty).Trim();
       if (adapterId.Length > 0)
         AppConfig.SetSetting(AdapterIdElementName, adapterId);
@@ -62,7 +58,6 @@ namespace AIStudio.Common.Adapters
         AppConfig.SetSetting(AdapterIdElementName, string.Empty);
         return;
       }
-
       string adapterId = (gomeostas.GetAgentState()?.AdapterId ?? string.Empty).Trim();
       if (adapterId.Length > 0)
         AppConfig.SetSetting(AdapterIdElementName, adapterId);
@@ -82,29 +77,24 @@ namespace AIStudio.Common.Adapters
     {
       bindingWasCleared = false;
       string adapterId = string.Empty;
-
       if (gomeostas != null)
         adapterId = (gomeostas.GetAgentState()?.AdapterId ?? string.Empty).Trim();
       else if (!string.IsNullOrWhiteSpace(agentPropertiesPath))
         AgentPropertiesAdapterBinding.TryReadAdapterId(agentPropertiesPath, out adapterId);
-
       adapterId = (adapterId ?? string.Empty).Trim();
       if (adapterId.Length == 0)
       {
         ClearBinding(gomeostas, agentPropertiesPath);
         return false;
       }
-
       if (AdapterRegistry.TryGetById(adapterId) != null)
       {
         SyncAppConfigFromGomeostas(gomeostas);
         return true;
       }
-
       string removedId = adapterId;
       ClearBinding(gomeostas, agentPropertiesPath);
       bindingWasCleared = true;
-
       MessageBox.Show(
           messageOwner,
           "Пакет среды «" + removedId + "» не найден в каталоге:\n"
@@ -113,7 +103,6 @@ namespace AIStudio.Common.Adapters
           "Тип среды",
           MessageBoxButton.OK,
           MessageBoxImage.Warning);
-
       return false;
     }
 
@@ -126,13 +115,10 @@ namespace AIStudio.Common.Adapters
         string adapterId)
     {
       string trimmed = string.IsNullOrWhiteSpace(adapterId) ? null : adapterId.Trim();
-
       if (gomeostas != null)
         gomeostas.SetAdapterId(trimmed ?? string.Empty);
-
       if (!string.IsNullOrWhiteSpace(agentPropertiesPath))
         AgentPropertiesAdapterBinding.WriteAdapterId(agentPropertiesPath, trimmed);
-
       if (trimmed != null)
         AppConfig.SetSetting(AdapterIdElementName, trimmed);
       else
@@ -143,10 +129,8 @@ namespace AIStudio.Common.Adapters
     {
       if (gomeostas != null)
         gomeostas.SetAdapterId(string.Empty);
-
       if (!string.IsNullOrWhiteSpace(agentPropertiesPath))
         AgentPropertiesAdapterBinding.WriteAdapterId(agentPropertiesPath, null);
-
       AppConfig.SetSetting(AdapterIdElementName, string.Empty);
     }
   }

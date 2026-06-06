@@ -11,7 +11,6 @@ namespace AIStudio.Common
       var fromConfig = AppConfig.LogsFolderPath;
       if (!string.IsNullOrWhiteSpace(fromConfig))
         return Path.Combine(fromConfig.Trim(), fileName);
-
       return Path.Combine(
           Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData),
           "ISIDA", "Logs", fileName);

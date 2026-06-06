@@ -1,4 +1,4 @@
-﻿<UserControl x:Class="AIStudio.Pages.VerbalTreesView"
+<UserControl x:Class="AIStudio.Pages.VerbalTreesView"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
@@ -14,7 +14,6 @@
     <local:SearchHighlightMultiConverter x:Key="SearchHighlightMultiConverter"/>
     <local:BoolToExpandedIconConverter x:Key="BoolToExpandedIconConverter"/>
     <converters:BoolToVisibilityConverter x:Key="BoolToVisibilityConverter"/>
-
     <HierarchicalDataTemplate DataType="{x:Type viewmodels:VerbalTreesViewModel+WordNode}" 
                               ItemsSource="{Binding Children}">
       <StackPanel Orientation="Horizontal">

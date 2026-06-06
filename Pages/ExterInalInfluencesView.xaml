@@ -13,7 +13,6 @@
     <converters:InverseBooleanConverter x:Key="InverseBooleanConverter"/>
     <converters:InverseBooleanToVisibilityConverter x:Key="InverseBooleanToVisibilityConverter"/>
     <converters:ValidationErrorToVisibilityConverter x:Key="ValidationErrorToVisibilityConverter"/>
-
     <Style TargetType="DataGridCell">
       <Setter Property="Padding" Value="5"/>
       <Setter Property="Template">
@@ -110,10 +109,8 @@
                 PreviewKeyDown="DataGrid_PreviewKeyDown"
                 RowEditEnding="DataGrid_RowEditEnding">
         <DataGrid.Columns>
-
           <DataGridTextColumn Header="ID" Binding="{Binding Id}" Width="50" IsReadOnly="True"/>
           <DataGridTextColumn Header="Наименование" Binding="{Binding Name}" Width="200"/>
-
           <DataGridTextColumn Header="Описание" Binding="{Binding Description, Mode=TwoWay}" Width="300">
             <DataGridTextColumn.CellStyle>
               <Style TargetType="DataGridCell" BasedOn="{StaticResource {x:Type DataGridCell}}">
@@ -139,7 +136,7 @@
                     Value="Влияние воздействия на параметры гомеостаза (положительное или отрицательное).&#x0a;Ключ - ID параметра, значение - величина воздействия.&#x0a;ДБ клик открывает окно ввода."/>
               </Style>
             </DataGridTextColumn.HeaderStyle>
-        
+
           </DataGridTextColumn>
 
           <DataGridTextColumn Header="Антагонисты" 
@@ -158,7 +155,7 @@
                     Value="Список ID воздействий-антагонистов, которые несовместимы с данным воздействием.&#x0a;При активации данного воздействия, все указанные здесь воздействия будут деактивированы.&#x0a;ДБ клик открывает окно ввода."/>
               </Style>
             </DataGridTextColumn.HeaderStyle>
-            
+
           </DataGridTextColumn>
 
           <DataGridTextColumn Header="EnvironmentMetricProbeKey"

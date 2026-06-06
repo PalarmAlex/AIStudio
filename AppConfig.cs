@@ -6,7 +6,6 @@ using System.Reflection;
 using System.Windows;
 using System.Windows.Media;
 using System.Xml.Linq;
-
 public static class AppConfig
 {
   /// <summary>
@@ -14,25 +13,20 @@ public static class AppConfig
   /// При переключении «Проект» читается именно он, чтобы базы не затирали друг друга.
   /// </summary>
   public const string StudioSettingsFileName = "Settings.xml";
-
   /// <summary>
   /// Файл «хаба» студии в <c>CommonApplicationData\ISIDA\Settings\</c> — текущая рабочая копия настроек для запуска движка.
   /// Отделён от <see cref="StudioSettingsFileName"/>, иначе при проекте по умолчанию <c>…\ProgramData\ISIDA</c>
   /// хаб и профиль совпадали бы одним файлом и переключение на другую базу портило бы локальный <c>Settings.xml</c> ISIDA.
   /// </summary>
   public const string StudioHubSettingsFileName = "AIStudioHub.xml";
-
   /// <summary>Прежнее имя файла настроек; используется для переименования при обновлении и для чтения старых копий в папке проекта.</summary>
   public const string LegacyStudioSettingsFileName = "AIStudio.Settings.xml";
-
   private static string ConfigDirectory = Path.Combine(
       Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData),
       "ISIDA", "Settings"
   );
-
   /// <summary>Полный путь к файлу хаба студии (не к профилю проекта в <see cref="StudioSettingsFileName"/>).</summary>
   private static string ConfigFullPath = Path.Combine(ConfigDirectory, StudioHubSettingsFileName);
-
   static AppConfig()
   {
     InitializeConfig();
@@ -46,7 +40,6 @@ public static class AppConfig
   public static string SettingsPath => GetSetting("SettingsPath");
   public static string LogsFolderPath => GetSetting("LogsFolderPath");
   public static string BootDataFolderPath => GetSetting("BootDataFolderPath");
-
   /// <summary>Каталог для HTML-отчётов прогона сценариев (по умолчанию …\ISIDA\Data\Scenarios\Reports).</summary>
   public static string ScenarioReportsFolderPath
   {
@@ -74,26 +67,19 @@ public static class AppConfig
   public static int CompareLevel => GetIntSetting("CompareLevel", (int)GetDefaultValueSettings("CompareLevel"));
   public static float DifSensorPar => GetFloatSetting("DifSensorPar", (float)GetDefaultValueSettings("DifSensorPar"));
   public static int DynamicTime => GetIntSetting("DynamicTime", (int)GetDefaultValueSettings("DynamicTime"));
-
   /// <summary>При true параметры гомеостаза сдвигаются по Speed на каждом пульсе; при false — только при воздействии.</summary>
   public static bool HomeostasisPulseSpeedDriftEnabled =>
       GetBoolSetting("HomeostasisPulseSpeedDriftEnabled", (bool)GetDefaultValueSettings("HomeostasisPulseSpeedDriftEnabled"));
-
   public static int ReflexActionDisplayDuration => GetIntSetting("ReflexActionDisplayDuration", (int)GetDefaultValueSettings("ReflexActionDisplayDuration"));
   public static int WaitingPeriodForActionsVal => GetIntSetting("WaitingPeriodForActionsVal", (int)GetDefaultValueSettings("WaitingPeriodForActionsVal"));
-
   /// <summary>Делитель возраста A: loss = B + (age / A) для фоновых циклов мышления.</summary>
   public static int ThinkingCycleDecayAgeDivisor => GetIntSetting("ThinkingCycleDecayAgeDivisor", (int)GetDefaultValueSettings("ThinkingCycleDecayAgeDivisor"));
-
   /// <summary>Базовое снятие веса B за пульс (фоновые циклы).</summary>
   public static int ThinkingCycleDecayBase => GetIntSetting("ThinkingCycleDecayBase", (int)GetDefaultValueSettings("ThinkingCycleDecayBase"));
-
   /// <summary>Максимальный возраст главного цикла мышления в пульсах.</summary>
   public static int ThinkingCycleMainMaxAgePulses => GetIntSetting("ThinkingCycleMainMaxAgePulses", (int)GetDefaultValueSettings("ThinkingCycleMainMaxAgePulses"));
-
   /// <summary>Пульсов без стимула с пульта до события «долго без оператора» (тема мышления).</summary>
   public static int NoOperatorStimulusSilencePulses => GetIntSetting("NoOperatorStimulusSilencePulses", (int)GetDefaultValueSettings("NoOperatorStimulusSilencePulses"));
-
   /// <summary>Добавляет в существующий XML ключ каталога отчётов сценариев, если его ещё нет.</summary>
   private static void EnsureScenarioReportsFolderSetting()
   {
@@ -148,7 +134,6 @@ public static class AppConfig
       string hubPath = Path.Combine(ConfigDirectory, StudioHubSettingsFileName);
       if (File.Exists(hubPath))
         return;
-
       string legacyCombined = Path.Combine(ConfigDirectory, StudioSettingsFileName);
       if (File.Exists(legacyCombined))
         File.Copy(legacyCombined, hubPath, overwrite: false);
@@ -186,20 +171,16 @@ public static class AppConfig
     {
       if (!File.Exists(ConfigFullPath))
         return;
-
       string settingsFolder = GetSetting(nameof(SettingsPath));
       string gomeostasFolder = GetSetting(nameof(DataGomeostasFolderPath));
       if (!SettingsValidator.TryInferProjectRoot(settingsFolder ?? "", gomeostasFolder ?? "", out string projectRoot))
         return;
-
       string profilePath = Path.Combine(projectRoot, "Settings", StudioSettingsFileName);
       if (PathsEqualNormalized(profilePath, ConfigFullPath))
         return;
-
       string profileDir = Path.GetDirectoryName(profilePath);
       if (!string.IsNullOrEmpty(profileDir))
         Directory.CreateDirectory(profileDir);
-
       File.Copy(ConfigFullPath, profilePath, overwrite: true);
     }
     catch (Exception ex)
@@ -221,7 +202,6 @@ public static class AppConfig
       // Если хаба ещё нет — создаём (новая установка или после ручного удаления AIStudioHub.xml).
       if (!File.Exists(ConfigFullPath))
         CreateDefaultConfig();
-
       EnsureScenarioReportsFolderSetting();
       try
       {
@@ -239,7 +219,6 @@ public static class AppConfig
         UpdateConfigPaths();
         SetIntSetting("FirstRun", 1);
       }
-
       MirrorHubToProjectProfile();
     }
     catch (Exception ex)
@@ -255,9 +234,7 @@ public static class AppConfig
   {
     string programDataPath = Environment.GetFolderPath(
         Environment.SpecialFolder.CommonApplicationData);
-
     string appDataPath = Path.Combine(programDataPath, "ISIDA");
-
     var defaultConfig = new XDocument(
       new XElement("Configuration",
         new XElement("AppSettings",
@@ -290,7 +267,6 @@ public static class AppConfig
         )
       )
     );
-
     defaultConfig.Save(ConfigFullPath);
   }
 
@@ -301,7 +277,6 @@ public static class AppConfig
   {
     string programDataPath = Environment.GetFolderPath(
     Environment.SpecialFolder.CommonApplicationData);
-
     string appDataPath = Path.Combine(programDataPath, "ISIDA");
     try
     {
@@ -314,7 +289,6 @@ public static class AppConfig
       SetSetting("LogsFolderPath", Path.Combine(appDataPath, "Logs"));
       SetSetting("BootDataFolderPath", Path.Combine(appDataPath, "BootData"));
       SetSetting("ScenarioReportsFolderPath", Path.Combine(appDataPath, "Data", "Scenarios", "Reports"));
-
       Logger.Info($"Конфигурационные пути обновлены для установки в: {appDataPath}");
     }
     catch (Exception ex)
@@ -354,12 +328,10 @@ public static class AppConfig
       var element = doc.Root?
                       .Element("AppSettings")?
                       .Element(key);
-
       if (element != null)
         element.Value = value;
       else
         doc.Root?.Element("AppSettings")?.Add(new XElement(key, value));
-
       doc.Save(ConfigFullPath);
     }
     catch (Exception ex)
@@ -382,12 +354,10 @@ public static class AppConfig
       var element = doc.Root?
                       .Element("AppSettings")?
                       .Element(key);
-
       if (element != null)
         element.Value = value.ToString();
       else
         doc.Root?.Element("AppSettings")?.Add(new XElement(key, value.ToString()));
-
       doc.Save(ConfigFullPath);
     }
     catch (Exception ex)
@@ -413,12 +383,10 @@ public static class AppConfig
 
       // Сохраняем с инвариантной культурой, чтобы разделитель был точкой
       string stringValue = value.ToString(System.Globalization.CultureInfo.InvariantCulture);
-
       if (element != null)
         element.Value = stringValue;
       else
         doc.Root?.Element("AppSettings")?.Add(new XElement(key, stringValue));
-
       doc.Save(ConfigFullPath);
     }
     catch (Exception ex)
@@ -432,7 +400,6 @@ public static class AppConfig
     string value = GetSetting(key);
     if (bool.TryParse(value, out bool result))
       return result;
-
     return defaultValue;
   }
 
@@ -444,12 +411,10 @@ public static class AppConfig
       var element = doc.Root?
                       .Element("AppSettings")?
                       .Element(key);
-
       if (element != null)
         element.Value = value.ToString().ToLowerInvariant();
       else
         doc.Root?.Element("AppSettings")?.Add(new XElement(key, value.ToString().ToLowerInvariant()));
-
       doc.Save(ConfigFullPath);
     }
     catch (Exception ex)
@@ -491,7 +456,6 @@ public static class AppConfig
     // Если не получается, пробуем как число (для обратной совместимости)
     if (int.TryParse(value, out int intValue) && Enum.IsDefined(typeof(ResearchLogger.LogFormat), intValue))
       return (ResearchLogger.LogFormat)intValue;
-
     return defaultValue;
   }
 

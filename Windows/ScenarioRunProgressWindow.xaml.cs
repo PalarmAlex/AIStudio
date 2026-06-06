@@ -6,10 +6,8 @@ namespace AIStudio.Windows
   {
     private const double DefaultStatusFontSize = 14;
     private const double CompactStatusFontSize = 12.5;
-
     private const string DefaultFooter =
         "Выполняется сценарий — не закрывайте приложение до завершения.";
-
     public ScenarioRunProgressWindow()
     {
       InitializeComponent();

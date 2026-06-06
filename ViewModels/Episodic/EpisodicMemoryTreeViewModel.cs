@@ -35,7 +35,6 @@ namespace AIStudio.ViewModels.Episodic
     public int Level { get; }
     public FontWeight RowFontWeight => IsActionRow ? FontWeights.Bold : FontWeights.Normal;
     public ObservableCollection<EpisodicTreeNodeItem> Children { get; } = new ObservableCollection<EpisodicTreeNodeItem>();
-
     public EpisodicTreeNodeItem(EpisodicMemoryNode node, string textDisplay, string tooltipText, Brush effectBrush = null, bool isActionRow = false, int level = 0)
     {
       Node = node;
@@ -55,7 +54,6 @@ namespace AIStudio.ViewModels.Episodic
     public string DisplayText { get; }
     public Brush BackgroundBrush { get; }
     public string TooltipText { get; }
-
     public HistoryFrameItem(string displayText, Brush backgroundBrush, string tooltipText = null)
     {
       DisplayText = displayText ?? "";
@@ -73,7 +71,6 @@ namespace AIStudio.ViewModels.Episodic
     public string LinkText { get; set; } = "Подробнее...";
     public string Url { get; set; } = "https://scorcher.ru/isida/iadaptive_agents_guide.php#episodic";
     public ICommand OpenLinkCommand { get; }
-
     public DescriptionWithLink()
     {
       OpenLinkCommand = new RelayCommand(_ =>
@@ -108,25 +105,20 @@ namespace AIStudio.ViewModels.Episodic
     private readonly ActionsImagesSystem _actionsImages;
     private readonly SensorySystem _sensorySystem;
     private readonly EpisodicMemoryNodePresentation _nodePresentation;
-
     private string _filterPhrasePerception = string.Empty;
     private string _filterPhrase = string.Empty;
     private string _filterPhrasePerceptionInput = string.Empty;
     private string _filterPhraseInput = string.Empty;
     private string _currentAgentName;
     private int _currentAgentStage;
-
     public string CurrentAgentTitle =>
         SymbiontPageTitleFormatter.Format("Дерево эпизодической памяти", _currentAgentName, _currentAgentStage);
-
     public DescriptionWithLink CurrentAgentDescription =>
       new DescriptionWithLink
       {
         Text = "Дерево только для чтения. Три дерева эпизодов по базовым состояниям: Плохо, Норма, Хорошо. Узлы: Эмоция → Understanding → NodePID → Триггер → Акция (эффект). "
       };
-
     #region Деревья для трёх колонок
-
     private ObservableCollection<EpisodicTreeNodeItem> _treeBad = new ObservableCollection<EpisodicTreeNodeItem>();
     public ObservableCollection<EpisodicTreeNodeItem> TreeBad
     {
@@ -147,11 +139,8 @@ namespace AIStudio.ViewModels.Episodic
       get => _treeGood;
       set { _treeGood = value; OnPropertyChanged(nameof(TreeGood)); }
     }
-
     #endregion
-
     #region Сворачивание узлов (Эмоции, Understanding, NodePID, Триггер) — по умолчанию все отжаты
-
     private bool _collapseEmotionsBad;
     private bool _collapseUnderstandingBad;
     private bool _collapseNodePidBad;
@@ -164,7 +153,6 @@ namespace AIStudio.ViewModels.Episodic
     private bool _collapseUnderstandingGood;
     private bool _collapseNodePidGood;
     private bool _collapseTriggerGood;
-
     public bool CollapseEmotionsBad { get => _collapseEmotionsBad; set { _collapseEmotionsBad = value; OnPropertyChanged(nameof(CollapseEmotionsBad)); } }
     public bool CollapseUnderstandingBad { get => _collapseUnderstandingBad; set { _collapseUnderstandingBad = value; OnPropertyChanged(nameof(CollapseUnderstandingBad)); } }
     public bool CollapseNodePidBad { get => _collapseNodePidBad; set { _collapseNodePidBad = value; OnPropertyChanged(nameof(CollapseNodePidBad)); } }
@@ -177,11 +165,8 @@ namespace AIStudio.ViewModels.Episodic
     public bool CollapseUnderstandingGood { get => _collapseUnderstandingGood; set { _collapseUnderstandingGood = value; OnPropertyChanged(nameof(CollapseUnderstandingGood)); } }
     public bool CollapseNodePidGood { get => _collapseNodePidGood; set { _collapseNodePidGood = value; OnPropertyChanged(nameof(CollapseNodePidGood)); } }
     public bool CollapseTriggerGood { get => _collapseTriggerGood; set { _collapseTriggerGood = value; OnPropertyChanged(nameof(CollapseTriggerGood)); } }
-
     #endregion
-
     #region Фильтры (порядок как в AutomatizmsView, без NodePID)
-
     public List<KeyValuePair<int?, string>> BaseConditionFilterOptions { get; } = new List<KeyValuePair<int?, string>>
     {
       new KeyValuePair<int?, string>(null, "Все состояния"),
@@ -189,7 +174,6 @@ namespace AIStudio.ViewModels.Episodic
       new KeyValuePair<int?, string>(0, "Норма"),
       new KeyValuePair<int?, string>(1, "Хорошо")
     };
-
     public List<KeyValuePair<string, string>> UsefulnessFilterOptions { get; } = new List<KeyValuePair<string, string>>
     {
       new KeyValuePair<string, string>(null, "Все"),
@@ -197,11 +181,9 @@ namespace AIStudio.ViewModels.Episodic
       new KeyValuePair<string, string>("=0", "Нейтральные (=0)"),
       new KeyValuePair<string, string>(">0", "Полезные (>0)")
     };
-
     public List<KeyValuePair<int, string>> PerceptionActionFilterOptions { get; } = new List<KeyValuePair<int, string>>();
     public List<KeyValuePair<int, string>> ActionFilterOptions { get; } = new List<KeyValuePair<int, string>>();
     public List<KeyValuePair<int?, string>> Level2FilterOptions { get; private set; } = new List<KeyValuePair<int?, string>>();
-
     public List<KeyValuePair<int, string>> MaxNodesOptions { get; } = new List<KeyValuePair<int, string>>
     {
       new KeyValuePair<int, string>(100, "100"),
@@ -212,32 +194,25 @@ namespace AIStudio.ViewModels.Episodic
       new KeyValuePair<int, string>(5000, "5000"),
       new KeyValuePair<int, string>(0, "Все")
     };
-
     private int? _selectedBaseConditionFilter;
     private int? _selectedLevel2Filter;
     private string _selectedUsefulnessFilter;
     private int _selectedPerceptionActionFilterId;
     private int _selectedActionFilterId;
     private int _selectedMaxNodes = 500;
-
     public int? SelectedBaseConditionFilter { get => _selectedBaseConditionFilter; set { _selectedBaseConditionFilter = value; OnPropertyChanged(nameof(SelectedBaseConditionFilter)); } }
     public int? SelectedLevel2Filter { get => _selectedLevel2Filter; set { _selectedLevel2Filter = value; OnPropertyChanged(nameof(SelectedLevel2Filter)); } }
     public string SelectedUsefulnessFilter { get => _selectedUsefulnessFilter; set { _selectedUsefulnessFilter = value; OnPropertyChanged(nameof(SelectedUsefulnessFilter)); } }
     public int SelectedPerceptionActionFilterId { get => _selectedPerceptionActionFilterId; set { _selectedPerceptionActionFilterId = value; OnPropertyChanged(nameof(SelectedPerceptionActionFilterId)); } }
     public int SelectedActionFilterId { get => _selectedActionFilterId; set { _selectedActionFilterId = value; OnPropertyChanged(nameof(SelectedActionFilterId)); } }
     public int SelectedMaxNodes { get => _selectedMaxNodes; set { _selectedMaxNodes = value; OnPropertyChanged(nameof(SelectedMaxNodes)); } }
-
     public string FilterPhrasePerceptionInput { get => _filterPhrasePerceptionInput; set { _filterPhrasePerceptionInput = value ?? string.Empty; OnPropertyChanged(nameof(FilterPhrasePerceptionInput)); } }
     public string FilterPhraseInput { get => _filterPhraseInput; set { _filterPhraseInput = value ?? string.Empty; OnPropertyChanged(nameof(FilterPhraseInput)); } }
-
     public ICommand ApplyFiltersCommand { get; }
     public ICommand ClearFiltersCommand { get; }
-
     #endregion
-
     public bool IsEpisodicMemoryAvailable =>
       _episodicMemory != null && EpisodicMemorySystem.IsInitialized && AppGlobalState.EvolutionStage >= 4;
-
     public EpisodicMemoryTreeViewModel(
       EpisodicMemorySystem episodicMemory,
       GomeostasSystem gomeostas,
@@ -264,23 +239,18 @@ namespace AIStudio.ViewModels.Episodic
         _gomeostas, _emotionsImage, _influenceAction, _adaptiveActions, _problemTree,
         _influenceActionsImages, _actionsImages, _sensorySystem,
         automatizmTree, verbalBroca);
-
       PerceptionActionFilterOptions.Add(new KeyValuePair<int, string>(0, "Все действия"));
       var influenceActions = _influenceAction?.GetAllInfluenceActions();
       if (influenceActions != null)
         foreach (var a in influenceActions)
           PerceptionActionFilterOptions.Add(new KeyValuePair<int, string>(a.Id, a.Name));
-
       ActionFilterOptions.Add(new KeyValuePair<int, string>(0, "Все действия"));
       var actionsList = _adaptiveActions?.GetAllAdaptiveActions()?.ToList() ?? new List<AdaptiveActionsSystem.AdaptiveAction>();
       foreach (var a in actionsList)
         ActionFilterOptions.Add(new KeyValuePair<int, string>(a.Id, a.Name));
-
       LoadLevel2FilterOptions();
-
       ApplyFiltersCommand = new RelayCommand(ApplyFilters);
       ClearFiltersCommand = new RelayCommand(ClearFilters);
-
       RefreshAgentTitleContext();
       LoadTrees();
     }
@@ -331,7 +301,6 @@ namespace AIStudio.ViewModels.Episodic
         TreeGood = new ObservableCollection<EpisodicTreeNodeItem>();
         return;
       }
-
       var root = _episodicMemory.Tree;
       int limit = _selectedMaxNodes <= 0 ? int.MaxValue : _selectedMaxNodes;
       var empty = new ObservableCollection<EpisodicTreeNodeItem>();
@@ -361,7 +330,6 @@ namespace AIStudio.ViewModels.Episodic
         }
         return;
       }
-
       int limitBad = limit;
       TreeBad = BuildTreeFromChildren(root.Children, -1, ref limitBad, 0, true);
       int limitNorm = limit;
@@ -400,7 +368,6 @@ namespace AIStudio.ViewModels.Episodic
       var grouped = (depth >= 1 && depth <= 2)
         ? filtered.GroupBy(c => GetLevelGroupKey(c, depth)).ToList()
         : null;
-
       if (grouped != null)
       {
         foreach (var grp in grouped)
@@ -411,12 +378,10 @@ namespace AIStudio.ViewModels.Episodic
           var mergedChildren = list.Count == 1
             ? (first.Children ?? new List<EpisodicMemoryNode>())
             : list.SelectMany(n => n.Children ?? new List<EpisodicMemoryNode>()).ToList();
-
           int limitBeforeSub = remainingLimit;
           ObservableCollection<EpisodicTreeNodeItem> sub = null;
           if (depth < EpisodicMemoryTree.LeafLevelIndex && mergedChildren.Count > 0 && remainingLimit > 0)
             sub = BuildTreeFromChildren(mergedChildren, targetBaseId, ref remainingLimit, depth + 1, false);
-
           bool nodePasses = PassesFilters(first);
           bool hasPassingDescendants = sub != null && sub.Count > 0;
           if (!nodePasses && !hasPassingDescendants)
@@ -424,7 +389,6 @@ namespace AIStudio.ViewModels.Episodic
             remainingLimit = limitBeforeSub;
             continue;
           }
-
           var (text, tooltip, effectBrush) = _nodePresentation.GetNodeDisplayAndTooltip(first, depth);
           var item = new EpisodicTreeNodeItem(first, text, tooltip, effectBrush, isActionRow: depth == EpisodicMemoryTree.LeafLevelIndex, level: depth);
           remainingLimit--;
@@ -435,7 +399,6 @@ namespace AIStudio.ViewModels.Episodic
         }
         return result;
       }
-
       foreach (var child in filtered)
       {
         if (remainingLimit <= 0) break;
@@ -456,18 +419,14 @@ namespace AIStudio.ViewModels.Episodic
           remainingLimit = limitBeforeSub; // не добавляем ветку — восстанавливаем лимит
           continue;
         }
-
         var (text, tooltip, effectBrush) = _nodePresentation.GetNodeDisplayAndTooltip(child, depth);
         var item = new EpisodicTreeNodeItem(child, text, tooltip, effectBrush, isActionRow: depth == EpisodicMemoryTree.LeafLevelIndex, level: depth);
         remainingLimit--;
-
         if (sub != null)
           foreach (var c in sub)
             item.Children.Add(c);
-
         result.Add(item);
       }
-
       return result;
     }
 
@@ -493,7 +452,6 @@ namespace AIStudio.ViewModels.Episodic
           case ">0": if (EpisodicMemoryNodePresentation.GetSignedOutcome(node.Params) <= 0) return false; break;
         }
       }
-
       if (SelectedPerceptionActionFilterId != 0)
       {
         if (node.TriggerId == 0) return false;
@@ -506,7 +464,6 @@ namespace AIStudio.ViewModels.Episodic
             return false;
         }
       }
-
       if (SelectedActionFilterId != 0)
       {
         if (node.ActionId == 0) return false;
@@ -532,7 +489,6 @@ namespace AIStudio.ViewModels.Episodic
         if (string.IsNullOrEmpty(phrase) || phrase.IndexOf(_filterPhrase, StringComparison.OrdinalIgnoreCase) < 0)
           return false;
       }
-
       return true;
     }
   }

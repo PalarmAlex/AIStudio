@@ -19,7 +19,6 @@ namespace AIStudio.ViewModels
   public sealed class ThinkingCyclesViewModel : INotifyPropertyChanged, IDisposable
   {
     public event PropertyChangedEventHandler PropertyChanged;
-
     private readonly PsychicSystem _psychicSystem;
     private readonly GomeostasSystem _gomeostas;
     private readonly DispatcherTimer _refreshTimer;
@@ -27,15 +26,11 @@ namespace AIStudio.ViewModels
     private int _currentAgentStage;
     private int _tickCounter;
     private bool _disposed;
-
     private readonly int _detailLogLines;
-
     private static readonly Color BgLow = Color.FromRgb(0xE8, 0xF5, 0xE9);
     private static readonly Color BgHigh = Color.FromRgb(0x43, 0xA0, 0x47);
     private static readonly Color MainTileBg = Color.FromRgb(0x2E, 0x7D, 0x32);
-
     private int _selectedCycleId;
-
     public ThinkingCyclesViewModel(
       PsychicSystem psychicSystem,
       GomeostasSystem gomeostas = null,
@@ -45,7 +40,6 @@ namespace AIStudio.ViewModels
       _gomeostas = gomeostas;
       RefreshAgentTitleContext();
       _detailLogLines = Math.Max(0, detailLogLines);
-
       BackgroundLimitOptions = new List<KeyValuePair<int, string>>
       {
         new KeyValuePair<int, string>(50, "50"),
@@ -54,14 +48,11 @@ namespace AIStudio.ViewModels
         new KeyValuePair<int, string>(500, "500"),
       };
       _selectedBackgroundLimit = 100;
-
       MainTile = null;
       BackgroundRows = new ObservableCollection<ThinkingCycleWeightRowViewModel>();
       SelectCycleCommand = new RelayCommand(OnSelectCycle);
-
       BackgroundCountText = string.Empty;
       DetailHeaderText = "Выберите цикл на матрице";
-
       _refreshTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(200) };
       _refreshTimer.Tick += (_, __) =>
       {
@@ -74,7 +65,6 @@ namespace AIStudio.ViewModels
     }
 
     public List<KeyValuePair<int, string>> BackgroundLimitOptions { get; }
-
     private int _selectedBackgroundLimit = 100;
     public int SelectedBackgroundLimit
     {
@@ -89,14 +79,10 @@ namespace AIStudio.ViewModels
     }
 
     public ICommand SelectCycleCommand { get; }
-
     public string CurrentAgentTitle =>
         SymbiontPageTitleFormatter.Format("Циклы осмысления", _currentAgentName, _currentAgentStage);
-
     public ThinkingCycleTileViewModel MainTile { get; private set; }
-
     public ObservableCollection<ThinkingCycleWeightRowViewModel> BackgroundRows { get; }
-
     private string _backgroundCountText;
     public string BackgroundCountText
     {
@@ -351,7 +337,6 @@ namespace AIStudio.ViewModels
     }
 
     private IReadOnlyList<ThinkingCycleListItem> _lastList = Array.Empty<ThinkingCycleListItem>();
-
     private void OnSelectCycle(object parameter)
     {
       if (parameter == null) return;
@@ -374,7 +359,6 @@ namespace AIStudio.ViewModels
         _lastList = _psychicSystem.GetThinkingCyclesListSnapshot();
         RebuildMatrixFromLastSnapshot();
         DetailMentalChainText = FormatMentalChainUi(_psychicSystem.GetMentalAutomatizmSessionTrace());
-
         if (_tickCounter % 3 == 0 && _selectedCycleId > 0)
           RefreshDetail();
       }
@@ -389,7 +373,6 @@ namespace AIStudio.ViewModels
       var list = _lastList?.ToList() ?? new List<ThinkingCycleListItem>();
       var main = list.FirstOrDefault(x => x.IsMainCycle);
       HasMainCycle = main != null;
-
       if (main != null)
       {
         MainTile = BuildMainTile(main);
@@ -400,12 +383,10 @@ namespace AIStudio.ViewModels
         MainTile = null;
         OnPropertyChanged(nameof(MainTile));
       }
-
       var bgAll = list.Where(x => !x.IsMainCycle)
         .OrderByDescending(x => x.Weight)
         .ThenBy(x => x.Order)
         .ToList();
-
       int totalBg = bgAll.Count;
       if (totalBg == 0)
       {
@@ -415,16 +396,13 @@ namespace AIStudio.ViewModels
         OnPropertyChanged(nameof(BackgroundRows));
         return;
       }
-
       int take = Math.Min(SelectedBackgroundLimit, totalBg);
       var bg = bgAll.Take(take).ToList();
       BackgroundCountText = take >= totalBg
         ? $"Показано фоновых: {take}"
         : $"Показано фоновых: {take} из {totalBg}";
-
       int minW = bg.Min(x => x.Weight);
       int maxW = bg.Max(x => x.Weight);
-
       BackgroundRows.Clear();
       foreach (var g in bg
                  .GroupBy(x => GetWeightDecadeBucket(x.Weight))
@@ -559,7 +537,6 @@ namespace AIStudio.ViewModels
         ClearDetailFields();
         return;
       }
-
       try
       {
         var snap = _psychicSystem.GetThinkingCycleSnapshotById(_selectedCycleId, _detailLogLines);
@@ -569,7 +546,6 @@ namespace AIStudio.ViewModels
           ClearDetailFields();
           return;
         }
-
         DetailHeaderText = snap.IsMainCycle ? "Главный цикл (детали)" : "Фоновый цикл (детали)";
         DetailIdText = snap.Id.ToString();
         DetailOrderText = snap.Order.ToString();
@@ -649,7 +625,6 @@ namespace AIStudio.ViewModels
   {
     /// <summary>Та же команда выбора, что у страницы (без RelativeSource через вложенные ItemsControl).</summary>
     public ICommand SelectCycleCommand { get; set; }
-
     public int CycleId { get; set; }
     public string OrderLabel { get; set; }
     public string TooltipText { get; set; }

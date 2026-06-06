@@ -18,7 +18,6 @@
     </Grid.RowDefinitions>
 
     <TextBlock Grid.Row="0" Text="Отметьте инфо-функции, разрешённые для этой темы:" Margin="0,0,0,10" TextWrapping="Wrap"/>
-
     <ListBox Grid.Row="1" x:Name="FuncsList" SelectionMode="Multiple">
       <ListBox.ItemTemplate>
         <DataTemplate>

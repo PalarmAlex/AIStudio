@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Globalization;
 using System.Text.RegularExpressions;
 using System.Windows.Controls;
@@ -20,7 +20,6 @@ namespace AIStudio.Converters
       {
         return new ValidationResult(false, "Формат: 'ID:значение, ID:значение'\nПример: '1:-0.5, 2:1.2'");
       }
-
       return ValidationResult.ValidResult;
     }
   }

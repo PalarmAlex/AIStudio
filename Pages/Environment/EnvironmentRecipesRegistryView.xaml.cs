@@ -28,22 +28,18 @@ namespace AIStudio.Pages.SymbiontEnv
     {
       if (e.Key != Key.Delete)
         return;
-
       var dg = sender as DataGrid;
       var vm = DataContext as EnvironmentRecipesRegistryViewModel;
       if (dg == null || vm == null)
         return;
-
       var items = new List<EnvironmentRecipeListItem>();
       foreach (object item in dg.SelectedItems)
       {
         if (item is EnvironmentRecipeListItem row)
           items.Add(row);
       }
-
       if (items.Count == 0)
         return;
-
       if (vm.TryDeleteSelected(items))
         e.Handled = true;
     }

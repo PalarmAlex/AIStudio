@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Configuration;
 using System.Data;
@@ -21,13 +21,11 @@ namespace AIStudio
         var exception = args.ExceptionObject as Exception;
         HandleGlobalException(exception);
       };
-
       DispatcherUnhandledException += (sender, args) =>
       {
         HandleGlobalException(args.Exception);
         args.Handled = true; // Предотвращаем аварийное завершение
       };
-
       TaskScheduler.UnobservedTaskException += (sender, args) =>
       {
         HandleGlobalException(args.Exception);
@@ -53,7 +51,6 @@ namespace AIStudio
             MessageBoxButton.OK,
             MessageBoxImage.Error);
       }
-
       Debug.WriteLine($"Глобальное исключение: {ex}");
     }
   }

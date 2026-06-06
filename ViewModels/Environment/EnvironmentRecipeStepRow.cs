@@ -7,7 +7,6 @@ namespace AIStudio.ViewModels.SymbiontEnv
   {
     /// <summary>Тип шага.</summary>
     public string StepType { get; set; }
-
     /// <summary>Параметры (key=value по строкам).</summary>
     public string ParametersText { get; set; }
   }

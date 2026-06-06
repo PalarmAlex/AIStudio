@@ -26,7 +26,6 @@ namespace AIStudio.ViewModels.SymbiontEnv
     private int _currentAgentStage;
     private string _filterId = string.Empty;
     private string _filterTitle = string.Empty;
-
     /// <summary>
     /// Создаёт модель реестра.
     /// </summary>
@@ -36,7 +35,6 @@ namespace AIStudio.ViewModels.SymbiontEnv
     {
       _gomeostas = gomeostas ?? throw new ArgumentNullException(nameof(gomeostas));
       _openEditor = openEditor ?? throw new ArgumentNullException(nameof(openEditor));
-
       Items = new ObservableCollection<EnvironmentRecipeListItem>();
       RefreshCommand = new RelayCommand(_ => ReloadFromDisk());
       ApplyFiltersCommand = new RelayCommand(_ => ApplyFilters());
@@ -44,21 +42,17 @@ namespace AIStudio.ViewModels.SymbiontEnv
       EditCommand = new RelayCommand(_ => EditSelected(), _ => Selected != null);
       DuplicateCommand = new RelayCommand(_ => DuplicateSelected(), _ => Selected != null);
       NewCommand = new RelayCommand(_ => CreateNew(), _ => IsEditingEnabled);
-
       GlobalTimer.PulsationStateChanged += OnPulsationStateChanged;
       ReloadFromDisk();
     }
 
     /// <summary>Элементы таблицы (после фильтра).</summary>
     public ObservableCollection<EnvironmentRecipeListItem> Items { get; }
-
     /// <summary>Выбранная строка.</summary>
     public EnvironmentRecipeListItem Selected { get; set; }
-
     /// <summary>Заголовок страницы.</summary>
     public string CurrentAgentTitle =>
         SymbiontPageTitleFormatter.Format("Рецепты среды", _currentAgentName, _currentAgentStage);
-
     public string FilterIdText
     {
       get => _filterId;
@@ -77,7 +71,6 @@ namespace AIStudio.ViewModels.SymbiontEnv
     public ICommand EditCommand { get; }
     public ICommand DuplicateCommand { get; }
     public ICommand NewCommand { get; }
-
     public bool IsStageZero => _currentAgentStage == 0;
     public bool HasAdapter => SymbiontEnvironmentGate.IsEnvironmentEditingAllowed();
     public bool IsEditingEnabled => HasAdapter && IsStageZero && !GlobalTimer.IsPulsationRunning;
@@ -90,7 +83,6 @@ namespace AIStudio.ViewModels.SymbiontEnv
                     ? "Редактирование доступно только при выключенной пульсации"
                     : string.Empty;
     public Brush WarningMessageColor => !HasAdapter || !IsStageZero ? Brushes.Red : Brushes.Gray;
-
     /// <summary>
     /// Удаляет выбранные рецепты с подтверждением.
     /// </summary>
@@ -98,14 +90,11 @@ namespace AIStudio.ViewModels.SymbiontEnv
     {
       if (items == null || items.Count == 0 || !IsEditingEnabled)
         return false;
-
       string msg = items.Count == 1
           ? "Удалить рецепт \"" + items[0].DisplayName + "\" (ID: " + items[0].Id + ")?"
           : "Удалить выбранные рецепты (" + items.Count + ")?";
-
       if (MessageBox.Show(msg, "Подтверждение", MessageBoxButton.YesNo, MessageBoxImage.Question) != MessageBoxResult.Yes)
         return false;
-
       var ids = new HashSet<string>(items.Select(i => i.Id), StringComparer.OrdinalIgnoreCase);
       _allRecipes.RemoveAll(r => ids.Contains(r.Id));
       SaveAllToDisk();
@@ -118,19 +107,14 @@ namespace AIStudio.ViewModels.SymbiontEnv
       var agent = _gomeostas.GetAgentState();
       _currentAgentStage = agent?.EvolutionStage ?? 0;
       _currentAgentName = agent?.Name ?? string.Empty;
-
       _allRecipes.Clear();
       _allItems.Clear();
-
       var errors = new List<string>();
       List<EnvironmentRecipeData> loaded = EnvironmentCatalogStorage.LoadRecipes(errors);
-
       foreach (EnvironmentRecipeData recipe in loaded)
         _allRecipes.Add(recipe.Clone());
-
       foreach (EnvironmentRecipeData recipe in _allRecipes.OrderBy(r => r.Id, StringComparer.OrdinalIgnoreCase))
         _allItems.Add(EnvironmentRecipeMapper.ToListItem(recipe));
-
       if (errors.Count > 0)
       {
         MessageBox.Show(
@@ -139,7 +123,6 @@ namespace AIStudio.ViewModels.SymbiontEnv
             MessageBoxButton.OK,
             MessageBoxImage.Warning);
       }
-
       ApplyFilters();
     }
 
@@ -151,13 +134,11 @@ namespace AIStudio.ViewModels.SymbiontEnv
         string f = _filterId.Trim();
         q = q.Where(i => (i.Id ?? string.Empty).IndexOf(f, StringComparison.OrdinalIgnoreCase) >= 0);
       }
-
       if (!string.IsNullOrWhiteSpace(_filterTitle))
       {
         string f = _filterTitle.Trim();
         q = q.Where(i => (i.DisplayName ?? string.Empty).IndexOf(f, StringComparison.OrdinalIgnoreCase) >= 0);
       }
-
       Items.Clear();
       foreach (EnvironmentRecipeListItem item in q)
         Items.Add(item);
@@ -174,7 +155,6 @@ namespace AIStudio.ViewModels.SymbiontEnv
     {
       if (Selected == null)
         return;
-
       EnvironmentRecipeData recipe = _allRecipes.FirstOrDefault(
           r => string.Equals(r.Id, Selected.Id, StringComparison.OrdinalIgnoreCase));
       if (recipe == null)
@@ -182,7 +162,6 @@ namespace AIStudio.ViewModels.SymbiontEnv
         MessageBox.Show("Рецепт не найден.", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Warning);
         return;
       }
-
       var editorVm = new EnvironmentRecipeEditorViewModel(
           _gomeostas,
           EnvironmentRecipeMapper.ToEditorModel(recipe),
@@ -201,7 +180,6 @@ namespace AIStudio.ViewModels.SymbiontEnv
         DocumentKindPart = true,
         DocumentKindAssembly = true
       };
-
       var editorVm = new EnvironmentRecipeEditorViewModel(
           _gomeostas,
           model,
@@ -214,16 +192,13 @@ namespace AIStudio.ViewModels.SymbiontEnv
     {
       if (Selected == null || !IsEditingEnabled)
         return;
-
       EnvironmentRecipeData recipe = _allRecipes.FirstOrDefault(
           r => string.Equals(r.Id, Selected.Id, StringComparison.OrdinalIgnoreCase));
       if (recipe == null)
         return;
-
       EnvironmentRecipeEditorModel model = EnvironmentRecipeMapper.ToEditorModel(recipe);
       model.Id = model.Id + "_copy";
       model.DisplayName = (model.DisplayName ?? string.Empty) + " (копия)";
-
       var editorVm = new EnvironmentRecipeEditorViewModel(
           _gomeostas,
           model,
@@ -235,7 +210,6 @@ namespace AIStudio.ViewModels.SymbiontEnv
     private void SaveAllFromEditor(EnvironmentRecipeEditorModel model, bool isNew)
     {
       EnvironmentRecipeData def = EnvironmentRecipeMapper.ToData(model);
-
       int duplicateIdx = _allRecipes.FindIndex(
           r => string.Equals(r.Id, def.Id, StringComparison.OrdinalIgnoreCase));
       if (isNew && duplicateIdx >= 0)
@@ -247,12 +221,10 @@ namespace AIStudio.ViewModels.SymbiontEnv
             MessageBoxImage.Warning);
         return;
       }
-
       if (duplicateIdx >= 0)
         _allRecipes[duplicateIdx] = def;
       else
         _allRecipes.Add(def);
-
       SaveAllToDisk();
       ReloadFromDisk();
     }

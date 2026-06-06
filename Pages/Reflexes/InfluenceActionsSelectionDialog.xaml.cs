@@ -1,4 +1,4 @@
-﻿using AIStudio.Common;
+using AIStudio.Common;
 using ISIDA.Actions;
 using ISIDA.Common;
 using System;
@@ -16,7 +16,6 @@ namespace AIStudio.Dialogs
     private AntagonistManager _antagonistManager;
     private bool _isManualSelection = false;
     private readonly int? _maxSelectionCount;
-
     public InfluenceActionsSelectionDialog(List<int> initiallySelected, int? maxSelectionCount = null)
     {
       _maxSelectionCount = maxSelectionCount;
@@ -29,7 +28,6 @@ namespace AIStudio.Dialogs
     private void LoadInfluenceActions(List<int> initiallySelected)
     {
       _influenceActions = new List<InfluenceActionItem>();
-
       try
       {
         if (!InfluenceActionSystem.IsInitialized)
@@ -38,10 +36,8 @@ namespace AIStudio.Dialogs
               "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
           return;
         }
-
         var influenceSystem = InfluenceActionSystem.Instance;
         var allActions = influenceSystem.GetAllInfluenceActions();
-
         foreach (var action in allActions.OrderBy(a => a.Id))
         {
           _influenceActions.Add(new InfluenceActionItem
@@ -76,7 +72,6 @@ namespace AIStudio.Dialogs
         {
           item.OnSelectionChanged += UpdateConflictMessage;
         }
-
         UpdateConflictMessage(null);
       }
       catch (Exception ex)
@@ -84,7 +79,6 @@ namespace AIStudio.Dialogs
         MessageBox.Show($"Ошибка загрузки внешних воздействий: {ex.Message}",
             "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
       }
-
       InfluenceActionsList.ItemsSource = _influenceActions;
     }
 
@@ -101,54 +95,43 @@ namespace AIStudio.Dialogs
     private bool OnConflictResolutionRequired(List<AntagonistConflict> conflicts, AntagonistItem newlySelectedItem)
     {
       if (!_isManualSelection) return true; // Автоматические изменения — разрешаем
-
       var conflictItems = conflicts
           .Where(c => c.FirstId == newlySelectedItem.Id || c.SecondId == newlySelectedItem.Id)
           .SelectMany(c => new[] { c.FirstId, c.SecondId })
           .Where(id => id != newlySelectedItem.Id)
           .Distinct()
           .ToList();
-
       if (conflictItems.Any())
       {
         var conflictNames = conflictItems
             .Select(id => _influenceActions.FirstOrDefault(a => a.Id == id)?.Name ?? $"ID {id}")
             .ToList();
-
         var message = $"Выбор '{newlySelectedItem.Name}' конфликтует с:\n" +
                      string.Join("\n", conflictNames.Select(name => $"• {name}")) +
                      "\n\nЭти воздействия будут автоматически сняты. Продолжить?";
-
         var result = MessageBox.Show(message, "Конфликт воздействий",
             MessageBoxButton.YesNo, MessageBoxImage.Warning);
-
         if (result == MessageBoxResult.No)
         {
           _isManualSelection = false;
         }
-
         return result == MessageBoxResult.Yes;
       }
-
       return true;
     }
 
     private void UpdateConflictMessage(AntagonistItem changedItem)
     {
       var selectedIds = _influenceActions.Where(x => x.IsSelected).Select(x => x.Id).ToList();
-
       if (!selectedIds.Any())
       {
         ConflictMessage.Visibility = Visibility.Collapsed;
         return;
       }
-
       var antagonistsMap = _influenceActions.ToDictionary(
           item => item.Id,
           item => item.AntagonistIds);
-
       var conflicts = AntagonistValidator.ValidateAntagonists(selectedIds, antagonistsMap);
-
       if (conflicts.Any())
       {
         var conflictDetails = conflicts
@@ -159,7 +142,6 @@ namespace AIStudio.Dialogs
               return $"• {action1?.Name} (ID:{c.FirstId}) ↔ {action2?.Name} (ID:{c.SecondId})";
             })
             .ToList();
-
         ConflictMessage.Text = "Обнаружены конфликты:\n" + string.Join("\n", conflictDetails);
         ConflictMessage.Visibility = Visibility.Visible;
       }
@@ -175,7 +157,6 @@ namespace AIStudio.Dialogs
           .Where(x => x.IsSelected)
           .Select(x => x.Id)
           .ToList();
-
       if (_maxSelectionCount == 1 && selectedIds.Count > 1)
       {
         MessageBox.Show(
@@ -185,13 +166,10 @@ namespace AIStudio.Dialogs
             MessageBoxImage.Information);
         return;
       }
-
       var antagonistsMap = _influenceActions.ToDictionary(
           item => item.Id,
           item => item.AntagonistIds);
-
       var conflicts = AntagonistValidator.ValidateAntagonists(selectedIds, antagonistsMap);
-
       if (conflicts.Any())
       {
         var conflictDetails = conflicts
@@ -202,20 +180,16 @@ namespace AIStudio.Dialogs
               return $"• {action1?.Name} (ID:{c.FirstId}) ↔ {action2?.Name} (ID:{c.SecondId})";
             })
             .ToList();
-
         var message = "Обнаружены конфликтующие воздействия:\n" +
                      string.Join("\n", conflictDetails) +
                      "\n\nСохранить несмотря на конфликты?";
-
         var result = MessageBox.Show(message, "Подтверждение сохранения",
             MessageBoxButton.YesNo, MessageBoxImage.Warning);
-
         if (result == MessageBoxResult.No)
         {
           return;
         }
       }
-
       SelectedInfluenceActions = selectedIds;
       DialogResult = true;
       Close();

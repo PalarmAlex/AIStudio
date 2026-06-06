@@ -33,18 +33,15 @@ namespace AIStudio.Common.Adapters
     public IList<AdapterSchemaStepType> RecipeStepTypes { get; set; } = new List<AdapterSchemaStepType>();
     public IList<AdapterSchemaField> TriggerFilterFields { get; set; } = new List<AdapterSchemaField>();
     public IList<AdapterSchemaDetectKind> TriggerDetectKinds { get; set; } = new List<AdapterSchemaDetectKind>();
-
     public bool HasRecipePrecondition(string key)
     {
       if (string.IsNullOrWhiteSpace(key) || RecipePreconditions == null)
         return false;
-
       for (int i = 0; i < RecipePreconditions.Count; i++)
       {
         if (string.Equals(RecipePreconditions[i]?.Key, key, System.StringComparison.OrdinalIgnoreCase))
           return true;
       }
-
       return false;
     }
 
@@ -52,23 +49,19 @@ namespace AIStudio.Common.Adapters
     {
       if (RecipePreconditions == null || string.IsNullOrWhiteSpace(kind))
         return false;
-
       for (int i = 0; i < RecipePreconditions.Count; i++)
       {
         AdapterSchemaField field = RecipePreconditions[i];
         if (!string.Equals(field?.Key, "document_kinds", System.StringComparison.OrdinalIgnoreCase))
           continue;
-
         if (field.EnumValues == null || field.EnumValues.Count == 0)
           return true;
-
         for (int j = 0; j < field.EnumValues.Count; j++)
         {
           if (string.Equals(field.EnumValues[j], kind, System.StringComparison.OrdinalIgnoreCase))
             return true;
         }
       }
-
       return false;
     }
   }

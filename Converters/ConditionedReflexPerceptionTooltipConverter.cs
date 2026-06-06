@@ -24,23 +24,17 @@ namespace AIStudio.Converters
         int imageId = values != null && values.Length > 0 && values[0] is int id ? id : 0;
         int toneId = values != null && values.Length > 1 && values[1] is int t ? t : 0;
         int moodId = values != null && values.Length > 2 && values[2] is int m ? m : 0;
-
         if (imageId <= 0)
           return "Образ восприятия не выбран";
-
         if (!PerceptionImagesSystem.IsInitialized)
           return "Система образов восприятия не инициализирована";
-
         var perceptionSystem = PerceptionImagesSystem.Instance;
         var images = perceptionSystem.GetAllPerceptionImagesList();
         var image = images?.FirstOrDefault(img => img.Id == imageId);
-
         if (image == null)
           return $"Образ восприятия с ID {imageId} не найден";
-
         var tooltip = new StringBuilder();
         tooltip.AppendLine($"ID образа: {image.Id}");
-
         tooltip.Append("Воздействия: ");
         if (image.InfluenceActionsList != null && image.InfluenceActionsList.Any())
         {
@@ -56,7 +50,6 @@ namespace AIStudio.Converters
                   return $"{action.Name} (ID: {action.Id})";
                 })
                 .ToList();
-
             tooltip.Append(actionNames.Any() ? string.Join("; ", actionNames) : "не найдены в системе");
           }
           else
@@ -64,9 +57,7 @@ namespace AIStudio.Converters
         }
         else
           tooltip.Append("нет воздействий");
-
         tooltip.AppendLine();
-
         tooltip.Append("Фразы: ");
         if (image.PhraseIdList != null && image.PhraseIdList.Any())
         {
@@ -80,7 +71,6 @@ namespace AIStudio.Converters
                   return !string.IsNullOrEmpty(phraseText) ? $"\"{phraseText}\" (ID: {phraseId})" : $"[ID:{phraseId}] (фраза не найдена)";
                 })
                 .ToList();
-
             tooltip.Append(phraseTexts.Any() ? string.Join("; ", phraseTexts) : "не найдены в системе");
           }
           else
@@ -88,7 +78,6 @@ namespace AIStudio.Converters
         }
         else
           tooltip.Append("нет фраз");
-
         tooltip.AppendLine();
 
         // Тон и настроение — из условного рефлекса (ToneId, MoodId); цвет — из образа восприятия (зрительный канал)
@@ -100,7 +89,6 @@ namespace AIStudio.Converters
         tooltip.AppendLine($"Настроение: {moodText}");
         int colorCode = AgentVisualColor.IsValidCode(image.VisualColorId) ? image.VisualColorId : AgentVisualColor.White;
         tooltip.Append($"Цвет: {AgentVisualColor.GetDisplayName(colorCode)} (код {colorCode})");
-
         return tooltip.ToString();
       }
       catch (Exception ex)

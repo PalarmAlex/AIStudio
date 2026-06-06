@@ -19,11 +19,9 @@ namespace AIStudio.ViewModels
     private int _id;
     private string _description;
     private int _defaultWeight = 2;
-
     public int Id { get => _id; set { if (_id != value) { _id = value; OnPropertyChanged(nameof(Id)); } } }
     public string Description { get => _description; set { if (_description != value) { _description = value; OnPropertyChanged(nameof(Description)); } } }
     public int DefaultWeight { get => _defaultWeight; set { if (_defaultWeight != value) { _defaultWeight = value; OnPropertyChanged(nameof(DefaultWeight)); } } }
-
     public event PropertyChangedEventHandler PropertyChanged;
     protected void OnPropertyChanged(string name) => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
   }
@@ -38,15 +36,11 @@ namespace AIStudio.ViewModels
 
     private readonly GomeostasSystem _gomeostas;
     private int _currentAgentStage;
-
     public bool IsStageFour => _currentAgentStage == 4;
     public string CurrentAgentTitle => "Типы тем (theme_types.dat)";
-
     public ObservableCollection<ThemeTypeItem> ThemeTypes { get; } = new ObservableCollection<ThemeTypeItem>();
-
     public ICommand SaveCommand { get; }
     public ICommand ClearCommand { get; }
-
     public ThemeTypesViewModel(GomeostasSystem gomeostas)
     {
       _gomeostas = gomeostas ?? throw new ArgumentNullException(nameof(gomeostas));
@@ -66,31 +60,24 @@ namespace AIStudio.ViewModels
         OnPropertyChanged(nameof(IsReadOnlyMode));
       });
     }
-
     #region Блокировка страницы
-
     public bool IsEditingEnabled => IsStageFour && !GlobalTimer.IsPulsationRunning;
     public bool IsReadOnlyMode => !IsEditingEnabled;
-
     public string PulseWarningMessage =>
         !IsStageFour
             ? "[КРИТИЧНО] Редактирование типов тем доступно только в стадии 4"
             : GlobalTimer.IsPulsationRunning
                 ? "Редактирование доступно только при выключенной пульсации"
                 : string.Empty;
-
     public Brush WarningMessageColor =>
         !IsStageFour ? Brushes.Red : Brushes.Gray;
-
     #endregion
-
     private void LoadData()
     {
       try
       {
         var agentInfo = _gomeostas.GetAgentState();
         _currentAgentStage = agentInfo?.EvolutionStage ?? 0;
-
         ThemeTypes.Clear();
         if (ThemeImageSystem.IsInitialized)
         {
@@ -99,7 +86,6 @@ namespace AIStudio.ViewModels
             ThemeTypes.Add(new ThemeTypeItem { Id = t.Id, Description = t.Description ?? "", DefaultWeight = t.DefaultWeight });
           }
         }
-
         OnPropertyChanged(nameof(ThemeTypes));
         OnPropertyChanged(nameof(IsStageFour));
         OnPropertyChanged(nameof(IsEditingEnabled));
@@ -140,10 +126,8 @@ namespace AIStudio.ViewModels
             MessageBoxButton.OK, MessageBoxImage.Error);
         return;
       }
-
       var list = ThemeTypes.Select(t => (t.Id, t.Description ?? "", t.DefaultWeight)).ToList();
       var (success, error) = ThemeImageSystem.Instance.UpdateThemeTypesFromEditable(list);
-
       if (success)
       {
         LoadData();
@@ -165,17 +149,14 @@ namespace AIStudio.ViewModels
           "Подтверждение очистки",
           MessageBoxButton.YesNo,
           MessageBoxImage.Warning);
-
       if (result != MessageBoxResult.Yes)
         return;
-
       if (!ThemeImageSystem.IsInitialized)
       {
         MessageBox.Show("Система типов тем не инициализирована.", "Ошибка",
             MessageBoxButton.OK, MessageBoxImage.Error);
         return;
       }
-
       var list = ThemeTypes.Select(t => (t.Id, "", t.DefaultWeight)).ToList();
       var (success, error) = ThemeImageSystem.Instance.UpdateThemeTypesFromEditable(list);
       if (success)

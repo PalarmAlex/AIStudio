@@ -32,16 +32,13 @@ namespace AIStudio.ViewModels
     private readonly GomeostasSystem _gomeostas;
     private string _currentAgentName;
     private int _currentAgentStage;
-
     public string CurrentAgentTitle =>
         SymbiontPageTitleFormatter.Format("Цепочки автоматизмов", _currentAgentName, _currentAgentStage);
-
     private ObservableCollection<ChainDisplayItem> _allChains = new ObservableCollection<ChainDisplayItem>();
     private ObservableCollection<ChainDisplayItem> _displayChains = new ObservableCollection<ChainDisplayItem>();
     private ICollectionView _chainsView;
     public ICollectionView ChainsView => _chainsView;
     public ICommand ClearFiltersCommand { get; }
-
     /// <summary>Варианты количества записей на страницу: 100, 500, 1000, 5000, 10000, Все.</summary>
     public List<KeyValuePair<int?, string>> PageSizeOptions { get; } = new List<KeyValuePair<int?, string>>
     {
@@ -52,7 +49,6 @@ namespace AIStudio.ViewModels
       new KeyValuePair<int?, string>(10000, "10000"),
       new KeyValuePair<int?, string>(null, "Все")
     };
-
     private int? _selectedPageSize = 100;
     public int? SelectedPageSize
     {
@@ -81,7 +77,6 @@ namespace AIStudio.ViewModels
     private int _selectedActionFilterId;
     private string _filterPhrases;
     private string _filterImageKind = string.Empty;
-
     public string FilterAutomatizmId
     {
       get => _filterAutomatizmId;
@@ -125,7 +120,7 @@ namespace AIStudio.ViewModels
         ApplyFilters();
       }
     }
-   
+
     public string FilterImageKind
     {
       get => _filterImageKind;
@@ -143,15 +138,12 @@ namespace AIStudio.ViewModels
             new KeyValuePair<string, string>("0", "Объективное действие"),
             new KeyValuePair<string, string>("1", "Субъективное предположение")
         };
-
     public List<KeyValuePair<int, string>> ActionFilterOptions { get; } = new List<KeyValuePair<int, string>>();
-
     /// <summary>Описание страницы и ссылка на справку для отображения под заголовком.</summary>
     public DescriptionWithLink CurrentAgentDescription => new DescriptionWithLink
     {
       Text = "Таблица цепочек автоматизмов - контекстным продолжением действий автоматизмов. "
     };
-
     public AutomatizmChainsViewModel(
         AutomatizmSystem automatizmSystem,
         AutomatizmChainsSystem chainsSystem,
@@ -167,11 +159,8 @@ namespace AIStudio.ViewModels
       _sensorySystem = sensorySystem ?? throw new ArgumentNullException(nameof(sensorySystem));
       _gomeostas = gomeostas;
       RefreshAgentTitleContext();
-
       _chainsView = CollectionViewSource.GetDefaultView(_displayChains);
-
       ClearFiltersCommand = new RelayCommand(ClearFilters);
-
       InitializeActionFilterOptions();
       FilterImageKind = string.Empty;
       LoadChainsData();
@@ -187,7 +176,6 @@ namespace AIStudio.ViewModels
     {
       ActionFilterOptions.Clear();
       ActionFilterOptions.Add(new KeyValuePair<int, string>(0, "Все действия"));
-
       var allActions = _adaptiveActionsSystem.GetAllAdaptiveActions();
       foreach (var action in allActions.OrderBy(a => a.Name))
       {
@@ -200,16 +188,13 @@ namespace AIStudio.ViewModels
       try
       {
         _allChains.Clear();
-
         var allAutomatizms = _automatizmSystem.GetAllAutomatizms();
         var allChains = _chainsSystem.GetAllAutomatizmChains();
-
         foreach (var automatizm in allAutomatizms)
         {
           int chainId = 0;
           if (AutomatizmChainsSystem.IsInitialized)
             chainId = automatizm.NextID;
-
           if (chainId > 0)
           {
             var chain = _chainsSystem.GetChain(chainId);
@@ -224,13 +209,11 @@ namespace AIStudio.ViewModels
             }
           }
         }
-
         foreach (var chain in allChains.Values)
         {
           var chainAutomatizms = allAutomatizms
               .Where(a => _chainsSystem.GetChainByActionsImage(a.ActionsImageID) == chain.ID)
               .ToList();
-
           if (!chainAutomatizms.Any())
           {
             foreach (var link in chain.Links.OrderBy(l => l.ID))
@@ -246,7 +229,6 @@ namespace AIStudio.ViewModels
       {
         Logger.Error(ex.Message);
       }
-
       RefreshDisplay();
     }
 
@@ -269,31 +251,24 @@ namespace AIStudio.ViewModels
       {
         if (automatizm == null)
           return null;
-
         int automatizmId = automatizm.ID;
         int automatizmActionsImageId = automatizm.ActionsImageID;
         int chainId = chain?.ID ?? 0;
         int linkId = link?.ID ?? 0;
         int linkActionsImageId = link?.ActionsImageId ?? 0;
-
         var automatizmActionsImage = automatizmActionsImageId > 0 ?
             _actionsImagesSystem.GetActionsImage(automatizmActionsImageId) : null;
-
         var linkActionsImage = linkActionsImageId > 0 ?
             _actionsImagesSystem.GetActionsImage(linkActionsImageId) : null;
-
         var displayImage = linkActionsImage ?? automatizmActionsImage;
-
         if (displayImage == null && automatizmActionsImage == null && linkActionsImage == null)
           return null;
-
         string actionsText = GetActionsText(displayImage?.ActIdList);
         var actionIds = displayImage?.ActIdList?.ToList() ?? new List<int>();
         string phrasesText = GetPhrasesText(displayImage?.PhraseIdList);
         string toneMoodText = GetToneMoodText(displayImage?.ToneId ?? 0, displayImage?.MoodId ?? 0);
         string imageKindText = GetImageKindText(displayImage?.Kind ?? 0);
         string imageKindTooltip = GetImageKindTooltip(displayImage?.Kind ?? 0);
-
         return new ChainDisplayItem
         {
           AutomatizmId = automatizmId,
@@ -323,12 +298,10 @@ namespace AIStudio.ViewModels
     {
       if (actionIds == null || !actionIds.Any())
         return string.Empty;
-
       try
       {
         var allActions = _adaptiveActionsSystem.GetAllAdaptiveActions();
         var actionNames = new List<string>();
-
         foreach (var actionId in actionIds)
         {
           var action = allActions.FirstOrDefault(a => a.Id == actionId);
@@ -337,7 +310,6 @@ namespace AIStudio.ViewModels
           else
             actionNames.Add($"Действие #{actionId}");
         }
-
         return string.Join(", ", actionNames);
       }
       catch (Exception ex)
@@ -351,22 +323,18 @@ namespace AIStudio.ViewModels
     {
       if (phraseIds == null || !phraseIds.Any())
         return string.Empty;
-
       try
       {
         var phraseTexts = new List<string>();
-
         foreach (var phraseId in phraseIds)
         {
           // Используем прямой метод получения фразы по ID
           string phraseText = _sensorySystem.VerbalChannel.GetPhraseFromPhraseId(phraseId);
-
           if (!string.IsNullOrEmpty(phraseText))
             phraseTexts.Add($"\"{phraseText}\"");
           else
             phraseTexts.Add($"[ID:{phraseId}]");
         }
-
         return string.Join(", ", phraseTexts);
       }
       catch (Exception ex)
@@ -380,7 +348,6 @@ namespace AIStudio.ViewModels
     {
       var toneText = ActionsImagesSystem.GetToneText(toneId);
       var moodText = ActionsImagesSystem.GetMoodText(moodId);
-
       if (!string.IsNullOrEmpty(toneText) && !string.IsNullOrEmpty(moodText))
         return $"{toneText} - {moodText}";
       else if (!string.IsNullOrEmpty(toneText))
@@ -467,11 +434,9 @@ namespace AIStudio.ViewModels
           expectedKind = "Субъективное";
         else
           expectedKind = FilterImageKind;
-
         if (!chainItem.ImageKindText.Equals(expectedKind, StringComparison.OrdinalIgnoreCase))
           return false;
       }
-
       return true;
     }
 
@@ -495,7 +460,6 @@ namespace AIStudio.ViewModels
       public string LinkText { get; set; } = "Подробнее...";
       public string Url { get; set; } = "https://scorcher.ru/isida/iadaptive_agents_guide.php#automatism_chain";
       public ICommand OpenLinkCommand { get; }
-
       public DescriptionWithLink()
       {
         OpenLinkCommand = new RelayCommand(_ =>
@@ -526,6 +490,5 @@ namespace AIStudio.ViewModels
       public int FailureNextLink { get; set; }
       public int ChainUsefulness { get; set; }
     }
-
   }
 }

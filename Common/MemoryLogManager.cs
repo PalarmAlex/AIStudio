@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
@@ -17,9 +17,7 @@ namespace AIStudio.Common
   public sealed class MemoryLogManager : IDisposable, ISIDA.Common.ILogWriter
   {
     #region Singleton Implementation
-
     private static MemoryLogManager _instance;
-
     /// <summary>
     /// Единственный экземпляр менеджера логов в памяти
     /// </summary>
@@ -34,11 +32,8 @@ namespace AIStudio.Common
         return _instance;
       }
     }
-
     #endregion
-
     #region Private Fields
-
     private readonly ObservableCollection<LogEntry> _logEntries = new ObservableCollection<LogEntry>();
     private readonly ObservableCollection<LogEntry> _agentDisplayLogEntries = new ObservableCollection<LogEntry>();
     private readonly ObservableCollection<StyleLogEntry> _styleLogEntries = new ObservableCollection<StyleLogEntry>();
@@ -48,24 +43,18 @@ namespace AIStudio.Common
     private readonly int _maxLogEntries = 1000;
     private readonly object _lock = new object();
     private bool _disposed = false;
-
     #endregion
-
     #region Public Properties
-
     /// <summary>
     /// Коллекция записей системных логов в режиме только для чтения
     /// </summary>
     public ReadOnlyObservableCollection<LogEntry> LogEntries { get; }
-
     /// <summary>
     /// Симбионтный лог для UI: по одному снимку на глобальный пульс (слияние как в отчёте сценария).
     /// </summary>
     public ReadOnlyObservableCollection<LogEntry> AgentDisplayLogEntries { get; }
-
     /// <summary>Сброс накопленного состояния <see cref="CoalescingAgentLogWriter"/> при очистке логов.</summary>
     private static Action _agentDisplayCoalescerResetHandler;
-
     public static void SetAgentDisplayCoalescerResetHandler(Action handler)
     {
       _agentDisplayCoalescerResetHandler = handler;
@@ -75,26 +64,20 @@ namespace AIStudio.Common
     /// Коллекция записей логов стилей поведения в режиме только для чтения
     /// </summary>
     public ReadOnlyObservableCollection<StyleLogEntry> StyleLogEntries { get; }
-
     /// <summary>
     /// Коллекция записей логов параметров гомеостаза в режиме только для чтения
     /// </summary>
     public ReadOnlyObservableCollection<ParameterLogEntry> ParameterLogEntries { get; }
-
     /// <summary>
     /// Коллекция записей активации стилей от параметров в режиме только для чтения
     /// </summary>
     public ReadOnlyObservableCollection<StyleParameterActivationEntry> StyleParameterActivationEntries { get; }
-
     /// <summary>
     /// Коллекция записей выполнения цепочек рефлексов и автоматизмов в режиме только для чтения
     /// </summary>
     public ReadOnlyObservableCollection<ChainLogEntry> ChainLogEntries { get; }
-
     #endregion
-
     #region Constructor
-
     /// <summary>
     /// Приватный конструктор для реализации singleton паттерна
     /// </summary>
@@ -107,11 +90,8 @@ namespace AIStudio.Common
       StyleParameterActivationEntries = new ReadOnlyObservableCollection<StyleParameterActivationEntry>(_styleParameterActivationEntries);
       ChainLogEntries = new ReadOnlyObservableCollection<ChainLogEntry>(_chainLogEntries);
     }
-
     #endregion
-
     #region Public Methods
-
     /// <summary>
     /// Записывает лог стилей поведения в память
     /// </summary>
@@ -123,7 +103,6 @@ namespace AIStudio.Common
     public void WriteStyleLog(int pulse, string stage, int styleId, string styleName)
     {
       if (_disposed) return;
-
       var entry = new StyleLogEntry
       {
         Pulse = pulse,
@@ -132,7 +111,6 @@ namespace AIStudio.Common
         StyleName = styleName,
         Timestamp = DateTime.Now
       };
-
       AddStyleLogEntry(entry);
     }
 
@@ -154,7 +132,6 @@ namespace AIStudio.Common
                                  string parameterState, string activationZone)
     {
       if (_disposed) return;
-
       var entry = new ParameterLogEntry
       {
         Pulse = pulse,
@@ -169,7 +146,6 @@ namespace AIStudio.Common
         ActivationZone = activationZone,
         Timestamp = DateTime.Now
       };
-
       AddParameterLogEntry(entry);
     }
 
@@ -201,14 +177,12 @@ namespace AIStudio.Common
                        string backgroundThinkingCyclesJson = null)
     {
       if (_disposed) return;
-
       var entry = CreateAgentLogEntry(className, method, pulse, baseId, baseStyleId, triggerStimulusId,
           orientationReflexType, geneticReflexId, conditionedReflexId, automatizmId, reflexChainInfo,
           automatizmChainInfo, thinkingLevel, thinkingLevelSuccess, thinkingThemeTypeId,
           thinkingThemeTooltip, mainThinkingCycleId, mainThinkingCycleTooltip, mainThinkingCycleTaskStatus,
           informationEnvironmentDanger, informationEnvironmentVeryActual, automatizmUsefulnessAtSnapshot,
           backgroundThinkingCyclesJson);
-
       AddLogEntry(entry);
     }
 
@@ -260,7 +234,6 @@ namespace AIStudio.Common
     private sealed class AgentDisplayLogSink : ILogWriter
     {
       private readonly MemoryLogManager _owner;
-
       public AgentDisplayLogSink(MemoryLogManager owner)
       {
         _owner = owner;
@@ -339,14 +312,11 @@ namespace AIStudio.Common
             }
           }
         }
-
         _agentDisplayLogEntries.Insert(0, entry);
-
         while (_agentDisplayLogEntries.Count > _maxLogEntries)
         {
           _agentDisplayLogEntries.RemoveAt(_agentDisplayLogEntries.Count - 1);
         }
-
         RefreshAgentDisplayMainCycleAggregatesLocked();
       }
     }
@@ -362,7 +332,6 @@ namespace AIStudio.Common
       var working = new List<LogEntry>();
       if (rawEntries == null)
         return working;
-
       foreach (var entry in rawEntries.OrderBy(e => e.Timestamp))
       {
         if (entry.Pulse.HasValue &&
@@ -380,7 +349,6 @@ namespace AIStudio.Common
               break;
             }
           }
-
           if (!replaced)
             working.Add(entry);
         }
@@ -389,7 +357,6 @@ namespace AIStudio.Common
           working.Add(entry);
         }
       }
-
       working.Reverse();
       ApplyDisplayAggregatesToEntries(working);
       return working;
@@ -400,14 +367,12 @@ namespace AIStudio.Common
     {
       if (entries == null || entries.Count == 0)
         return;
-
       foreach (var g in entries.Where(e => e.Pulse.HasValue).GroupBy(e => e.Pulse.Value))
       {
         var list = g.ToList();
         ApplyMainCyclePulseDisplayToGroup(list);
         ApplyBackgroundCyclePulseDisplayToGroup(list);
       }
-
       foreach (var e in entries.Where(en => !en.Pulse.HasValue))
       {
         e.ApplyPulseMainCycleDisplay(null, e.MainThinkingCycleTooltip ?? "");
@@ -419,7 +384,6 @@ namespace AIStudio.Common
     {
       if (group == null || group.Count == 0)
         return;
-
       var ordered = group.OrderBy(e => e.Timestamp).ToList();
       var buf = new List<(int id, string st, string tip)>();
       foreach (var e in ordered)
@@ -437,11 +401,9 @@ namespace AIStudio.Common
         else
           buf.Add((id, st, tip));
       }
-
       var segments = new List<AgentLogMainCycleLiveSegment>();
       for (int k = 0; k < buf.Count; k++)
         segments.Add(new AgentLogMainCycleLiveSegment(buf[k].id, buf[k].st, k > 0));
-
       string aggTip = null;
       if (buf.Count > 1)
       {
@@ -455,7 +417,6 @@ namespace AIStudio.Common
         }
         aggTip = sb.ToString();
       }
-
       foreach (var e in group)
       {
         string tip = buf.Count > 1 ? (aggTip ?? "") : (e.MainThinkingCycleTooltip ?? "");
@@ -492,7 +453,6 @@ namespace AIStudio.Common
     {
       if (group == null || group.Count == 0)
         return;
-
       var ordered = group.OrderBy(e => e.Timestamp).ToList();
       var byId = new Dictionary<int, (int weight, string st, string tip)>();
       foreach (var e in ordered)
@@ -504,19 +464,16 @@ namespace AIStudio.Common
           byId[it.Id] = (it.Weight, st, tip);
         }
       }
-
       if (byId.Count == 0)
       {
         foreach (var e in group)
           e.ApplyPulseBackgroundCycleDisplay(null, "");
         return;
       }
-
       var sorted = byId.OrderByDescending(kv => kv.Value.weight).ToList();
       var segments = new List<AgentLogMainCycleLiveSegment>();
       for (int k = 0; k < sorted.Count; k++)
         segments.Add(new AgentLogMainCycleLiveSegment(sorted[k].Key, sorted[k].Value.st, k > 0));
-
       string aggTip = null;
       if (sorted.Count > 1)
       {
@@ -530,7 +487,6 @@ namespace AIStudio.Common
         }
         aggTip = sb.ToString();
       }
-
       string singleTip = sorted.Count == 1 ? (sorted[0].Value.tip ?? "") : null;
       foreach (var e in group)
       {
@@ -557,7 +513,6 @@ namespace AIStudio.Common
                                              string activationDetails)
     {
       if (_disposed) return;
-
       var entry = new StyleParameterActivationEntry
       {
         Pulse = pulse,
@@ -571,7 +526,6 @@ namespace AIStudio.Common
         ActivationDetails = activationDetails,
         Timestamp = DateTime.Now
       };
-
       AddStyleParameterActivationEntry(entry);
     }
 
@@ -594,7 +548,6 @@ namespace AIStudio.Common
                              int? nextLinkId = null, string branchType = null, string details = null)
     {
       if (_disposed) return;
-
       var entry = new ChainLogEntry
       {
         Pulse = pulse,
@@ -610,7 +563,6 @@ namespace AIStudio.Common
         Details = details,
         Timestamp = DateTime.Now
       };
-
       AddChainLogEntry(entry);
     }
 
@@ -620,7 +572,6 @@ namespace AIStudio.Common
     public void Clear()
     {
       if (_disposed) return;
-
       if (Application.Current != null && Application.Current.Dispatcher.CheckAccess())
       {
         ClearInternal();
@@ -722,7 +673,6 @@ namespace AIStudio.Common
     public void Dispose()
     {
       if (_disposed) return;
-
       if (Application.Current != null && Application.Current.Dispatcher.CheckAccess())
       {
         DisposeInternal();
@@ -736,11 +686,8 @@ namespace AIStudio.Common
         DisposeInternal();
       }
     }
-
     #endregion
-
     #region Private Methods
-
     private void AddLogEntry(LogEntry entry)
     {
       if (Application.Current != null && Application.Current.Dispatcher.CheckAccess())
@@ -763,7 +710,6 @@ namespace AIStudio.Common
       lock (_lock)
       {
         _logEntries.Insert(0, entry);
-
         while (_logEntries.Count > _maxLogEntries)
         {
           _logEntries.RemoveAt(_logEntries.Count - 1);
@@ -793,7 +739,6 @@ namespace AIStudio.Common
       lock (_lock)
       {
         _styleLogEntries.Insert(0, entry);
-
         while (_styleLogEntries.Count > _maxLogEntries)
         {
           _styleLogEntries.RemoveAt(_styleLogEntries.Count - 1);
@@ -823,7 +768,6 @@ namespace AIStudio.Common
       lock (_lock)
       {
         _parameterLogEntries.Insert(0, entry);
-
         while (_parameterLogEntries.Count > _maxLogEntries)
         {
           _parameterLogEntries.RemoveAt(_parameterLogEntries.Count - 1);
@@ -853,7 +797,6 @@ namespace AIStudio.Common
       lock (_lock)
       {
         _styleParameterActivationEntries.Insert(0, entry);
-
         while (_styleParameterActivationEntries.Count > _maxLogEntries)
         {
           _styleParameterActivationEntries.RemoveAt(_styleParameterActivationEntries.Count - 1);
@@ -883,7 +826,6 @@ namespace AIStudio.Common
       lock (_lock)
       {
         _chainLogEntries.Insert(0, entry);
-
         while (_chainLogEntries.Count > _maxLogEntries)
         {
           _chainLogEntries.RemoveAt(_chainLogEntries.Count - 1);
@@ -903,7 +845,6 @@ namespace AIStudio.Common
         _styleParameterActivationEntries.Clear();
         _chainLogEntries.Clear();
       }
-
       reset?.Invoke();
     }
 
@@ -951,11 +892,8 @@ namespace AIStudio.Common
         _disposed = true;
       }
     }
-
     #endregion
-
     #region Log Entry Classes
-
     /// <summary>
     /// Запись системного лога для отображения в пользовательском интерфейсе
     /// </summary>
@@ -965,102 +903,82 @@ namespace AIStudio.Common
       /// Временная метка создания записи
       /// </summary>
       public DateTime Timestamp { get; set; } = DateTime.Now;
-
       /// <summary>
       /// Имя класса, в котором произошло событие
       /// </summary>
       public string ClassName { get; set; } = string.Empty;
-
       /// <summary>
       /// Имя метода, в котором произошло событие
       /// </summary>
       public string Method { get; set; } = string.Empty;
-
       /// <summary>
       /// Идентификатор базового состояния системы
       /// </summary>
       public int? BaseID { get; set; }
-
       /// <summary>
       /// Номер текущего пульса системы
       /// </summary>
       public int? Pulse { get; set; }
-
       /// <summary>
       /// Идентификатор базового стиля поведения
       /// </summary>
       public int? BaseStyleID { get; set; }
-
       /// <summary>
       /// Идентификатор триггерного стимула
       /// </summary>
       public int? TriggerStimulusID { get; set; }
-
       /// <summary>
       /// Флаг наличия критических изменений в системе
       /// </summary>
       public int? HasCriticalChanges { get; set; }
-
       /// <summary>
       /// Идентификатор ориентировочного рефлекса
       /// </summary>
       public int? OrientationReflexType { get; set; }
-
       /// <summary>
       /// Идентификатор активного безусловного рефлекса
       /// </summary>
       public int? GeneticReflexID { get; set; }
-
       /// <summary>
       /// Идентификатор активного условного рефлекса
       /// </summary>
       public int? ConditionReflexID { get; set; }
-
       /// <summary>
       /// Идентификатор активного автоматизма
       /// </summary>
       public int? AutomatizmID { get; set; }
-
       /// <summary>Полезность автоматизма на момент записи строки лога (снимок), не текущая из справочника.</summary>
       public int? AutomatizmUsefulnessAtSnapshot { get; set; }
-
       /// <summary>
       /// Отформатированное время для отображения в UI
       /// </summary>
       public string DisplayTime => Timestamp.ToString("HH:mm:ss");
-
       /// <summary>
       /// Отформатированный номер пульса для отображения в UI
       /// </summary>
       public string DisplayPulse => Pulse?.ToString() ?? "-";
-
       /// <summary>
       /// Отформатированный идентификатор базового состояния для отображения в UI
       /// </summary>
       public string DisplayBaseID => BaseID?.ToString() ?? "-";
-
       /// <summary>
       /// Отформатированный идентификатор базового стиля для отображения в UI
       /// </summary>
       public string DisplayBaseStyleID => BaseStyleID?.ToString() ?? "-";
-
       /// <summary>
       /// Отформатированный идентификатор триггерного стимула для отображения в UI
       /// </summary>
       public string DisplayTriggerStimulusID => TriggerStimulusID?.ToString() ?? "-";
-
       /// <summary>
       /// Отформатированный флаг критических изменений для отображения в UI
       /// </summary>
       public string DisplayHasCriticalChanges => HasCriticalChanges?.ToString() ?? "-";
-
       public string DisplayOrientationReflexType
       {
         get
         {
           if (!OrientationReflexType.HasValue)
             return "-";
-
           string result;
           switch (OrientationReflexType.Value)
           {
@@ -1083,77 +1001,58 @@ namespace AIStudio.Common
           ThinkingLevel.HasValue && (ThinkingLevel.Value == 1 || ThinkingLevel.Value == 2)
               ? (ThinkingLevel.Value == 1 ? "УМ1" : "УМ2")
               : DisplayOrientationReflexType;
-
       /// <summary>
       /// Отформатированный идентификатор безусловного рефлекса для отображения в UI
       /// </summary>
       public string DisplayGeneticReflexID => GeneticReflexID?.ToString() ?? "-";
-
       /// <summary>
       /// Отформатированный идентификатор условного рефлекса для отображения в UI
       /// </summary>
       public string DisplayConditionReflexID => ConditionReflexID?.ToString() ?? "-";
-
       /// <summary>
       /// Отформатированный идентификатор автоматизма для отображения в UI
       /// </summary>
       public string DisplayAutomatizmID => AutomatizmID?.ToString() ?? "-";
-
       /// <summary>
       /// ID цепочки рефлекса и ID действия в формате "ChainId:ActionId"
       /// </summary>
       public string ReflexChainInfo { get; set; } = string.Empty;
-
       /// <summary>
       /// ID цепочки автоматизма и ID действия в формате "ChainId:ActionId"
       /// </summary>
       public string AutomatizmChainInfo { get; set; } = string.Empty;
-
       /// <summary>
       /// Уровень мышления: 1 = УМ1, 2 = УМ2, null = не активирован
       /// </summary>
       public int? ThinkingLevel { get; set; }
-
       /// <summary>
       /// Успех решения проблемы на активированном уровне мышления (зелёный/красный фон в UI)
       /// </summary>
       public bool? ThinkingLevelSuccess { get; set; }
-
       /// <summary>
       /// Идентификатор типа темы мышления (после резолвера на пульсе)
       /// </summary>
       public int? ThinkingThemeTypeId { get; set; }
-
       /// <summary>
       /// Текст подсказки: имя типа темы и вес по справочнику
       /// </summary>
       public string ThinkingThemeTooltip { get; set; }
-
       /// <summary>Номер текущего главного цикла мышления (ThinkingCycleInfo.Id).</summary>
       public int? MainThinkingCycleId { get; set; }
-
       /// <summary>Подсказка для колонки «Цикл М».</summary>
       public string MainThinkingCycleTooltip { get; set; }
-
       /// <summary>Статус задачи главного цикла для фона ячейки: Awaiting / NoSolution / Solved.</summary>
       public string MainThinkingCycleTaskStatus { get; set; }
-
       /// <summary>JSON фоновых циклов (как в ResearchLogger «ЦиклыФ_json»).</summary>
       public string BackgroundThinkingCyclesJson { get; set; }
-
       public event PropertyChangedEventHandler PropertyChanged;
-
       private string _mainCycleAggregatedCellTooltip;
-
       /// <summary>Текст подсказки ячейки «Цикл М» (на пульсе с несколькими циклами — объединённый).</summary>
       public string MainCycleAggregatedCellTooltip => _mainCycleAggregatedCellTooltip ?? "";
-
       /// <summary>Сегменты отображения «Цикл М» на пульсе (цвет номера по статусу).</summary>
       public ObservableCollection<AgentLogMainCycleLiveSegment> MainCycleLiveSegments { get; } =
           new ObservableCollection<AgentLogMainCycleLiveSegment>();
-
       public int MainCycleLiveSegmentCount => MainCycleLiveSegments.Count;
-
       internal void ApplyPulseMainCycleDisplay(IEnumerable<AgentLogMainCycleLiveSegment> segments, string cellTooltip)
       {
         MainCycleLiveSegments.Clear();
@@ -1168,16 +1067,12 @@ namespace AIStudio.Common
       }
 
       private string _backgroundCycleAggregatedCellTooltip;
-
       /// <summary>Подсказка ячейки «Циклы Ф» (несколько циклов — объединённая).</summary>
       public string BackgroundCycleAggregatedCellTooltip => _backgroundCycleAggregatedCellTooltip ?? "";
-
       /// <summary>Сегменты «Циклы Ф» (те же цвета статуса, что у «Цикл М»).</summary>
       public ObservableCollection<AgentLogMainCycleLiveSegment> BackgroundCycleLiveSegments { get; } =
           new ObservableCollection<AgentLogMainCycleLiveSegment>();
-
       public int BackgroundCycleLiveSegmentCount => BackgroundCycleLiveSegments.Count;
-
       internal void ApplyPulseBackgroundCycleDisplay(IEnumerable<AgentLogMainCycleLiveSegment> segments, string cellTooltip)
       {
         BackgroundCycleLiveSegments.Clear();
@@ -1193,46 +1088,36 @@ namespace AIStudio.Common
 
       /// <summary>Признак опасной ситуации в информационной среде (для столбца «Опасно»).</summary>
       public bool InformationEnvironmentDanger { get; set; }
-
       /// <summary>Признак актуальной ситуации в информационной среде (столбец «Актуально»).</summary>
       public bool InformationEnvironmentVeryActual { get; set; }
-
       /// <summary>Для файлов лога и агрегации сравнения: «1» или «0».</summary>
       public string DisplayDanger => InformationEnvironmentDanger ? "1" : "0";
-
       /// <summary>Текст ячейки живых логов: «-» если не опасно, пусто если опасно (фон — в стиле).</summary>
       public string DisplayDangerCell => InformationEnvironmentDanger ? "" : "-";
-
       /// <summary>Для файлов лога: «1» или «0».</summary>
       public string DisplayVeryActual => InformationEnvironmentVeryActual ? "1" : "0";
-
       /// <summary>Текст ячейки живых логов: «!» если актуально, иначе «-».</summary>
       public string DisplayVeryActualCell => InformationEnvironmentVeryActual ? "!" : "-";
-
       /// <summary>
       /// Строковое представление результата УМ для привязок в шаблоне (избегаем bool? в XAML): "True", "False" или ""
       /// </summary>
       public string ThinkingLevelSuccessDisplay => ThinkingLevelSuccess.HasValue
           ? (ThinkingLevelSuccess.Value ? "True" : "False")
           : "";
-
       /// <summary>
       /// Отображаемое значение уровня мышления для UI: «УМ1», «УМ2» или «-»
       /// </summary>
       public string DisplayThinkingLevel => ThinkingLevel.HasValue && (ThinkingLevel.Value == 1 || ThinkingLevel.Value == 2)
           ? (ThinkingLevel.Value == 1 ? "УМ1" : "УМ2")
           : "-";
-
       /// <summary>
       /// Форматированная информация о цепочке рефлекса для отображения в UI (используется с tooltip)
       /// </summary>
       public string DisplayReflexChainInfo => !string.IsNullOrEmpty(ReflexChainInfo) ? ReflexChainInfo : "-";
-
       /// <summary>
       /// Форматированная информация о цепочке автоматизма для отображения в UI (используется с tooltip)
       /// </summary>
       public string DisplayAutomatizmChainInfo => !string.IsNullOrEmpty(AutomatizmChainInfo) ? AutomatizmChainInfo : "-";
-
       /// <summary>
       /// Код типа темы мышления для колонки «Тема»
       /// </summary>
@@ -1240,7 +1125,6 @@ namespace AIStudio.Common
           ThinkingThemeTypeId.HasValue && ThinkingThemeTypeId.Value > 0
               ? ThinkingThemeTypeId.Value.ToString()
               : "-";
-
       /// <summary>Отображаемый номер главного цикла мышления.</summary>
       public string DisplayMainThinkingCycle =>
           MainThinkingCycleId.HasValue && MainThinkingCycleId.Value > 0
@@ -1257,47 +1141,38 @@ namespace AIStudio.Common
       /// Временная метка создания записи
       /// </summary>
       public DateTime Timestamp { get; set; } = DateTime.Now;
-
       /// <summary>
       /// Номер текущего пульса системы
       /// </summary>
       public int Pulse { get; set; }
-
       /// <summary>
       /// Стадия процесса активации стилей
       /// </summary>
       public string Stage { get; set; } = string.Empty;
-
       /// <summary>
       /// Идентификатор стиля поведения
       /// </summary>
       public int StyleId { get; set; }
-
       /// <summary>
       /// Наименование стиля поведения
       /// </summary>
       public string StyleName { get; set; } = string.Empty;
-
       /// <summary>
       /// Отформатированное время для отображения в UI
       /// </summary>
       public string DisplayTime => Timestamp.ToString("HH:mm:ss");
-
       /// <summary>
       /// Отформатированный номер пульса для отображения в UI
       /// </summary>
       public string DisplayPulse => Pulse.ToString();
-
       /// <summary>
       /// Стадия процесса для отображения в UI
       /// </summary>
       public string DisplayStage => Stage;
-
       /// <summary>
       /// Отформатированный идентификатор стиля для отображения в UI
       /// </summary>
       public string DisplayStyleId => StyleId.ToString();
-
       /// <summary>
       /// Наименование стиля для отображения в UI
       /// </summary>
@@ -1313,107 +1188,86 @@ namespace AIStudio.Common
       /// Временная метка создания записи
       /// </summary>
       public DateTime Timestamp { get; set; } = DateTime.Now;
-
       /// <summary>
       /// Номер текущего пульса системы
       /// </summary>
       public int Pulse { get; set; }
-
       /// <summary>
       /// Идентификатор параметра гомеостаза
       /// </summary>
       public int ParamId { get; set; }
-
       /// <summary>
       /// Наименование параметра гомеостаза
       /// </summary>
       public string ParamName { get; set; } = string.Empty;
-
       /// <summary>
       /// Вес параметра в системе гомеостаза
       /// </summary>
       public int Weight { get; set; }
-
       /// <summary>
       /// Значение нормы параметра
       /// </summary>
       public int NormaWell { get; set; }
-
       /// <summary>
       /// Скорость изменения параметра
       /// </summary>
       public int Speed { get; set; }
-
       /// <summary>
       /// Текущее значение параметра
       /// </summary>
       public float Value { get; set; }
-
       /// <summary>
       /// Значение функции срочности
       /// </summary>
       public float UrgencyFunction { get; set; }
-
       /// <summary>
       /// Текущее состояние параметра
       /// </summary>
       public string ParameterState { get; set; } = string.Empty;
-
       /// <summary>
       /// Зона активации параметра
       /// </summary>
       public string ActivationZone { get; set; } = string.Empty;
-
       /// <summary>
       /// Отформатированное время для отображения в UI
       /// </summary>
       public string DisplayTime => Timestamp.ToString("HH:mm:ss");
-
       /// <summary>
       /// Отформатированный номер пульса для отображения в UI
       /// </summary>
       public string DisplayPulse => Pulse.ToString();
-
       /// <summary>
       /// Отформатированный идентификатор параметра для отображения в UI
       /// </summary>
       public string DisplayParamId => ParamId.ToString();
-
       /// <summary>
       /// Наименование параметра для отображения в UI
       /// </summary>
       public string DisplayParamName => ParamName;
-
       /// <summary>
       /// Отформатированный вес параметра для отображения в UI
       /// </summary>
       public string DisplayWeight => Weight.ToString();
-
       /// <summary>
       /// Отформатированное значение нормы для отображения в UI
       /// </summary>
       public string DisplayNormaWell => NormaWell.ToString();
-
       /// <summary>
       /// Отформатированная скорость изменения для отображения в UI
       /// </summary>
       public string DisplaySpeed => Speed.ToString();
-
       /// <summary>
       /// Отформатированное текущее значение параметра для отображения в UI
       /// </summary>
       public string DisplayValue => Value.ToString("F2");
-
       /// <summary>
       /// Отформатированное значение функции срочности для отображения в UI
       /// </summary>
       public string DisplayUrgencyFunction => UrgencyFunction.ToString("F4");
-
       /// <summary>
       /// Состояние параметра для отображения в UI
       /// </summary>
       public string DisplayParameterState => ParameterState;
-
       /// <summary>
       /// Зона активации для отображения в UI
       /// </summary>
@@ -1429,107 +1283,86 @@ namespace AIStudio.Common
       /// Временная метка создания записи
       /// </summary>
       public DateTime Timestamp { get; set; } = DateTime.Now;
-
       /// <summary>
       /// Номер текущего пульса системы
       /// </summary>
       public int Pulse { get; set; }
-
       /// <summary>
       /// Стадия процесса активации
       /// </summary>
       public string Stage { get; set; } = string.Empty;
-
       /// <summary>
       /// Идентификатор параметра гомеостаза
       /// </summary>
       public int ParameterId { get; set; }
-
       /// <summary>
       /// Наименование параметра гомеостаза
       /// </summary>
       public string ParameterName { get; set; } = string.Empty;
-
       /// <summary>
       /// Идентификатор зоны активации (0-6)
       /// </summary>
       public int ZoneId { get; set; }
-
       /// <summary>
       /// Описание зоны активации
       /// </summary>
       public string ZoneDescription { get; set; } = string.Empty;
-
       /// <summary>
       /// Идентификатор стиля поведения
       /// </summary>
       public int StyleId { get; set; }
-
       /// <summary>
       /// Наименование стиля поведения
       /// </summary>
       public string StyleName { get; set; } = string.Empty;
-
       /// <summary>
       /// Вес стиля при активации
       /// </summary>
       public int Weight { get; set; }
-
       /// <summary>
       /// Детали процесса активации
       /// </summary>
       public string ActivationDetails { get; set; } = string.Empty;
-
       /// <summary>
       /// Отформатированное время для отображения в UI
       /// </summary>
       public string DisplayTime => Timestamp.ToString("HH:mm:ss");
-
       /// <summary>
       /// Отформатированный номер пульса для отображения в UI
       /// </summary>
       public string DisplayPulse => Pulse.ToString();
-
       /// <summary>
       /// Стадия процесса для отображения в UI
       /// </summary>
       public string DisplayStage => Stage;
-
       /// <summary>
       /// Отформатированный идентификатор параметра для отображения в UI
       /// </summary>
       public string DisplayParameterId => ParameterId.ToString();
-
       /// <summary>
       /// Наименование параметра для отображения в UI
       /// </summary>
       public string DisplayParameterName => ParameterName;
-
       /// <summary>
       /// Отформатированный идентификатор зоны для отображения в UI
       /// </summary>
       public string DisplayZoneId => ZoneId.ToString();
-
       /// <summary>
       /// Описание зоны для отображения в UI
       /// </summary>
       public string DisplayZoneDescription => ZoneDescription;
-
       /// <summary>
       /// Отформатированный идентификатор стиля для отображения в UI
       /// </summary>
       public string DisplayStyleId => StyleId.ToString();
-
       /// <summary>
       /// Наименование стиля для отображения в UI
       /// </summary>
       public string DisplayStyleName => StyleName;
-
       /// <summary>
       /// Отформатированный вес стиля для отображения в UI
       /// </summary>
       public string DisplayWeight => Weight.ToString();
-
       /// <summary>
       /// Детали активации для отображения в UI
       /// </summary>
@@ -1545,57 +1378,46 @@ namespace AIStudio.Common
       /// Временная метка создания записи
       /// </summary>
       public DateTime Timestamp { get; set; } = DateTime.Now;
-
       /// <summary>
       /// Номер текущего пульса системы
       /// </summary>
       public int Pulse { get; set; }
-
       /// <summary>
       /// Тип цепочки: "Reflex" или "Automatizm"
       /// </summary>
       public string ChainType { get; set; } = string.Empty;
-
       /// <summary>
       /// Идентификатор цепочки
       /// </summary>
       public int ChainId { get; set; }
-
       /// <summary>
       /// Наименование цепочки
       /// </summary>
       public string ChainName { get; set; } = string.Empty;
-
       /// <summary>
       /// Тип события: ChainStart, LinkExecute, Evaluation, BranchDecision, ChainComplete
       /// </summary>
       public string EventType { get; set; } = string.Empty;
-
       /// <summary>
       /// Идентификатор звена цепочки (для событий выполнения)
       /// </summary>
       public int? LinkId { get; set; }
-
       /// <summary>
       /// Идентификатор действия (для событий выполнения звена)
       /// </summary>
       public int? ActionId { get; set; }
-
       /// <summary>
       /// Оценка оператора (true=успех, false=неудача, null=ожидание)
       /// </summary>
       public bool? OperatorEvaluation { get; set; }
-
       /// <summary>
       /// Идентификатор следующего звена после ветвления
       /// </summary>
       public int? NextLinkId { get; set; }
-
       /// <summary>
       /// Тип выбранной ветви: Success или Failure
       /// </summary>
       public string BranchType { get; set; } = string.Empty;
-
       /// <summary>
       /// Описание события
       /// </summary>
@@ -1607,42 +1429,34 @@ namespace AIStudio.Common
       /// Отформатированное время для отображения в UI
       /// </summary>
       public string DisplayTime => Timestamp.ToString("HH:mm:ss");
-
       /// <summary>
       /// Отформатированный номер пульса для отображения в UI
       /// </summary>
       public string DisplayPulse => Pulse.ToString();
-
       /// <summary>
       /// Тип цепочки для отображения в UI
       /// </summary>
       public string DisplayChainType => ChainType;
-
       /// <summary>
       /// Идентификатор цепочки для отображения в UI
       /// </summary>
       public string DisplayChainId => ChainId.ToString();
-
       /// <summary>
       /// Наименование цепочки для отображения в UI
       /// </summary>
       public string DisplayChainName => ChainName;
-
       /// <summary>
       /// Тип события для отображения в UI
       /// </summary>
       public string DisplayEventType => EventType;
-
       /// <summary>
       /// Идентификатор звена для отображения в UI
       /// </summary>
       public string DisplayLinkId => LinkId?.ToString() ?? "-";
-
       /// <summary>
       /// Идентификатор действия для отображения в UI
       /// </summary>
       public string DisplayActionId => ActionId?.ToString() ?? "-";
-
       /// <summary>
       /// Оценка оператора для отображения в UI
       /// </summary>
@@ -1660,18 +1474,15 @@ namespace AIStudio.Common
       /// Идентификатор следующего звена для отображения в UI
       /// </summary>
       public string DisplayNextLinkId => NextLinkId?.ToString() ?? "-";
-
       /// <summary>
       /// Тип ветви для отображения в UI
       /// </summary>
       public string DisplayBranchType => BranchType;
-
       /// <summary>
       /// Описание события для отображения в UI
       /// </summary>
       public string DisplayDetails => Details;
     }
-
     #endregion
   }
 }

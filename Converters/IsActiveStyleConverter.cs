@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
@@ -14,10 +14,8 @@ namespace AIStudio.Converters
     public object Convert(object[] values, Type targetType, object parameter, CultureInfo culture)
     {
       if (values.Length < 2) return false;
-
       var currentStyle = values[0] as BehaviorStyle;
       var activeStyles = values[1] as IList<BehaviorStyle>;
-
       return activeStyles?.Any(s => s?.Id == currentStyle?.Id) ?? false;
     }
 

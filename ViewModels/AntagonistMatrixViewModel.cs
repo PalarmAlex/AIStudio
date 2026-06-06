@@ -1,4 +1,4 @@
-﻿using AIStudio.Common;
+using AIStudio.Common;
 using AIStudio.Pages;
 using ISIDA.Gomeostas;
 using System;
@@ -16,14 +16,12 @@ namespace AIStudio.ViewModels
   public class AntagonistMatrixViewModel : INotifyPropertyChanged
   {
     public event PropertyChangedEventHandler PropertyChanged;
-
     private readonly GomeostasSystem _gomeostas;
     private ObservableCollection<MatrixCell> _matrixCells;
     private List<int> _unpairedStyleIds;
     private List<GomeostasSystem.BehaviorStyle> _currentStyles;
     private MatrixCell _selectedCell;
     private MatrixCell _pairedCell;
-
     public ObservableCollection<MatrixCell> MatrixCells
     {
       get => _matrixCells;
@@ -35,23 +33,18 @@ namespace AIStudio.ViewModels
     }
 
     public List<int> UnpairedStyleIds => _unpairedStyleIds;
-
     public ICommand BackCommand { get; }
     public ICommand RefreshCommand { get; }
     public ICommand CellClickCommand { get; }
-
     public AntagonistMatrixViewModel(
         GomeostasSystem gomeostas,
         List<GomeostasSystem.BehaviorStyle> currentStyles)
     {
       _gomeostas = gomeostas ?? throw new ArgumentNullException(nameof(gomeostas));
       _currentStyles = currentStyles;
-
       BackCommand = new RelayCommand(_ => NavigateBack(currentStyles));
-
       MatrixCells = new ObservableCollection<MatrixCell>();
       _unpairedStyleIds = new List<int>();
-
       LoadMatrixFromStyles(currentStyles);
     }
 
@@ -94,7 +87,6 @@ namespace AIStudio.ViewModels
           c.RowIndex == targetRow &&
           c.ColIndex == targetCol &&
           c.IsAntagonist);
-
       return pairedCell;
     }
 
@@ -105,7 +97,6 @@ namespace AIStudio.ViewModels
         _selectedCell.IsSelected = false;
         _selectedCell = null;
       }
-
       if (_pairedCell != null)
       {
         _pairedCell.IsSelected = false;
@@ -125,14 +116,12 @@ namespace AIStudio.ViewModels
       {
         var cells = new ObservableCollection<MatrixCell>();
         _currentStyles = styles;
-
         if (!styles.Any())
         {
           MessageBox.Show("Стили поведения не загружены", "Информация",
               MessageBoxButton.OK, MessageBoxImage.Information);
           return;
         }
-
         var styleList = styles.OrderBy(s => s.Id).ToList();
         int size = styleList.Count;
 
@@ -145,7 +134,6 @@ namespace AIStudio.ViewModels
           for (int col = 0; col <= size; col++)
           {
             var cell = new MatrixCell();
-
             if (row == 0 && col == 0)
             {
               cell.Content = "";
@@ -184,17 +172,14 @@ namespace AIStudio.ViewModels
             {
               var rowStyle = styleList[row - 1];
               var colStyle = styleList[col - 1];
-
               bool isAntagonist = rowStyle.AntagonistStyles.Contains(colStyle.Id) &&
                                colStyle.AntagonistStyles.Contains(rowStyle.Id);
-
               cell.Content = isAntagonist ? "╳" : "";
               cell.IsAntagonist = isAntagonist;
               cell.RowIndex = row;
               cell.ColIndex = col;
               cell.RowStyleId = rowStyle.Id;
               cell.ColStyleId = colStyle.Id;
-
               if (isAntagonist)
               {
                 cell.ToolTip = $"✓ {rowStyle.Name} ↔ {colStyle.Name}\nВзаимные антагонисты\n(Клик для выделения пары)";
@@ -214,11 +199,9 @@ namespace AIStudio.ViewModels
                 cell.ToolTip = $"{rowStyle.Name} - {colStyle.Name}\nНет связи";
               }
             }
-
             cells.Add(cell);
           }
         }
-
         Application.Current.Dispatcher.Invoke(() =>
         {
           MatrixCells = cells;
@@ -234,20 +217,16 @@ namespace AIStudio.ViewModels
     private void FindUnpairedStyles(List<GomeostasSystem.BehaviorStyle> styles)
     {
       _unpairedStyleIds.Clear();
-
       var styleDict = styles.ToDictionary(s => s.Id, s => s);
-
       foreach (var style in styles)
       {
         List<int> unpairedAntagonists = new List<int>();
         List<int> nonExistentAntagonists = new List<int>();
-
         foreach (var antagonistId in style.AntagonistStyles)
         {
           if (styleDict.ContainsKey(antagonistId))
           {
             var antagonist = styleDict[antagonistId];
-
             if (!antagonist.AntagonistStyles.Contains(style.Id))
             {
               unpairedAntagonists.Add(antagonistId);
@@ -283,7 +262,6 @@ namespace AIStudio.ViewModels
         if (styleDict.ContainsKey(antagonistId))
         {
           var antagonist = styleDict[antagonistId];
-
           if (antagonist.AntagonistStyles.Contains(style.Id))
           {
             validAntagonists.Add(antagonistId);
@@ -304,11 +282,9 @@ namespace AIStudio.ViewModels
       tooltip.AppendLine($"{style.Name} (ID:{style.Id})");
       tooltip.AppendLine($"{style.Description}");
       tooltip.AppendLine();
-
       if (!unpairedAntagonists.Any() && !nonExistentAntagonists.Any())
       {
         tooltip.AppendLine("✓ Все антагонисты симметричны");
-
         if (validAntagonists.Any())
         {
           var antagonistNames = string.Join(", ", validAntagonists.Select(id =>
@@ -323,19 +299,16 @@ namespace AIStudio.ViewModels
       else
       {
         tooltip.AppendLine("⚠ Нарушена симметрия антагонистов:");
-
         if (unpairedAntagonists.Any())
         {
           var unpairedNames = string.Join(", ", unpairedAntagonists.Select(id =>
               $"{styleDict[id].Name} (ID:{id})"));
           tooltip.AppendLine($"• Без обратной связи: {unpairedNames}");
         }
-
         if (nonExistentAntagonists.Any())
         {
           tooltip.AppendLine($"• Несуществующие ID: {string.Join(", ", nonExistentAntagonists)}");
         }
-
         if (validAntagonists.Any())
         {
           var validNames = string.Join(", ", validAntagonists.Select(id =>
@@ -343,7 +316,6 @@ namespace AIStudio.ViewModels
           tooltip.AppendLine($"✓ Корректные: {validNames}");
         }
       }
-
       return tooltip.ToString();
     }
 
@@ -379,7 +351,6 @@ namespace AIStudio.ViewModels
       public bool IsUnpaired { get; set; }
       public bool IsSelected { get; set; }
       public string ToolTip { get; set; } = string.Empty;
-
       public Brush BackgroundColor
       {
         get
@@ -406,6 +377,5 @@ namespace AIStudio.ViewModels
 
       public Brush BorderColor => new SolidColorBrush(Color.FromRgb(32, 32, 32));
     }
-
   }
 }

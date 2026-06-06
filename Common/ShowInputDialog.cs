@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -23,19 +23,15 @@ namespace AIStudio.Common
         WindowStyle = WindowStyle.SingleBorderWindow,
         ShowInTaskbar = false
       };
-
       var stackPanel = new StackPanel { Margin = new Thickness(10) };
-
       var textBlock = new TextBlock { Text = promptText, Margin = new Thickness(0, 0, 0, 10) };
       var textBox = new TextBox { Text = defaultValue };
-
       var buttonPanel = new StackPanel
       {
         Orientation = Orientation.Horizontal,
         HorizontalAlignment = HorizontalAlignment.Right,
         Margin = new Thickness(0, 10, 0, 0)
       };
-
       var okButton = new Button
       {
         Content = "OK",
@@ -52,7 +48,6 @@ namespace AIStudio.Common
 
       // По умолчанию результат - отмена
       string result = null;
-
       okButton.Click += (sender, e) =>
       {
         result = textBox.Text;
@@ -65,7 +60,6 @@ namespace AIStudio.Common
         dialog.DialogResult = false;
         dialog.Close();
       };
-
       dialog.KeyDown += (sender, e) =>
       {
         if (e.Key == System.Windows.Input.Key.Escape)
@@ -75,22 +69,16 @@ namespace AIStudio.Common
           dialog.Close();
         }
       };
-
       buttonPanel.Children.Add(okButton);
       buttonPanel.Children.Add(cancelButton);
-
       stackPanel.Children.Add(textBlock);
       stackPanel.Children.Add(textBox);
       stackPanel.Children.Add(buttonPanel);
-
       dialog.Content = stackPanel;
       textBox.Focus();
       textBox.SelectAll();
-
       dialog.ShowDialog();
-
       return result;
     }
-
   }
 }

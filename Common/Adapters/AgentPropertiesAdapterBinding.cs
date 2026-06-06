@@ -15,7 +15,6 @@ namespace AIStudio.Common.Adapters
   {
     /// <summary>Ключ строки в AgentProperties.dat.</summary>
     public const string AdapterIdKey = "AdapterId";
-
     /// <summary>
     /// Путь к <c>AgentProperties.dat</c> в корне проекта.
     /// </summary>
@@ -23,7 +22,6 @@ namespace AIStudio.Common.Adapters
     {
       if (string.IsNullOrWhiteSpace(projectRoot))
         throw new ArgumentException("projectRoot");
-
       string gomeostasPath = SettingsValidator.GetExpectedFolderPathForSetting(
           projectRoot,
           "DataGomeostasFolderPath");
@@ -38,21 +36,17 @@ namespace AIStudio.Common.Adapters
       adapterId = string.Empty;
       if (string.IsNullOrWhiteSpace(agentPropertiesPath) || !File.Exists(agentPropertiesPath))
         return false;
-
       try
       {
         foreach (string line in File.ReadLines(agentPropertiesPath))
         {
           if (string.IsNullOrWhiteSpace(line) || line.StartsWith("#"))
             continue;
-
           int sep = line.IndexOf('|');
           if (sep <= 0)
             continue;
-
           if (!string.Equals(line.Substring(0, sep).Trim(), AdapterIdKey, StringComparison.Ordinal))
             continue;
-
           adapterId = line.Substring(sep + 1).Trim();
           return true;
         }
@@ -61,7 +55,6 @@ namespace AIStudio.Common.Adapters
       {
         // ignore
       }
-
       return false;
     }
 
@@ -72,25 +65,21 @@ namespace AIStudio.Common.Adapters
     {
       if (string.IsNullOrWhiteSpace(agentPropertiesPath))
         throw new ArgumentException("agentPropertiesPath");
-
       string trimmed = string.IsNullOrWhiteSpace(adapterId) ? null : adapterId.Trim();
       string dir = Path.GetDirectoryName(agentPropertiesPath);
       if (!string.IsNullOrEmpty(dir))
         Directory.CreateDirectory(dir);
-
       List<string> lines;
       if (File.Exists(agentPropertiesPath))
         lines = File.ReadAllLines(agentPropertiesPath, Encoding.UTF8).ToList();
       else
         lines = CreateMinimalAgentPropertiesLines(null);
-
       bool replaced = false;
       for (int i = lines.Count - 1; i >= 0; i--)
       {
         string line = lines[i];
         if (line.StartsWith("#") || !line.Contains("|"))
           continue;
-
         if (string.Equals(line.Split('|')[0].Trim(), AdapterIdKey, StringComparison.Ordinal))
         {
           if (trimmed == null)
@@ -101,10 +90,8 @@ namespace AIStudio.Common.Adapters
           break;
         }
       }
-
       if (trimmed != null && !replaced)
         lines.Add(AdapterIdKey + "|" + trimmed);
-
       File.WriteAllLines(agentPropertiesPath, lines, Encoding.UTF8);
     }
 
@@ -119,11 +106,9 @@ namespace AIStudio.Common.Adapters
           WriteAdapterId(agentPropertiesPath, adapterId);
         return;
       }
-
       string dir = Path.GetDirectoryName(agentPropertiesPath);
       if (!string.IsNullOrEmpty(dir))
         Directory.CreateDirectory(dir);
-
       File.WriteAllLines(
           agentPropertiesPath,
           CreateMinimalAgentPropertiesLines(adapterId),
@@ -138,7 +123,6 @@ namespace AIStudio.Common.Adapters
       migratedAdapterId = null;
       if (string.IsNullOrWhiteSpace(projectRoot))
         return false;
-
       string settingsFile = Path.Combine(projectRoot, "Settings", AppConfig.StudioSettingsFileName);
       if (!File.Exists(settingsFile))
       {
@@ -146,7 +130,6 @@ namespace AIStudio.Common.Adapters
         if (!File.Exists(settingsFile))
           return false;
       }
-
       try
       {
         XDocument doc = XDocument.Load(settingsFile);
@@ -154,14 +137,11 @@ namespace AIStudio.Common.Adapters
         XElement legacy = appSettings?.Element(SymbiontProjectAdapterSettings.LegacySettingsXmlElementName);
         if (legacy == null)
           return false;
-
         string id = (legacy.Value ?? string.Empty).Trim();
         legacy.Remove();
         doc.Save(settingsFile);
-
         if (string.IsNullOrEmpty(id))
           return false;
-
         string agentPropertiesPath = GetAgentPropertiesPath(projectRoot);
         WriteAdapterId(agentPropertiesPath, id);
         migratedAdapterId = id;
@@ -187,10 +167,8 @@ namespace AIStudio.Common.Adapters
         "PainValue|0",
         "JoyValue|0"
       };
-
       if (!string.IsNullOrWhiteSpace(adapterId))
         lines.Add(AdapterIdKey + "|" + adapterId.Trim());
-
       return lines;
     }
   }

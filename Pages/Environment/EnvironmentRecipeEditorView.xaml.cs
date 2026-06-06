@@ -18,7 +18,6 @@ namespace AIStudio.Pages.SymbiontEnv
     }
 
     private EnvironmentRecipeEditorViewModel Vm => DataContext as EnvironmentRecipeEditorViewModel;
-
     private void BackButton_Click(object sender, RoutedEventArgs e)
     {
       Vm?.CloseAction?.Invoke();

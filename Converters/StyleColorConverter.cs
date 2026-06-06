@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
@@ -14,7 +14,6 @@ namespace AIStudio.Converters
     {
       if (values.Length < 2 || !(values[0] is BehaviorStyle currentStyle))
         return new SolidColorBrush(Colors.Gray); // Неактивные - серые
-
       var activeStyles = values[1] as IList<BehaviorStyle>;
       if (activeStyles == null || !activeStyles.Any(s => s?.Id == currentStyle.Id))
         return new SolidColorBrush(Colors.Gray);

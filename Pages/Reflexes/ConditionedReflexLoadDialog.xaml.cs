@@ -15,7 +15,6 @@ namespace AIStudio.Dialogs
   public partial class ConditionedReflexLoadDialog : Window
   {
     public ConditionedReflexLoadDialogViewModel ViewModel { get; }
-
     public ConditionedReflexLoadDialog(string bootDataFolder)
     {
       InitializeComponent();
@@ -55,17 +54,13 @@ namespace AIStudio.Dialogs
   {
     public event PropertyChangedEventHandler PropertyChanged;
     protected void OnPropertyChanged(string name) => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
-
     private readonly string _bootDataFolder;
     private readonly ConditionedReflexFileLoader _loader;
-
     public Action<bool> CloseAction { get; set; }
     public Action SwitchToPromptTabAction { get; set; }
-
     private const string InsertTextFileName = "conditioned_reflex_prompt_insert.txt";
     private static readonly string DefaultInsertTextTemplate = @"Сгенерируй строки условных рефлексов в формате (строго одна строка — одна запись, поля разделены только одним символом |, внутри ячеек символ | не используй):
 Состояние|Стили|Триггер безусловного рефлекса|Новый триггер условного рефлекса|Тон|Настроение
-
 Правила:
 - Разделитель полей — только вертикальная черта |. В тексте ячеек (состояние, стили, триггер, фраза, тон, настроение) символ | запрещён.
 - Состояние: строго одно из трёх — Плохо, Норма, Хорошо
@@ -74,13 +69,10 @@ namespace AIStudio.Dialogs
 - Новый триггер: короткая фраза с пульта без символа | (поощрение, команда и т.п.)
 - Тон: строго одно из списка — Вялый, Нормальный, Повышенный (без изменений и синонимов)
 - Настроение: строго одно из списка — Нормальное, Хорошее, Плохое, Игривое, Учитель, Агрессивное, Защитное, Протест (без изменений и синонимов)
-
 Примеры (копируй формат точно):
 Норма|Расслабление+Игра|Поощрить|молодец|Нормальный|Хорошее
 Хорошо|Расслабление|Погладить|хороший мальчик|Нормальный|Игривое
-
 Сгенерируй примерно [ReflexGenLinesStage1PerState] строк на каждое состояние.";
-
     private bool _isBusy;
     public bool IsBusy
     {
@@ -95,12 +87,10 @@ namespace AIStudio.Dialogs
     public RelayCommand CreatePromptCommand { get; }
     public RelayCommand ApplyCommand { get; }
     public RelayCommand CancelCommand { get; }
-
     public ConditionedReflexLoadDialogViewModel(string bootDataFolder, ConditionedReflexFileLoader loader)
     {
       _bootDataFolder = bootDataFolder ?? throw new ArgumentNullException(nameof(bootDataFolder));
       _loader = loader ?? throw new ArgumentNullException(nameof(loader));
-
       SaveCsvCommand = new RelayCommand(ExecuteSaveCsv, CanExecuteSaveCsv);
       ValidateCsvCommand = new RelayCommand(ExecuteValidateCsv);
       SavePromptCommand = new RelayCommand(ExecuteSavePrompt, CanExecuteSavePrompt);
@@ -126,7 +116,6 @@ namespace AIStudio.Dialogs
 
     private string _promptFilePath;
     public string PromptFilePath => _promptFilePath ?? (_promptFilePath = _loader.GetPromptFilePath());
-
     private string _promptInsertText;
     public string PromptInsertText
     {
@@ -152,9 +141,7 @@ namespace AIStudio.Dialogs
     }
 
     public bool IsPromptEditingEnabled => !string.IsNullOrEmpty(PromptFilePath);
-
     public bool CanApply => !string.IsNullOrWhiteSpace(CsvContent);
-
     public void LoadCsvContent()
     {
       try
@@ -195,9 +182,7 @@ namespace AIStudio.Dialogs
     }
 
     private bool CanExecuteSaveCsv(object _) => !string.IsNullOrWhiteSpace(CsvContent);
-
     private bool CanExecuteSaveInsertText(object _) => !string.IsNullOrWhiteSpace(PromptInsertText);
-
     private void ExecuteSaveInsertText(object _)
     {
       try
@@ -277,7 +262,6 @@ namespace AIStudio.Dialogs
     }
 
     private bool CanExecuteSavePrompt(object _) => !string.IsNullOrWhiteSpace(PromptContent);
-
     private void ExecuteSavePrompt(object _)
     {
       try

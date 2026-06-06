@@ -9,7 +9,6 @@ namespace AIStudio.Dialogs
   public partial class InfoFunctionsChecklistEditor : Window
   {
     public List<int> SelectedIds { get; private set; }
-
     private sealed class FuncSelection
     {
       public int Id { get; set; }
@@ -25,7 +24,6 @@ namespace AIStudio.Dialogs
       Title = title;
       var cur = new HashSet<int>(currentIds ?? Enumerable.Empty<int>());
       SelectedIds = new List<int>(cur);
-
       var items = InfoFunctionsCatalog.GetAll()
           .Select(x => new FuncSelection
           {
@@ -34,7 +32,6 @@ namespace AIStudio.Dialogs
             IsSelected = cur.Contains(x.Id)
           })
           .ToList();
-
       FuncsList.ItemsSource = items;
     }
 
@@ -44,7 +41,6 @@ namespace AIStudio.Dialogs
         SelectedIds = src.Where(x => x.IsSelected).Select(x => x.Id).OrderBy(x => x).ToList();
       else
         SelectedIds = new List<int>();
-
       DialogResult = true;
       Close();
     }

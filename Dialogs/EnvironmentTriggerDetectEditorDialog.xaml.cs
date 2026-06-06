@@ -25,7 +25,6 @@ namespace AIStudio.Dialogs
     public List<EnvironmentTriggerDetectRow> ResultRules =>
         (DetectGrid.ItemsSource as IEnumerable<EnvironmentTriggerDetectRow>)?.ToList()
         ?? new List<EnvironmentTriggerDetectRow>();
-
     private void Ok_Click(object sender, RoutedEventArgs e)
     {
       DialogResult = true;

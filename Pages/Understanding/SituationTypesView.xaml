@@ -11,12 +11,10 @@
 
   <UserControl.Resources>
     <BooleanToVisibilityConverter x:Key="BoolToVis"/>
-
     <converters:SituationEventCodeDisplayConverter x:Key="SituationEventCodeDisplayConverter"/>
     <converters:SituationMoodIdDisplayConverter x:Key="SituationMoodIdDisplayConverter"/>
     <converters:SituationInfluenceIdDisplayConverter x:Key="SituationInfluenceIdDisplayConverter"/>
     <converters:ThemeTypeIdSituationTooltipConverter x:Key="ThemeTypeIdSituationTooltipConverter"/>
-
     <Style x:Key="BaseTextBlockStyle" TargetType="TextBlock">
       <Setter Property="Background" Value="White"/>
       <Style.Triggers>

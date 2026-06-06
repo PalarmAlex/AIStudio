@@ -1,4 +1,4 @@
-﻿using System.Collections.ObjectModel;
+using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Linq;
 using ISIDA.Gomeostas;
@@ -11,7 +11,6 @@ namespace AIStudio.ViewModels
     private readonly GomeostasSystem _gomeostas;
     private ObservableCollection<BehaviorStyle> _allBehaviorStyles;
     private ObservableCollection<BehaviorStyle> _activeStyles;
-
     public ObservableCollection<BehaviorStyle> AllBehaviorStyles
     {
       get => _allBehaviorStyles;
@@ -50,7 +49,6 @@ namespace AIStudio.ViewModels
       }
       else
         _allBehaviorStyles.Clear();
-
       if (_activeStyles == null)
       {
         _activeStyles = new ObservableCollection<BehaviorStyle>();
@@ -67,7 +65,6 @@ namespace AIStudio.ViewModels
           _allBehaviorStyles.Add(style);
         }
       }
-
       if (agentInfo?.ActiveStyles != null)
       {
         foreach (var style in agentInfo.ActiveStyles)

@@ -13,7 +13,6 @@ namespace AIStudio.Common.Adapters
     private static readonly object Sync = new object();
     private static List<AdapterManifest> _cache;
     private static DateTime _cacheAdaptersRootUtc = DateTime.MinValue;
-
     /// <summary>
     /// Возвращает установленные адаптеры (сканирование с кэшем по mtime корня Adapters).
     /// </summary>
@@ -23,24 +22,19 @@ namespace AIStudio.Common.Adapters
       {
         AdapterPaths.EnsureAdaptersRoot();
         DateTime rootUtc = GetDirectoryWriteTimeUtc(AdapterPaths.AdaptersRootPath);
-
         if (_cache != null && rootUtc == _cacheAdaptersRootUtc)
           return _cache;
-
         var list = new List<AdapterManifest>();
         foreach (string dir in Directory.GetDirectories(AdapterPaths.AdaptersRootPath))
         {
           if (!AdapterManifest.TryLoad(dir, out AdapterManifest manifest, out _))
             continue;
-
           list.Add(manifest);
         }
-
         list.Sort((a, b) => string.Compare(
             a?.DisplayName ?? a?.Id,
             b?.DisplayName ?? b?.Id,
             StringComparison.CurrentCultureIgnoreCase));
-
         _cache = list;
         _cacheAdaptersRootUtc = rootUtc;
         return _cache;
@@ -54,14 +48,12 @@ namespace AIStudio.Common.Adapters
     {
       if (string.IsNullOrWhiteSpace(adapterId))
         return null;
-
       string id = adapterId.Trim();
       foreach (AdapterManifest manifest in GetInstalledAdapters())
       {
         if (string.Equals(manifest.Id, id, StringComparison.OrdinalIgnoreCase))
           return manifest;
       }
-
       return null;
     }
 
@@ -79,7 +71,6 @@ namespace AIStudio.Common.Adapters
     {
       if (!Directory.Exists(path))
         return DateTime.MinValue;
-
       DateTime latest = Directory.GetLastWriteTimeUtc(path);
       foreach (string sub in Directory.GetDirectories(path))
       {
@@ -87,14 +78,12 @@ namespace AIStudio.Common.Adapters
         if (subTime > latest)
           latest = subTime;
       }
-
       foreach (string file in Directory.GetFiles(path))
       {
         DateTime fileTime = File.GetLastWriteTimeUtc(file);
         if (fileTime > latest)
           latest = fileTime;
       }
-
       return latest;
     }
   }

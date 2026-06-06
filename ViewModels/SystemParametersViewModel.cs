@@ -1,4 +1,4 @@
-﻿using AIStudio.Common;
+using AIStudio.Common;
 using AIStudio.Pages;
 using ISIDA.Common;
 using ISIDA.Gomeostas;
@@ -24,7 +24,6 @@ namespace AIStudio.ViewModels
     private bool _disposed = false;
     private int _currentAgentStage;
     private string _currentAgentName;
-
     public GomeostasSystem Gomeostas => _gomeostas;
     public bool IsStageZero => _currentAgentStage == 0;
     public bool IsReadOnlyMode => !IsEditingEnabled;
@@ -54,20 +53,16 @@ namespace AIStudio.ViewModels
     public ICommand SaveCommand { get; }
     public ICommand RemoveAllCommand { get; }
     public ICommand SelectAgentCommand { get; }
-
     private ICommand _showMatrixCommand;
     public ICommand ShowMatrixCommand => _showMatrixCommand ?? (_showMatrixCommand = new RelayCommand(ShowParametersStylesMatrix));
-
     private void ShowParametersStylesMatrix(object parameter)
     {
       try
       {
         var matrixView = new ParametersStylesMatrixView();
         var currentParameters = SystemParameters.ToList();
-
         var matrixViewModel = new ParametersStylesMatrixViewModel(_gomeostas, currentParameters);
         matrixView.DataContext = matrixViewModel;
-
         var mainWindow = Application.Current.MainWindow as MainWindow;
         if (mainWindow?.DataContext is MainViewModel mainViewModel)
         {
@@ -129,13 +124,11 @@ namespace AIStudio.ViewModels
     protected virtual void Dispose(bool disposing)
     {
       if (_disposed) return;
-
       if (disposing)
       {
         // Отписываемся от пульсаций
         //PulseMediator.Unsubscribe(PulseSubscriberId);
       }
-
       _disposed = true;
     }
 
@@ -146,18 +139,15 @@ namespace AIStudio.ViewModels
         var agentInfo = _gomeostas.GetAgentState();
         _currentAgentStage = _gomeostas?.GetAgentState()?.EvolutionStage ?? 0;
         _currentAgentName = agentInfo.Name;
-
         OnPropertyChanged(nameof(IsStageZero));
         OnPropertyChanged(nameof(IsEditingEnabled));
         OnPropertyChanged(nameof(PulseWarningMessage));
         OnPropertyChanged(nameof(WarningMessageColor));
         OnPropertyChanged(nameof(IsReadOnlyMode));
         OnPropertyChanged(nameof(CurrentAgentTitle));
-
         var parameters = _gomeostas.GetAllParameters()?
             .OrderBy(p => p.Id)
             .ToList();
-
         SystemParameters = new ObservableCollection<GomeostasSystem.ParameterData>(parameters ?? new List<GomeostasSystem.ParameterData>());
       }
       catch (Exception ex)
@@ -174,7 +164,6 @@ namespace AIStudio.ViewModels
     {
       if (_gomeostas.ValidateParameterIds(SystemParameters, out string erroMsg))
         return true;
-
       if (erroMsg.IndexOf("конфликты стилей", StringComparison.OrdinalIgnoreCase) < 0)
       {
         MessageBox.Show($"Ошибка валидации параметров:\n{erroMsg}",
@@ -183,7 +172,6 @@ namespace AIStudio.ViewModels
             MessageBoxImage.Error);
         return false;
       }
-
       var result = MessageBox.Show(
           erroMsg + "\n\n" +
           "Да — автоматически убрать конфликтующие стили из зон (остаётся совместимое подмножество по возрастанию ID).\n" +
@@ -192,17 +180,14 @@ namespace AIStudio.ViewModels
           "Конфликты стилей в активациях параметров",
           MessageBoxButton.YesNoCancel,
           MessageBoxImage.Warning);
-
       if (result == MessageBoxResult.Cancel || result == MessageBoxResult.No)
         return false;
-
       int removed = _gomeostas.FixParameterStyleActivationConflicts(SystemParameters);
       MessageBox.Show(
           $"Удалено ссылок на стили в зонах: {removed.ToString(CultureInfo.InvariantCulture)}.",
           "Автокоррекция активаций стилей",
           MessageBoxButton.OK,
           MessageBoxImage.Information);
-
       if (!_gomeostas.ValidateParameterIds(SystemParameters, out erroMsg))
       {
         MessageBox.Show($"Ошибка валидации после автокоррекции:\n{erroMsg}",
@@ -211,7 +196,6 @@ namespace AIStudio.ViewModels
             MessageBoxImage.Error);
         return false;
       }
-
       return true;
     }
 
@@ -237,7 +221,6 @@ namespace AIStudio.ViewModels
                 param.IsVital,
                 param.CriticalMinValue,
                 param.CriticalMaxValue);
-
             if (warnings.Length > 0)
             {
               MessageBox.Show(string.Join("\n", warnings),
@@ -248,7 +231,6 @@ namespace AIStudio.ViewModels
             var createdParam = _gomeostas.GetAllParameters()
                 .First(p => p.Id == paramId);
             createdParam.StyleActivations = new Dictionary<int, List<int>>(param.StyleActivations);
-
             _gomeostas.UpdateParameter(createdParam);
           }
           else
@@ -257,7 +239,6 @@ namespace AIStudio.ViewModels
 
         // Сохраняем с обработкой результата
         var (success, error) = _gomeostas.SaveAgentParameters(false);
-
         if (success)
         {
           RefreshParameters();
@@ -298,16 +279,13 @@ namespace AIStudio.ViewModels
           // Удаляем из локальной коллекции
           if (SystemParameters.Contains(param))
             SystemParameters.Remove(param);
-
           var existingParameter = _gomeostas.GetAllParameters().ToList();
           bool parametrExistsInSystem = SystemParameters.Any(p => p.Id == param.Id);
-
           if (parametrExistsInSystem)
           {
             try
             {
               _gomeostas.RemoveParameter(param.Id);
-
               var (success, error) = _gomeostas.SaveAgentParameters();
               if (!success)
               {
@@ -357,14 +335,12 @@ namespace AIStudio.ViewModels
           "Подтверждение удаления",
           MessageBoxButton.YesNo,
           MessageBoxImage.Warning);
-
       if (result == MessageBoxResult.Yes)
       {
         try
         {
           // Удаляем все параметры из системы
           var allParam = _gomeostas.GetAllParameters().ToList();
-
           foreach (var param in allParam)
           {
             _gomeostas.RemoveParameter(param.Id);
@@ -372,7 +348,6 @@ namespace AIStudio.ViewModels
 
           // Очищаем коллекцию представления
           SystemParameters.Clear();
-
           var (success, error) = _gomeostas.SaveAgentParameters(false); // все удалено - не надо валидаций 
           if (success)
           {
@@ -405,7 +380,6 @@ namespace AIStudio.ViewModels
       public string LinkText { get; set; } = "Подробнее...";
       public string Url { get; set; } = "https://scorcher.ru/isida/iadaptive_agents_guide.php#ref_8";
       public ICommand OpenLinkCommand { get; }
-
       public DescriptionWithLink()
       {
         OpenLinkCommand = new RelayCommand(_ =>

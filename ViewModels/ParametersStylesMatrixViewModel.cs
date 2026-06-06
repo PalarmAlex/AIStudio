@@ -1,4 +1,4 @@
-﻿using AIStudio.Common;
+using AIStudio.Common;
 using AIStudio.Pages;
 using ISIDA.Common;
 using ISIDA.Gomeostas;
@@ -18,7 +18,6 @@ namespace AIStudio.ViewModels
   public class ParametersStylesMatrixViewModel : INotifyPropertyChanged
   {
     public event PropertyChangedEventHandler PropertyChanged;
-
     private readonly GomeostasSystem _gomeostas;
     private ObservableCollection<ParameterStyleCell> _matrixCells;
     private ObservableCollection<StyleFilterItem> _styleFilterItems;
@@ -29,7 +28,6 @@ namespace AIStudio.ViewModels
     private ObservableCollection<StyleGroupFilterItem> _styleGroupFilterItems;
     private StyleGroupFilterItem _selectedStyleGroupFilter;
     private StyleGroupFilterItem _lastSelectedGroupFilter;
-
     public ObservableCollection<ParameterStyleCell> MatrixCells
     {
       get => _matrixCells;
@@ -68,7 +66,6 @@ namespace AIStudio.ViewModels
             Count = value.Count
           };
         }
-
         OnPropertyChanged(nameof(SelectedStyleFilter));
         ApplyStyleFilter();
       }
@@ -96,14 +93,12 @@ namespace AIStudio.ViewModels
           string baseGroupKey = value.GroupKey.StartsWith("Всего дублеров")
               ? "Всего дублеров"
               : value.GroupKey.Split('(')[0].Trim();
-
           _lastSelectedGroupFilter = new StyleGroupFilterItem
           {
             GroupKey = baseGroupKey,
             StyleIds = new List<int>(value.StyleIds)
           };
         }
-
         OnPropertyChanged(nameof(SelectedStyleGroupFilter));
         ApplyStyleGroupFilter();
       }
@@ -111,19 +106,16 @@ namespace AIStudio.ViewModels
 
     public ICommand BackCommand { get; }
     public ICommand RefreshCommand { get; }
-
     public ParametersStylesMatrixViewModel(
         GomeostasSystem gomeostas,
         List<ParameterData> currentParameters = null)
     {
       _gomeostas = gomeostas ?? throw new ArgumentNullException(nameof(gomeostas));
       BackCommand = new RelayCommand(_ => NavigateBack(currentParameters));
-
       MatrixCells = new ObservableCollection<ParameterStyleCell>();
       StyleFilterItems = new ObservableCollection<StyleFilterItem>();
       _parameters = new List<ParameterData>();
       _styles = new List<BehaviorStyle>();
-
       LoadMatrixFromParameters(currentParameters);
     }
 
@@ -134,7 +126,6 @@ namespace AIStudio.ViewModels
 
     public int EditingEvolutionStage =>
         _gomeostas?.GetAgentState()?.EvolutionStage ?? 0;
-
     internal void LoadMatrixFromParameters(List<ParameterData> parameters)
     {
       try
@@ -145,10 +136,8 @@ namespace AIStudio.ViewModels
               MessageBoxButton.OK, MessageBoxImage.Information);
           return;
         }
-
         _parameters = parameters.OrderBy(p => p.Id).ToList();
         _styles = _gomeostas.GetAllBehaviorStyles().Values.OrderBy(s => s.Id).ToList();
-
         CreateMatrix();
         InitializeStyleFilter();
         InitializeStyleGroupFilter();
@@ -164,14 +153,12 @@ namespace AIStudio.ViewModels
     {
       // Для каждого стиля считаем количество назначений в матрице
       var styleCounts = new List<StyleFilterItem>();
-
       foreach (var style in _styles)
       {
         int styleCount = MatrixCells
             .Where(c => !c.IsHeader)
             .SelectMany(c => c.StyleIds)
             .Count(id => id == style.Id || id == -style.Id);
-
         styleCounts.Add(new StyleFilterItem
         {
           Id = style.Id,
@@ -186,7 +173,6 @@ namespace AIStudio.ViewModels
           .OrderBy(s => s.Count)
           .ThenBy(s => s.Name)
           .ToList();
-
       var filterItems = new ObservableCollection<StyleFilterItem>
     {
         new StyleFilterItem
@@ -203,9 +189,7 @@ namespace AIStudio.ViewModels
       {
         filterItems.Add(style);
       }
-
       InitializeStyleGroupFilter();
-
       Application.Current.Dispatcher.Invoke(() =>
       {
         StyleFilterItems = filterItems;
@@ -225,12 +209,10 @@ namespace AIStudio.ViewModels
     {
       var duplicateGroups = FindDuplicateStyleGroups();
       int groupCount = duplicateGroups.Count;
-
       var groupFilterItems = new ObservableCollection<StyleGroupFilterItem>
     {
         new StyleGroupFilterItem { GroupKey = $"Всего дублеров ({groupCount})", StyleIds = new List<int>() }
     };
-
       foreach (var group in duplicateGroups)
       {
         groupFilterItems.Add(new StyleGroupFilterItem
@@ -239,11 +221,9 @@ namespace AIStudio.ViewModels
           StyleIds = group.Value
         });
       }
-
       Application.Current.Dispatcher.Invoke(() =>
       {
         StyleGroupFilterItems = groupFilterItems;
-
         if (_lastSelectedGroupFilter != null)
         {
           var restoredFilter = groupFilterItems.FirstOrDefault(f =>
@@ -266,7 +246,6 @@ namespace AIStudio.ViewModels
         // Создаем ключ группы - отсортированный список ID стилей
         var sortedIds = cell.StyleIds.OrderBy(id => id).ToList();
         var groupKey = string.Join(",", sortedIds);
-
         if (!groupCounts.ContainsKey(groupKey))
         {
           groupCounts[groupKey] = 0;
@@ -283,17 +262,14 @@ namespace AIStudio.ViewModels
           .ToDictionary(
               g => $"Группа [{g.Key}] (встречается {groupCounts[g.Key]} раз)",
               g => g.Value);
-
       return duplicateGroups;
     }
 
     internal void ApplyStyleGroupFilter()
     {
       if (SelectedStyleGroupFilter == null || MatrixCells == null) return;
-
       string selectedGroupKey = SelectedStyleGroupFilter.GroupKey;
       var selectedStyleIds = SelectedStyleGroupFilter.StyleIds;
-
       foreach (var cell in MatrixCells)
       {
         if (cell.IsHeader)
@@ -301,7 +277,6 @@ namespace AIStudio.ViewModels
           cell.IsGroupHighlighted = false;
           continue;
         }
-
         if (selectedGroupKey.StartsWith("Всего дублеров"))
         {
           cell.IsGroupHighlighted = false;
@@ -311,11 +286,9 @@ namespace AIStudio.ViewModels
           // Сравниваем отсортированные списки стилей
           var cellSortedIds = cell.StyleIds.OrderBy(id => id).ToList();
           var filterSortedIds = selectedStyleIds.OrderBy(id => id).ToList();
-
           cell.IsGroupHighlighted = cellSortedIds.SequenceEqual(filterSortedIds);
         }
       }
-
       RefreshMatrixDisplay();
     }
 
@@ -343,7 +316,6 @@ namespace AIStudio.ViewModels
           "Сильное отклонение",
           "Критическое отклонение"
         };
-
         var zoneHeadersToolTip = new[]
         {
           "В зоне позитивных значений.\nИзменения в сторону ухудшения: временное состояние ПЛОХО",
@@ -354,7 +326,6 @@ namespace AIStudio.ViewModels
           "В зоне негативных значений.\nСильное отклонение от порога",
           "В зоне негативных значений.\nКритическое отклонение от порога"
         };
-
         int rows = _parameters.Count + 1; // +1 для заголовков
         int cols = zoneHeaders.Length + 1; // +1 для имен параметров
 
@@ -364,7 +335,6 @@ namespace AIStudio.ViewModels
           for (int col = 0; col < cols; col++)
           {
             var cell = new ParameterStyleCell();
-
             if (row == 0 && col == 0)
             {
               // Левый верхний угол
@@ -395,7 +365,6 @@ namespace AIStudio.ViewModels
               // Ячейки со стилями
               var param = _parameters[row - 1];
               int zoneId = col - 1; // 0-6 соответствуют зонам параметров
-
               var styleIds = GetStyleIdsForParameterZone(param, zoneId);
               cell.Content = string.Join(", ", styleIds);
               cell.StyleIds = styleIds;
@@ -404,11 +373,9 @@ namespace AIStudio.ViewModels
               cell.ToolTip = GenerateCellTooltip(param, zoneId, styleIds);
               cell.HasStyles = styleIds.Any();
             }
-
             cells.Add(cell);
           }
         }
-
         Application.Current.Dispatcher.Invoke(() =>
         {
           MatrixCells = cells;
@@ -465,12 +432,10 @@ namespace AIStudio.ViewModels
         "Сильное отклонение",
         "Критическое отклонение"
       };
-
       var tooltip = new System.Text.StringBuilder();
       tooltip.AppendLine($"Параметр: {param.Name}");
       tooltip.AppendLine($"Зона: {zoneNames[zoneId]}");
       tooltip.AppendLine();
-
       if (styleIds.Any())
       {
         tooltip.AppendLine("Активируемые стили:");
@@ -491,16 +456,13 @@ namespace AIStudio.ViewModels
       {
         tooltip.AppendLine("Стили не назначены");
       }
-
       return tooltip.ToString();
     }
 
     internal void ApplyStyleFilter()
     {
       if (SelectedStyleFilter == null || MatrixCells == null) return;
-
       int selectedStyleId = SelectedStyleFilter.Id;
-
       foreach (var cell in MatrixCells)
       {
         if (cell.IsHeader)
@@ -508,7 +470,6 @@ namespace AIStudio.ViewModels
           cell.IsHighlighted = false;
           continue;
         }
-
         if (selectedStyleId == 0)
           cell.IsHighlighted = false;
         else
@@ -516,7 +477,6 @@ namespace AIStudio.ViewModels
           cell.IsHighlighted = cell.StyleIds.Contains(selectedStyleId) ||
                               cell.StyleIds.Contains(-selectedStyleId);
       }
-
       RefreshMatrixDisplay();
     }
 
@@ -557,7 +517,6 @@ namespace AIStudio.ViewModels
       public int ParameterId { get; set; }
       public int ZoneId { get; set; }
       public string ToolTip { get; set; } = string.Empty;
-
       public Brush BackgroundColor
       {
         get
@@ -591,7 +550,6 @@ namespace AIStudio.ViewModels
       public string Name { get; set; } = string.Empty;
       public string Description { get; set; } = string.Empty;
       public int Count { get; set; } // Количество назначений в матрице
-
       public override string ToString()
       {
         if (Id == 0)
@@ -605,7 +563,6 @@ namespace AIStudio.ViewModels
     {
       public string GroupKey { get; set; } = string.Empty;
       public List<int> StyleIds { get; set; } = new List<int>();
-
       public override string ToString()
       {
         return GroupKey;

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
@@ -11,9 +11,7 @@ namespace AIStudio.ViewModels
   {
     private bool _isSelected;
     public string Name { get; set; }
-
     public string Description { get; set; }
-
     public bool IsSelected
     {
       get => _isSelected;
@@ -28,7 +26,6 @@ namespace AIStudio.ViewModels
     }
 
     public event PropertyChangedEventHandler PropertyChanged;
-
     protected virtual void OnPropertyChanged(string propertyName)
     {
       PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));

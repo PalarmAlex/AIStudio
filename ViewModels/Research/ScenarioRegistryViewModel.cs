@@ -34,16 +34,13 @@ namespace AIStudio.ViewModels.Research
     private readonly GomeostasSystem _gomeostas;
     private string _currentAgentName;
     private int _currentAgentStage;
-
     public string CurrentAgentTitle =>
         SymbiontPageTitleFormatter.Format("Сценарии оператора", _currentAgentName, _currentAgentStage);
-
     private ScenarioHeader _selected;
     private readonly List<ScenarioHeader> _registryAll = new List<ScenarioHeader>();
     private string _filterIdText = "";
     private string _filterTitleText = "";
     private string _filterStageText = "";
-
     public string FilterIdText
     {
       get => _filterIdText;
@@ -83,7 +80,6 @@ namespace AIStudio.ViewModels.Research
       _canStopScenarioSession = canStopScenarioSession ?? (() => _runner.IsRunning);
       _gomeostas = gomeostas;
       RefreshAgentTitleContext();
-
       Items = new ObservableCollection<ScenarioHeader>();
       RefreshCommand = new RelayCommand(_ => Refresh());
       NewCommand = new RelayCommand(_ => OpenEditor(null, true), _ => !_isScenarioRunSessionBusy());
@@ -94,18 +90,15 @@ namespace AIStudio.ViewModels.Research
       StopScenarioCommand = new RelayCommand(_ => _requestStopScenarioSession(), _ => _canStopScenarioSession());
       ApplyFiltersCommand = new RelayCommand(_ => ApplyFilters());
       ResetFiltersCommand = new RelayCommand(_ => ResetFilters());
-
       _runner.RunningStateChanged += () =>
       {
         Application.Current?.Dispatcher?.BeginInvoke(DispatcherPriority.Normal,
             new Action(() => CommandManager.InvalidateRequerySuggested()));
       };
-
       Refresh();
     }
 
     public ObservableCollection<ScenarioHeader> Items { get; }
-
     public ScenarioHeader Selected
     {
       get => _selected;
@@ -126,7 +119,6 @@ namespace AIStudio.ViewModels.Research
     public ICommand StopScenarioCommand { get; }
     public ICommand ApplyFiltersCommand { get; }
     public ICommand ResetFiltersCommand { get; }
-
     public void Refresh()
     {
       RefreshAgentTitleContext();
@@ -185,7 +177,6 @@ namespace AIStudio.ViewModels.Research
         MessageBox.Show("Дождитесь завершения сценария или подготовки к запуску.", "Сценарий", MessageBoxButton.OK, MessageBoxImage.Information);
         return;
       }
-
       ScenarioDocument doc;
       if (isNew)
       {
@@ -209,7 +200,6 @@ namespace AIStudio.ViewModels.Research
           return;
         }
       }
-
       OpenEditorWithViewModel(CreateEditorViewModel(doc));
     }
 
@@ -225,7 +215,6 @@ namespace AIStudio.ViewModels.Research
         _openEditorEmbedded(vm);
         return;
       }
-
       var w = new ScenarioEditorWindow { DataContext = vm };
       if (Application.Current?.MainWindow is Window owner)
         w.Owner = owner;
@@ -242,7 +231,6 @@ namespace AIStudio.ViewModels.Research
     {
       if (Selected == null)
         return;
-
       ScenarioDocument doc;
       try
       {
@@ -256,13 +244,11 @@ namespace AIStudio.ViewModels.Research
         MessageBox.Show("Не удалось загрузить сценарий: " + ex.Message, "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
         return;
       }
-
       if (doc.Lines == null || doc.Lines.Count == 0)
       {
         MessageBox.Show("В сценарии нет шагов для запуска.", "Сценарий", MessageBoxButton.OK, MessageBoxImage.Information);
         return;
       }
-
       if (_getLaunchPrecheckError != null)
       {
         var preErr = _getLaunchPrecheckError();
@@ -272,7 +258,6 @@ namespace AIStudio.ViewModels.Research
           return;
         }
       }
-
       var h = doc.Header;
       var sb = new StringBuilder();
       sb.Append("Будет запущен сценарий ID ").Append(h.Id.ToString(CultureInfo.InvariantCulture))
@@ -286,11 +271,9 @@ namespace AIStudio.ViewModels.Research
           .Append("; шагов: ").Append(doc.Lines.Count.ToString(CultureInfo.InvariantCulture))
           .AppendLine();
       sb.AppendLine().AppendLine("Продолжить?");
-
       var owner = Application.Current?.MainWindow as Window;
       if (!WideYesNoDialog.Show(owner, sb.ToString(), "Подтверждение запуска сценария"))
         return;
-
       _tryStartScenario(doc, AppConfig.ScenarioReportsFolderPath);
     }
 
@@ -303,7 +286,6 @@ namespace AIStudio.ViewModels.Research
         MessageBox.Show("Дождитесь завершения сценария или подготовки к запуску.", "Сценарий", MessageBoxButton.OK, MessageBoxImage.Information);
         return true;
       }
-
       var ids = new HashSet<int>(headers.Select(h => h.Id));
       string confirm = ids.Count == 1
           ? $"Удалить сценарий «{headers[0].Title}» (ID={headers[0].Id})?"
@@ -311,7 +293,6 @@ namespace AIStudio.ViewModels.Research
       if (MessageBox.Show(confirm, "Подтверждение",
             MessageBoxButton.YesNo, MessageBoxImage.Question) != MessageBoxResult.Yes)
         return true;
-
       foreach (var id in ids)
         ScenarioStorage.DeleteScenarioFiles(id);
       var reg = ScenarioStorage.LoadRegistry().Where(h => !ids.Contains(h.Id)).ToList();
@@ -332,14 +313,12 @@ namespace AIStudio.ViewModels.Research
         ScenarioPulseSchedule.EnsureSequentialStepIndices(doc.Lines);
         doc.Header.Id = ScenarioStorage.NextScenarioId();
         doc.Header.Title = (Selected.Title ?? "Сценарий") + "_copy1";
-
         var (okLines, errLines) = ScenarioStorage.SaveScenarioLines(doc);
         if (!okLines)
         {
           MessageBox.Show(errLines, "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
           return;
         }
-
         var reg = ScenarioStorage.LoadRegistry();
         reg.Add(new ScenarioHeader
         {
@@ -394,7 +373,6 @@ namespace AIStudio.ViewModels.Research
       {
         Header = new ScenarioHeader { Title = "Импорт" }
       };
-
       foreach (var line in lines)
       {
         var t = line?.Trim();
@@ -414,7 +392,6 @@ namespace AIStudio.ViewModels.Research
     }
 
     public event PropertyChangedEventHandler PropertyChanged;
-
     private void OnPropertyChanged([CallerMemberName] string name = null)
     {
       PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));

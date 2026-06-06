@@ -16,7 +16,6 @@ namespace AIStudio.Common.SymbiontEnv
     {
       if (trigger == null)
         return new EnvironmentTriggerRow();
-
       return new EnvironmentTriggerRow
       {
         Id = trigger.Id,
@@ -42,21 +41,18 @@ namespace AIStudio.Common.SymbiontEnv
     {
       if (row == null)
         throw new ArgumentNullException(nameof(row));
-
       var data = new EnvironmentTriggerData
       {
         Id = row.Id?.Trim() ?? string.Empty,
         DisplayName = row.DisplayName ?? string.Empty,
         InfluenceActionId = row.InfluenceActionId
       };
-
       if (row.DocumentKindPart)
         data.DocumentKinds.Add(EnvironmentDocumentKind.Part);
       if (row.DocumentKindAssembly)
         data.DocumentKinds.Add(EnvironmentDocumentKind.Assembly);
       if (row.DocumentKindDrawing)
         data.DocumentKinds.Add(EnvironmentDocumentKind.Drawing);
-
       if (row.DetectRules != null)
       {
         foreach (EnvironmentTriggerDetectRow rule in row.DetectRules)
@@ -70,7 +66,6 @@ namespace AIStudio.Common.SymbiontEnv
           });
         }
       }
-
       return data;
     }
 
@@ -78,7 +73,6 @@ namespace AIStudio.Common.SymbiontEnv
     {
       if (trigger.DocumentKinds == null || trigger.DocumentKinds.Count == 0)
         return kind == EnvironmentDocumentKind.Part || kind == EnvironmentDocumentKind.Assembly;
-
       return trigger.DocumentKinds.Contains(kind);
     }
 
@@ -94,13 +88,11 @@ namespace AIStudio.Common.SymbiontEnv
       var list = new List<int>();
       if (string.IsNullOrWhiteSpace(text))
         return list;
-
       foreach (string part in text.Split(new[] { ',', ';', ' ' }, StringSplitOptions.RemoveEmptyEntries))
       {
         if (int.TryParse(part.Trim(), out int id))
           list.Add(id);
       }
-
       return list;
     }
   }

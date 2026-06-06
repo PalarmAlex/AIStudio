@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Globalization;
 using System.Windows.Data;
 using System.Windows.Media;
@@ -16,7 +16,6 @@ namespace AIStudio.Converters
           StartPoint = new System.Windows.Point(0, 0.5),
           EndPoint = new System.Windows.Point(1, 0.5)
         };
-
         gradient.GradientStops.Add(new GradientStop(Colors.Yellow, normaWell / 100.0));
 
         // Для отрицательного Speed: Красный -> Желтый -> Зеленый
@@ -31,7 +30,6 @@ namespace AIStudio.Converters
           gradient.GradientStops.Add(new GradientStop(Colors.Green, 0));
           gradient.GradientStops.Add(new GradientStop(Colors.Red, 1));
         }
-
         return gradient;
       }
       return new LinearGradientBrush(Colors.Gray, Colors.Gray, 0);

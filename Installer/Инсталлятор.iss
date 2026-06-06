@@ -62,6 +62,12 @@ Source: "{#DocsDir}\BootData\*"; DestDir: "{commonappdata}\ISIDA\BootData"; Flag
 ; Исходник в репозитории: docs\AdapterPackageTemplates\ (содержимое demo синхронизировано с docs\adapter-package-example\demo\)
 Source: "{#DocsDir}\AdapterPackageTemplates\*"; DestDir: "{commonappdata}\ISIDA\AdapterPackageTemplates"; Flags: recursesubdirs createallsubdirs onlyifdoesntexist uninsneveruninstall
 
+; Стартовый SDK в каркасе demo (для «Создать пакет…» без готового host)
+Source: "{#BinDir}\isida.dll"; DestDir: "{commonappdata}\ISIDA\AdapterPackageTemplates\demo\runtime"; Flags: ignoreversion onlyifdoesntexist uninsneveruninstall
+Source: "{#BinDir}\isida.dll.config"; DestDir: "{commonappdata}\ISIDA\AdapterPackageTemplates\demo\runtime"; Flags: ignoreversion onlyifdoesntexist uninsneveruninstall
+Source: "{#SymbiontEnvContractDll}"; DestDir: "{commonappdata}\ISIDA\AdapterPackageTemplates\demo\runtime"; Flags: ignoreversion onlyifdoesntexist uninsneveruninstall
+Source: "{#BinDir}\Newtonsoft.Json.dll"; DestDir: "{commonappdata}\ISIDA\AdapterPackageTemplates\demo\runtime"; Flags: ignoreversion onlyifdoesntexist uninsneveruninstall
+
 [Icons]
 Name: "{group}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"
 Name: "{group}\{cm:UninstallProgram,{#MyAppName}}"; Filename: "{uninstallexe}"

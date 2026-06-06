@@ -12,7 +12,6 @@ namespace AIStudio.Windows
     private readonly bool _isCreate;
     private readonly string _originalId;
     private readonly AdapterManifest _initial;
-
     /// <summary>
     /// Создаёт окно редактора manifest.
     /// </summary>
@@ -25,13 +24,11 @@ namespace AIStudio.Windows
       _isCreate = isCreate;
       _originalId = originalId;
       _initial = initial;
-
       Title = isCreate ? "Создать пакет из demo" : "Свойства пакета адаптера";
       HintTextBlock.Text = isCreate
           ? "Будет создан каталог в " + AdapterPaths.AdaptersRootPath
             + " на основе каркаса demo. Заполните поля и нажмите «Применить»."
           : "Изменения сохраняются в manifest.json зарегистрированного пакета.";
-
       AdapterManifest source = initial ?? new AdapterManifest();
       IdTextBox.Text = isCreate ? string.Empty : (source.Id ?? string.Empty);
       DisplayNameTextBox.Text = source.DisplayName ?? string.Empty;
@@ -45,7 +42,6 @@ namespace AIStudio.Windows
 
     /// <summary>Результат после подтверждения.</summary>
     public AdapterManifest EditedManifest { get; private set; }
-
     private void Apply_Click(object sender, RoutedEventArgs e)
     {
       var manifest = new AdapterManifest
@@ -62,7 +58,6 @@ namespace AIStudio.Windows
         AdapterSettingsRelativePath = _isCreate ? null : _initial?.AdapterSettingsRelativePath,
         PackageRootPath = _isCreate ? null : _initial?.PackageRootPath
       };
-
       if (!AdapterPackageManager.TryValidateManifest(
               manifest,
               _isCreate,
@@ -72,7 +67,6 @@ namespace AIStudio.Windows
         ShowValidationError(error);
         return;
       }
-
       EditedManifest = manifest;
       DialogResult = true;
     }

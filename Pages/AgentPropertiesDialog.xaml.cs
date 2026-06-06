@@ -1,4 +1,4 @@
-﻿using AIStudio.ViewModels;
+using AIStudio.ViewModels;
 using AIStudio.Dialogs;
 using AIStudio.Common.Adapters;
 using AIStudio.Common.SymbiontEnv;
@@ -26,24 +26,20 @@ namespace AIStudio.Pages
     private List<int> _rewardResponseIds = new List<int>();
     private List<int> _punishmentResponseIds = new List<int>();
     private string _loadedAdapterId = string.Empty;
-
     private static readonly string[] DefaultBaseArchetype = { "Исследователь", "Социальный", "Агрессор", "Тревожный", "Игривый", "Ленивый", "Цикличный меланхолик" };
     private static readonly string[] DefaultKeyMotivation = { "Выживание", "Познание", "Безопасность", "Общение", "Доминирование", "Внутренний баланс" };
     private static readonly string[] DefaultTemperament = { "Низкая", "Средняя", "Высокая" };
     private static readonly string[] DefaultSociality = { "Одиночка", "Избирательный", "Стайный", "Зависимый" };
     private static readonly string[] DefaultSpecialTriggersTaboos = { "Резкая смена контекста", "Одиночество", "Принуждение" };
-
     public AgentPropertiesDialog(GomeostasSystem gomeostas, Action onClose = null)
     {
       InitializeComponent();
       _gomeostas = gomeostas ?? throw new ArgumentNullException(nameof(gomeostas));
       _onClose = onClose;
-
       LoadStages();
       LoadAdapters();
       LoadData();
       ApplyStageEditMode();
-
       GlobalTimer.PulsationStateChanged += OnPulsationStateChanged;
       Unloaded += AgentPropertiesDialog_Unloaded;
       BorderPromptParamsReference.SizeChanged += BorderPromptParamsReference_SizeChanged;
@@ -93,12 +89,10 @@ namespace AIStudio.Pages
       int stage = GetStage();
       bool pulsationRunning = GlobalTimer.IsPulsationRunning;
       bool canEdit = (stage == 0) && !pulsationRunning;
-
       TextBoxAgentName.IsReadOnly = !canEdit;
       TextBoxDescription.IsReadOnly = !canEdit;
       TextBoxAdditionalWishes.IsReadOnly = !canEdit;
       TextBoxPromptSuffix.IsReadOnly = !canEdit;
-
       ComboStage.IsEnabled = !pulsationRunning;
       ComboAdapter.IsEnabled = canEdit;
       ComboSpecialTriggers.IsEnabled = canEdit;
@@ -108,15 +102,12 @@ namespace AIStudio.Pages
       ComboSociality.IsEnabled = canEdit;
       ComboTemperamentActivity.IsEnabled = canEdit;
       ComboTemperamentReactivity.IsEnabled = canEdit;
-
       SetStressBehaviorButton.IsEnabled = canEdit;
       SetThreatResponseButton.IsEnabled = canEdit;
       SetRewardResponseButton.IsEnabled = canEdit;
       SetPunishmentResponseButton.IsEnabled = canEdit;
-
       ButtonCreatePrompt.IsEnabled = canEdit;
       ButtonSave.IsEnabled = canEdit;
-
       if (pulsationRunning)
       {
         StageWarningText.Text = "Редактирование недоступно во время пульсации.";
@@ -142,7 +133,6 @@ namespace AIStudio.Pages
           DisplayName = manifest.DisplayName + " (" + manifest.Id + ")"
         });
       }
-
       ComboAdapter.ItemsSource = items;
     }
 
@@ -154,7 +144,6 @@ namespace AIStudio.Pages
         ComboAdapter.SelectedItem = AdapterSelectionItem.None;
         return;
       }
-
       if (ComboAdapter.ItemsSource is IEnumerable<AdapterSelectionItem> items)
       {
         AdapterSelectionItem match = items.FirstOrDefault(i =>
@@ -163,7 +152,6 @@ namespace AIStudio.Pages
         ComboAdapter.SelectedItem = match ?? AdapterSelectionItem.None;
         return;
       }
-
       ComboAdapter.SelectedItem = AdapterSelectionItem.None;
     }
 
@@ -171,7 +159,6 @@ namespace AIStudio.Pages
     {
       if (ComboAdapter.SelectedItem is AdapterSelectionItem item)
         return string.IsNullOrWhiteSpace(item.Id) ? string.Empty : item.Id.Trim();
-
       return string.Empty;
     }
 
@@ -186,7 +173,6 @@ namespace AIStudio.Pages
     private async void ComboStage_SelectionChanged(object sender, SelectionChangedEventArgs e)
     {
       if (e.AddedItems.Count == 0) return;
-
       if (GlobalTimer.IsPulsationRunning)
       {
         var st = _gomeostas.GetAgentState();
@@ -194,14 +180,11 @@ namespace AIStudio.Pages
           _ = ComboStage.Dispatcher.InvokeAsync(() => { ComboStage.SelectedValue = st.EvolutionStage; });
         return;
       }
-
       int newStage = (e.AddedItems[0] as EvolutionStageItem)?.StageNumber ?? 0;
       var state = _gomeostas.GetAgentState();
       if (state == null) return;
       int currentStage = state.EvolutionStage;
-
       if (newStage == currentStage) return;
-
       if (newStage > currentStage + 1)
       {
         MessageBox.Show(
@@ -212,23 +195,19 @@ namespace AIStudio.Pages
         _ = ComboStage.Dispatcher.InvokeAsync(() => { ComboStage.SelectedValue = currentStage; });
         return;
       }
-
       bool isBackward = newStage < currentStage;
       string title = isBackward ? "ВНИМАНИЕ: Возврат на предыдущую стадию" : "Подтверждение перехода";
       string message = isBackward
         ? $"Возврат на стадию {newStage} очистит все данные последующих стадий. Продолжить?"
         : $"Перейти со стадии {currentStage} на стадию {newStage}?";
-
       var result = MessageBox.Show(message, title,
         MessageBoxButton.YesNo,
         isBackward ? MessageBoxImage.Warning : MessageBoxImage.Question);
-
       if (result != MessageBoxResult.Yes)
       {
         _ = ComboStage.Dispatcher.InvokeAsync(() => { ComboStage.SelectedValue = currentStage; });
         return;
       }
-
       if (isBackward)
       {
         ClearingOverlay.Visibility = Visibility.Visible;
@@ -300,11 +279,9 @@ namespace AIStudio.Pages
     {
       var state = _gomeostas.GetAgentState();
       if (state == null) return;
-
       TextBoxAgentName.Text = state.Name ?? string.Empty;
       TextBoxDescription.Text = state.Description ?? string.Empty;
       ComboStage.SelectedValue = state.EvolutionStage;
-
       LoadCombo(ComboBaseArchetype, state.BaseArchetype, state.BaseArchetypeValues, DefaultBaseArchetype);
       LoadCombo(ComboKeyMotivation, state.KeyMotivation, state.KeyMotivationValues, DefaultKeyMotivation);
       ComboTemperamentActivity.ItemsSource = new List<string>(DefaultTemperament);
@@ -317,14 +294,11 @@ namespace AIStudio.Pages
         ComboTemperamentReactivity.SelectedItem = state.TemperamentReactivity;
       else
         ComboTemperamentReactivity.SelectedIndex = 1;
-
       _stressBehaviorIds = state.StressBehaviorIds?.ToList() ?? new List<int>();
       _threatResponseIds = state.ThreatResponseIds?.ToList() ?? new List<int>();
       _rewardResponseIds = state.RewardResponseIds?.ToList() ?? new List<int>();
       _punishmentResponseIds = state.PunishmentResponseIds?.ToList() ?? new List<int>();
-
       UpdateActionsDisplay();
-
       LoadCombo(ComboSociality, state.Sociality, state.SocialityValues, DefaultSociality);
       LoadCombo(ComboSpecialTriggers, state.SpecialTriggers, state.SpecialTriggersValues, DefaultSpecialTriggersTaboos);
       LoadCombo(ComboSpecialTaboos, state.SpecialTaboos, state.SpecialTaboosValues, DefaultSpecialTriggersTaboos);
@@ -434,7 +408,6 @@ namespace AIStudio.Pages
     private void ButtonSave_Click(object sender, RoutedEventArgs e)
     {
       if (GlobalTimer.IsPulsationRunning) return;
-
       try
       {
         var name = (TextBoxAgentName.Text ?? string.Empty).Trim();
@@ -449,7 +422,6 @@ namespace AIStudio.Pages
         var specialTaboos = (ComboSpecialTaboos.Text ?? string.Empty).Trim();
         var additionalWishes = TextBoxAdditionalWishes?.Text ?? string.Empty;
         var promptSuffix = TextBoxPromptSuffix?.Text ?? string.Empty;
-
         _gomeostas.SetExtendedAgentProperties(
           name, description, stage,
           baseArchetype, GetComboValues(ComboBaseArchetype),
@@ -460,7 +432,6 @@ namespace AIStudio.Pages
           specialTriggers, GetComboValues(ComboSpecialTriggers),
           specialTaboos, GetComboValues(ComboSpecialTaboos),
           additionalWishes, promptSuffix);
-
         string selectedAdapterId = GetSelectedAdapterId();
         if (!string.IsNullOrEmpty(selectedAdapterId) && AdapterRegistry.TryGetById(selectedAdapterId) == null)
         {
@@ -471,20 +442,16 @@ namespace AIStudio.Pages
               MessageBoxImage.Warning);
           return;
         }
-
         bool adapterChanged = !string.Equals(
             _loadedAdapterId ?? string.Empty,
             selectedAdapterId ?? string.Empty,
             StringComparison.OrdinalIgnoreCase);
-
         _gomeostas.SetAdapterId(selectedAdapterId);
-
         var (success, error) = _gomeostas.SaveAgentProperties();
         if (success)
         {
           SymbiontProjectAdapterSettings.SyncAppConfigFromGomeostas(_gomeostas);
           _loadedAdapterId = selectedAdapterId;
-
           if (adapterChanged && !string.IsNullOrEmpty(selectedAdapterId))
           {
             if (MessageBox.Show(
@@ -502,7 +469,6 @@ namespace AIStudio.Pages
               }
             }
           }
-
           _gomeostas.UpdateAgentPropertiesPromptContent();
           MessageBox.Show("Свойства симбионта сохранены.", "Сохранение", MessageBoxButton.OK, MessageBoxImage.Information);
         }
@@ -518,7 +484,6 @@ namespace AIStudio.Pages
     private void ButtonCreatePrompt_Click(object sender, RoutedEventArgs e)
     {
       if (GlobalTimer.IsPulsationRunning) return;
-
       try
       {
         // Сначала сохраняем текущие значения формы в AgentProperties.dat и обновляем глобальную переменную
@@ -534,7 +499,6 @@ namespace AIStudio.Pages
         var specialTaboos = (ComboSpecialTaboos.Text ?? string.Empty).Trim();
         var additionalWishes = TextBoxAdditionalWishes?.Text ?? string.Empty;
         var promptSuffix = TextBoxPromptSuffix?.Text ?? string.Empty;
-
         _gomeostas.SetExtendedAgentProperties(
           name, description, stage,
           baseArchetype, GetComboValues(ComboBaseArchetype),
@@ -545,19 +509,15 @@ namespace AIStudio.Pages
           specialTriggers, GetComboValues(ComboSpecialTriggers),
           specialTaboos, GetComboValues(ComboSpecialTaboos),
           additionalWishes, promptSuffix);
-
         _gomeostas.SetAdapterId(GetSelectedAdapterId());
-
         var (saveSuccess, error) = _gomeostas.SaveAgentProperties();
         if (!saveSuccess)
         {
           MessageBox.Show($"Ошибка сохранения: {error}", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
           return;
         }
-
         SymbiontProjectAdapterSettings.SyncAppConfigFromGomeostas(_gomeostas);
         _gomeostas.UpdateAgentPropertiesPromptContent();
-
         var bootDataPath = System.IO.Path.Combine(
           Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData),
           "ISIDA", "BootData");

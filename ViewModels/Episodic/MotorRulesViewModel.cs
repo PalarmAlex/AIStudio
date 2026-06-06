@@ -44,7 +44,6 @@ namespace AIStudio.ViewModels.Episodic
   {
     public event PropertyChangedEventHandler PropertyChanged;
     private void OnPropertyChanged(string name) => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
-
     private readonly EpisodicMemorySystem _episodicMemory;
     private readonly EpisodicMemoryNodePresentation _presentation;
     private readonly EmotionsImageSystem _emotionsImage;
@@ -54,7 +53,6 @@ namespace AIStudio.ViewModels.Episodic
     private List<MotorEpisodicRuleRow> _allRows = new List<MotorEpisodicRuleRow>();
     private string _currentAgentName;
     private int _currentAgentStage;
-
     private ObservableCollection<MotorEpisodicRuleRow> _rules = new ObservableCollection<MotorEpisodicRuleRow>();
     public ObservableCollection<MotorEpisodicRuleRow> Rules
     {
@@ -71,10 +69,8 @@ namespace AIStudio.ViewModels.Episodic
 
     public string CurrentAgentTitle =>
         SymbiontPageTitleFormatter.Format("Моторные правила", _currentAgentName, _currentAgentStage);
-
     public bool IsMotorRulesAvailable =>
       _episodicMemory != null && EpisodicMemorySystem.IsInitialized && AppGlobalState.EvolutionStage >= 4;
-
     public List<KeyValuePair<int?, string>> BaseConditionFilterOptions { get; } = new List<KeyValuePair<int?, string>>
     {
       new KeyValuePair<int?, string>(null, "Все состояния"),
@@ -82,12 +78,9 @@ namespace AIStudio.ViewModels.Episodic
       new KeyValuePair<int?, string>(0, "Норма"),
       new KeyValuePair<int?, string>(1, "Хорошо")
     };
-
     public List<KeyValuePair<int?, string>> Level2FilterOptions { get; private set; } = new List<KeyValuePair<int?, string>>();
-
     public List<KeyValuePair<int, string>> PerceptionActionFilterOptions { get; } = new List<KeyValuePair<int, string>>();
     public List<KeyValuePair<int, string>> ActionFilterOptions { get; } = new List<KeyValuePair<int, string>>();
-
     public List<KeyValuePair<int?, string>> PageSizeOptions { get; } = new List<KeyValuePair<int?, string>>
     {
       new KeyValuePair<int?, string>(100, "100"),
@@ -97,13 +90,11 @@ namespace AIStudio.ViewModels.Episodic
       new KeyValuePair<int?, string>(10000, "10000"),
       new KeyValuePair<int?, string>(null, "Все")
     };
-
     private int? _selectedBaseConditionFilter;
     private int? _selectedLevel2Filter;
     private int _selectedPerceptionActionFilterId;
     private int _selectedActionFilterId;
     private int? _selectedPageSize = 100;
-
     public int? SelectedBaseConditionFilter
     {
       get => _selectedBaseConditionFilter;
@@ -141,34 +132,27 @@ namespace AIStudio.ViewModels.Episodic
 
     public string FilterPhrasePerceptionInput { get => _filterPhrasePerceptionInput; set { _filterPhrasePerceptionInput = value ?? string.Empty; OnPropertyChanged(nameof(FilterPhrasePerceptionInput)); } }
     public string FilterPhraseActionInput { get => _filterPhraseActionInput; set { _filterPhraseActionInput = value ?? string.Empty; OnPropertyChanged(nameof(FilterPhraseActionInput)); } }
-
     private string _filterPhrasePerceptionInput = string.Empty;
     private string _filterPhraseActionInput = string.Empty;
-
     public string FilterNodePid { get => _filterNodePid; set { _filterNodePid = value ?? string.Empty; OnPropertyChanged(nameof(FilterNodePid)); } }
     public string FilterEffect { get => _filterEffect; set { _filterEffect = value ?? string.Empty; OnPropertyChanged(nameof(FilterEffect)); } }
     public string FilterCount { get => _filterCount; set { _filterCount = value ?? string.Empty; OnPropertyChanged(nameof(FilterCount)); } }
     public string FilterStimulsEffect { get => _filterStimulsEffect; set { _filterStimulsEffect = value ?? string.Empty; OnPropertyChanged(nameof(FilterStimulsEffect)); } }
-
     private string _filterNodePid = string.Empty;
     private string _filterEffect = string.Empty;
     private string _filterCount = string.Empty;
     private string _filterStimulsEffect = string.Empty;
-
     private string _appliedNodePid = string.Empty;
     private string _appliedEffect = string.Empty;
     private string _appliedCount = string.Empty;
     private string _appliedStimulsEffect = string.Empty;
-
     private int? _appliedBaseCondition;
     private int? _appliedLevel2;
     private int _appliedPerceptionActionFilterId;
     private int _appliedActionFilterId;
     private string _appliedPhrasePerception = string.Empty;
     private string _appliedPhraseAction = string.Empty;
-
     private int _lastFilteredTotal;
-
     public string DisplayCountText
     {
       get
@@ -182,7 +166,6 @@ namespace AIStudio.ViewModels.Episodic
     public ICommand ApplyFiltersCommand { get; }
     public ICommand ClearFiltersCommand { get; }
     public ICommand RefreshCommand { get; }
-
     public MotorRulesViewModel(
       EpisodicMemorySystem episodicMemory,
       GomeostasSystem gomeostas,
@@ -205,24 +188,19 @@ namespace AIStudio.ViewModels.Episodic
         gomeostas, emotionsImage, influenceAction, adaptiveActions, problemTree,
         influenceActionsImages, actionsImages, sensorySystem,
         automatizmTree, verbalBrocaImages);
-
       LoadLevel2FilterOptions();
-
       PerceptionActionFilterOptions.Add(new KeyValuePair<int, string>(0, "Все действия"));
       var influenceActions = influenceAction?.GetAllInfluenceActions();
       if (influenceActions != null)
         foreach (var a in influenceActions)
           PerceptionActionFilterOptions.Add(new KeyValuePair<int, string>(a.Id, a.Name));
-
       ActionFilterOptions.Add(new KeyValuePair<int, string>(0, "Все действия"));
       var actionsList = adaptiveActions?.GetAllAdaptiveActions()?.ToList() ?? new List<AdaptiveActionsSystem.AdaptiveAction>();
       foreach (var a in actionsList)
         ActionFilterOptions.Add(new KeyValuePair<int, string>(a.Id, a.Name));
-
       ApplyFiltersCommand = new RelayCommand(_ => ApplyFilters());
       ClearFiltersCommand = new RelayCommand(_ => ClearFilters());
       RefreshCommand = new RelayCommand(_ => ReloadAll());
-
       ReloadAll();
     }
 
@@ -272,14 +250,12 @@ namespace AIStudio.ViewModels.Episodic
     {
       SymbiontPageTitleFormatter.ReadAgentContext(_gomeostas, out _currentAgentName, out _currentAgentStage);
       OnPropertyChanged(nameof(CurrentAgentTitle));
-
       _allRows.Clear();
       if (IsMotorRulesAvailable && _episodicMemory?.Tree != null)
       {
         foreach (var child in _episodicMemory.Tree.Children ?? Enumerable.Empty<EpisodicMemoryNode>())
           CollectRuleRows(child, _allRows);
       }
-
       HistoryFrames = EpisodicHistoryFramesLoader.Load(_episodicMemory, _presentation);
       RebuildFiltered();
     }
@@ -319,7 +295,6 @@ namespace AIStudio.ViewModels.Episodic
     {
       if (_appliedBaseCondition.HasValue && r.BaseId != _appliedBaseCondition.Value)
         return false;
-
       if (_appliedLevel2.HasValue)
       {
         if (r.EmotionId == 0) return false;
@@ -327,7 +302,6 @@ namespace AIStudio.ViewModels.Episodic
         if (img?.BaseStylesList == null || !img.BaseStylesList.Contains(_appliedLevel2.Value))
           return false;
       }
-
       if (_appliedPerceptionActionFilterId != 0)
       {
         if (r.TriggerId == 0) return false;
@@ -340,7 +314,6 @@ namespace AIStudio.ViewModels.Episodic
             return false;
         }
       }
-
       if (_appliedActionFilterId != 0)
       {
         if (r.ActionId == 0) return false;
@@ -348,7 +321,6 @@ namespace AIStudio.ViewModels.Episodic
         if (actImg?.ActIdList == null || !actImg.ActIdList.Contains(_appliedActionFilterId))
           return false;
       }
-
       if (!string.IsNullOrWhiteSpace(_appliedPhrasePerception))
       {
         if (r.TriggerId == 0) return false;
@@ -356,7 +328,6 @@ namespace AIStudio.ViewModels.Episodic
         if (string.IsNullOrEmpty(phrase) || phrase.IndexOf(_appliedPhrasePerception, StringComparison.OrdinalIgnoreCase) < 0)
           return false;
       }
-
       if (!string.IsNullOrWhiteSpace(_appliedPhraseAction))
       {
         if (r.ActionId == 0) return false;
@@ -364,7 +335,6 @@ namespace AIStudio.ViewModels.Episodic
         if (string.IsNullOrEmpty(phrase) || phrase.IndexOf(_appliedPhraseAction, StringComparison.OrdinalIgnoreCase) < 0)
           return false;
       }
-
       return true;
     }
 
@@ -379,15 +349,12 @@ namespace AIStudio.ViewModels.Episodic
         q = q.Where(r => MatchNum(r.Count, _appliedCount));
       if (!string.IsNullOrEmpty(_appliedStimulsEffect))
         q = q.Where(r => MatchNum(r.StimulsEffect, _appliedStimulsEffect));
-
       q = q.Where(RowMatchesAppliedFilters);
-
       var list = q.ToList();
       _lastFilteredTotal = list.Count;
       int cap = SelectedPageSize ?? int.MaxValue;
       if (cap < list.Count)
         list = list.Take(cap).ToList();
-
       Rules = new ObservableCollection<MotorEpisodicRuleRow>(list);
       OnPropertyChanged(nameof(DisplayCountText));
     }

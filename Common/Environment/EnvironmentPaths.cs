@@ -25,7 +25,6 @@ namespace AIStudio.Common.SymbiontEnv
       {
         raw = Environment.ExpandEnvironmentVariables(raw.Trim());
       }
-
       try
       {
         return Path.GetFullPath(raw);
@@ -38,10 +37,8 @@ namespace AIStudio.Common.SymbiontEnv
 
     /// <summary><c>BootData\Environment</c>.</summary>
     public static string EnvironmentFolder => Path.Combine(GetBootDataFolder(), "Environment");
-
     /// <summary>Файл рецептов среды.</summary>
     public static string RecipesFilePath => Path.Combine(EnvironmentFolder, "EnvironmentRecipes.yaml");
-
     /// <summary>Файл триггеров среды.</summary>
     public static string TriggersFilePath => Path.Combine(EnvironmentFolder, "EnvironmentTriggers.yaml");
   }

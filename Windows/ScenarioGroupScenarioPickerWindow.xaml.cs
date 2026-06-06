@@ -19,10 +19,8 @@ namespace AIStudio.Windows
 
     /// <summary>Идентификаторы выбранных сценариев в порядке выделения в списке (после нажатия «Выбрать» или двойного щелчка).</summary>
     public IReadOnlyList<int> SelectedScenarioIds { get; private set; }
-
     /// <summary>Что подсветить при открытии (уже выбрано в таблице группы), в порядке следования в списке.</summary>
     public IReadOnlyList<int> InitialSelectedScenarioIds { get; set; }
-
     private void PickerGrid_OnLoaded(object sender, RoutedEventArgs e)
     {
       if (InitialSelectedScenarioIds == null || InitialSelectedScenarioIds.Count == 0)
@@ -66,7 +64,6 @@ namespace AIStudio.Windows
         MessageBox.Show("Выделите в списке хотя бы один сценарий.", "Выбор", MessageBoxButton.OK, MessageBoxImage.Information);
         return;
       }
-
       SelectedScenarioIds = ids;
       DialogResult = true;
     }

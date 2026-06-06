@@ -27,9 +27,7 @@ namespace AIStudio.Common
     public int Id { get; set; }
     public string Title { get; set; } = "";
     public string Description { get; set; } = "";
-
     private const int DescriptionDisplayLimit = 100;
-
     public string DescriptionShort
     {
       get
@@ -42,7 +40,6 @@ namespace AIStudio.Common
             : flat.Substring(0, DescriptionDisplayLimit) + "…";
       }
     }
-
   }
 
   /// <summary>Один сценарий в составе группы: порядок, id и параметры предзапуска для группового прогона.</summary>
@@ -58,7 +55,6 @@ namespace AIStudio.Common
     private string _scenarioCellDisplay = "(не выбран)";
     private string _scenarioSelectionToolTip = "";
     private string _stageSelectionToolTip = "";
-
     public int SortOrderInGroup
     {
       get => _sortOrderInGroup;
@@ -159,7 +155,6 @@ namespace AIStudio.Common
     }
 
     public event PropertyChangedEventHandler PropertyChanged;
-
     private void OnPropertyChanged([CallerMemberName] string name = null) =>
         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
   }
@@ -168,18 +163,14 @@ namespace AIStudio.Common
   public sealed class ScenarioGroupDocument
   {
     public const int GroupLinesFileFormatVersion = 1;
-
     public int Id { get; set; }
     public string Title { get; set; } = "";
     public string Description { get; set; } = "";
     /// <summary>Коэфф. ускорения пульса для всех сценариев группы (как в одиночном сценарии).</summary>
     public int RunPulseTimingCoefficient { get; set; } = 1;
-
     /// <summary>Вид сводного отчёта после группового прогона.</summary>
     public ScenarioGroupReportFormat ReportFormat { get; set; } = ScenarioGroupReportFormat.Detailed;
-
     public List<ScenarioGroupMemberRow> Members { get; set; } = new List<ScenarioGroupMemberRow>();
-
     public ScenarioGroupDocument Clone()
     {
       return new ScenarioGroupDocument

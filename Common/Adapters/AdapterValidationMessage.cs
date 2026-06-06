@@ -14,7 +14,6 @@ namespace AIStudio.Common.Adapters
 
     /// <summary>Серьёзность.</summary>
     public AdapterValidationSeverity Severity { get; }
-
     /// <summary>Текст для UI.</summary>
     public string Text { get; }
   }

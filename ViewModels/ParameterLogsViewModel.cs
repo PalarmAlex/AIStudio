@@ -1,4 +1,4 @@
-﻿using AIStudio.Common;
+using AIStudio.Common;
 using AIStudio.Windows;
 using ISIDA.Common;
 using ISIDA.Gomeostas;
@@ -20,7 +20,6 @@ namespace AIStudio.ViewModels
   public class ParameterLogsViewModel : INotifyPropertyChanged, IDisposable
   {
     public event PropertyChangedEventHandler PropertyChanged;
-
     private readonly DispatcherTimer _refreshTimer;
     private bool _disposed = false;
     private readonly GomeostasSystem _gomeostas;
@@ -34,19 +33,14 @@ namespace AIStudio.ViewModels
     {
       LogFileSessionInfo.CurrentSessionKey
     };
-
     public ObservableCollection<ParameterLogGroup> ParameterLogGroups { get; } = new ObservableCollection<ParameterLogGroup>();
     public ICommand ClearLogsCommand { get; }
     public ICommand OpenSessionsPickerCommand { get; }
-
     public string SessionsButtonLabel => LogSessionsUiHelper.BuildButtonLabel(_selectedSessionKeys);
     public bool IsLiveOnlyView => LogSessionsUiHelper.UsesOnlyCurrentSession(_selectedSessionKeys);
-
     public string CurrentAgentTitle =>
         SymbiontPageTitleFormatter.Format("ЛОГИ ПАРАМЕТРОВ ГОМЕОСТАЗА", _currentAgentName, _currentAgentStage);
-
     private bool _suppressFileSessionLoad;
-
     public ParameterLogGroup SelectedRow
     {
       get => _selectedRow;
@@ -75,7 +69,6 @@ namespace AIStudio.ViewModels
       RefreshAgentTitleContext();
       ClearLogsCommand = new RelayCommand(_ => ClearLogs());
       OpenSessionsPickerCommand = new RelayCommand(_ => OpenSessionsPicker());
-
       _refreshTimer = new DispatcherTimer
       {
         Interval = TimeSpan.FromMilliseconds(500)
@@ -96,7 +89,6 @@ namespace AIStudio.ViewModels
     {
       if (!LogSessionPickerGate.EnsurePulsationStopped(Application.Current?.MainWindow))
         return;
-
       var dlg = new LogSessionPickerWindow(
           "Сессии логов параметров",
           "ВЫБОР СЕССИЙ — ПАРАМЕТРЫ",
@@ -106,14 +98,11 @@ namespace AIStudio.ViewModels
       {
         Owner = Application.Current?.MainWindow
       };
-
       if (dlg.ShowDialog() != true)
         return;
-
       _selectedSessionKeys = dlg.ViewModel.GetSelectedKeys();
       if (_selectedSessionKeys.Count == 0)
         _selectedSessionKeys.Add(LogFileSessionInfo.CurrentSessionKey);
-
       _suppressFileSessionLoad = false;
       OnPropertyChanged(nameof(SessionsButtonLabel));
       OnPropertyChanged(nameof(IsLiveOnlyView));
@@ -124,19 +113,15 @@ namespace AIStudio.ViewModels
     private List<ParameterLogEntry> CollectEntriesForDisplay()
     {
       var list = new List<ParameterLogEntry>();
-
       if (_selectedSessionKeys.Contains(LogFileSessionInfo.CurrentSessionKey))
         list.AddRange(MemoryLogManager.Instance.ParameterLogEntries);
-
       var fileIndices = _selectedSessionKeys
           .Where(k => k != LogFileSessionInfo.CurrentSessionKey)
           .Select(k => int.TryParse(k, out int ix) ? ix : -1)
           .Where(ix => ix >= 0)
           .ToList();
-
       if (!_suppressFileSessionLoad && fileIndices.Count > 0)
         list.AddRange(ParameterLogFileSessions.LoadMergedSessions(fileIndices));
-
       return list;
     }
 
@@ -149,7 +134,6 @@ namespace AIStudio.ViewModels
     private void RefreshDisplay()
     {
       if (_disposed || _dataGrid == null) return;
-
       var currentEntries = CollectEntriesForDisplay();
       if (!currentEntries.Any())
       {
@@ -162,7 +146,6 @@ namespace AIStudio.ViewModels
           OnPropertyChanged(nameof(SessionsButtonLabel));
         return;
       }
-
       var currentParamIds = currentEntries
           .Select(e => e.ParamId)
           .Distinct()
@@ -185,12 +168,10 @@ namespace AIStudio.ViewModels
           .OrderByDescending(g => g.Key) // Сначала новые пульсы
           .Select(g => CreateParameterLogGroup(g.Key, g.ToList(), currentParamIds))
           .ToList();
-
       Application.Current.Dispatcher.Invoke(() =>
       {
         // Сохраняем выделение
         ParameterLogGroup rowToSelect = null;
-
         ParameterLogGroups.Clear();
         foreach (var group in groupedData)
         {
@@ -209,7 +190,6 @@ namespace AIStudio.ViewModels
           _dataGrid.SelectedItem = rowToSelect;
           SelectedRow = rowToSelect;
         }
-
         if (IsLiveOnlyView)
           OnPropertyChanged(nameof(SessionsButtonLabel));
       });
@@ -218,12 +198,10 @@ namespace AIStudio.ViewModels
     private void UpdateDataGridColumns(List<int> paramIds, IList<ParameterLogEntry> sourceEntries)
     {
       if (_dataGrid == null) return;
-
       Application.Current.Dispatcher.Invoke(() =>
       {
         // Сохраняем текущее выделение
         var selectedItem = _dataGrid.SelectedItem;
-
         _dataGrid.Columns.Clear();
 
         // Добавляем фиксированные колонки ПЕРВЫМИ
@@ -237,7 +215,6 @@ namespace AIStudio.ViewModels
           MinWidth = 80
         };
         _dataGrid.Columns.Add(timeColumn);
-
         var pulseColumn = new DataGridTextColumn
         {
           Header = "Пульс",
@@ -304,13 +281,11 @@ namespace AIStudio.ViewModels
       style.Setters.Add(new Setter(Control.PaddingProperty, new Thickness(4)));
       style.Setters.Add(new Setter(TextBlock.TextWrappingProperty, TextWrapping.Wrap));
       style.Setters.Add(new Setter(Control.VerticalContentAlignmentProperty, VerticalAlignment.Center));
-
       var trigger = new Trigger { Property = DataGridCell.IsSelectedProperty, Value = true };
       trigger.Setters.Add(new Setter(Control.BackgroundProperty, new SolidColorBrush(Color.FromArgb(64, 0, 255, 0))));
       trigger.Setters.Add(new Setter(Control.ForegroundProperty, Brushes.White));
       trigger.Setters.Add(new Setter(Control.BorderBrushProperty, new SolidColorBrush(Color.FromArgb(128, 0, 255, 0))));
       style.Triggers.Add(trigger);
-
       return style;
     }
 
@@ -351,7 +326,6 @@ namespace AIStudio.ViewModels
       selectionTrigger.Setters.Add(new Setter(Control.ForegroundProperty, Brushes.White));
       selectionTrigger.Setters.Add(new Setter(Control.BorderBrushProperty, new SolidColorBrush(Color.FromArgb(255, 0, 255, 0))));
       style.Triggers.Add(selectionTrigger);
-
       return style;
     }
 
@@ -386,10 +360,8 @@ namespace AIStudio.ViewModels
     private (string name, int weight) GetParameterNameAndWeight(int paramId, IList<ParameterLogEntry> sourceEntries)
     {
       var lastEntry = sourceEntries?.LastOrDefault(e => e.ParamId == paramId);
-
       if (lastEntry != null)
         return (lastEntry.ParamName ?? $"Параметр {paramId}", lastEntry.Weight);
-
       return ($"Параметр {paramId}", 0);
     }
 
@@ -419,7 +391,6 @@ namespace AIStudio.ViewModels
           group.ParameterStates[paramId] = 0; // Прозрачный
         }
       }
-
       return group;
     }
     private (string info, int stateCode) FormatParameterInfo(ParameterLogEntry entry)
@@ -428,9 +399,7 @@ namespace AIStudio.ViewModels
                    $"Срочн: {entry.UrgencyFunction:F3}\n" +
                    $"Сост: {entry.ParameterState}\n" +
                    $"Зона: {entry.ActivationZone}";
-
       int stateCode = 0; // 0 = прозрачный (норма)
-
       if (entry.ParameterState != null)
       {
         string state = entry.ParameterState.ToLower();
@@ -439,23 +408,19 @@ namespace AIStudio.ViewModels
         else if (state.Contains("хорошо") || state.Contains("good"))
           stateCode = 1;  // Зеленый
       }
-
       return (info, stateCode);
     }
 
     private void ClearLogs()
     {
       if (_disposed) return;
-
       _suppressFileSessionLoad = _selectedSessionKeys.Any(k => k != LogFileSessionInfo.CurrentSessionKey);
-
       Application.Current.Dispatcher.Invoke(() =>
       {
         ParameterLogGroups.Clear();
         _knownParamIds.Clear();
         SelectedRow = null;
       });
-
       MemoryLogManager.Instance.ClearParameterLogs();
       OnPropertyChanged(nameof(SessionsButtonLabel));
     }
@@ -485,17 +450,13 @@ namespace AIStudio.ViewModels
       public int Pulse { get; set; }
       public Dictionary<int, string> Parameters { get; set; } = new Dictionary<int, string>();
       public Dictionary<int, int> ParameterStates { get; set; } = new Dictionary<int, int>();
-
       public string DisplayTime => Timestamp.ToString("HH:mm:ss");
       public string DisplayPulse => Pulse.ToString();
       public string this[int paramId] => Parameters.ContainsKey(paramId) ? Parameters[paramId] : "—";
-
       public int GetStateCode(int paramId) => ParameterStates.ContainsKey(paramId) ? ParameterStates[paramId] : 0;
-
       public Brush GetBackground(int paramId)
       {
         int stateCode = GetStateCode(paramId);
-        
         if (stateCode == -1)
           return new SolidColorBrush(Color.FromArgb(64, 255, 0, 0));   // Красный для плохо
         else if (stateCode == 1)
@@ -504,6 +465,5 @@ namespace AIStudio.ViewModels
           return Brushes.Transparent;
       }
     }
-
   }
 }

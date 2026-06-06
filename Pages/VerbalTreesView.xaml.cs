@@ -75,9 +75,7 @@ namespace AIStudio.Pages
       return null;
     }
   }
-
   #region Конвертеры
-
   public class BoolToExpandedIconConverter : IValueConverter
   {
     public object Convert(object value, Type targetType, object parameter, System.Globalization.CultureInfo culture)
@@ -107,12 +105,10 @@ namespace AIStudio.Pages
   public class SearchHighlightMultiConverter : IMultiValueConverter
   {
     public Brush HighlightBrush { get; set; } = Brushes.Yellow;
-
     public object Convert(object[] values, Type targetType, object parameter, System.Globalization.CultureInfo culture)
     {
       if (values.Length != 2 || !(values[0] is string text) || !(values[1] is string searchText))
         return Brushes.Transparent;
-
       return !string.IsNullOrEmpty(searchText) &&
              text.IndexOf(searchText, StringComparison.OrdinalIgnoreCase) >= 0
           ? HighlightBrush
@@ -124,6 +120,5 @@ namespace AIStudio.Pages
       throw new NotImplementedException();
     }
   }
-
   #endregion
 }

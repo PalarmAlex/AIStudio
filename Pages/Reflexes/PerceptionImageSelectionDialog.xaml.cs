@@ -1,4 +1,4 @@
-﻿using ISIDA.Actions;
+using ISIDA.Actions;
 using ISIDA.Reflexes;
 using ISIDA.Sensors;
 using System;
@@ -15,7 +15,6 @@ namespace AIStudio.Dialogs
     public int SelectedPerceptionImageId { get; private set; }
     private List<PerceptionImageItem> _perceptionImages;
     private readonly PerceptionImagesSystem _perceptionImagesSystem;
-
     public PerceptionImageSelectionDialog(int initiallySelectedId, PerceptionImagesSystem perceptionImagesSystem)
     {
       InitializeComponent();
@@ -27,13 +26,10 @@ namespace AIStudio.Dialogs
     private void LoadPerceptionImages()
     {
       _perceptionImages = new List<PerceptionImageItem>();
-
       try
       {
         if (_perceptionImagesSystem == null) return;
-
         var images = _perceptionImagesSystem.GetAllPerceptionImagesList();
-
         foreach (var image in images.OrderBy(img => img.Id))
         {
           _perceptionImages.Add(new PerceptionImageItem
@@ -46,7 +42,6 @@ namespace AIStudio.Dialogs
             IsSelected = image.Id == SelectedPerceptionImageId
           });
         }
-
         PerceptionImagesList.ItemsSource = _perceptionImages;
 
         // Выбираем изначально выбранный элемент
@@ -72,7 +67,6 @@ namespace AIStudio.Dialogs
     {
       if (image.InfluenceActionsList == null || !image.InfluenceActionsList.Any())
         return "Нет воздействий";
-
       if (InfluenceActionSystem.IsInitialized)
       {
         var influenceSystem = InfluenceActionSystem.Instance;
@@ -90,12 +84,10 @@ namespace AIStudio.Dialogs
     {
       if (image.PhraseIdList == null || !image.PhraseIdList.Any())
         return "Нет фраз";
-
       if (SensorySystem.IsInitialized)
       {
         var sensorySystem = SensorySystem.Instance;
         var names = new List<string>();
-
         foreach (var phraseId in image.PhraseIdList)
         {
           string phraseText = sensorySystem.VerbalChannel.GetPhraseFromPhraseId(phraseId);
@@ -104,7 +96,6 @@ namespace AIStudio.Dialogs
           else
             names.Add($"[ID:{phraseId}]");
         }
-
         return string.Join(", ", names);
       }
       return "Нет фраз";
@@ -186,7 +177,6 @@ namespace AIStudio.Dialogs
         }
         PerceptionImagesList.Items.Refresh();
         SelectedPerceptionImageId = item.Id;
-
         DialogResult = true;
         Close();
       }

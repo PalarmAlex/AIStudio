@@ -15,7 +15,6 @@ namespace AIStudio.Pages
       typeof(LiveLogsViewModel),
       typeof(LiveLogsToolTipScope),
       new PropertyMetadata(null));
-
     public LiveLogsViewModel LogsViewModel
     {
       get => (LiveLogsViewModel)GetValue(LogsViewModelProperty);

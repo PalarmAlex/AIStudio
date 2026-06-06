@@ -20,10 +20,8 @@ namespace AIStudio.Converters
       if (value == null) return "Нет данных";
       int imageId = System.Convert.ToInt32(value);
       if (imageId <= 0) return "—";
-
       bool isTrigger = parameter is string p && string.Equals(p, "Trigger", StringComparison.OrdinalIgnoreCase);
       var sb = new StringBuilder();
-
       var actImg = ActionsImagesSystem.IsInitialized ? ActionsImagesSystem.Instance.GetActionsImage(imageId) : null;
       if (actImg != null)
       {
@@ -47,7 +45,6 @@ namespace AIStudio.Converters
           actionText = names.Any() ? string.Join(", ", names) : string.Join(", ", actImg.ActIdList);
         }
         sb.AppendLine($"Действие: {actionText}");
-
         string phraseText = "Нет";
         if (actImg.PhraseIdList != null && actImg.PhraseIdList.Count > 0 && SensorySystem.IsInitialized)
         {
@@ -59,16 +56,13 @@ namespace AIStudio.Converters
           phraseText = phrases.Any() ? string.Join(" ", phrases) : "Нет";
         }
         sb.AppendLine($"Фраза: {phraseText}");
-
         string tone = ActionsImagesSystem.GetToneText(actImg.ToneId);
         string mood = ActionsImagesSystem.GetMoodText(actImg.MoodId);
         sb.AppendLine(string.IsNullOrEmpty(tone) && string.IsNullOrEmpty(mood)
             ? "Тон/Настроение: —"
             : $"Тон/Настроение: {tone ?? "—"} - {mood ?? "—"}");
-
         return sb.ToString().TrimEnd();
       }
-
       if (isTrigger && InfluenceActionsImagesSystem.IsInitialized)
       {
         var infImg = InfluenceActionsImagesSystem.Instance.GetInfluenceActionsImage(imageId);
@@ -85,7 +79,6 @@ namespace AIStudio.Converters
           return sb.ToString().TrimEnd();
         }
       }
-
       return $"ID образа: {imageId}";
     }
 

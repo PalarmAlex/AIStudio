@@ -17,7 +17,6 @@ namespace AIStudio.Common
     public static readonly string DefaultProjectsParentPath = Path.Combine(
         Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData),
         "ISIDA", "Projects");
-
     /// <summary>
     /// Гарантирует существование <see cref="DefaultProjectsParentPath"/> и возвращает его.
     /// </summary>
@@ -34,11 +33,9 @@ namespace AIStudio.Common
     {
       if (string.IsNullOrWhiteSpace(folderPath))
         return folderPath;
-
       string full = Path.GetFullPath(folderPath.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar));
       if (Directory.Exists(full))
         return full + Path.DirectorySeparatorChar;
-
       return full + Path.DirectorySeparatorChar;
     }
 
@@ -59,25 +56,19 @@ namespace AIStudio.Common
     {
       projectRoot = null;
       errorMessage = null;
-
       if (string.IsNullOrWhiteSpace(dialogSelectedPath))
       {
         errorMessage = "Не указан каталог проекта.";
         return false;
       }
-
       try
       {
         string path = dialogSelectedPath.Trim().TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
-
         if (!Path.IsPathRooted(path))
           path = Path.Combine(DefaultProjectsParentPath, path);
-
         projectRoot = Path.GetFullPath(path);
-
         if (!Directory.Exists(projectRoot))
           Directory.CreateDirectory(projectRoot);
-
         return true;
       }
       catch (Exception ex)
@@ -109,19 +100,15 @@ namespace AIStudio.Common
         errorMessage = "Не указан каталог проекта.";
         return false;
       }
-
       try
       {
         string rootFull = Path.GetFullPath(projectRoot.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar));
-
         if (ProjectAlreadyContainsSeedData(rootFull))
         {
           errorMessage = "В выбранном каталоге уже есть файлы данных проекта (например VitalParameters.dat). Выберите пустой каталог или другой путь.";
           return false;
         }
-
         string trimmedAdapterId = string.IsNullOrWhiteSpace(adapterId) ? null : adapterId.Trim();
-
         EnsureProjectDirectoryStructure(rootFull);
         WriteMinimalSeedData(rootFull, trimmedAdapterId);
         WriteProjectSettingsXml(rootFull);
@@ -141,7 +128,6 @@ namespace AIStudio.Common
     {
       string rootFull = Path.GetFullPath(projectRoot.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar));
       Directory.CreateDirectory(rootFull);
-
       ProjectDirectoryTemplateNode templateRoot = SettingsValidator.GetProjectDirectoryTemplateRoot();
       for (int i = 0; i < templateRoot.Children.Count; i++)
         EnsureProjectDirectoryNode(rootFull, templateRoot.Children[i], null);
@@ -151,17 +137,13 @@ namespace AIStudio.Common
     {
       if (TemplateNodeLooksLikeFile(node.Name))
         return;
-
       string directoryPath = string.IsNullOrEmpty(relativePath)
           ? Path.Combine(projectRootFull, node.Name)
           : Path.Combine(projectRootFull, relativePath, node.Name);
-
       Directory.CreateDirectory(directoryPath);
-
       string childRelative = string.IsNullOrEmpty(relativePath)
           ? node.Name
           : Path.Combine(relativePath, node.Name);
-
       for (int i = 0; i < node.Children.Count; i++)
         EnsureProjectDirectoryNode(projectRootFull, node.Children[i], childRelative);
     }
@@ -170,7 +152,6 @@ namespace AIStudio.Common
     {
       if (string.IsNullOrEmpty(name))
         return true;
-
       int dot = name.LastIndexOf('.');
       return dot > 0 && dot < name.Length - 1;
     }
@@ -184,7 +165,6 @@ namespace AIStudio.Common
           return true;
         if (File.Exists(Path.Combine(gomeostasPath, "BehaviorStyles.dat")))
           return true;
-
         string actionsPath = SettingsValidator.GetExpectedFolderPathForSetting(projectRootFull, "DataActionsFolderPath");
         if (File.Exists(Path.Combine(actionsPath, "AdaptiveActions.dat")))
           return true;
@@ -195,7 +175,6 @@ namespace AIStudio.Common
       {
         // ignore — считаем, что конфликта нет
       }
-
       return false;
     }
 
@@ -203,24 +182,19 @@ namespace AIStudio.Common
     {
       string gomeostasPath = SettingsValidator.GetExpectedFolderPathForSetting(projectRootFull, "DataGomeostasFolderPath");
       string actionsPath = SettingsValidator.GetExpectedFolderPathForSetting(projectRootFull, "DataActionsFolderPath");
-
       string sensorsPath = SettingsValidator.GetExpectedFolderPathForSetting(projectRootFull, "SensorsFolderPath");
-
       WriteFileIfMissing(Path.Combine(gomeostasPath, "VitalParameters.dat"), MinimalVitalParametersContent);
       WriteFileIfMissing(Path.Combine(gomeostasPath, "BehaviorStyles.dat"), MinimalBehaviorStylesContent);
       WriteFileIfMissing(Path.Combine(actionsPath, "AdaptiveActions.dat"), MinimalAdaptiveActionsContent);
       WriteFileIfMissing(Path.Combine(actionsPath, "InfluenceActions.dat"), MinimalInfluenceActionsContent);
       WriteFileIfMissing(Path.Combine(sensorsPath, "DefaultVerbalPrimaries.tmp"), MinimalDefaultVerbalPrimariesContent);
-
       string bootDataPath = SettingsValidator.GetExpectedFolderPathForSetting(projectRootFull, "BootDataFolderPath");
       if (!string.IsNullOrWhiteSpace(adapterId))
       {
         if (!AdapterBootDataSeeder.TrySeedFromInstalledAdapter(adapterId, bootDataPath, out string seedError))
           throw new InvalidOperationException(seedError);
       }
-
       EnvironmentCatalogStorage.EnsureCatalogAt(bootDataPath);
-
       string agentPropertiesPath = Path.Combine(gomeostasPath, "AgentProperties.dat");
       AgentPropertiesAdapterBinding.EnsureMinimalAgentProperties(agentPropertiesPath, adapterId);
     }
@@ -229,11 +203,9 @@ namespace AIStudio.Common
     {
       if (File.Exists(path))
         return;
-
       string dir = Path.GetDirectoryName(path);
       if (!string.IsNullOrEmpty(dir))
         Directory.CreateDirectory(dir);
-
       File.WriteAllText(path, content, Encoding.UTF8);
     }
 
@@ -241,11 +213,9 @@ namespace AIStudio.Common
     {
       string settingsDir = SettingsValidator.GetExpectedFolderPathForSetting(projectRootFull, "SettingsPath");
       Directory.CreateDirectory(settingsDir);
-
       string settingsFile = Path.Combine(settingsDir, AppConfig.StudioSettingsFileName);
       if (File.Exists(settingsFile))
         return;
-
       var appSettingsChildren = new List<XElement>();
       appSettingsChildren.Add(new XElement("DataGomeostasFolderPath",
           SettingsValidator.GetExpectedFolderPathForSetting(projectRootFull, "DataGomeostasFolderPath")));
@@ -281,11 +251,9 @@ namespace AIStudio.Common
       appSettingsChildren.Add(new XElement("LogEnabled", false));
       appSettingsChildren.Add(new XElement("DefaultFormatLog", "All"));
       appSettingsChildren.Add(new XElement("HomeostasisPulseSpeedDriftEnabled", true));
-
       var doc = new XDocument(
           new XElement("Configuration",
               new XElement("AppSettings", appSettingsChildren)));
-
       doc.Save(settingsFile);
     }
 
@@ -295,7 +263,6 @@ namespace AIStudio.Common
 1|Голод|Дефицит ориентированный параметр|50|50|70|-1|0:1,2;1:1;2:2|True|10|100
 2|Стресс|Избыток ориентированный параметр|0|50|50|1|0:2,3;1:3;2:1|True|0|90
 ";
-
     private const string MinimalBehaviorStylesContent =
 @"# Формат: ID|Имя|Описание|Антагонисты
 # Антагонисты: id1,id2,id3
@@ -303,7 +270,6 @@ namespace AIStudio.Common
 2|Ступор|Непонимание — бездействие|1,3
 3|Расслабление|Спокойное состояние|1,2
 ";
-
     private const string MinimalAdaptiveActionsContent =
 @"# Формат: ID|Имя|Описание|Интенсивность|Антагонисты|Target параметры|InfluenceActionId
 # Антагонисты: id1,id2,id3
@@ -313,7 +279,6 @@ namespace AIStudio.Common
 2|Исследует|Изучение нового|5|1,3|1|0
 3|Спит|Пассивный отдых|5|1,2|2|0
 ";
-
     private const string MinimalInfluenceActionsContent =
 @"# Формат: ID|Имя|Описание|Воздействие|Антагонисты|EnvironmentMetricProbeKey
 # Воздействие: paramId1:effect1;paramId2:effect2
@@ -322,7 +287,6 @@ namespace AIStudio.Common
 2|Поощрить|Положительное подкрепление|1:-3;2:-2|1,3|
 3|Напугать|Повышение стресса|2:3|1,2|
 ";
-
     private const string MinimalDefaultVerbalPrimariesContent =
 @"# Формат: Символ|#|ID
  |#|0

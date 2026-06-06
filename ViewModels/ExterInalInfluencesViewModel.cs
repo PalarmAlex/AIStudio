@@ -1,4 +1,4 @@
-﻿using AIStudio.Common;
+using AIStudio.Common;
 using ISIDA.Actions;
 using ISIDA.Common;
 using ISIDA.Gomeostas;
@@ -30,32 +30,25 @@ namespace AIStudio.ViewModels
     private string _currentAgentName;
     private int _currentAgentStage;
     public bool IsStageZero => _currentAgentStage == 0;
-
     public ObservableCollection<InfluenceActionSystem.GomeostasisInfluenceAction> InfluenceActions { get; } = new ObservableCollection<InfluenceActionSystem.GomeostasisInfluenceAction>();
-
     public string CurrentAgentTitle =>
         SymbiontPageTitleFormatter.Format("Воздействия оператора и среды на", _currentAgentName, _currentAgentStage);
-
     public ICommand SaveCommand { get; }
     public ICommand RemoveActionCommand { get; }
     public ICommand RemoveAllCommand { get; }
-
     public ExterInalInfluencesViewModel(
         GomeostasSystem gomeostas,
         InfluenceActionSystem influence)
     {
       _gomeostas = gomeostas;
       _influenceActionSystem = influence ?? throw new ArgumentNullException(nameof(influence));
-
       SaveCommand = new RelayCommand(SaveData);
       RemoveActionCommand = new RelayCommand(RemoveSelectedInfluence);
       RemoveAllCommand = new RelayCommand(RemoveAllInfluences);
       GlobalTimer.PulsationStateChanged += OnPulsationStateChanged;
       LoadAgentData();
     }
-
     #region Блокировка страницы в зависимости от стажа
-
     public bool IsEditingEnabled => IsStageZero && !GlobalTimer.IsPulsationRunning;
     public bool IsReadOnlyMode => !IsEditingEnabled;
     public string PulseWarningMessage =>
@@ -67,9 +60,7 @@ namespace AIStudio.ViewModels
     public Brush WarningMessageColor =>
         !IsStageZero ? Brushes.Red :
         Brushes.Gray;
-
     #endregion
-
     public List<ParameterData> GetAllParameters()
     {
       return _gomeostas.GetAllParameters().ToList();
@@ -91,9 +82,7 @@ namespace AIStudio.ViewModels
       var agentInfo = _gomeostas.GetAgentState();
       _currentAgentStage = _gomeostas?.GetAgentState()?.EvolutionStage ?? 0;
       _currentAgentName = agentInfo.Name;
-
       InfluenceActions.Clear();
-
       foreach (var action in _influenceActionSystem.GetAllInfluenceActions().OrderBy(a => a.Id))
       {
         InfluenceActions.Add(new InfluenceActionSystem.GomeostasisInfluenceAction
@@ -106,7 +95,6 @@ namespace AIStudio.ViewModels
           EnvironmentMetricProbeKey = action.EnvironmentMetricProbeKey ?? string.Empty
         });
       }
-
       OnPropertyChanged(nameof(IsStageZero));
       OnPropertyChanged(nameof(IsEditingEnabled));
       OnPropertyChanged(nameof(PulseWarningMessage));
@@ -134,7 +122,6 @@ namespace AIStudio.ViewModels
       {
         if (!UpdateInfluenceActionsSystemFromTable())
           return;
-
         var (success, error) = _influenceActionSystem.SaveInfluenceActions(false);
         if (success)
         {
@@ -169,16 +156,13 @@ namespace AIStudio.ViewModels
         {
           if (InfluenceActions.Contains(action))
             InfluenceActions.Remove(action);
-
           var existingInfluenceAction = _influenceActionSystem.GetAllInfluenceActions().ToList();
           bool influenceActionExistsInSystem = InfluenceActions.Any(a => a.Id == action.Id);
-
           if (influenceActionExistsInSystem)
           {
             if (_influenceActionSystem.RemoveAction(action.Id))
             {
               InfluenceActions.Remove(action);
-
               var (success, error) = _influenceActionSystem.SaveInfluenceActions();
               if (!success)
               {
@@ -210,14 +194,12 @@ namespace AIStudio.ViewModels
           "Подтверждение удаления",
           MessageBoxButton.YesNo,
           MessageBoxImage.Warning);
-
       if (result == MessageBoxResult.Yes)
       {
         try
         {
           // Удаляем все действия из системы
           var allActions = _influenceActionSystem.GetAllInfluenceActions().ToList();
-
           foreach (var action in allActions)
           {
             _influenceActionSystem.RemoveAction(action.Id);
@@ -225,7 +207,6 @@ namespace AIStudio.ViewModels
 
           // Очищаем коллекцию представления
           InfluenceActions.Clear();
-
           var (success, error) = _influenceActionSystem.SaveInfluenceActions(false); // все удалено - не надо валидаций 
           if (success)
           {
@@ -255,7 +236,6 @@ namespace AIStudio.ViewModels
     private bool UpdateInfluenceActionsSystemFromTable()
     {
       bool needRevalidation = false;
-
       if (!_influenceActionSystem.ValidateAllInfluenceActions(InfluenceActions, out string errorMsg))
       {
         if (errorMsg.Contains("AsymmetricInfluences"))
@@ -264,7 +244,6 @@ namespace AIStudio.ViewModels
           if (asymmetricInfluences.Any())
           {
             var asymmetricList = string.Join(", ", asymmetricInfluences.Select(s => $"{s.Name} (ID:{s.Id})"));
-
             var result = MessageBox.Show(
                 $"Обнаружены асимметричные антагонистические связи:\n{asymmetricList}\n\n" +
                 "Выберите действие:\n" +
@@ -274,7 +253,6 @@ namespace AIStudio.ViewModels
                 "Асимметричные антагонисты",
                 MessageBoxButton.YesNoCancel,
                 MessageBoxImage.Warning);
-
             switch (result)
             {
               case MessageBoxResult.Yes:
@@ -283,16 +261,12 @@ namespace AIStudio.ViewModels
                     "Автокоррекция завершена",
                     MessageBoxButton.OK,
                     MessageBoxImage.Information);
-
                 ApplyLocalInfluencesToSystem();
                 RefreshAllCollections();
-
                 needRevalidation = true;
                 break;
-
               case MessageBoxResult.No:
                 break;
-
               case MessageBoxResult.Cancel:
                 return false;
             }
@@ -307,7 +281,6 @@ namespace AIStudio.ViewModels
           return false;
         }
       }
-
       if (needRevalidation)
       {
         if (!_influenceActionSystem.ValidateAllInfluenceActions(InfluenceActions, out errorMsg))
@@ -319,12 +292,10 @@ namespace AIStudio.ViewModels
           return false;
         }
       }
-
       if (!needRevalidation)
       {
         ApplyLocalInfluencesToSystem();
       }
-
       return true;
     }
 
@@ -335,12 +306,10 @@ namespace AIStudio.ViewModels
     {
       var currentActions = _influenceActionSystem.GetAllInfluenceActions().ToDictionary(a => a.Id);
       var actionsToRemove = currentActions.Keys.Except(InfluenceActions.Select(a => a.Id)).ToList();
-
       foreach (var actionId in actionsToRemove)
       {
         _influenceActionSystem.RemoveAction(actionId);
       }
-
       foreach (var action in InfluenceActions)
       {
         if (currentActions.ContainsKey(action.Id))
@@ -372,7 +341,6 @@ namespace AIStudio.ViewModels
       public string LinkText { get; set; } = "Подробнее...";
       public string Url { get; set; } = "https://scorcher.ru/isida/iadaptive_agents_guide.php#ref_10";
       public ICommand OpenLinkCommand { get; }
-
       public DescriptionWithLink()
       {
         OpenLinkCommand = new RelayCommand(_ =>

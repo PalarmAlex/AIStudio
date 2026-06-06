@@ -35,11 +35,11 @@ namespace AIStudio.Converters
           // Проверяем, что число не отрицательное (если это ID)
           return result >= 0 ? result : 0;
         }
-        
+
         // Если преобразование не удалось, возвращаем UnsetValue
         return DependencyProperty.UnsetValue;
       }
-      
+
       // Если значение не строка, возвращаем 0
       return 0;
     }

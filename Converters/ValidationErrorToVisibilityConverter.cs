@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Globalization;
 using System.Windows;
 using System.Windows.Data;
@@ -15,7 +15,6 @@ namespace AIStudio.Converters
         {
           hasError = !hasError;
         }
-
         return hasError ? Visibility.Visible : Visibility.Collapsed;
       }
       return Visibility.Collapsed;

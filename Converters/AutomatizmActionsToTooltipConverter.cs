@@ -18,7 +18,6 @@ namespace AIStudio.Converters
       if (value is AutomatizmsViewModel.ActionsImageDisplay actionsImage)
       {
         var sb = new StringBuilder();
-
         if (actionsImage.ActIdList != null && actionsImage.ActIdList.Any())
         {
           if (AdaptiveActionsSystem.IsInitialized)
@@ -29,7 +28,6 @@ namespace AIStudio.Converters
                 .Where(id => allActions.Any(a => a.Id == id))
                 .Select(id => allActions.First(a => a.Id == id).Name)
                 .ToList();
-
             sb.AppendLine($"Действия ({actionsImage.ActIdList.Count}): {string.Join(", ", names)}");
           }
           else
@@ -39,24 +37,20 @@ namespace AIStudio.Converters
         }
         else
           sb.AppendLine("Действия: нет");
-
         if (actionsImage.PhraseIdList != null && actionsImage.PhraseIdList.Any())
         {
           if (SensorySystem.IsInitialized)
           {
             var sensorySystem = SensorySystem.Instance;
             var phraseTexts = new List<string>();
-
             foreach (var phraseId in actionsImage.PhraseIdList)
             {
               string phraseText = sensorySystem.VerbalChannel.GetPhraseFromPhraseId(phraseId);
-
               if (!string.IsNullOrEmpty(phraseText))
                 phraseTexts.Add($"\"{phraseText}\" (ID: {phraseId})");
               else
                 phraseTexts.Add($"ID: {phraseId} (фраза не найдена)");
             }
-
             if (phraseTexts.Any())
               sb.AppendLine($"Фразы ({actionsImage.PhraseIdList.Count}): {string.Join(", ", phraseTexts)}");
           }
@@ -67,16 +61,12 @@ namespace AIStudio.Converters
         }
         else
           sb.AppendLine("Фразы: нет");
-
         string toneText = ActionsImagesSystem.IsInitialized ? ActionsImagesSystem.GetToneText(actionsImage.ToneId) : actionsImage.ToneId.ToString();
         sb.AppendLine(string.IsNullOrEmpty(toneText) ? "Тон: —" : $"Тон: {toneText}");
-
         string moodText = ActionsImagesSystem.IsInitialized ? ActionsImagesSystem.GetMoodText(actionsImage.MoodId) : actionsImage.MoodId.ToString();
         sb.AppendLine(string.IsNullOrEmpty(moodText) ? "Настроение: —" : $"Настроение: {moodText}");
-
         if (actionsImage.Usefulness.HasValue)
           sb.AppendLine($"Полезность: {actionsImage.Usefulness.Value}");
-
         return sb.ToString();
       }
       return "Нет данных об образе действий";

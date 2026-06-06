@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
@@ -28,7 +28,6 @@ namespace AIStudio.Common
               "Допустимы только целые числа через запятую\nПример: '1, 2, 3'");
         }
       }
-
       return ValidationResult.ValidResult;
     }
   }

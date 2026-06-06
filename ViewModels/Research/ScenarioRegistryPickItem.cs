@@ -6,7 +6,6 @@ namespace AIStudio.ViewModels.Research
     public int Id { get; }
     public string FullTitle { get; }
     public string DisplayTitle { get; }
-
     public ScenarioRegistryPickItem(int id, string fullTitle)
     {
       Id = id;

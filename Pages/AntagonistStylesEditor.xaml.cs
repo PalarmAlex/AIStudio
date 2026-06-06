@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Windows;
@@ -19,9 +19,7 @@ namespace AIStudio.Dialogs
 
     public IEnumerable<int> SelectedStyleIds =>
         _styleItems.Where(x => x.IsSelected).Select(x => x.Id);
-
     private readonly List<StyleItem> _styleItems;
-
     public AntagonistStylesEditor(
         string title,
         IEnumerable<GomeostasSystem.BehaviorStyle> availableStyles,
@@ -29,7 +27,6 @@ namespace AIStudio.Dialogs
     {
       InitializeComponent();
       Title = title;
-
       var selectedIds = new HashSet<int>(selectedStyleIds);
       _styleItems = availableStyles
           .OrderBy(s => s.Id)
@@ -40,7 +37,6 @@ namespace AIStudio.Dialogs
             IsSelected = selectedIds.Contains(s.Id)
           })
           .ToList();
-
       StylesListBox.ItemsSource = _styleItems;
     }
 

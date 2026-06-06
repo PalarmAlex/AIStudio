@@ -48,7 +48,6 @@ namespace AIStudio.Common
 
     /// <summary>Колонка «Актуально» в отчёте: та же визуализация, что у «Опасно» («1» / «-»).</summary>
     public static string FormatVeryActualComparisonCell(string raw) => FormatDangerComparisonCell(raw);
-
     /// <summary>HTML ячейки «факт» для «ОР/УМ»: «УМ1»/«УМ2» зелёным при успехе, иначе красным; остальное без разметки.</summary>
     public static string FormatOrUmFactCellHtml(string raw, bool? thinkingLevelSuccess)
     {
@@ -62,11 +61,9 @@ namespace AIStudio.Common
     /// <summary>HTML ячейки «Цикл М»: несколько циклов на пульсе — через запятую, цвет по статусу задачи.</summary>
     public static string FormatMainCycleFactCellHtml(ScenarioLogComparer.AggregatedLogSnapshot snap) =>
         FormatThinkingCycleIdsFactCellHtml(snap?.MainCycleSegments, snap?.MainCycle);
-
     /// <summary>HTML ячейки «Циклы Ф»: те же классы раскраски, что у «Цикл М».</summary>
     public static string FormatBackgroundCyclesFactCellHtml(ScenarioLogComparer.AggregatedLogSnapshot snap) =>
         FormatThinkingCycleIdsFactCellHtml(snap?.BackgroundCycleSegments, snap?.BackgroundCycles);
-
     private static string FormatThinkingCycleIdsFactCellHtml(
         IReadOnlyList<MainCyclePulseSegment> segs, string fallbackCommaText)
     {
@@ -100,16 +97,13 @@ namespace AIStudio.Common
       var a = NormalizeCell(logStyleCell ?? "");
       if (a == "-" || perception == null)
         return a;
-
       if (!int.TryParse(a, out int imageId) || imageId <= 0)
         return a;
-
       try
       {
         var styleImage = perception.GetAllBehaviorStyleImagesList().FirstOrDefault(img => img.Id == imageId);
         if (styleImage?.BehaviorStylesList == null || !styleImage.BehaviorStylesList.Any())
           return "-";
-
         return string.Join(",", styleImage.BehaviorStylesList.OrderBy(id => id));
       }
       catch

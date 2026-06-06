@@ -46,7 +46,6 @@ namespace AIStudio
   public class MainViewModel : INotifyPropertyChanged
   {
     #region Объявление констант и переменных
-
     private IsidaContext _isidaContext;
     private GomeostasSystem _gomeostas;
     private SensorySystem _sensorySystem;
@@ -86,15 +85,12 @@ namespace AIStudio
     private bool _scenarioLaunchCommitActive;
     private AgentLogCellTooltipProvider _agentLogCellTooltips;
     private CoalescingAgentLogWriter _agentDisplayCoalescer;
-
     public event PropertyChangedEventHandler PropertyChanged;
     private AgentViewModel _agentViewModel;
-
     private ICommand _openAgentCommand;
     public ICommand OpenAgentCommand => _openAgentCommand ?? (_openAgentCommand = new RelayCommand(_ => OpenAgent()));
     public ICommand VerticalMenuItemClickedCommand { get; }
     public ICommand ResetLifeTimeCommand { get; }
-
     private bool _isAgentExpanded = true;
     public bool IsAgentExpanded
     {
@@ -134,7 +130,6 @@ namespace AIStudio
           OnPropertyChanged(nameof(PulseButtonText));
           OnPropertyChanged(nameof(PulseButtonColor));
           OnPropertyChanged(nameof(PulseStatus));
-
           if (_isAgentDead && IsPulsating)
             StopPulsationDueToDeath();
         }
@@ -143,38 +138,27 @@ namespace AIStudio
 
     public bool IsPulseButtonEnabled =>
         !IsAgentDead && !IsScenarioRunSessionBlockingPulse;
-
     /// <summary>Блокировка переключателя пульсации на время прогона, паузы стабилизации и группового пакета.</summary>
     public bool IsScenarioRunSessionBlockingPulse =>
         _homeostasisSettleWaitActive || _scenarioRunner.IsRunning || _scenarioBatchRun != null || _scenarioLaunchCommitActive;
-
     /// <summary>Занятость реестра/редактора: сценарий, пауза перед стартом или групповой прогон.</summary>
     public bool IsScenarioRunSessionBusy =>
         _homeostasisSettleWaitActive || _scenarioRunner.IsRunning || _scenarioBatchRun != null || _scenarioLaunchCommitActive;
-
     #endregion
-
     public MainViewModel()
     {
       int _stepInzialized = 0;
       try
       {
         _stepInzialized = 1;
-
         var config = BuildIsidaConfigFromAppConfig();
-
         _stepInzialized = 2;
-
         _isidaContext = IsidaEngine.Create(config);
-
         _agentDisplayCoalescer = new CoalescingAgentLogWriter(MemoryLogManager.Instance.CreateAgentDisplayLogSink());
         MemoryLogManager.SetAgentDisplayCoalescerResetHandler(() => _agentDisplayCoalescer.ResetPending());
         _isidaContext.ResearchLogger.SetDisplayLogWriter(_agentDisplayCoalescer);
-
         _stepInzialized = 3;
-
         AssignSubsystemReferencesFromContext(_isidaContext);
-
         _stepInzialized = 4;
       }
       catch (IsidaInitializationException ex)
@@ -191,18 +175,14 @@ namespace AIStudio
             "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
         return;
       }
-
       PulseIndicatorColor = new SolidColorBrush(Color.FromRgb(80, 80, 80));
-
       InitializePulseCommands();
       WireGlobalTimerHostHandlers();
-
       _scenarioRunner.Finished += OnScenarioRunFinished;
       _scenarioRunner.RunningStateChanged += OnScenarioRunningStateChanged;
       _scenarioRunner.StepProgress += OnScenarioStepProgress;
       _scenarioRunner.WaitingForActivation += OnScenarioWaitingForActivation;
       _wasPulsatingForScenario = GlobalTimer.IsPulsationRunning;
-
       ResetLifeTimeCommand = new RelayCommand(_ =>
       {
         if (IsAgentDead)
@@ -213,7 +193,6 @@ namespace AIStudio
               MessageBoxImage.Error);
           return;
         }
-
         if (MessageBox.Show("Сбросить время жизни системы?", "Подтверждение",
             MessageBoxButton.YesNo, MessageBoxImage.Question) == MessageBoxResult.Yes)
         {
@@ -222,7 +201,6 @@ namespace AIStudio
         }
       }, _ => !IsAgentDead);
       VerticalMenuItemClickedCommand = new RelayCommand(ExecuteVerticalMenuItemClicked);
-
       IsAgentExpanded = true;
       OpenAgent();
       UpdateAgentState();
@@ -250,7 +228,6 @@ namespace AIStudio
           _isidaContext.Dispose();
           Logger.Info("IsidaContext освобожден");
         }
-
         Logger.Info("Завершение работы успешно завершено");
       }
       catch (Exception ex)
@@ -262,11 +239,9 @@ namespace AIStudio
     private static IsidaConfig BuildIsidaConfigFromAppConfig()
     {
       var config = new IsidaConfig();
-
       config.BaseDirectory = Path.Combine(
           Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData),
           "ISIDA");
-
       config.GomeostasFolder = AppConfig.DataGomeostasFolderPath;
       config.ActionsFolder = AppConfig.DataActionsFolderPath;
       config.SensorsFolder = AppConfig.SensorsFolderPath;
@@ -291,7 +266,6 @@ namespace AIStudio
       config.ThinkingCycleMainMaxAgePulses = AppConfig.ThinkingCycleMainMaxAgePulses;
       config.NoOperatorStimulusSilencePulses = AppConfig.NoOperatorStimulusSilencePulses;
       config.MemoryLogWriter = MemoryLogManager.Instance;
-
       return config;
     }
 
@@ -320,7 +294,6 @@ namespace AIStudio
       _automatizmChains = ctx.AutomatizmChainsSystem;
       _automatizmFileLoader = ctx.AutomatizmFileLoader;
       _stage2PrimitivesLoader = ctx.Stage2PrimitivesLoader;
-
       _agentLogCellTooltips = new AgentLogCellTooltipProvider(
           _gomeostas,
           _perceptionImagesSystem,
@@ -337,25 +310,17 @@ namespace AIStudio
     private void ReloadRuntimeAfterProjectSwitch(ProjectSettingsViewModel vm)
     {
       vm.PushSettingsToAppConfig();
-
       if (IsPulsating)
         IsPulsating = false;
-
       _isidaContext?.Dispose();
       _isidaContext = null;
-
       MemoryLogManager.Instance.Clear();
-
       var config = BuildIsidaConfigFromAppConfig();
       _isidaContext = IsidaEngine.Create(config);
-
       _isidaContext.ResearchLogger.SetDisplayLogWriter(_agentDisplayCoalescer);
-
       AssignSubsystemReferencesFromContext(_isidaContext);
-
       WireGlobalTimerHostHandlers();
       GlobalTimer.ClearPulseWallClockAcceleration();
-
       string agentPropertiesPath = Path.Combine(
           AppConfig.DataGomeostasFolderPath ?? string.Empty,
           "AgentProperties.dat");
@@ -368,7 +333,6 @@ namespace AIStudio
         _gomeostas.SaveAgentProperties();
       else
         SymbiontProjectAdapterSettings.SyncAppConfigFromGomeostas(_gomeostas);
-
       RefreshUiAfterEngineReload();
       UpdateAgentState();
       OnPropertyChanged(nameof(LifeTimeStatus));
@@ -381,13 +345,11 @@ namespace AIStudio
         projectSettingsView.DataContext = new ProjectSettingsViewModel(_gomeostas, ReloadRuntimeAfterProjectSwitch);
         return;
       }
-
       if (CurrentContent is AgentView agentView)
       {
         _agentViewModel = new AgentViewModel(_gomeostas, () => _isidaContext.CancelWaitingPeriodAndResetMirror(), UpdateAgentState);
         agentView.DataContext = _agentViewModel;
       }
-
     }
 
     private void UpdateAgentState()
@@ -417,13 +379,11 @@ namespace AIStudio
     {
       SafeStopPulsation("симбионт мертв");
     }
-
     #region Левое меню проекта
     private void ExecuteVerticalMenuItemClicked(object parameter)
     {
       if (!(parameter is string menuItem))
         return;
-
       switch (menuItem)
       {
         case "43": // Создать проект
@@ -436,7 +396,6 @@ namespace AIStudio
           ShowStub("Сознание");
           return;
       }
-
       if (IsAgentDead)
       {
         MessageBox.Show("Невозможно выполнить операцию для мертвого симбионта",
@@ -445,7 +404,6 @@ namespace AIStudio
             MessageBoxImage.Error);
         return;
       }
-
       switch (menuItem)
       {
           case "1": // Жизненные параметры
@@ -599,7 +557,7 @@ namespace AIStudio
       view.DataContext = viewModel;
       CurrentContent = view;
     }
- 
+
     private void ShowEpisodicMemoryTree()
     {
       var view = new EpisodicMemoryTreeView();
@@ -655,7 +613,6 @@ namespace AIStudio
           _conditionedReflexToAutomatizm,
           _automatizmFileLoader,
           _stage2PrimitivesLoader);
-
       var viewModel = new ProblemTreeViewModel(
           _isidaContext?.ProblemTree,
           _automatizmTreeSystem,
@@ -690,7 +647,6 @@ namespace AIStudio
         showPage();
         return true;
       }
-
       MessageBox.Show(
           SymbiontEnvironmentGate.BlockedMessage,
           "Среда",
@@ -707,7 +663,6 @@ namespace AIStudio
         vm.RequestClose += _ => ShowEnvironmentRecipesRegistry();
         CurrentContent = new Pages.SymbiontEnv.EnvironmentRecipeEditorView { DataContext = vm };
       }
-
       var registryVm = new EnvironmentRecipesRegistryViewModel(_gomeostas, OpenEditor);
       CurrentContent = new Pages.SymbiontEnv.EnvironmentRecipesRegistryView { DataContext = registryVm };
     }
@@ -732,7 +687,6 @@ namespace AIStudio
         vm.RequestClose += (_, __) => ShowScenarioRegistry();
         CurrentContent = new ScenarioEditorView { DataContext = vm };
       }
-
       var scenariosVm = new ScenarioRegistryViewModel(
           _influenceActionSystem,
           _scenarioRunner,
@@ -754,7 +708,6 @@ namespace AIStudio
         vm.RequestClose += (_, __) => ShowScenarioGroupRegistry();
         CurrentContent = new ScenarioGroupEditorView { DataContext = vm };
       }
-
       var groupRegistryVm = new ScenarioGroupRegistryViewModel(
           _scenarioRunner,
           TryStartScenarioGroup,
@@ -827,12 +780,10 @@ namespace AIStudio
         _scenarioBatchRun != null
             ? $"Запуск сценария №{_scenarioBatchRun.CurrentIndex + 1}…"
             : "Запуск сценария…";
-
     private void OnScenarioRunProgressWindowClosing(object sender, System.ComponentModel.CancelEventArgs e)
     {
       if (sender is ScenarioRunProgressWindow w)
         w.Closing -= OnScenarioRunProgressWindowClosing;
-
       if (_scenarioRunner.IsRunning)
       {
         _scenarioRunProgressWindow = null;
@@ -851,7 +802,6 @@ namespace AIStudio
               MessageBoxButton.OK, MessageBoxImage.Information);
         }
       }
-
       NotifyScenarioRunSessionStateChanged();
     }
 
@@ -870,9 +820,7 @@ namespace AIStudio
     {
       if (!_homeostasisSettleWaitActive && _homeostasisSettlePulseHandler == null)
         return;
-
       TearDownHomeostasisSettle();
-
       void closeProgress()
       {
         var win = _scenarioRunProgressWindow;
@@ -886,18 +834,15 @@ namespace AIStudio
         catch { /* ignore */ }
         _scenarioRunProgressWindow = null;
       }
-
       if (Application.Current?.Dispatcher.CheckAccess() == true)
         closeProgress();
       else
         Application.Current?.Dispatcher.Invoke(closeProgress);
-
       if (userInitiated && _scenarioBatchRun == null)
       {
         MessageBox.Show("Запуск сценария отменён.", "Запуск сценария",
             MessageBoxButton.OK, MessageBoxImage.Information);
       }
-
       NotifyScenarioRunSessionStateChanged();
     }
 
@@ -959,7 +904,6 @@ namespace AIStudio
               _scenarioRunProgressWindow = null;
             }
           }
-
           NotifyScenarioRunSessionStateChanged();
         }
         catch (Exception ex)
@@ -1056,7 +1000,6 @@ namespace AIStudio
     {
       if (doc == null)
         return false;
-
       if (_scenarioBatchRun == null &&
           (_scenarioRunner.IsRunning || _homeostasisSettleWaitActive || _homeostasisSettlePulseHandler != null))
       {
@@ -1067,7 +1010,6 @@ namespace AIStudio
             MessageBoxImage.Information);
         return false;
       }
-
       if (IsSameScenarioOpenInAnotherEditor(doc))
       {
         MessageBox.Show(
@@ -1077,7 +1019,6 @@ namespace AIStudio
             MessageBoxImage.Information);
         return false;
       }
-
       var folder = string.IsNullOrWhiteSpace(reportOutputFolder)
           ? AppConfig.ScenarioReportsFolderPath
           : reportOutputFolder.Trim();
@@ -1091,7 +1032,6 @@ namespace AIStudio
             MessageBoxButton.OK, MessageBoxImage.Warning);
         return false;
       }
-
       var err = OperatorScenarioValidator.ValidateForRun(
           doc, _influenceActionSystem, GlobalTimer.IsPulsationRunning, _gomeostas.GetAgentState()?.IsDead == true);
       if (err != null)
@@ -1099,28 +1039,23 @@ namespace AIStudio
         MessageBox.Show(err, "Запуск сценария", MessageBoxButton.OK, MessageBoxImage.Warning);
         return false;
       }
-
       if (_agentViewModel?.AgentPultViewModel == null)
       {
         MessageBox.Show("Откройте раздел «Симбионт» (пульт), чтобы сценарий мог подавать воздействия.",
             "Запуск сценария", MessageBoxButton.OK, MessageBoxImage.Information);
         return false;
       }
-
       if (!TryApplyPreRunStageForScenario(doc, out bool homeostasisNormSettlePending))
         return false;
-
       _activeProgressScenarioId = doc.Header?.Id ?? 0;
       _activeProgressGroupId = _scenarioBatchRun?.GroupDefinition != null
           ? (int?)_scenarioBatchRun.GroupDefinition.Id
           : null;
-
       if (homeostasisNormSettlePending)
       {
         BeginHomeostasisNormSettleWaitThenStartScenario(doc, folder);
         return true;
       }
-
       try
       {
         ApplyScenarioPultModesAndStartRunner(doc, folder);
@@ -1158,7 +1093,6 @@ namespace AIStudio
             MessageBoxButton.OK, MessageBoxImage.Information);
         return false;
       }
-
       var folder = string.IsNullOrWhiteSpace(reportOutputFolder)
           ? AppConfig.ScenarioReportsFolderPath
           : reportOutputFolder.Trim();
@@ -1172,7 +1106,6 @@ namespace AIStudio
             MessageBoxButton.OK, MessageBoxImage.Warning);
         return false;
       }
-
       var ordered = groupDoc.Members?
           .OrderBy(m => m.SortOrderInGroup).ThenBy(m => m.ScenarioId).ToList()
           ?? new List<ScenarioGroupMemberRow>();
@@ -1182,14 +1115,12 @@ namespace AIStudio
             MessageBoxButton.OK, MessageBoxImage.Information);
         return false;
       }
-
       if (_agentViewModel?.AgentPultViewModel == null)
       {
         MessageBox.Show("Откройте раздел «Симбионт» (пульт), чтобы сценарий мог подавать воздействия.",
             "Группа сценариев", MessageBoxButton.OK, MessageBoxImage.Information);
         return false;
       }
-
       foreach (var m in ordered)
       {
         ScenarioDocument loaded;
@@ -1203,7 +1134,6 @@ namespace AIStudio
               "Группа сценариев", MessageBoxButton.OK, MessageBoxImage.Warning);
           return false;
         }
-
         var probe = ScenarioGroupDocument.ApplyMemberToScenario(loaded, m, groupDoc.RunPulseTimingCoefficient);
         if (IsSameScenarioOpenInAnotherEditor(probe))
         {
@@ -1212,7 +1142,6 @@ namespace AIStudio
               "Группа сценариев", MessageBoxButton.OK, MessageBoxImage.Information);
           return false;
         }
-
         var err = OperatorScenarioValidator.ValidateForRun(
             probe, _influenceActionSystem, GlobalTimer.IsPulsationRunning, _gomeostas.GetAgentState()?.IsDead == true);
         if (err != null)
@@ -1222,7 +1151,6 @@ namespace AIStudio
           return false;
         }
       }
-
       _scenarioBatchRun = new ScenarioBatchRunState
       {
         GroupDefinition = groupDoc.Clone(),
@@ -1231,7 +1159,6 @@ namespace AIStudio
         ReportOutputFolder = folder
       };
       NotifyScenarioRunSessionStateChanged();
-
       if (!TryStartNextBatchScenario())
       {
         _scenarioBatchRun = null;
@@ -1246,7 +1173,6 @@ namespace AIStudio
       var st = _scenarioBatchRun;
       if (st == null || st.CurrentIndex < 0 || st.CurrentIndex >= st.OrderedMembers.Count)
         return false;
-
       var m = st.OrderedMembers[st.CurrentIndex];
       ScenarioDocument loaded;
       try
@@ -1262,7 +1188,6 @@ namespace AIStudio
         FinishScenarioBatchReport(failed, userAborted: true);
         return false;
       }
-
       var doc = ScenarioGroupDocument.ApplyMemberToScenario(loaded, m, st.GroupDefinition.RunPulseTimingCoefficient);
       if (!TryStartScenario(doc, st.ReportOutputFolder))
       {
@@ -1322,7 +1247,6 @@ namespace AIStudio
             _agentLogCellTooltips,
             AppConfig.LogsFolderPath);
         File.WriteAllText(reportPath, html, Encoding.UTF8);
-
         var msg = userAborted
             ? "Групповой прогон прерван или не завершён."
             : "Групповой прогон завершён.";
@@ -1355,10 +1279,8 @@ namespace AIStudio
       var st = _scenarioBatchRun;
       if (st == null)
         return;
-
       if (e.Document != null)
         st.Completed.Add(Tuple.Create(e.Document, e));
-
       if (!e.Success || e.AbortedByUser || e.AbortedByPulsationStop)
       {
         _scenarioBatchRun = null;
@@ -1366,7 +1288,6 @@ namespace AIStudio
         NotifyScenarioRunSessionStateChanged();
         return;
       }
-
       st.CurrentIndex++;
       if (st.CurrentIndex >= st.OrderedMembers.Count)
       {
@@ -1375,7 +1296,6 @@ namespace AIStudio
         NotifyScenarioRunSessionStateChanged();
         return;
       }
-
       try
       {
         if (!TryStartNextBatchScenario())
@@ -1390,7 +1310,6 @@ namespace AIStudio
         MessageBox.Show(ex.Message, "Группа сценариев", MessageBoxButton.OK, MessageBoxImage.Error);
         FinishScenarioBatchReport(st, userAborted: true);
       }
-
       NotifyScenarioRunSessionStateChanged();
     }
 
@@ -1399,17 +1318,14 @@ namespace AIStudio
     {
       _homeostasisSettleWaitActive = true;
       NotifyScenarioRunSessionStateChanged();
-
       int coeff = doc?.Header?.RunPulseTimingCoefficient ?? 1;
       if (coeff != 1 && coeff != 5 && coeff != 10 && coeff != 20)
         coeff = 1;
       if (coeff > 1)
         GlobalTimer.SetPulseWallClockAcceleration(coeff, suppressAnimation: true);
-
       int totalPulses = Math.Max(1, AppConfig.DynamicTime + 1);
       int startPulse = GlobalTimer.GlobalPulsCount;
       int targetPulse = startPulse + totalPulses;
-
       Application.Current?.Dispatcher.BeginInvoke(new Action(() =>
       {
         if (_scenarioRunProgressWindow == null)
@@ -1426,7 +1342,6 @@ namespace AIStudio
             $"Стабилизация после сброса в норму… пульс 0/{totalPulses}",
             compactFont: true);
       }));
-
       Action<int> handler = null;
       handler = pulseCount =>
       {
@@ -1463,7 +1378,6 @@ namespace AIStudio
           }));
           return;
         }
-
         if (pulseCount < targetPulse)
         {
           int elapsed = pulseCount - startPulse;
@@ -1478,11 +1392,9 @@ namespace AIStudio
           }));
           return;
         }
-
         GlobalTimer.OnPulseAfterGomeostasisBeforePsychic -= handler;
         _homeostasisSettlePulseHandler = null;
         _homeostasisSettleWaitActive = false;
-
         Application.Current?.Dispatcher.BeginInvoke(new Action(() =>
         {
           NotifyScenarioRunSessionStateChanged();
@@ -1511,7 +1423,6 @@ namespace AIStudio
           }
         }));
       };
-
       _homeostasisSettlePulseHandler = handler;
       GlobalTimer.OnPulseAfterGomeostasisBeforePsychic += handler;
     }
@@ -1526,7 +1437,6 @@ namespace AIStudio
         if (coeff != 1 && coeff != 5 && coeff != 10 && coeff != 20)
           coeff = 1;
         GlobalTimer.SetPulseWallClockAcceleration(coeff, suppressAnimation: coeff > 1);
-
         _pendingScenarioReportFolder = reportOutputFolder;
         var pult = _agentViewModel.AgentPultViewModel;
         _savedObservationModeBeforeScenario = AppGlobalState.ObservationMode;
@@ -1534,7 +1444,6 @@ namespace AIStudio
         _scenarioPultModesSaved = true;
         pult.ObservationMode = doc.Header.ScenarioObservationMode;
         pult.AuthoritativeMode = doc.Header.ScenarioAuthoritativeRecording;
-
         _scenarioRunner.Start(doc, () => _agentViewModel?.AgentPultViewModel,
             () => _isidaContext.CancelWaitingPeriodAndResetMirror());
       }
@@ -1572,16 +1481,13 @@ namespace AIStudio
       bool wantStageChange = target >= 0 && target <= 5;
       if (!doc.Header.PreRunClearAgentData && !wantStageChange && !doc.Header.PreRunNormalHomeostasisState)
         return true;
-
       var agent = _gomeostas.GetAgentState();
       if (agent == null)
       {
         MessageBox.Show("Состояние симбионта недоступно.", "Запуск сценария", MessageBoxButton.OK, MessageBoxImage.Warning);
         return false;
       }
-
       int current = agent.EvolutionStage;
-
       if (doc.Header.PreRunClearAgentData)
       {
         var clearRes = _gomeostas.ClearEvolutionStageDataForScenarioPreRun();
@@ -1592,7 +1498,6 @@ namespace AIStudio
           return false;
         }
       }
-
       bool saveAfterPreRun = false;
       if (wantStageChange && target != current)
       {
@@ -1607,7 +1512,6 @@ namespace AIStudio
         }
         saveAfterPreRun = true;
       }
-
       if (doc.Header.PreRunNormalHomeostasisState)
       {
         try
@@ -1625,10 +1529,8 @@ namespace AIStudio
         saveAfterPreRun = true;
         homeostasisNormSettlePending = true;
       }
-
       if (saveAfterPreRun)
         _gomeostas.SaveAgentProperties();
-
       return true;
     }
 
@@ -1647,19 +1549,15 @@ namespace AIStudio
             HandleBatchScenarioFinished(e);
             return;
           }
-
           ScenarioLogComparisonSession.LastAnchorGlobalPulse = e.AnchorGlobalPulse;
           ScenarioLogComparisonSession.LastScenarioId = e.Document?.Header?.Id;
-
           if (e.Document == null)
             return;
-
           string reportPath = null;
           var folder = _pendingScenarioReportFolder;
           if (string.IsNullOrWhiteSpace(folder))
             folder = AppConfig.ScenarioReportsFolderPath;
           _pendingScenarioReportFolder = null;
-
           try
           {
             Directory.CreateDirectory(folder);
@@ -1676,13 +1574,11 @@ namespace AIStudio
             MessageBox.Show("Отчёт не сохранён: " + ex.Message, "Сценарий", MessageBoxButton.OK, MessageBoxImage.Warning);
             reportPath = null;
           }
-
           var msg = e.Success
               ? "Сценарий завершён успешно."
               : (e.AbortedByUser ? "Сценарий остановлен пользователем."
                   : e.AbortedByPulsationStop ? "Сценарий прерван: остановлена пульсация."
                   : (!string.IsNullOrEmpty(e.ErrorMessage) ? "Ошибка: " + e.ErrorMessage : "Сценарий завершён."));
-
           msg += "\n\n";
           if (e.ElapsedWallTime.TotalMilliseconds > 0 && e.ElapsedPulses > 0)
           {
@@ -1691,17 +1587,14 @@ namespace AIStudio
           }
           else
             msg += "Фактическая скорость: —";
-
           var saved = reportPath != null && File.Exists(reportPath);
           if (saved)
             msg += "\n\nОтчёт сохранён:\n" + reportPath + "\n\nОткрыть отчёт в браузере?";
           else
             msg += "\n\nHTML-отчёт не был сохранён на диск.";
-
           var result = MessageBox.Show(msg, "Результат прогона сценария",
               saved ? MessageBoxButton.YesNo : MessageBoxButton.OK,
               MessageBoxImage.Information);
-
           if (result == MessageBoxResult.Yes && saved)
           {
             try
@@ -1757,11 +1650,9 @@ namespace AIStudio
     private class AboutWindow : Window
     {
       private readonly Action<string> _openWebPageAction;
-
       public AboutWindow(Action<string> openWebPageAction)
       {
         _openWebPageAction = openWebPageAction ?? throw new ArgumentNullException(nameof(openWebPageAction));
-
         Title = "О программе";
         Width = 500;
         Height = 300;
@@ -1778,7 +1669,6 @@ namespace AIStudio
             e.Handled = true;
           }
         };
-
         InitializeUI();
       }
 
@@ -1835,7 +1725,6 @@ namespace AIStudio
           VerticalScrollBarVisibility = ScrollBarVisibility.Auto,
           MaxHeight = 150
         };
-
         var descriptionText = IsidaEngine.ProjectDescription;
         var descriptionTextBlock = new TextBlock
         {
@@ -1844,7 +1733,6 @@ namespace AIStudio
           Margin = new Thickness(5),
           TextAlignment = TextAlignment.Justify
         };
-
         descriptionScrollViewer.Content = descriptionTextBlock;
         Grid.SetRow(descriptionScrollViewer, 3);
         mainGrid.Children.Add(descriptionScrollViewer);
@@ -1898,10 +1786,8 @@ namespace AIStudio
         };
         closeButton.Click += (sender, e) => Close();
         buttonStackPanel.Children.Add(closeButton);
-
         Grid.SetRow(buttonStackPanel, 5);
         mainGrid.Children.Add(buttonStackPanel);
-
         Content = mainGrid;
       }
 
@@ -1915,7 +1801,6 @@ namespace AIStudio
           WindowStartupLocation = WindowStartupLocation.CenterScreen,
           WindowStyle = WindowStyle.ToolWindow
         };
-
         detailedWindow.PreviewKeyDown += (sender, e) =>
         {
           if (e.Key == Key.Escape)
@@ -1924,13 +1809,11 @@ namespace AIStudio
             e.Handled = true;
           }
         };
-
         var scrollViewer = new ScrollViewer
         {
           VerticalScrollBarVisibility = ScrollBarVisibility.Auto,
           HorizontalScrollBarVisibility = ScrollBarVisibility.Auto
         };
-
         var mainStack = new StackPanel
         {
           Margin = new Thickness(15)
@@ -1945,14 +1828,12 @@ namespace AIStudio
           TextWrapping = TextWrapping.Wrap,
           Margin = new Thickness(0, 0, 0, 5)
         });
-
         mainStack.Children.Add(new TextBlock
         {
           Text = $"Версия: {IsidaEngine.ProjectVersion} | Сборка: {IsidaEngine.BuildDate}",
           FontSize = 12,
           Margin = new Thickness(0, 0, 0, 5)
         });
-
         mainStack.Children.Add(new Separator { Margin = new Thickness(0, 0, 0, 5) });
 
         // Полное описание
@@ -1969,7 +1850,6 @@ namespace AIStudio
         if (IsidaEngine.ProjectAuthors != null && IsidaEngine.ProjectAuthors.Length > 0)
         {
           mainStack.Children.Add(new Separator { Margin = new Thickness(0, 5, 0, 5) });
-
           mainStack.Children.Add(new TextBlock
           {
             Text = "Авторы проекта:",
@@ -1977,7 +1857,6 @@ namespace AIStudio
             FontWeight = FontWeights.SemiBold,
             Margin = new Thickness(0, 0, 0, 5)
           });
-
           foreach (var author in IsidaEngine.ProjectAuthors)
           {
             mainStack.Children.Add(new TextBlock
@@ -1992,7 +1871,6 @@ namespace AIStudio
 
         // Документация
         mainStack.Children.Add(new Separator { Margin = new Thickness(0, 5, 0, 5) });
-
         mainStack.Children.Add(new TextBlock
         {
           Text = "Документация и ресурсы:",
@@ -2000,7 +1878,6 @@ namespace AIStudio
           FontWeight = FontWeights.SemiBold,
           Margin = new Thickness(0, 0, 0, 5)
         });
-
         var hyperlink = new Hyperlink
         {
           NavigateUri = new Uri(IsidaEngine.DocumentationUrl)
@@ -2019,7 +1896,6 @@ namespace AIStudio
                 "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
           }
         };
-
         var docsTextBlock = new TextBlock
         {
           TextWrapping = TextWrapping.Wrap,
@@ -2038,7 +1914,6 @@ namespace AIStudio
         };
         closeButton.Click += (sender, e) => detailedWindow.Close();
         mainStack.Children.Add(closeButton);
-
         scrollViewer.Content = mainStack;
         detailedWindow.Content = scrollViewer;
         detailedWindow.ShowDialog();
@@ -2225,7 +2100,6 @@ namespace AIStudio
 
       // Принудительно обновляем данные при открытии
       viewModel.RefreshParameters();
-
       systemParamsView.DataContext = viewModel;
       CurrentContent = systemParamsView;
     }
@@ -2294,7 +2168,6 @@ namespace AIStudio
         VerticalAlignment = VerticalAlignment.Center,
         HorizontalAlignment = HorizontalAlignment.Center
       };
-
       stackPanel.Children.Add(new TextBlock
       {
         Text = menuTitle,
@@ -2302,23 +2175,19 @@ namespace AIStudio
         FontWeight = FontWeights.Bold,
         Margin = new Thickness(0, 0, 0, 5)
       });
-
       stackPanel.Children.Add(new TextBlock
       {
         Text = "Функционал в стадии разработки",
         FontSize = 14,
         Foreground = Brushes.Gray
       });
-
       CurrentContent = new ScrollViewer
       {
         Content = stackPanel,
         VerticalScrollBarVisibility = ScrollBarVisibility.Auto
       };
     }
-
     #endregion
-
     private bool _isExpanded = false;
     public bool IsExpanded
     {
@@ -2344,13 +2213,11 @@ namespace AIStudio
           MessageBox.Show(wizardError, "Создание проекта симбионта", MessageBoxButton.OK, MessageBoxImage.Warning);
         return;
       }
-
       if (!ProjectBootstrap.TryCreateProject(projectRoot, adapterId, out string error))
       {
         MessageBox.Show(error, "Создание проекта симбионта", MessageBoxButton.OK, MessageBoxImage.Warning);
         return;
       }
-
       if (MessageBox.Show(
               "Проект симбионта создан в каталоге:\n" + projectRoot + "\n\nОткрыть его сейчас?",
               "Создание проекта симбионта",
@@ -2374,7 +2241,6 @@ namespace AIStudio
       var viewModel = new ProjectSettingsViewModel(_gomeostas, ReloadRuntimeAfterProjectSwitch);
       if (!viewModel.TryPickProjectRootFolder(out string projectRoot))
         return;
-
       OpenProjectAtRoot(projectRoot, viewModel);
     }
 
@@ -2389,13 +2255,10 @@ namespace AIStudio
     {
       var projectSettingsView = new ProjectSettingsView();
       var viewModel = new ProjectSettingsViewModel(_gomeostas, ReloadRuntimeAfterProjectSwitch);
-
       projectSettingsView.DataContext = viewModel;
       CurrentContent = projectSettingsView;
     }
-
     #region Пульсация
-
     private SolidColorBrush _pulseIndicatorColor = new SolidColorBrush(Colors.Gray);
     public SolidColorBrush PulseIndicatorColor
     {
@@ -2457,14 +2320,12 @@ namespace AIStudio
     public string PulseButtonText => IsAgentDead ? "СИМБИОНТ МЕРТВ" : (IsPulsating ? "СТОП" : "СТАРТ");
     public Brush PulseButtonColor => IsAgentDead ? Brushes.DarkRed : (IsPulsating ? Brushes.Red : Brushes.Green);
     public string PulseStatus => IsAgentDead ? "СИМБИОНТ МЕРТВ" : $"Пульсов: {GlobalTimer.GlobalPulsCount}";
-
     public string LifeTimeStatus
     {
       get
       {
         if (IsAgentDead)
           return "СИМБИОНТ МЕРТВ";
-
         var agentInfo = _gomeostas.GetAgentState();
         var ts = TimeSpan.FromSeconds(agentInfo.Lifetime);
         return $"Глобальное время жизни: {ts.Days / 365} лет, {(ts.Days % 365) / 30} месяцев, {ts:%d} дней, {ts:%h} часов, {ts:%m} минут, {ts:%s} секунд";
@@ -2472,7 +2333,6 @@ namespace AIStudio
     }
 
     public ICommand TogglePulseCommand { get; private set; }
-
     private void InitializePulseCommands()
     {
       TogglePulseCommand = new RelayCommand(_ =>
@@ -2483,10 +2343,8 @@ namespace AIStudio
             "Симбионт мертв",
             MessageBoxButton.OK,
             MessageBoxImage.Error);
-
           return;
         }
-
         if (IsPulsating)
         {
           GlobalTimer.Stop();
@@ -2554,7 +2412,6 @@ namespace AIStudio
           }
         });
       };
-
       GlobalTimer.OnPulseCompleted += pulseCount =>
       {
         Action action = () =>
@@ -2563,12 +2420,9 @@ namespace AIStudio
           {
             OnPropertyChanged(nameof(PulseStatus));
             OnPropertyChanged(nameof(LifeTimeStatus));
-
             UpdateWaitingPeriodDisplay();
-
             if (!IsAgentDead)
               _researchLogger?.LogSystemState(pulseCount);
-
             _researchLogger?.FlushBufferedAgentRowToMemoryNow();
             _scenarioRunner.TryFinishAfterPulseCompleted();
           }
@@ -2577,7 +2431,6 @@ namespace AIStudio
             Logger.Error(ex.Message);
           }
         };
-
         if (GlobalTimer.IsPulseAnimationSuppressed)
           Application.Current.Dispatcher.BeginInvoke(action);
         else
@@ -2603,14 +2456,11 @@ namespace AIStudio
       try
       {
         bool isWaiting = AppGlobalState.WaitingForOperatorEvaluation;
-
         if (isWaiting)
         {
           // Обновляем обратный отсчет
           AppGlobalState.UpdateWaitingPeriodCountdown();
-
           var countdown = AppGlobalState.WaitingPeriodCountdown;
-
           if (countdown > 0)
           {
             // Обновляем MainViewModel
@@ -2652,7 +2502,6 @@ namespace AIStudio
     {
       ShowWaitingPeriod = false;
       IsWaitingPeriodPulsating = false;
-
       if (_agentViewModel != null)
       {
         _agentViewModel.ShowWaitingPeriod = false;
@@ -2672,7 +2521,6 @@ namespace AIStudio
           _isidaContext.CancelWaitingPeriodAndResetMirror();
           ShowWaitingPeriod = false;
           IsWaitingPeriodPulsating = false;
-
           Logger.Info("Период ожидания оценки оператора отменен пользователем");
         }
       }
@@ -2694,7 +2542,6 @@ namespace AIStudio
         try
         {
           IsPulsating = false;
-
           OnPropertyChanged(nameof(IsPulsating));
           OnPropertyChanged(nameof(PulseButtonText));
           OnPropertyChanged(nameof(PulseButtonColor));
@@ -2705,13 +2552,11 @@ namespace AIStudio
 
           // Обновляем состояние симбионта
           UpdateAgentState();
-
           if (IsAgentDead)
           {
             _agentViewModel.IsAgentDead = IsAgentDead;
             _agentViewModel.HeaderBackground = Brushes.Black;
             _agentViewModel.TextForeground = Brushes.Black;
-
             MessageBox.Show($"Пульсация остановлена - симбионт мертв\nПричина: {reason}",
               "Симбионт мертв",
               MessageBoxButton.OK,
@@ -2737,11 +2582,8 @@ namespace AIStudio
         }
       }
     }
-
     #endregion
-
     #region Свойства периода ожидания оценки оператора
-
     private bool _showWaitingPeriod = false;
     public bool ShowWaitingPeriod
     {
@@ -2787,9 +2629,7 @@ namespace AIStudio
     private ICommand _cancelWaitingPeriodCommand;
     public ICommand CancelWaitingPeriodCommand =>
         _cancelWaitingPeriodCommand ?? (_cancelWaitingPeriodCommand = new RelayCommand(_ => CancelWaitingPeriod()));
-
     #endregion
-
     private sealed class ScenarioBatchRunState
     {
       public ScenarioGroupDocument GroupDefinition { get; set; }

@@ -24,17 +24,14 @@ namespace AIStudio.Common
     {
       if (doc == null)
         return "<html><body><p>Нет данных сценария.</p></body></html>";
-
       var sb = new StringBuilder();
       sb.AppendLine("<!DOCTYPE html>");
       sb.AppendLine("<html><head><meta charset=\"utf-8\"/>");
       AppendReportStyles(sb);
       sb.AppendLine("</head><body>");
-
       sb.AppendLine("<h1>Отчёт по прогону сценария оператора</h1>");
       sb.AppendLine("<p>").Append(Escape(BuildSummaryParagraph(completion))).AppendLine("</p>");
       AppendScenarioReportMainBody(sb, doc, completion, influenceActions, perceptionImages, cellTooltips);
-
       sb.AppendLine("<p class=\"muted\" style=\"margin-top:24px;font-size:11px;\">Сформировано AIStudio.</p>");
       sb.AppendLine("</body></html>");
       return sb.ToString();
@@ -51,22 +48,16 @@ namespace AIStudio.Common
     {
       if (groupDef == null || runs == null)
         return "<html><body><p>Нет данных группы.</p></body></html>";
-
       if (groupDef.ReportFormat == ScenarioGroupReportFormat.Compact)
         return BuildGroupBatchHtmlCompact(groupDef, runs, influenceActions, perceptionImages, logsFolder);
-
       var titleById = BuildScenarioTitleByIdMap(runs);
-
       var sb = new StringBuilder();
       sb.AppendLine("<!DOCTYPE html>");
       sb.AppendLine("<html><head><meta charset=\"utf-8\"/>");
       AppendReportStyles(sb);
       sb.AppendLine("</head><body>");
-
       AppendGroupBatchReportHeader(sb, groupDef, runs);
-
       AppendGroupCompositionTable(sb, groupDef, titleById, compact: false, compareByIndex: null);
-
       int n = 0;
       foreach (var tuple in runs)
       {
@@ -82,7 +73,6 @@ namespace AIStudio.Common
         sb.AppendLine("<p>").Append(Escape(BuildSummaryParagraph(completion))).AppendLine("</p>");
         AppendScenarioReportMainBody(sb, doc, completion, influenceActions, perceptionImages, cellTooltips);
       }
-
       sb.AppendLine("<p class=\"muted\" style=\"margin-top:24px;font-size:11px;\">Сформировано AIStudio.</p>");
       sb.AppendLine("</body></html>");
       return sb.ToString();
@@ -160,7 +150,6 @@ namespace AIStudio.Common
       if (compact)
         sb.Append("<th>Результат</th>");
       sb.AppendLine("</tr>");
-
       var ordered = groupDef.Members.OrderBy(x => x.SortOrderInGroup).ThenBy(x => x.ScenarioId).ToList();
       for (int mi = 0; mi < ordered.Count; mi++)
       {
@@ -197,7 +186,6 @@ namespace AIStudio.Common
     {
       if (doc == null)
         return new List<ScenarioLogComparer.StepCompareResult>();
-
       int anchor = completion?.AnchorGlobalPulse ?? 0;
       var agg = ScenarioLogComparer.AggregateByPulse(MemoryLogManager.Instance.LogEntries);
       ScenarioReportLogDisplay.RewriteAggregatedStylesToCombinationCodes(agg, perceptionImages);
@@ -224,19 +212,14 @@ namespace AIStudio.Common
         else
           compareByIndex.Add(null);
       }
-
       var titleById = BuildScenarioTitleByIdMap(runs);
-
       var sb = new StringBuilder();
       sb.AppendLine("<!DOCTYPE html>");
       sb.AppendLine("<html><head><meta charset=\"utf-8\"/>");
       AppendReportStyles(sb);
       sb.AppendLine("</head><body>");
-
       AppendGroupBatchReportHeader(sb, groupDef, runs);
-
       AppendGroupCompositionTable(sb, groupDef, titleById, compact: true, compareByIndex);
-
       for (int i = 0; i < orderedMembers.Count; i++)
       {
         var cmp = compareByIndex[i];
@@ -244,7 +227,6 @@ namespace AIStudio.Common
           continue;
         if (i >= runs.Count || runs[i].Item1 == null)
           continue;
-
         var doc = runs[i].Item1;
         var completion = runs[i].Item2;
         sb.AppendLine("<hr style=\"margin:28px 0;\"/>");
@@ -254,7 +236,6 @@ namespace AIStudio.Common
         sb.AppendLine("<p>").Append(Escape(BuildSummaryParagraph(completion))).AppendLine("</p>");
         AppendComparisonSummary(sb, cmp);
       }
-
       sb.AppendLine("<p class=\"muted\" style=\"margin-top:24px;font-size:11px;\">Сформировано AIStudio.</p>");
       sb.AppendLine("</body></html>");
       return sb.ToString();
@@ -324,7 +305,6 @@ namespace AIStudio.Common
       var raw = isFact ? (actRaw ?? "") : (expRaw ?? "");
       if (!CellQualifiesForComparisonTooltip(raw))
         return null;
-
       string tip;
       switch (columnLabel)
       {
@@ -416,7 +396,6 @@ namespace AIStudio.Common
         default:
           return null;
       }
-
       if (string.IsNullOrWhiteSpace(tip))
         return null;
       return tip;
@@ -449,7 +428,6 @@ namespace AIStudio.Common
       AppendMetaRow(sb, "Коэфф. пульсации", Escape(pulseCoeff.ToString(CultureInfo.InvariantCulture)));
       AppendMetaRow(sb, "Фактическая скорость", Escape(FormatActualPulseSpeedText(completion)));
       sb.AppendLine("</table>");
-
       sb.AppendLine("<h2>Шаги</h2>");
       sb.AppendLine("<table class=\"steps-zebra\"><tr><th>Шаг</th><th>№ пульса</th><th>Тип</th><th>Воздействия</th><th>Фраза</th><th>Тон</th><th>Настр.</th><th>Цвет</th><th>Сброс ожид.</th></tr>");
       if (doc.Lines != null)
@@ -472,17 +450,14 @@ namespace AIStudio.Common
         }
       }
       sb.AppendLine("</table>");
-
       int anchor = completion?.AnchorGlobalPulse ?? 0;
       var agg = ScenarioLogComparer.AggregateByPulse(MemoryLogManager.Instance.LogEntries);
       ScenarioReportLogDisplay.RewriteAggregatedStylesToCombinationCodes(agg, perceptionImages);
       var expectations = doc.LogExpectations ?? new List<ScenarioLogExpectationRow>();
-
       sb.AppendLine("<h2>Сравнение ожидаемых реакций и факта по логам</h2>");
       sb.AppendLine("<p class=\"muted\">Якорный глобальный пульс: ")
           .Append(Escape(anchor.ToString(CultureInfo.InvariantCulture)))
           .Append(". Глобальный пульс шага = якорь + № пульса внутри сценария. ");
-
       bool hideEmptyCols = doc.Header?.ReportHideEmptyComparisonColumns ?? true;
       bool hideExpectedWhenNoMismatch = doc.Header?.ReportHideExpectedWhenNoMismatch ?? true;
       var comparisonSpecs = BuildVisibleComparisonColumnSpecs(doc, anchor, agg, hideEmptyCols);
@@ -497,13 +472,11 @@ namespace AIStudio.Common
         sb.Append("<th class=\"col-fact-h\">").Append(Escape(showExpectedColumn[ci] ? col.Label + " (факт)" : col.Label)).Append("</th>");
       }
       sb.AppendLine("</tr>");
-
       var compareList = ScenarioLogComparer.Compare(doc, anchor, agg,
           new ScenarioLogComparer.CompareMessageFormatting
           {
             FormatStateFact = ScenarioReportLogDisplay.FormatStateCell
           });
-
       if (doc.Lines != null)
       {
         foreach (var line in doc.Lines.OrderBy(l => l.StepIndex))
@@ -512,7 +485,6 @@ namespace AIStudio.Common
           var exp = expectations.FirstOrDefault(e => e.StepIndex == line.StepIndex && e.PulseWithinScenario == line.PulseWithinScenario)
               ?? expectations.FirstOrDefault(e => e.StepIndex == line.StepIndex)
               ?? new ScenarioLogExpectationRow();
-
           sb.AppendLine("<tr>");
           sb.Append("<td>").Append(Escape(line.StepIndex.ToString(CultureInfo.InvariantCulture))).Append("</td>");
           sb.Append("<td>").Append(Escape(line.PulseWithinScenario.ToString(CultureInfo.InvariantCulture))).Append("</td>");
@@ -579,7 +551,6 @@ namespace AIStudio.Common
         }
       }
       sb.AppendLine("</table>");
-
       AppendComparisonSummary(sb, compareList);
     }
 
@@ -611,11 +582,9 @@ namespace AIStudio.Common
     {
       if (!collapseExpectedWhenNoMismatch)
         return Enumerable.Repeat(true, comparisonSpecs.Length).ToArray();
-
       var showExpected = new bool[comparisonSpecs.Length];
       if (doc?.Lines == null || comparisonSpecs.Length == 0)
         return showExpected;
-
       var expList = doc.LogExpectations ?? new List<ScenarioLogExpectationRow>();
       foreach (var line in doc.Lines.OrderBy(l => l.StepIndex))
       {
@@ -630,7 +599,6 @@ namespace AIStudio.Common
             showExpected[i] = true;
         }
       }
-
       return showExpected;
     }
 
@@ -694,7 +662,6 @@ namespace AIStudio.Common
         return all;
       if (!hideVisuallyEmptyColumns)
         return all;
-
       var expList = doc.LogExpectations ?? new List<ScenarioLogExpectationRow>();
       var used = new bool[all.Length];
       foreach (var line in doc.Lines.OrderBy(l => l.StepIndex))
@@ -712,7 +679,6 @@ namespace AIStudio.Common
             used[i] = true;
         }
       }
-
       var list = new List<ComparisonColumnSpec>(all.Length);
       for (int i = 0; i < all.Length; i++)
       {
@@ -752,7 +718,6 @@ namespace AIStudio.Common
       new ComparisonColumnSpec { Label = "Цикл М", GetExpectedMain = e => e.MainCycleText ?? "", GetActual = a => a.MainCycle },
       new ComparisonColumnSpec { Label = "Циклы Ф", GetExpectedMain = e => e.BackgroundCyclesText ?? "", GetActual = a => a.BackgroundCycles }
     };
-
     private static void AppendMetaRow(StringBuilder sb, string name, string valueHtmlEscaped)
     {
       sb.AppendLine("<tr><th class=\"meta-label\">").Append(Escape(name)).Append("</th><td class=\"meta-value\">").Append(valueHtmlEscaped).AppendLine("</td></tr>");
@@ -762,7 +727,6 @@ namespace AIStudio.Common
     {
       if (e == null)
         return "Нет данных о завершении.";
-
       if (e.Success)
         return "Сценарий завершён успешно. Последний выполненный № пульса: "
             + e.LastExecutedPulseWithinScenario.ToString(CultureInfo.InvariantCulture) + ".";
@@ -822,7 +786,6 @@ namespace AIStudio.Common
     }
 
     private static string Escape(string s) => WebUtility.HtmlEncode(s ?? "");
-
     /// <summary>Кодирует текст для атрибута title: WebUtility.HtmlEncode и замена LF на числовую сущность перевода строки для многострочной подсказки в типичных браузерах.</summary>
     private static string EscapeForHtmlTitleAttribute(string s)
     {

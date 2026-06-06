@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Windows.Data;
@@ -13,7 +13,6 @@ namespace AIStudio.Converters
             { 0, "Норма" },
             { 1, "Хорошо" }
         };
-
     public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
     {
       if (value is int level1)

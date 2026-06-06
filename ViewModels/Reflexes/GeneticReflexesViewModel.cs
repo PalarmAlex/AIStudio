@@ -1,4 +1,4 @@
-﻿using AIStudio.Common;
+using AIStudio.Common;
 using ISIDA.Actions;
 using ISIDA.Common;
 using ISIDA.Gomeostas;
@@ -36,7 +36,6 @@ namespace AIStudio.ViewModels
     private readonly InfluenceActionSystem _influenceActionSystem;
     private readonly ReflexTreeSystem _reflexTreeSystem;
     private readonly ReflexChainsSystem _reflexChainsSystem;
-
     private readonly GomeostasSystem _gomeostas;
     public GomeostasSystem Gomeostas => _gomeostas;
     private string _currentAgentName;
@@ -47,9 +46,7 @@ namespace AIStudio.ViewModels
     private int? _selectedLevel2Filter;
     private int? _selectedLevel3Filter;
     private int? _selectedAdaptiveActionsFilter;
-
     public bool IsStageZero => _currentAgentStage == 0;
-
     public string CurrentAgentTitle =>
         SymbiontPageTitleFormatter.Format("Безусловные рефлексы", _currentAgentName, _currentAgentStage);
     private ObservableCollection<GeneticReflexesSystem.GeneticReflex> _allGeneticReflexes = new ObservableCollection<GeneticReflexesSystem.GeneticReflex>();
@@ -57,7 +54,6 @@ namespace AIStudio.ViewModels
     /// <summary>Множество записей, проходящих фильтр и лимит страницы (для отображения в таблице).</summary>
     private HashSet<GeneticReflexesSystem.GeneticReflex> _visibleSet = new HashSet<GeneticReflexesSystem.GeneticReflex>();
     public ICollectionView GeneticReflexesView => _geneticReflexesView;
-
     public List<KeyValuePair<int?, string>> PageSizeOptions { get; } = new List<KeyValuePair<int?, string>>
     {
       new KeyValuePair<int?, string>(100, "100"),
@@ -67,7 +63,6 @@ namespace AIStudio.ViewModels
       new KeyValuePair<int?, string>(10000, "10000"),
       new KeyValuePair<int?, string>(null, "Все")
     };
-
     private int? _selectedPageSize = 100;
     public int? SelectedPageSize
     {
@@ -95,12 +90,9 @@ namespace AIStudio.ViewModels
     public ICommand ClearFiltersCommand { get; }
     public ICommand RemoveAllCommand { get; }
     public ICommand LoadFromFileCommand { get; }
-
     private readonly GeneticReflexFileLoader _reflexFileLoader;
     private readonly string _bootDataFolder;
-
     public bool IsLoadFromFileEnabled => _reflexFileLoader != null && IsStageZero;
-
     public GeneticReflexesViewModel(
       GomeostasSystem gomeostasSystem,
       GeneticReflexesSystem geneticReflexesSystem,
@@ -119,7 +111,6 @@ namespace AIStudio.ViewModels
       _reflexChainsSystem = reflexChainsSystem;
       _reflexFileLoader = reflexFileLoader;
       _bootDataFolder = bootDataFolder;
-
       _geneticReflexesView = CollectionViewSource.GetDefaultView(_allGeneticReflexes);
       _geneticReflexesView.Filter = item =>
       {
@@ -129,13 +120,11 @@ namespace AIStudio.ViewModels
           return true;
         return _visibleSet != null && _visibleSet.Contains(reflex);
       };
-
       SaveCommand = new RelayCommand(SaveData);
       RemoveCommand = new RelayCommand(RemoveSelectedReflexes);
       ClearFiltersCommand = new RelayCommand(ClearFilters);
       RemoveAllCommand = new RelayCommand(RemoveAllReflexes);
       LoadFromFileCommand = new RelayCommand(LoadFromFile);
-
       GlobalTimer.PulsationStateChanged += OnPulsationStateChanged;
       LoadAgentData();
     }
@@ -147,7 +136,6 @@ namespace AIStudio.ViewModels
     {
       if (_reflexTreeSystem == null)
         return;
-
       try
       {
         if (reflex.Id <= 0)
@@ -158,7 +146,6 @@ namespace AIStudio.ViewModels
               MessageBoxImage.Error);
           return;
         }
-
         if (!IsEditingEnabled)
         {
           MessageBox.Show("Обновление привязки цепочки доступно только при выключенной пульсации",
@@ -215,12 +202,9 @@ namespace AIStudio.ViewModels
             actionImageId = GetHashForList(reflex.Level3);
           }
         }
-
         int[] conditionArr = new int[] { reflex.Level1, styleImageId, actionImageId };
-
         var (nodeId, node) = _reflexTreeSystem.FindReflexTreeNodeFromCondition(
             reflex.Level1, styleImageId, actionImageId);
-
         if (node != null)
         {
           if (reflex.ReflexChainID > 0)
@@ -244,14 +228,12 @@ namespace AIStudio.ViewModels
             if (detached)
               Logger.Info($"Цепочка отвязана от узла {nodeId} для рефлекса {reflex.Id}");
           }
-
           var (saveSuccess, error) = _reflexTreeSystem.SaveReflexTree();
           if (!saveSuccess)
             MessageBox.Show($"Ошибка сохранения дерева рефлексов: {error}",
                 "Ошибка сохранения",
                 MessageBoxButton.OK,
                 MessageBoxImage.Information);
-
           var (reflexSuccess, reflexError) = _geneticReflexesSystem.SaveGeneticReflexes();
           if (!reflexSuccess)
           {
@@ -305,10 +287,8 @@ namespace AIStudio.ViewModels
               MessageBoxImage.Warning);
           return;
         }
-
         int updatedCount = 0;
         int errorCount = 0;
-
         foreach (var reflex in _allGeneticReflexes)
         {
           try
@@ -322,7 +302,6 @@ namespace AIStudio.ViewModels
             Logger.Error(ex.Message);
           }
         }
-
         if (errorCount > 0)
         {
           MessageBox.Show($"Обновлено {updatedCount} привязок, ошибок: {errorCount}",
@@ -351,16 +330,12 @@ namespace AIStudio.ViewModels
     {
       if (reflex == null)
         return false;
-
       if (_geneticReflexesSystem.GetGeneticReflex(reflex.Id) == null)
         return true;
-
       if (reflex.Level2 == null || !reflex.Level2.Any())
         return true;
-
       if (reflex.AdaptiveActions == null || !reflex.AdaptiveActions.Any())
         return true;
-
       return false;
     }
 
@@ -368,10 +343,8 @@ namespace AIStudio.ViewModels
     {
       if (!(item is GeneticReflexesSystem.GeneticReflex reflex))
         return false;
-
       if (IsPendingReflex(reflex))
         return true;
-
       bool level3Match = !SelectedLevel3Filter.HasValue
         || (SelectedLevel3Filter.Value == -1
           ? (reflex.Level3 == null || !reflex.Level3.Any())
@@ -392,28 +365,20 @@ namespace AIStudio.ViewModels
         OnPropertyChanged(nameof(IsReadOnlyMode));
       });
     }
-
     #region Блокировка страницы в зависимости от стажа
-
     public bool IsEditingEnabled => IsStageZero && !GlobalTimer.IsPulsationRunning;
-
     public bool IsReadOnlyMode => !IsEditingEnabled;
-
     public string PulseWarningMessage =>
         !IsStageZero
             ? "[КРИТИЧНО] Редактирование параметров доступно только в стадии 0"
             : GlobalTimer.IsPulsationRunning
                 ? "Редактирование параметров доступно только при выключенной пульсации"
                 : string.Empty;
-
     public Brush WarningMessageColor =>
         !IsStageZero ? Brushes.Red :
         Brushes.Gray;
-
     #endregion
-
     #region Фильтры
-
     public List<KeyValuePair<int?, string>> Level1FilterOptions { get; } = new List<KeyValuePair<int?, string>>
     {
         new KeyValuePair<int?, string>(null, "Все состояния"),
@@ -425,7 +390,6 @@ namespace AIStudio.ViewModels
     public List<KeyValuePair<int?, string>> Level3FilterOptions { get; private set; } = new List<KeyValuePair<int?, string>>();
     public List<KeyValuePair<int?, string>> AdaptiveActionsFilterOptions { get; private set; } = new List<KeyValuePair<int?, string>>();
     public List<KeyValuePair<int?, string>> WordFilterOptions { get; private set; } = new List<KeyValuePair<int?, string>>();
-
     public int? SelectedLevel1Filter
     {
       get => _selectedLevel1Filter;
@@ -499,38 +463,29 @@ namespace AIStudio.ViewModels
     private void LoadFilterOptions()
     {
       Level2FilterOptions = new List<KeyValuePair<int?, string>> { new KeyValuePair<int?, string>(null, "Все контексты") };
-
       var level2Items = _gomeostas?.GetAllBehaviorStyles()?.Values?.ToList() ?? new List<GomeostasSystem.BehaviorStyle>();
       Level2FilterOptions.AddRange(level2Items.Select(x => new KeyValuePair<int?, string>(x.Id, x.Name)));
-
       Level3FilterOptions = new List<KeyValuePair<int?, string>>
       {
         new KeyValuePair<int?, string>(null, "Все воздействия"),
         new KeyValuePair<int?, string>(-1, "Без триггера")
       };
-
       var level3Items = _influenceActionSystem?.GetAllInfluenceActions()?.ToList() ?? new List<InfluenceActionSystem.GomeostasisInfluenceAction>();
       Level3FilterOptions.AddRange(level3Items.Select(x => new KeyValuePair<int?, string>(x.Id, x.Name)));
-
       AdaptiveActionsFilterOptions = new List<KeyValuePair<int?, string>> { new KeyValuePair<int?, string>(null, "Все действия") };
-
       var adaptiveItems = _actionsSystem?.GetAllAdaptiveActions()?.ToList() ?? new List<AdaptiveActionsSystem.AdaptiveAction>();
       AdaptiveActionsFilterOptions.AddRange(adaptiveItems.Select(x => new KeyValuePair<int?, string>(x.Id, x.Name)));
-
       OnPropertyChanged(nameof(Level2FilterOptions));
       OnPropertyChanged(nameof(Level3FilterOptions));
       OnPropertyChanged(nameof(AdaptiveActionsFilterOptions));
     }
-
     #endregion
-
     public List<KeyValuePair<int, string>> Level1Options { get; } = new List<KeyValuePair<int, string>>
     {
         new KeyValuePair<int, string>(-1, "Плохо"),
         new KeyValuePair<int, string>(0, "Норма"),
         new KeyValuePair<int, string>(1, "Хорошо")
     };
-
     private void LoadAgentData()
     {
       try
@@ -551,9 +506,7 @@ namespace AIStudio.ViewModels
       _currentAgentName = agentInfo.Name;
       OnPropertyChanged(nameof(IsStageZero));
       OnPropertyChanged(nameof(IsLoadFromFileEnabled));
-
       _allGeneticReflexes.Clear();
-
       foreach (var reflex in _geneticReflexesSystem.GetAllGeneticReflexes().OrderBy(a => a.Id))
       {
         var reflexCopy = new GeneticReflexesSystem.GeneticReflex
@@ -565,13 +518,10 @@ namespace AIStudio.ViewModels
           AdaptiveActions = new List<int>(reflex.AdaptiveActions),
           ReflexChainID = reflex.ReflexChainID
         };
-
         _allGeneticReflexes.Add(reflexCopy);
       }
-
       RefreshDisplay();
       LoadFilterOptions();
-
       OnPropertyChanged(nameof(IsStageZero));
       OnPropertyChanged(nameof(IsEditingEnabled));
       OnPropertyChanged(nameof(PulseWarningMessage));
@@ -592,11 +542,9 @@ namespace AIStudio.ViewModels
               MessageBoxImage.Error);
           return;
         }
-
         try
         {
           var (success, error) = _geneticReflexesSystem.SaveGeneticReflexes(false);
-
           if (success)
           {
             // Только при успешном сохранении обновляем коллекции
@@ -642,7 +590,6 @@ namespace AIStudio.ViewModels
       try
       {
         var currentReflexes = _geneticReflexesSystem.GetAllGeneticReflexes().ToDictionary(a => a.Id);
-
         foreach (var reflex in _allGeneticReflexes)
         {
           var validationResult = _geneticReflexesSystem.ValidateGeneticReflex(reflex);
@@ -655,7 +602,6 @@ namespace AIStudio.ViewModels
             return false;
           }
         }
-
         var reflexesToRemove = currentReflexes.Keys.Except(_allGeneticReflexes.Select(a => a.Id)).ToList();
         foreach (var reflexId in reflexesToRemove)
         {
@@ -668,7 +614,6 @@ namespace AIStudio.ViewModels
             return false;
           }
         }
-
         foreach (var reflex in _allGeneticReflexes)
         {
           if (currentReflexes.ContainsKey(reflex.Id) && reflex.Id > 0)
@@ -679,7 +624,6 @@ namespace AIStudio.ViewModels
             originalReflex.Level3 = new List<int>(reflex.Level3);
             originalReflex.AdaptiveActions = new List<int>(reflex.AdaptiveActions);
             originalReflex.ReflexChainID = reflex.ReflexChainID;
-
             var warnings = _geneticReflexesSystem.UpdateGeneticReflex(originalReflex);
             if (warnings != null && warnings.Length > 0)
             {
@@ -697,7 +641,6 @@ namespace AIStudio.ViewModels
                 new List<int>(reflex.Level3),
                 new List<int>(reflex.AdaptiveActions)
             );
-
             if (warnings != null && warnings.Length > 0)
             {
               MessageBox.Show($"Предупреждения при добавлении рефлекса '{newId}':\n{string.Join("\n", warnings)}",
@@ -705,9 +648,7 @@ namespace AIStudio.ViewModels
                   MessageBoxButton.OK,
                   MessageBoxImage.Warning);
             }
-
             reflex.Id = newId;
-
             if (reflex.ReflexChainID > 0)
             {
               try
@@ -749,19 +690,16 @@ namespace AIStudio.ViewModels
     public int GetNextReflexId()
     {
       int maxId = 0;
-
       foreach (var reflex in _allGeneticReflexes)
       {
         if (reflex.Id > maxId)
           maxId = reflex.Id;
       }
-
       foreach (var reflex in _geneticReflexesSystem.GetAllGeneticReflexes())
       {
         if (reflex.Id > maxId)
           maxId = reflex.Id;
       }
-
       return maxId + 1;
     }
 
@@ -794,13 +732,11 @@ namespace AIStudio.ViewModels
           "Подтверждение удаления",
           MessageBoxButton.YesNo,
           MessageBoxImage.Warning);
-
       if (result == MessageBoxResult.Yes)
       {
         try
         {
           var removeAll = _geneticReflexesSystem.RemoveAllGeneticReflex();
-
           if (removeAll)
           {
             if (_reflexTreeSystem != null && _reflexChainsSystem != null)
@@ -808,10 +744,8 @@ namespace AIStudio.ViewModels
               _reflexTreeSystem.ClearReflexTreeCompletely();
               _reflexChainsSystem.RemoveAllReflexChains();
             }
-
             _allGeneticReflexes.Clear();
             RefreshDisplay();
-
             var (success, error) = _geneticReflexesSystem.SaveGeneticReflexes(false); // все удалено - не надо валидаций
             if (success)
             {
@@ -875,25 +809,20 @@ namespace AIStudio.ViewModels
     {
       if (chainId <= 0 || _reflexChainsSystem == null || !ReflexChainsSystem.IsInitialized)
         return "Цепочка не привязана";
-
       try
       {
         var chain = _reflexChainsSystem.GetChain(chainId);
         if (chain == null)
           return $"Цепочка {chainId} не найдена";
-
         var links = _reflexChainsSystem.GetChainLinks(chainId);
         if (!links.Any())
           return $"Цепочка {chainId} не содержит звеньев";
-
         var sb = new StringBuilder();
         sb.AppendLine($"Цепочка: {chain.Name ?? $"ID {chainId}"}");
         if (!string.IsNullOrEmpty(chain.Description))
           sb.AppendLine($"Описание: {chain.Description}");
-
         sb.AppendLine($"Всего звеньев: {links.Count}");
         sb.AppendLine();
-
         var allActions = _actionsSystem.GetAllAdaptiveActions();
         foreach (var link in links.OrderBy(l => l.ID))
         {
@@ -907,7 +836,6 @@ namespace AIStudio.ViewModels
           if (link.FailureNextLink > 0)
             sb.AppendLine($"  При неудаче → звено {link.FailureNextLink}");
         }
-
         return sb.ToString();
       }
       catch (Exception ex)
@@ -922,7 +850,6 @@ namespace AIStudio.ViewModels
       public string LinkText { get; set; } = "Подробнее...";
       public string Url { get; set; } = "https://scorcher.ru/isida/iadaptive_agents_guide.php#ref_14";
       public ICommand OpenLinkCommand { get; }
-
       public DescriptionWithLink()
       {
         OpenLinkCommand = new RelayCommand(_ =>
@@ -946,6 +873,5 @@ namespace AIStudio.ViewModels
         };
       }
     }
-
   }
 }

@@ -1,4 +1,4 @@
-﻿using ISIDA.Actions;
+using ISIDA.Actions;
 using ISIDA.Gomeostas;
 using System;
 using System.Collections.Generic;
@@ -31,7 +31,6 @@ namespace AIStudio.Converters
                 return string.Join(", ", names);
               }
               break;
-
             case "Level3":
               if (InfluenceActionSystem.IsInitialized)
               {
@@ -44,7 +43,6 @@ namespace AIStudio.Converters
                 return string.Join(", ", names);
               }
               break;
-
             case "AdaptiveActions":
               if (AdaptiveActionsSystem.IsInitialized)
               {

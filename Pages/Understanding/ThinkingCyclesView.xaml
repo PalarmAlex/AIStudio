@@ -10,7 +10,6 @@
   <UserControl.Resources>
     <BooleanToVisibilityConverter x:Key="BoolToVis"/>
     <converters:InverseBooleanToVisibilityConverter x:Key="InverseBoolToVis"/>
-
     <Style x:Key="CardBorderStyle" TargetType="Border">
       <Setter Property="BorderBrush" Value="#FFE0E0E0"/>
       <Setter Property="BorderThickness" Value="1"/>
@@ -240,34 +239,24 @@
 
               <TextBlock Grid.Row="0" Grid.Column="0" Text="Id:" Style="{StaticResource KeyTextStyle}"/>
               <TextBlock Grid.Row="0" Grid.Column="1" Text="{Binding DetailIdText}" Style="{StaticResource ValueTextStyle}"/>
-
               <TextBlock Grid.Row="1" Grid.Column="0" Text="Order:" Style="{StaticResource KeyTextStyle}"/>
               <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding DetailOrderText}" Style="{StaticResource ValueTextStyle}"/>
-
               <TextBlock Grid.Row="2" Grid.Column="0" Text="Главный:" Style="{StaticResource KeyTextStyle}"/>
               <TextBlock Grid.Row="2" Grid.Column="1" Text="{Binding DetailMainText}" Style="{StaticResource ValueTextStyle}"/>
-
               <TextBlock Grid.Row="3" Grid.Column="0" Text="Вес:" Style="{StaticResource KeyTextStyle}"/>
               <TextBlock Grid.Row="3" Grid.Column="1" Text="{Binding DetailWeightText}" Style="{StaticResource ValueTextStyle}"/>
-
               <TextBlock Grid.Row="4" Grid.Column="0" Text="Шаги:" Style="{StaticResource KeyTextStyle}"/>
               <TextBlock Grid.Row="4" Grid.Column="1" Text="{Binding DetailStepsText}" Style="{StaticResource ValueTextStyle}"/>
-
               <TextBlock Grid.Row="5" Grid.Column="0" Text="Создан на пульсе:" Style="{StaticResource KeyTextStyle}"/>
               <TextBlock Grid.Row="5" Grid.Column="1" Text="{Binding DetailPulseText}" Style="{StaticResource ValueTextStyle}"/>
-
               <TextBlock Grid.Row="6" Grid.Column="0" Text="Обновлён:" Style="{StaticResource KeyTextStyle}"/>
               <TextBlock Grid.Row="6" Grid.Column="1" Text="{Binding DetailUpdatedText}" Style="{StaticResource ValueTextStyle}"/>
-
               <TextBlock Grid.Row="7" Grid.Column="0" Text="Ожидание автоматизма решения (ID):" Style="{StaticResource KeyTextStyle}"/>
               <TextBlock Grid.Row="7" Grid.Column="1" Text="{Binding DetailPendingAtmzText}" Style="{StaticResource ValueTextStyle}"/>
-
               <TextBlock Grid.Row="8" Grid.Column="0" Text="Ожид. оценки:" Style="{StaticResource KeyTextStyle}"/>
               <TextBlock Grid.Row="8" Grid.Column="1" Text="{Binding DetailAwaitingText}" Style="{StaticResource ValueTextStyle}"/>
-
               <TextBlock Grid.Row="9" Grid.Column="0" Text="Node / Problem / Theme / Purpose:" Style="{StaticResource KeyTextStyle}"/>
               <TextBlock Grid.Row="9" Grid.Column="1" Text="{Binding DetailContextLine}" Style="{StaticResource ValueTextStyle}"/>
-
               <TextBlock Grid.Row="10" Grid.Column="0" Text="Стратегия:" Style="{StaticResource KeyTextStyle}"/>
               <TextBlock Grid.Row="10" Grid.Column="1" Text="{Binding DetailStrategyText}" Style="{StaticResource ValueTextStyle}"/>
             </Grid>

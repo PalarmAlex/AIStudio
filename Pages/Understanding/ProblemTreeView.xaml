@@ -32,7 +32,7 @@
         <TextBlock FontSize="12" Foreground="#FF333333" FontWeight="Bold" Margin="0,0,0,2">
           <Run Text="{Binding Label}"/><Run Text=":"/>
         </TextBlock>
-  
+
         <!-- Основное значение (если есть) -->
         <TextBlock Text="{Binding Value}" 
                FontSize="12" Foreground="#FF0066B3"

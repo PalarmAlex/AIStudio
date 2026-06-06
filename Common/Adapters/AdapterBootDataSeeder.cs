@@ -23,27 +23,23 @@ namespace AIStudio.Common.Adapters
         errorMessage = "Не указан адаптер.";
         return false;
       }
-
       if (string.IsNullOrWhiteSpace(projectBootDataPath))
       {
         errorMessage = "Не указан каталог BootData проекта.";
         return false;
       }
-
       AdapterManifest manifest = AdapterRegistry.TryGetById(adapterId);
       if (manifest == null)
       {
         errorMessage = "Адаптер «" + adapterId + "» не установлен в " + AdapterPaths.AdaptersRootPath + ".";
         return false;
       }
-
       string sourceBoot = AdapterPaths.GetBootDataPath(manifest);
       if (!Directory.Exists(sourceBoot))
       {
         errorMessage = "В пакете адаптера нет BootData: " + sourceBoot;
         return false;
       }
-
       try
       {
         CopyDirectoryPreserveExisting(sourceBoot, projectBootDataPath);
@@ -59,14 +55,12 @@ namespace AIStudio.Common.Adapters
     private static void CopyDirectoryPreserveExisting(string sourceDir, string targetDir)
     {
       Directory.CreateDirectory(targetDir);
-
       foreach (string file in Directory.GetFiles(sourceDir))
       {
         string dest = Path.Combine(targetDir, Path.GetFileName(file));
         if (!File.Exists(dest))
           File.Copy(file, dest, overwrite: false);
       }
-
       foreach (string sub in Directory.GetDirectories(sourceDir))
       {
         string name = Path.GetFileName(sub);

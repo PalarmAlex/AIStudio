@@ -16,7 +16,6 @@
     <common:NumericListValidationRule x:Key="NumbersValidationRule"/>
     <converters:NumericWithCommaValidationRule x:Key="NumericWithCommaValidationRule"/>
     <converters:DictionaryToStringConverter x:Key="DictionaryToStringConverter"/>
-
     <Style TargetType="DataGridCell">
       <Setter Property="Padding" Value="5"/>
       <Setter Property="Template">
@@ -106,7 +105,7 @@
       <RowDefinition Height="*"/>
       <RowDefinition Height="Auto"/>
     </Grid.RowDefinitions>
-    
+
     <!-- Заголовок -->
     <TextBlock Grid.Row="0" 
                  Text="{Binding CurrentAgentTitle}" 
@@ -152,10 +151,8 @@
                     RowEditEnding="DataGrid_RowEditEnding"
                     AddingNewItem="DataGrid_AddingNewItem">
         <DataGrid.Columns>
-          
           <DataGridTextColumn Header="ID" Binding="{Binding Id}" Width="50" IsReadOnly="True"/>
           <DataGridTextColumn Header="Наименование" Binding="{Binding Name}" Width="200"/>
-
           <DataGridTextColumn Header="Описание" Binding="{Binding Description, Mode=TwoWay}" Width="500">
             <DataGridTextColumn.CellStyle>
               <Style TargetType="DataGridCell" BasedOn="{StaticResource {x:Type DataGridCell}}">
@@ -249,4 +246,3 @@
   </Grid>
 
 </UserControl>
-  

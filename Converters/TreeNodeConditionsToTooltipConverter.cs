@@ -15,28 +15,23 @@ namespace AIStudio.Converters
     {
       if (automatizm == null)
         return "Нет данных об условиях запуска";
-
       var sb = new StringBuilder();
       sb.AppendLine($"Состояние: {automatizm.BaseConditionText}");
       sb.AppendLine($"Эмоции (стили): {automatizm.EmotionText}");
       sb.AppendLine($"Воздействия с пульта: {automatizm.InfluenceActionsText}");
       AppendToneAndMoodLines(sb, automatizm);
-
       if (!string.IsNullOrEmpty(automatizm.VerbalText))
         sb.AppendLine($"Вербальный образ: {automatizm.VerbalText}");
       else
         sb.AppendLine("Вербальный образ: Нет фраз");
-
       if (automatizm.SimbolID > 0)
         sb.AppendLine($"Первый символ: ID {automatizm.SimbolID}");
       else
         sb.AppendLine("Первый символ: Нет");
-
       int visualCode = AgentVisualColor.IsValidCode(automatizm.VisualID)
           ? automatizm.VisualID
           : AgentVisualColor.White;
       sb.AppendLine($"Цветовой фон: {AgentVisualColor.GetDisplayName(visualCode)}");
-
       return sb.ToString().TrimEnd();
     }
 

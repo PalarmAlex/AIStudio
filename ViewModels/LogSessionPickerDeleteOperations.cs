@@ -20,7 +20,6 @@ namespace AIStudio.ViewModels
     {
       if (!LogSessionPickerGate.EnsurePulsationStopped(owner))
         return false;
-
       var checkedItems = items.Where(i => i.IsChecked).ToList();
       if (checkedItems.Count == 0)
       {
@@ -32,7 +31,6 @@ namespace AIStudio.ViewModels
             MessageBoxImage.Information);
         return false;
       }
-
       if (!items.Any(i => !i.IsCurrent))
       {
         MessageBox.Show(
@@ -43,10 +41,8 @@ namespace AIStudio.ViewModels
             MessageBoxImage.Information);
         return false;
       }
-
       bool currentChecked = checkedItems.Any(i => i.IsCurrent);
       var deletable = checkedItems.Where(i => !i.IsCurrent).ToList();
-
       if (deletable.Count == 0)
       {
         MessageBox.Show(
@@ -57,7 +53,6 @@ namespace AIStudio.ViewModels
             MessageBoxImage.Information);
         return false;
       }
-
       if (currentChecked)
       {
         MessageBox.Show(
@@ -67,7 +62,6 @@ namespace AIStudio.ViewModels
             MessageBoxButton.OK,
             MessageBoxImage.Information);
       }
-
       var confirm = MessageBox.Show(
           owner,
           "Вы точно хотите удалить выделенные файлы логов?\nОтменить изменения будет невозможно.",
@@ -76,7 +70,6 @@ namespace AIStudio.ViewModels
           MessageBoxImage.Warning);
       if (confirm != MessageBoxResult.Yes)
         return false;
-
       var indices = new List<int>();
       foreach (var item in deletable)
       {
@@ -90,10 +83,8 @@ namespace AIStudio.ViewModels
               MessageBoxImage.Error);
           return false;
         }
-
         indices.Add(ix);
       }
-
       var (ok, error) = deleteSessions(indices);
       if (!ok)
       {
@@ -105,7 +96,6 @@ namespace AIStudio.ViewModels
             MessageBoxImage.Error);
         return false;
       }
-
       reloadItems();
       return true;
     }

@@ -14,7 +14,6 @@
     </Grid.RowDefinitions>
 
     <TextBlock Grid.Row="0" Text="{Binding CurrentAgentTitle}" FontSize="18" FontWeight="SemiBold" HorizontalAlignment="Center" Margin="0,0,0,8"/>
-
     <Border Grid.Row="1" BorderBrush="#FFE0E0E0" BorderThickness="1" CornerRadius="4" Padding="8" Margin="0,0,0,8" Background="#FFF9FBE7">
       <Grid>
         <Grid.ColumnDefinitions>

@@ -9,7 +9,6 @@ namespace AIStudio.Pages.Understanding
   {
     public DataTemplate DefaultTemplate { get; set; }
     public DataTemplate AutNodeTemplate { get; set; }
-
     public override DataTemplate SelectTemplate(object item, DependencyObject container)
     {
       if (item is PropertyRow row)

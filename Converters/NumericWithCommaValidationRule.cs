@@ -1,4 +1,4 @@
-﻿using System.Globalization;
+using System.Globalization;
 using System.Windows.Controls;
 using System.Text.RegularExpressions;
 
@@ -18,7 +18,6 @@ namespace AIStudio.Converters
 
         // Разбиваем строку по запятым
         string[] parts = strValue.Split(',');
-
         foreach (string part in parts)
         {
           string trimmedPart = part.Trim();
@@ -42,7 +41,6 @@ namespace AIStudio.Converters
           return new ValidationResult(false, "Запятая не может быть первым или последним символом");
         }
       }
-
       return ValidationResult.ValidResult;
     }
   }

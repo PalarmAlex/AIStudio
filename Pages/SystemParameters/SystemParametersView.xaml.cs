@@ -1,4 +1,4 @@
-﻿using AIStudio.Common;
+using AIStudio.Common;
 using AIStudio.Dialogs;
 using AIStudio.ViewModels;
 using ISIDA.Actions;
@@ -48,12 +48,9 @@ namespace AIStudio.Pages
           e.Handled = true;
           return;
         }
-
         var grid = (DataGrid)sender;
-
         if (grid.IsEditing())
           return;
-
         if (grid.SelectedItems.Count > 0)
         {
           var viewModel = (SystemParametersViewModel)DataContext;
@@ -62,18 +59,15 @@ namespace AIStudio.Pages
               .Where(item => item is GomeostasSystem.ParameterData)
               .Cast<GomeostasSystem.ParameterData>()
               .ToList();
-
           var result = MessageBox.Show(
               $"Вы действительно хотите удалить {parameters.Count} параметров?",
               "Подтверждение удаления",
               MessageBoxButton.YesNo,
               MessageBoxImage.Question);
-
           if (result == MessageBoxResult.Yes)
           {
             viewModel.RemoveParameters(parameters);
           }
-
           e.Handled = true; // Блокируем дальнейшую обработку Delete
         }
       }
@@ -91,7 +85,6 @@ namespace AIStudio.Pages
     private void DataGrid_AddingNewItem(object sender, AddingNewItemEventArgs e)
     {
       int nextId = GetNextId();
-
       e.NewItem = new GomeostasSystem.ParameterData
       {
         Id = nextId,
@@ -109,13 +102,11 @@ namespace AIStudio.Pages
     {
       var viewModel = DataContext as SystemParametersViewModel;
       if (viewModel == null) return 1;
-
       int maxId = 0;
       if (viewModel.SystemParameters != null && viewModel.SystemParameters.Any())
       {
         maxId = viewModel.SystemParameters.Max(a => a.Id);
       }
-
       var grid = parametersDataGrid;
       if (grid?.ItemsSource != null)
       {
@@ -126,7 +117,6 @@ namespace AIStudio.Pages
           maxId = Math.Max(maxId, gridMaxId);
         }
       }
-
       return maxId + 1;
     }
 
@@ -134,15 +124,11 @@ namespace AIStudio.Pages
     {
       if (e.EditAction != DataGridEditAction.Commit || !(e.EditingElement is TextBox textBox))
         return;
-
       if (e.Column.Header == null)
         return;
-
       string input = textBox.Text.Trim();
       if (input == "") return;
-
       string msgText = "";
-
       if (e.Column.Header.ToString() == "Значение")
       {
         if (!double.TryParse(input, NumberStyles.Float | NumberStyles.AllowThousands, CultureInfo.InvariantCulture, out double value)
@@ -168,11 +154,9 @@ namespace AIStudio.Pages
         else
         {
           string txt = input?.ToString() ?? string.Empty;
-
           try
           {
             var pairs = txt.Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries);
-
             foreach (var pair in pairs)
             {
               var parts = pair.Trim().Split(':');
@@ -181,7 +165,6 @@ namespace AIStudio.Pages
                 msgText = "Неправильный формат данных для вставки.\nПример: '1:0.5, 2:-1, 3:1'";
                 break;
               }
-
               if (int.TryParse(parts[0], out int paramId))
               {
                 List<int> validParamId = new List<int> { 1, 2, 3, 4 };
@@ -196,7 +179,6 @@ namespace AIStudio.Pages
                 msgText = $"Введенное значение не является целым числом: {parts[0]}";
                 break;
               }
-             
               if (float.TryParse(parts[1], NumberStyles.Float, CultureInfo.InvariantCulture, out float influence))
               {
                 if(influence < -10 || influence > 10)
@@ -204,7 +186,6 @@ namespace AIStudio.Pages
                   msgText = $"Введенное значение должно быть в диапазоне от -10 до 10: {parts[1]}";
                   break;
                 }
-
               }
               else
               {
@@ -215,17 +196,13 @@ namespace AIStudio.Pages
           }
           catch
           {
-            
           }
         }
       }
-
       if (msgText != "")
       {
         MessageBox.Show(msgText, "Ошибка ввода", MessageBoxButton.OK, MessageBoxImage.Warning);
-
         e.Cancel = true;
-
         var binding = textBox.GetBindingExpression(TextBox.TextProperty);
         binding?.UpdateTarget();
         return;
@@ -280,7 +257,6 @@ namespace AIStudio.Pages
         string digits = text.Substring(1);
         return digits.All(char.IsDigit) && int.TryParse(text, out _);
       }
-
       return text.All(char.IsDigit);
     }
 
@@ -316,10 +292,8 @@ namespace AIStudio.Pages
     private void DataGrid_MouseDoubleClick(object sender, MouseButtonEventArgs e)
     {
       if (e.ChangedButton != MouseButton.Left) return;
-
       var dataGrid = (DataGrid)sender;
       var selectedItem = dataGrid.SelectedItem as GomeostasSystem.ParameterData;
-
       if (selectedItem != null && dataGrid.CurrentColumn?.Header?.ToString() == "Активации стилей")
       {
         if (!IsFormEnabled)
@@ -327,23 +301,19 @@ namespace AIStudio.Pages
           e.Handled = true;
           return;
         }
-
         var viewModel = (SystemParametersViewModel)DataContext;
         var allStyles = viewModel.GetAllBehaviorStyles();
-
         string title = $"Редактирование активаций стилей для параметра: {selectedItem.Name}";
         var editor = new StyleActivationsEditor(
             title,
             selectedItem.StyleActivations,
             allStyles);
-
         if (editor.ShowDialog() == true)
         {
           selectedItem.StyleActivations = editor.ResultActivations;
           dataGrid.CommitEdit(DataGridEditingUnit.Row, true);
           dataGrid.Items.Refresh();
         }
-
         e.Handled = true;
       }
     }
@@ -359,9 +329,7 @@ namespace AIStudio.Pages
           Text = parameter.Description,
           Multiline = true
         };
-
         dialog.SetText(parameter.Description, true);
-
         if (dialog.ShowDialog() == true)
         {
           parameter.Description = dialog.Text;
@@ -394,6 +362,5 @@ namespace AIStudio.Pages
         return true;
       }
     }
-
   }
 }

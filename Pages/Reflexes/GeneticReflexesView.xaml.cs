@@ -1,4 +1,4 @@
-﻿using AIStudio.Common;
+using AIStudio.Common;
 using AIStudio.Dialogs;
 using AIStudio.ViewModels;
 using ISIDA.Actions;
@@ -26,13 +26,10 @@ namespace AIStudio.Pages.Reflexes
   {
     private readonly ReflexChainsSystem _reflexChainsSystem;
     private GeneticReflexesSystem.GeneticReflex _contextMenuReflex;
-
     public GeneticReflexesView()
     {
       InitializeComponent();
-
       _reflexChainsSystem = ReflexChainsSystem.Instance;
-
       Loaded += OnLoaded;
       Unloaded += OnUnloaded;
     }
@@ -58,16 +55,13 @@ namespace AIStudio.Pages.Reflexes
       if (e.Key == Key.Delete)
       {
         var grid = (DataGrid)sender;
-
         if (!IsFormEnabled)
         {
           e.Handled = true;
           return;
         }
-
         if (grid.IsEditing())
           return;
-
         if (grid.SelectedItems.Count > 0 && DataContext is GeneticReflexesViewModel viewModel)
         {
           var actions = grid.SelectedItems
@@ -75,13 +69,11 @@ namespace AIStudio.Pages.Reflexes
             .Where(item => item is GeneticReflexesSystem.GeneticReflex)
             .Cast<GeneticReflexesSystem.GeneticReflex>()
             .ToList();
-
           var result = MessageBox.Show(
               $"Вы действительно хотите удалить {actions.Count} безусловных рефлексов?",
               "Подтверждение удаления",
               MessageBoxButton.YesNo,
               MessageBoxImage.Question);
-
           if (result == MessageBoxResult.Yes)
           {
             foreach (var action in actions)
@@ -89,7 +81,6 @@ namespace AIStudio.Pages.Reflexes
               viewModel.RemoveSelectedReflexes(action);
             }
           }
-
           e.Handled = true;
         }
       }
@@ -107,7 +98,6 @@ namespace AIStudio.Pages.Reflexes
     private void DataGrid_AddingNewItem(object sender, AddingNewItemEventArgs e)
     {
       int nextId = GetNextId();
-
       e.NewItem = new GeneticReflexesSystem.GeneticReflex
       {
         Id = nextId,
@@ -122,7 +112,6 @@ namespace AIStudio.Pages.Reflexes
     {
       if (DataContext is GeneticReflexesViewModel viewModel)
         return viewModel.GetNextReflexId();
-
       return 1;
     }
 
@@ -133,7 +122,6 @@ namespace AIStudio.Pages.Reflexes
         e.Handled = true;
         return;
       }
-
       if (sender is DataGridCell cell && cell.DataContext is GeneticReflexesSystem.GeneticReflex reflex)
       {
         if (DataContext is GeneticReflexesViewModel viewModel)
@@ -142,7 +130,6 @@ namespace AIStudio.Pages.Reflexes
           {
             Owner = Window.GetWindow(this)
           };
-
           if (dialog.ShowDialog() == true)
           {
             reflex.Level2 = dialog.SelectedBehaviorStyles;
@@ -160,7 +147,6 @@ namespace AIStudio.Pages.Reflexes
         e.Handled = true;
         return;
       }
-
       if (sender is DataGridCell cell && cell.DataContext is GeneticReflexesSystem.GeneticReflex reflex)
       {
         var dialog = new InfluenceActionsSelectionDialog(reflex.Level3);
@@ -180,7 +166,6 @@ namespace AIStudio.Pages.Reflexes
         e.Handled = true;
         return;
       }
-
       if (sender is DataGridCell cell && cell.DataContext is GeneticReflexesSystem.GeneticReflex reflex)
       {
         var dialog = new AdaptiveActionsSelectionDialog(reflex.AdaptiveActions);
@@ -192,9 +177,7 @@ namespace AIStudio.Pages.Reflexes
         }
       }
     }
-
     #region Контекстное меню для цепочки
-
     private void ChainCell_MouseRightButtonDown(object sender, MouseButtonEventArgs e)
     {
       if (sender is DataGridCell cell && cell.DataContext is GeneticReflexesSystem.GeneticReflex reflex)
@@ -207,18 +190,14 @@ namespace AIStudio.Pages.Reflexes
     {
       if (!IsFormEnabled)
         return;
-
       var menuItem = sender as MenuItem;
       var contextMenu = menuItem?.Parent as ContextMenu;
       var cell = contextMenu?.PlacementTarget as DataGridCell;
-
       GeneticReflexesSystem.GeneticReflex reflex = null;
-
       if (cell != null && cell.DataContext is GeneticReflexesSystem.GeneticReflex cellReflex)
         reflex = cellReflex;
       else if (_contextMenuReflex != null)
         reflex = _contextMenuReflex;
-
       if (reflex != null)
         OpenNewChainEditor(reflex);
     }
@@ -227,18 +206,14 @@ namespace AIStudio.Pages.Reflexes
     {
       if (!IsFormEnabled)
         return;
-
       var menuItem = sender as MenuItem;
       var contextMenu = menuItem?.Parent as ContextMenu;
       var cell = contextMenu?.PlacementTarget as DataGridCell;
-
       GeneticReflexesSystem.GeneticReflex reflex = null;
-
       if (cell != null && cell.DataContext is GeneticReflexesSystem.GeneticReflex cellReflex)
         reflex = cellReflex;
       else if (_contextMenuReflex != null)
         reflex = _contextMenuReflex;
-
       if (reflex != null)
         OpenReflexChainBindingDialog(reflex);
     }
@@ -247,11 +222,9 @@ namespace AIStudio.Pages.Reflexes
     {
       if (!IsFormEnabled)
         return;
-
       var menuItem = sender as MenuItem;
       var contextMenu = menuItem?.Parent as ContextMenu;
       var cell = contextMenu?.PlacementTarget as DataGridCell;
-
       if (cell != null && cell.DataContext is GeneticReflexesSystem.GeneticReflex reflex)
         OpenChainEditorForReflex(cell, reflex);
       else if (_contextMenuReflex != null)
@@ -262,26 +235,19 @@ namespace AIStudio.Pages.Reflexes
     {
       if (!IsFormEnabled)
         return;
-
       var menuItem = sender as MenuItem;
       var contextMenu = menuItem?.Parent as ContextMenu;
       var cell = contextMenu?.PlacementTarget as DataGridCell;
-
       GeneticReflexesSystem.GeneticReflex reflex = null;
-
       if (cell != null && cell.DataContext is GeneticReflexesSystem.GeneticReflex cellReflex)
         reflex = cellReflex;
       else if (_contextMenuReflex != null)
         reflex = _contextMenuReflex;
-
       if (reflex != null)
         DetachChainFromReflex(reflex);
     }
-
     #endregion
-
     #region Вспомогательные методы для работы с цепочками
-
     private void OpenNewChainEditor(GeneticReflexesSystem.GeneticReflex reflex)
     {
       if (reflex.Id <= 0)
@@ -294,14 +260,12 @@ namespace AIStudio.Pages.Reflexes
             MessageBoxImage.Warning);
         return;
       }
-
       if (!ReflexChainsSystem.IsInitialized)
       {
         MessageBox.Show("Система цепочек рефлексов не инициализирована", "Ошибка",
             MessageBoxButton.OK, MessageBoxImage.Error);
         return;
       }
-
       var dialog = new ReflexChainEditorDialog(
           reflex.Id,
           reflex.Level1,
@@ -316,17 +280,13 @@ namespace AIStudio.Pages.Reflexes
         Owner = Window.GetWindow(this),
         Title = "Создание новой цепочки"
       };
-
       if (dialog.ShowDialog() == true && dialog.ChainId > 0)
       {
         reflex.ReflexChainID = dialog.ChainId;
-
         if (DataContext is GeneticReflexesViewModel viewModel)
           viewModel.UpdateChainBindingForReflex(reflex);
-
         GeneticReflexesGrid.CommitEdit(DataGridEditingUnit.Row, true);
         GeneticReflexesGrid.Items.Refresh();
-
         MessageBox.Show(
             $"Новая цепочка {dialog.ChainId} создана и привязана к рефлексу {reflex.Id}",
             "Цепочка создана",
@@ -347,7 +307,6 @@ namespace AIStudio.Pages.Reflexes
             MessageBoxImage.Warning);
         return;
       }
-
       var allChains = _reflexChainsSystem.GetAllReflexChains();
       if (!allChains.Any())
       {
@@ -357,14 +316,12 @@ namespace AIStudio.Pages.Reflexes
             "Цепочки не найдены",
             MessageBoxButton.YesNo,
             MessageBoxImage.Question);
-
         if (result == MessageBoxResult.Yes)
         {
           OpenNewChainEditor(reflex);
         }
         return;
       }
-
       var bindingDialog = new ReflexChainBindingDialog(
           reflex.Id,
           reflex.ReflexChainID,
@@ -374,13 +331,11 @@ namespace AIStudio.Pages.Reflexes
         Owner = Window.GetWindow(this),
         Title = $"Управление цепочками для рефлекса {reflex.Id}"
       };
-
       if (bindingDialog.ShowDialog() == true)
       {
         if (bindingDialog.SelectedChainId > 0)
         {
           reflex.ReflexChainID = bindingDialog.SelectedChainId;
-
           if (DataContext is GeneticReflexesViewModel viewModel)
           {
             viewModel.UpdateChainBindingForReflex(reflex);
@@ -408,15 +363,12 @@ namespace AIStudio.Pages.Reflexes
     {
       if (!IsFormEnabled)
         return;
-
       if (reflex == null && cell != null && cell.DataContext is GeneticReflexesSystem.GeneticReflex cellReflex)
       {
         reflex = cellReflex;
       }
-
       if (reflex == null)
         return;
-
       if (reflex.Id <= 0)
       {
         MessageBox.Show(
@@ -427,14 +379,12 @@ namespace AIStudio.Pages.Reflexes
             MessageBoxImage.Warning);
         return;
       }
-
       if (!ReflexChainsSystem.IsInitialized)
       {
         MessageBox.Show("Система цепочек рефлексов не инициализирована", "Ошибка",
             MessageBoxButton.OK, MessageBoxImage.Error);
         return;
       }
-
       if (reflex.ReflexChainID > 0)
       {
         var dialog = new ReflexChainEditorDialog(
@@ -447,14 +397,11 @@ namespace AIStudio.Pages.Reflexes
             ReflexChainsSystem.Instance,
             AdaptiveActionsSystem.Instance
         );
-
         if (dialog.ShowDialog() == true)
         {
           reflex.ReflexChainID = dialog.ChainId;
-
           if (DataContext is GeneticReflexesViewModel viewModel)
             viewModel.UpdateChainBindingForReflex(reflex);
-
           GeneticReflexesGrid.CommitEdit(DataGridEditingUnit.Row, true);
           GeneticReflexesGrid.Items.Refresh();
         }
@@ -474,24 +421,19 @@ namespace AIStudio.Pages.Reflexes
             MessageBoxImage.Information);
         return;
       }
-
       var result = MessageBox.Show(
           $"Вы действительно хотите отвязать цепочку {reflex.ReflexChainID} от рефлекса {reflex.Id}?",
           "Подтверждение отвязки цепочки",
           MessageBoxButton.YesNo,
           MessageBoxImage.Question);
-
       if (result == MessageBoxResult.Yes)
       {
         int oldChainId = reflex.ReflexChainID;
         reflex.ReflexChainID = 0;
-
         if (DataContext is GeneticReflexesViewModel viewModel)
           viewModel.UpdateChainBindingForReflex(reflex);
-
         GeneticReflexesGrid.CommitEdit(DataGridEditingUnit.Row, true);
         GeneticReflexesGrid.Items.Refresh();
-
         MessageBox.Show(
             $"Цепочка {oldChainId} успешно отвязана от рефлекса {reflex.Id}",
             "Цепочка отвязана",
@@ -504,7 +446,6 @@ namespace AIStudio.Pages.Reflexes
     {
       var allChains = _reflexChainsSystem.GetAllReflexChains();
       bool hasChains = allChains.Any();
-
       if (!hasChains)
       {
         var result = MessageBox.Show(
@@ -513,26 +454,21 @@ namespace AIStudio.Pages.Reflexes
             "Цепочки не найдены",
             MessageBoxButton.YesNo,
             MessageBoxImage.Question);
-
         if (result == MessageBoxResult.Yes)
           OpenNewChainEditor(reflex);
         return;
       }
-
       var firstResult = MessageBox.Show(
           "Хотите создать новую цепочку или выбрать из существующих?",
           "Выбор действия",
           MessageBoxButton.YesNoCancel,
           MessageBoxImage.Question);
-
       if (firstResult == MessageBoxResult.Yes)
         OpenNewChainEditor(reflex);
       else if (firstResult == MessageBoxResult.No)
         OpenReflexChainBindingDialog(reflex);
     }
-
     #endregion
-
     private void ChainCell_DoubleClick(object sender, RoutedEventArgs e)
     {
       if (sender is DataGridCell cell)

@@ -17,12 +17,10 @@ namespace AIStudio.Pages.Adapters
     }
 
     private AdaptersViewModel ViewModel => DataContext as AdaptersViewModel;
-
     private void AdaptersGrid_MouseDoubleClick(object sender, MouseButtonEventArgs e)
     {
       if (ViewModel?.Selected == null)
         return;
-
       ViewModel.EditSelected(Window.GetWindow(this));
     }
 
@@ -30,7 +28,6 @@ namespace AIStudio.Pages.Adapters
     {
       if (e.Key != Key.Delete || ViewModel?.Selected == null)
         return;
-
       ViewModel.DeleteSelected(Window.GetWindow(this));
       e.Handled = true;
     }

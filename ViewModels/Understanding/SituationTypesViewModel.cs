@@ -27,41 +27,32 @@ namespace AIStudio.ViewModels
     private readonly GomeostasSystem _gomeostas;
     private int _currentAgentStage;
     private string _currentAgentName;
-
     public bool IsStageFour => _currentAgentStage == 4;
-
     public string CurrentAgentTitle =>
         SymbiontPageTitleFormatter.Format("Справочник типов ситуаций", _currentAgentName, _currentAgentStage);
-
     public DescriptionWithLink CurrentAgentDescription => new DescriptionWithLink
     {
       Text = "Справочник типов ситуаций: слоты событий (1–20), настроения (21–40), воздействия (41–60). Коды событий, настроений и воздействий заданы в движке и справочниках (только просмотр); редактируется привязка типа темы (ThemeTypeId) в каждом слоте. "
     };
-
     private ObservableCollection<SituationTypeRecord> _eventRecords = new ObservableCollection<SituationTypeRecord>();
     private ObservableCollection<SituationTypeRecord> _moodRecords = new ObservableCollection<SituationTypeRecord>();
     private ObservableCollection<SituationTypeRecord> _influenceRecords = new ObservableCollection<SituationTypeRecord>();
-
     /// <summary>Слоты событий с привязкой темы (ID 1–20)</summary>
     public ObservableCollection<SituationTypeRecord> EventRecords => _eventRecords;
     public ObservableCollection<SituationTypeRecord> MoodRecords => _moodRecords;
     public ObservableCollection<SituationTypeRecord> InfluenceRecords => _influenceRecords;
-
     public ICommand SaveAllCommand { get; }
     public ICommand ClearAllCommand { get; }
     public ICommand FillDefaultsCommand { get; }
-
     public SituationTypesViewModel(
       GomeostasSystem gomeostasSystem,
       SituationTypeSystem situationTypeSystem)
     {
       _gomeostas = gomeostasSystem ?? throw new ArgumentNullException(nameof(gomeostasSystem));
       _situationTypeSystem = situationTypeSystem;
-
       SaveAllCommand = new RelayCommand(SaveAll);
       ClearAllCommand = new RelayCommand(ClearAll);
       FillDefaultsCommand = new RelayCommand(FillDefaults);
-
       GlobalTimer.PulsationStateChanged += OnPulsationStateChanged;
       LoadData();
     }
@@ -76,29 +67,21 @@ namespace AIStudio.ViewModels
         OnPropertyChanged(nameof(IsReadOnlyMode));
       });
     }
-
     #region Блокировка страницы
-
     public bool IsEditingEnabled => IsStageFour && !GlobalTimer.IsPulsationRunning;
     public bool IsReadOnlyMode => !IsEditingEnabled;
-
     public string PulseWarningMessage =>
         !IsStageFour
             ? "[КРИТИЧНО] Редактирование справочника типов ситуаций доступно только в стадии 4"
             : GlobalTimer.IsPulsationRunning
                 ? "Редактирование доступно только при выключенной пульсации"
                 : string.Empty;
-
     public Brush WarningMessageColor =>
         !IsStageFour ? Brushes.Red : Brushes.Gray;
-
     #endregion
-
     #region Опции для ComboBox (только тема)
-
     /// <summary>Темы для привязки в слотах (ThemeTypeId)</summary>
     public List<KeyValuePair<int, string>> ThemeSlotCellOptions { get; private set; } = new List<KeyValuePair<int, string>>();
-
     private void LoadCellOptions()
     {
       var allThemes = ThemeImageSystem.GetDefaultThemeTypesForSettings();
@@ -108,12 +91,9 @@ namespace AIStudio.ViewModels
         foreach (var t in allThemes.OrderBy(x => x.Id))
           ThemeSlotCellOptions.Add(new KeyValuePair<int, string>(t.Id, $"{t.Id}: {t.Description}"));
       }
-
       OnPropertyChanged(nameof(ThemeSlotCellOptions));
     }
-
     #endregion
-
     /// <summary>
     /// Слоты 41–60 изначально часто без InfluenceId (-1): «Заполнить по умолчанию» их не трогает.
     /// Подставляем ID воздействий из справочника по порядку (как строки в ExterInalInfluencesView: OrderBy Id),
@@ -163,35 +143,28 @@ namespace AIStudio.ViewModels
         var agentInfo = _gomeostas.GetAgentState();
         _currentAgentStage = agentInfo?.EvolutionStage ?? 0;
         _currentAgentName = agentInfo?.Name;
-
         if (_situationTypeSystem != null && ISIDA.Psychic.Understanding.SituationTypeSystem.IsInitialized)
         {
           _situationTypeSystem.EnsureSlotsAndSaveIfNeeded();
           var all = _situationTypeSystem.GetAll().ToDictionary(r => r.Id);
-
           _eventRecords.Clear();
           for (int id = 1; id <= 20; id++)
           {
             _eventRecords.Add(all.TryGetValue(id, out var r) ? r : new SituationTypeRecord { Id = id, MoodId = SituationTypeSystem.EmptySlotValue, InfluenceId = SituationTypeSystem.EmptySlotValue, ThemeTypeId = -1, EventAgentCode = -1 });
           }
-
           _moodRecords.Clear();
           for (int id = 21; id <= 40; id++)
           {
             _moodRecords.Add(all.TryGetValue(id, out var r) ? r : new SituationTypeRecord { Id = id, MoodId = SituationTypeSystem.EmptySlotValue, InfluenceId = SituationTypeSystem.EmptySlotValue, ThemeTypeId = -1, EventAgentCode = -1 });
           }
-
           _influenceRecords.Clear();
           for (int id = 41; id <= 60; id++)
           {
             _influenceRecords.Add(all.TryGetValue(id, out var r) ? r : new SituationTypeRecord { Id = id, MoodId = SituationTypeSystem.EmptySlotValue, InfluenceId = SituationTypeSystem.EmptySlotValue, ThemeTypeId = -1, EventAgentCode = -1 });
           }
-
           SyncEmptyInfluenceSlotsFromCatalogAndSave();
         }
-
         LoadCellOptions();
-
         OnPropertyChanged(nameof(EventRecords));
         OnPropertyChanged(nameof(MoodRecords));
         OnPropertyChanged(nameof(InfluenceRecords));
@@ -210,7 +183,6 @@ namespace AIStudio.ViewModels
     }
 
     public void RefreshData() => LoadData();
-
     private void FillDefaults(object parameter)
     {
       if (MessageBox.Show(
@@ -223,7 +195,6 @@ namespace AIStudio.ViewModels
           MessageBoxButton.YesNo,
           MessageBoxImage.Question) != MessageBoxResult.Yes)
         return;
-
       AgentEventsCatalog.ApplyDefaultSituationSlotBindings(_eventRecords, _moodRecords);
       RefreshObservableCollectionInPlace(_eventRecords);
       RefreshObservableCollectionInPlace(_moodRecords);
@@ -252,11 +223,9 @@ namespace AIStudio.ViewModels
               MessageBoxButton.OK, MessageBoxImage.Error);
           return;
         }
-
         _situationTypeSystem.UpdateFromRecords(_eventRecords);
         _situationTypeSystem.UpdateFromRecords(_moodRecords);
         _situationTypeSystem.UpdateFromRecords(_influenceRecords);
-
         var (validLink, linkErr) = _situationTypeSystem.ValidateThemeRequiresLinkField(_situationTypeSystem.GetAll());
         if (!validLink)
         {
@@ -264,7 +233,6 @@ namespace AIStudio.ViewModels
               MessageBoxButton.OK, MessageBoxImage.Warning);
           return;
         }
-
         var allWithTheme = _situationTypeSystem.GetAll()
           .Where(r => r != null && r.Id >= 1 && r.Id <= 60 && r.ThemeTypeId > 0)
           .ToList();
@@ -275,7 +243,6 @@ namespace AIStudio.ViewModels
               MessageBoxButton.OK, MessageBoxImage.Warning);
           return;
         }
-
         var (valid, dupError) = _situationTypeSystem.ValidateRecordsNoDuplicates(_moodRecords, _influenceRecords);
         if (!valid)
         {
@@ -283,9 +250,7 @@ namespace AIStudio.ViewModels
               MessageBoxButton.OK, MessageBoxImage.Warning);
           return;
         }
-
         var (success, error) = _situationTypeSystem.Save();
-
         if (success)
         {
           LoadData();
@@ -322,7 +287,6 @@ namespace AIStudio.ViewModels
           MessageBoxButton.YesNo,
           MessageBoxImage.Question) != MessageBoxResult.Yes)
         return;
-
       foreach (var r in _eventRecords)
       {
         if (r.Id >= 11 && r.Id <= 20)
@@ -331,21 +295,18 @@ namespace AIStudio.ViewModels
           r.EventAgentCode = -1;
         }
       }
-
       foreach (var r in _moodRecords)
       {
         r.MoodId = SituationTypeSystem.EmptySlotValue;
         r.InfluenceId = SituationTypeSystem.EmptySlotValue;
         r.ThemeTypeId = -1;
       }
-
       foreach (var r in _influenceRecords)
       {
         r.MoodId = SituationTypeSystem.EmptySlotValue;
         r.InfluenceId = SituationTypeSystem.EmptySlotValue;
         r.ThemeTypeId = -1;
       }
-
       SaveAndReload("все слоты (очищены)");
     }
 
@@ -355,7 +316,6 @@ namespace AIStudio.ViewModels
       public string LinkText { get; set; } = "Подробнее...";
       public string Url { get; set; } = "https://scorcher.ru/isida/iadaptive_agents_guide.php#understanding";
       public ICommand OpenLinkCommand { get; }
-
       public DescriptionWithLink()
       {
         OpenLinkCommand = new RelayCommand(_ =>

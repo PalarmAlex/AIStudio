@@ -1,4 +1,4 @@
-﻿using ISIDA.Actions;
+using ISIDA.Actions;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -28,17 +28,13 @@ namespace AIStudio.Pages
 
     public IEnumerable<int> SelectedInfluenceIds =>
     _influenceItems.Where(x => x.IsSelected).Select(x => x.Id);
-
     private readonly List<InfluenceItem> _influenceItems;
-
     public AntagonistInfluenceEditor(string title,
         IEnumerable<InfluenceActionSystem.GomeostasisInfluenceAction> availableInfluences,
         IEnumerable<int> selectedStyleIds)
     {
       InitializeComponent();
-
       Title = title;
-
       var selectedIds = new HashSet<int>(selectedStyleIds);
       _influenceItems = availableInfluences
           .OrderBy(s => s.Id)
@@ -49,7 +45,6 @@ namespace AIStudio.Pages
             IsSelected = selectedIds.Contains(s.Id)
           })
           .ToList();
-
       InfluenceListBox.ItemsSource = _influenceItems;
     }
 

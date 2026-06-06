@@ -32,17 +32,13 @@ namespace AIStudio.Pages
         return;
       if (Keyboard.Modifiers != ModifierKeys.None)
         return;
-
       if (Keyboard.FocusedElement is ComboBoxItem)
         return;
-
       var messageBox = Keyboard.FocusedElement as TextBox;
       if (messageBox != null && messageBox.AcceptsReturn)
         return;
-
       if (IsFocusInsideOpenComboBoxDropDown(Keyboard.FocusedElement as DependencyObject))
         return;
-
       var vm = DataContext as AgentPultViewModel;
       if (vm == null)
         return;
@@ -51,10 +47,8 @@ namespace AIStudio.Pages
       var messageBinding = BindingOperations.GetBindingExpression(MessageToAgentTextBox, TextBox.TextProperty);
       if (messageBinding != null)
         messageBinding.UpdateSource();
-
       if (!vm.ApplyInfluenceCommand.CanExecute(null))
         return;
-
       vm.ApplyInfluenceCommand.Execute(null);
       e.Handled = true;
     }

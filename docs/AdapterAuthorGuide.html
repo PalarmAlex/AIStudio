@@ -85,7 +85,11 @@
     <h2>Содержание</h2>
     <ul>
       <li><a href="#intro">Введение</a></li>
-      <li><a href="#roles">1. Кто что делает</a></li>
+      <li><a href="#paths">1. Два пути разработчика</a></li>
+      <li class="sub"><a href="#path-host">1.1 Только host + isida.dll</a></li>
+      <li class="sub"><a href="#path-studio">1.2 Пакет для студии</a></li>
+      <li class="sub"><a href="#no-adapter">1.3 Без адаптера</a></li>
+      <li class="sub"><a href="#roles">1.4 Кто что делает в студии</a></li>
       <li><a href="#demo">2. Каркас demo</a></li>
       <li><a href="#scenarios">3. Два сценария</a></li>
       <li><a href="#studio">4. Зарегистрированные пакеты</a></li>
@@ -95,7 +99,7 @@
       <li><a href="#structure">6. Структура пакета</a></li>
       <li><a href="#manual">7. Сборка вручную</a></li>
       <li class="sub"><a href="#manual-schema">7.5 schema</a></li>
-      <li class="sub"><a href="#manual-iss">7.8 installer</a></li>
+      <li class="sub"><a href="#manual-flows">7.8 Типичные потоки</a></li>
       <li><a href="#register">8. Регистрация и проект</a></li>
       <li><a href="#settings">9. Три уровня настроек</a></li>
       <li><a href="#schema-ui">10. Редакторы «Среда»</a></li>
@@ -110,16 +114,45 @@
 
   <main class="help-content">
     <h1 id="intro">Руководство автора адаптера среды</h1>
-    <p class="subtitle">AIStudio — практическая инструкция. Версия <strong>0.3</strong> (2026-06-06), contractVersion платформы: <strong>1.0</strong>.</p>
+    <p class="subtitle">AIStudio — практическая инструкция. Версия <strong>0.7</strong> (2026-06-06), contractVersion платформы: <strong>1.0</strong>.</p>
 
-    <p>Практическая инструкция для <strong>разработчика адаптера</strong>, у которого установлена та же AIStudio, что и у разработчика симбионта. Студия — единая среда: <strong>собрать пакет → зарегистрировать → настроить проект симбионта → (post-MVP) собрать установщик</strong>. Отдельной роли «владелец студии» нет.</p>
+    <p>Практическая инструкция для <strong>разработчика host-среды</strong> (Velum, Excel, CAD…). AIStudio <strong>не обязательна</strong>: ядро — <strong><code>isida.dll</code></strong> и контракт YAML. Студия нужна, если вы редактируете данные симбионта и YAML в общем UI.</p>
     <p>Технические форматы — в <code>AdapterContract.md</code>. План функций студии — <code>AdapterPlatform_ImplementationPlan.md</code>.</p>
 
-    <h2 id="roles">1. Кто что делает в одной студии</h2>
+    <h2 id="paths">1. Два пути разработчика адаптера</h2>
+
+    <h3 id="path-host">1.1. Только host + isida.dll (студия не нужна)</h3>
+    <table>
+      <thead><tr><th>Нужно</th><th>Не нужно</th></tr></thead>
+      <tbody>
+        <tr><td>Ссылка на <code>isida.dll</code> в проекте host</td><td><code>manifest.json</code>, каталог <code>Adapters\</code></td></tr>
+        <tr><td>YAML по runtime contract (свой код или <code>SymbiontEnv.Contract.dll</code>)</td><td>Регистрация пакета в AIStudio</td></tr>
+        <tr><td>Свой деплой у конечника</td><td><code>schema\</code>, BootData в формате пакета</td></tr>
+      </tbody>
+    </table>
+    <p>Можно использовать любой редактор данных или свой pipeline — AIStudio не обязательна.</p>
+
+    <h3 id="path-studio">1.2. Интеграция с AIStudio (пакет в Adapters)</h3>
+    <p>Полный пакет нужен, если вы или коллега работаете в студии: <code>manifest.json</code>, <code>BootData\</code>, <code>schema\</code>, <code>runtime\</code> с <strong>обязательным</strong> <code>isida.dll</code>.</p>
+
+    <h3 id="no-adapter">1.3. Без адаптера (исследовательские / виртуальные проекты)</h3>
+    <p>Проект симбионта можно создать <strong>без</strong> типа среды (<code>AdapterId</code> пуст):</p>
+    <table>
+      <thead><tr><th>Аспект</th><th>Поведение</th></tr></thead>
+      <tbody>
+        <tr><td>Движок</td><td>Студия работает с симбионтом <strong>напрямую</strong> через <code>isida.dll</code></td></tr>
+        <tr><td>«Среда»</td><td>Меню рецептов/триггеров <strong>недоступно</strong></td></tr>
+        <tr><td>Оператор</td><td><strong>Пульт оператора</strong> выступает средой: влияния, сценарии, виртуальные тесты</td></tr>
+        <tr><td>Применение</td><td>Исследования, отладка гомеостаза, виртуальные установки</td></tr>
+      </tbody>
+    </table>
+
+    <h3 id="roles">1.4. Кто что делает в студии (если она установлена)</h3>
     <table>
       <thead><tr><th>Роль</th><th>Типичные задачи в AIStudio</th></tr></thead>
       <tbody>
         <tr><td><strong>Разработчик адаптера</strong></td><td>Сборка host (DLL), «Создать пакет…» или ручная сборка, «Проверить», публикация ZIP</td></tr>
+        <tr><td><strong>Настройщик симбионта</strong></td><td>Зарегистрировать готовый пакет (ZIP), создать/открыть проект, настроить данные в студии</td></tr>
         <tr><td><strong>Разработчик симбионта</strong></td><td>Новый проект, гомеостаз, рецепты/триггеры (поля из <code>schema\</code>), виртуальные тесты</td></tr>
         <tr><td><strong>Один человек</strong></td><td>Все шаги подряд: частый случай при разработке адаптера «для себя»</td></tr>
       </tbody>
@@ -129,13 +162,13 @@
       <thead><tr><th>Каталог</th><th>Назначение</th></tr></thead>
       <tbody>
         <tr><td><code>%ProgramData%\ISIDA\Adapters\</code></td><td>Зарегистрированные пакеты <code>{id}\</code></td></tr>
-        <tr><td><code>%ProgramData%\ISIDA\AdapterPackageTemplates\demo\</code></td><td>Каркас demo (кладёт установщик AIStudio)</td></tr>
+        <tr><td><code>%ProgramData%\ISIDA\AdapterPackageTemplates\demo\</code></td><td>Каркас demo + <strong>стартовый SDK</strong> в <code>runtime\</code> (появляется при установке AIStudio)</td></tr>
       </tbody>
     </table>
     <p>Меню: <strong>Проект → Зарегистрированные пакеты…</strong></p>
 
     <h2 id="demo">2. Каркас пакета (demo)</h2>
-    <p>Готовый скелет с manifest, BootData, <strong>заполненными образцами schema</strong> и каталогом <code>runtime\</code>:</p>
+    <p>Готовый скелет с manifest, BootData, <strong>заполненными образцами schema</strong> и <code>runtime\</code> со <strong>стартовым SDK</strong> (<code>isida.dll</code>, <code>SymbiontEnv.Contract.dll</code>, <code>Newtonsoft.Json.dll</code>):</p>
     <table>
       <thead><tr><th>Где</th><th>Путь</th></tr></thead>
       <tbody>
@@ -147,8 +180,8 @@
       <div class="note-title">Важно</div>
       <p><strong>Не регистрируйте</strong> каталог demo напрямую. Используйте один из путей:</p>
       <ol>
-        <li><strong>Рекомендуется:</strong> <strong>Проект → Зарегистрированные пакеты… → Создать пакет…</strong> — студия копирует demo, подставляет runtime из <code>bin\Debug</code>, проверяет пакет и регистрирует в Adapters.</li>
-        <li><strong>Вручную:</strong> скопируйте demo, заполните <code>runtime\</code> и при необходимости отредактируйте <code>schema\</code>, затем <strong>Зарегистрировать из папки…</strong>.</li>
+        <li><strong>Рекомендуется:</strong> <strong>Создать пакет…</strong> — demo (включая SDK), <strong>опционально</strong> DLL из <code>bin\Debug</code> host, валидация, регистрация в Adapters.</li>
+        <li><strong>Вручную:</strong> скопируйте demo, добавьте DLL host в <code>runtime\</code> поверх SDK, отредактируйте <code>schema\</code>, затем <strong>Зарегистрировать из папки…</strong>.</li>
       </ol>
     </div>
     <p>Эталон с образцами Velum — <code>docs/adapter-package-example/velum/</code>.</p>
@@ -162,7 +195,7 @@
       <li><strong>Проект → Создать проект симбионта</strong> — опционально выбрать тип среды → BootData копируется в проект, <code>AdapterId</code> записывается в <code>AgentProperties.dat</code>.</li>
       <li>Гомеостаз, рецепты/триггеры, виртуальные тесты.</li>
       <li>При необходимости сменить тип среды: <strong>Свойства симбионта</strong> → ComboBox «Тип среды» (§ 9).</li>
-      <li>(Post-MVP) <strong>Собрать установщик…</strong></li>
+      <li>Передать пакет (ZIP) конечнику или коллеге — они <strong>зарегистрируют</strong> его и настроят данные в студии (§ 7.8).</li>
     </ol>
     <h3>Сценарий B — пакет передали коллеге</h3>
     <ol>
@@ -175,15 +208,14 @@
     <table>
       <thead><tr><th>Действие</th><th>Статус</th><th>Назначение</th></tr></thead>
       <tbody>
-        <tr><td><strong>Создать пакет…</strong></td><td><strong>Реализовано (MVP)</strong></td><td>Manifest → каталог <code>bin\Debug</code> с DLL → валидация → регистрация в <code>Adapters\{id}\</code></td></tr>
+        <tr><td><strong>Создать пакет…</strong></td><td><strong>Реализовано (MVP)</strong></td><td>Manifest → SDK из demo + опционально <code>bin\Debug</code> host → валидация → <code>Adapters\{id}\</code></td></tr>
         <tr><td><strong>Зарегистрировать из папки…</strong></td><td>Реализовано</td><td>Готовый пакет; валидация <strong>до</strong> копирования</td></tr>
         <tr><td><strong>Зарегистрировать из ZIP…</strong></td><td>Реализовано</td><td>То же из архива</td></tr>
         <tr><td><strong>Проверить</strong></td><td>Реализовано</td><td>Manifest, BootData YAML, schema JSON, runtime DLL</td></tr>
         <tr><td><strong>Обновить список</strong></td><td>Реализовано</td><td>Перечитать каталог Adapters</td></tr>
         <tr><td><strong>Открыть каталог Adapters</strong></td><td>Реализовано</td><td>Проводник Windows</td></tr>
         <tr><td>Руководство автора</td><td>Реализовано</td><td>Этот документ из студии</td></tr>
-        <tr><td><strong>Собрать пакет адаптера…</strong> (полный мастер)</td><td><em>План: фаза 1.7</em></td><td>BootData/ISS из репозитория host, ZIP, профиль в хабе</td></tr>
-        <tr><td><strong>Собрать установщик…</strong></td><td><em>План: фаза 5</em></td><td>ISCC + dist</td></tr>
+        <tr><td><strong>Собрать пакет адаптера…</strong> (полный мастер)</td><td><em>План: фаза 1.7</em></td><td>BootData/schema из host, ZIP, профиль в хабе</td></tr>
       </tbody>
     </table>
 
@@ -192,19 +224,20 @@
     <p><strong>Проект → Зарегистрированные пакеты… → Создать пакет…</strong></p>
     <ol>
       <li>Форма <strong>manifest</strong>: <code>id</code>, <code>displayName</code>, <code>version</code>, <code>author</code>, <code>contractVersion</code> (должен быть <code>1.0</code>).</li>
-      <li>Диалог <strong>каталога сборки host</strong> (например <code>D:\MyHost\bin\Debug\</code>) — обязателен. Студия копирует все <code>*.dll</code> в <code>runtime\</code> будущего пакета.</li>
-      <li>Студия собирает пакет из каркаса demo + runtime, запускает <strong>«Проверить»</strong> и только при успехе копирует в <code>%ProgramData%\ISIDA\Adapters\{id}\</code>.</li>
+      <li>Диалог <strong>каталога сборки host</strong> — <strong>опционален</strong>. <strong>Отмена</strong> — только стартовый SDK из demo.</li>
+      <li>Если host указан — <code>*.dll</code> копируются в <code>runtime\</code> <strong>поверх</strong> SDK.</li>
+      <li>Сборка demo + runtime, <strong>«Проверить»</strong>, при успехе — <code>Adapters\{id}\</code>.</li>
     </ol>
     <div class="important">
       <div class="note-title">Важно</div>
-      <p>Если валидация не прошла, пакет <strong>не регистрируется</strong> — исправьте ошибки по отчёту и повторите.</p>
+      <p>Если host ещё не собран — зарегистрируйте пакет с SDK, затем допишите DLL в <code>Adapters\{id}\runtime\</code>. Если валидация не прошла, пакет <strong>не регистрируется</strong>.</p>
     </div>
 
     <h3 id="wizard-full">5.2. Полный мастер «Собрать пакет адаптера…» (план, фаза 1.7)</h3>
     <p>Расширение MVP-мастера:</p>
     <ol>
       <li>Выбор BootData из репозитория host (не только demo).</li>
-      <li>Копирование <code>adapter-settings\</code>, <code>installer\*.iss</code>.</li>
+      <li>Копирование <code>adapter-settings\</code> (опционально).</li>
       <li>Выход в произвольную папку или ZIP без немедленной регистрации.</li>
       <li>Сохранение профиля путей в хабе студии.</li>
     </ol>
@@ -212,30 +245,22 @@
 
     <h2 id="structure">6. Структура каталога пакета (чеклист)</h2>
     <pre>MyAdapter\
-  manifest.json                     ← ОБЯЗАТЕЛЬНО
-  schema\                           ← ОБЯЗАТЕЛЬНО (JSON для редакторов «Среда»)
-  runtime\                          ← ОБЯЗАТЕЛЬНО (DLL и зависимости)
-  BootData\
-    Environment\
-      EnvironmentRecipes.yaml       ← ОБЯЗАТЕЛЬНО (допускается recipes: [])
-      EnvironmentTriggers.yaml      ← ОБЯЗАТЕЛЬНО (допускается triggers: [])
-  installer\                        ← если сборка установщика из студии (post-MVP)
-    symbiont.iss
-  adapter-settings\                 ← РЕКОМЕНДУЕТСЯ для host
-    Settings.xml</pre>
+  manifest.json                     ← для студии: ОБЯЗАТЕЛЬНО
+  runtime\                          ← ОБЯЗАТЕЛЬНО (host DLL + isida.dll)
+  BootData\Environment\*.yaml       ← для студии: ОБЯЗАТЕЛЬНО
+  schema\                           ← для студии: РЕКОМЕНДУЕТСЯ
+  adapter-settings\                 ← опционально</pre>
     <table>
-      <thead><tr><th>Элемент</th><th>Обязательность</th><th>Назначение</th></tr></thead>
+      <thead><tr><th>Элемент</th><th>Без студии</th><th>Со студией</th><th>Назначение</th></tr></thead>
       <tbody>
-        <tr><td><code>manifest.json</code></td><td>Да</td><td><code>id</code>, версия, <code>contractVersion</code>, пути внутри пакета</td></tr>
-        <tr><td><code>schema\</code></td><td>Да</td><td>Какие поля показывают редакторы рецептов/триггеров (<code>AdapterSchemaLoader</code>)</td></tr>
-        <tr><td><code>runtime\</code></td><td>Да</td><td>DLL host-среды на машине пользователя</td></tr>
-        <tr><td><code>BootData\Environment\</code></td><td>Да</td><td>Образцы YAML; seed при создании/смене типа среды в проекте</td></tr>
-        <tr><td><code>installer\</code></td><td>Да*</td><td>Шаблон Inno Setup</td></tr>
-        <tr><td><code>adapter-settings\</code></td><td>Нет**</td><td>Шаблон настроек <strong>host-среды</strong> (не проекта симбионта)</td></tr>
+        <tr><td><code>isida.dll</code></td><td><strong>Да</strong></td><td><strong>Да</strong></td><td>Движок симбионта</td></tr>
+        <tr><td><code>SymbiontEnv.Contract.dll</code></td><td>По желанию</td><td><strong>Да</strong> (SDK)</td><td>Контракт YAML</td></tr>
+        <tr><td><code>manifest.json</code></td><td>Нет</td><td>Да</td><td><code>id</code>, <code>contractVersion</code></td></tr>
+        <tr><td><code>runtime\</code></td><td>Свой деплой</td><td>Да</td><td>SDK + DLL host</td></tr>
+        <tr><td><code>BootData\Environment\</code></td><td>Нет</td><td>Да</td><td>Seed YAML в проект</td></tr>
+        <tr><td><code>schema\</code></td><td>Нет</td><td>Рекомендуется</td><td>UI редакторов «Среда»</td></tr>
       </tbody>
     </table>
-    <p>* Если установка только вручную — укажите в README пакета.<br/>
-    ** Обязательно, если runtime читает пути из XML при первом запуске (как Velum).</p>
 
     <h2 id="manual">7. Сборка пакета вручную</h2>
     <p>Используйте, если нужен полный контроль над содержимым или готовите ZIP <strong>без</strong> немедленной регистрации в Adapters.</p>
@@ -248,7 +273,8 @@
 
     <h3>7.3. Скопируйте DLL в runtime\</h3>
     <ul>
-      <li>Все DLL, без которых host не стартует: ваша сборка, <code>isida.dll</code>, interop среды и т.д.</li>
+      <li>Все DLL, без которых host не стартует: ваша сборка, <strong><code>isida.dll</code> (обязательно)</strong>, interop среды и т.д.</li>
+      <li>При <strong>«Создать пакет…»</strong> студия подставляет <code>isida.dll</code> из своего каталога, если host не положил его в <code>bin\Debug</code>.</li>
       <li><strong>Не</strong> кладите в <code>runtime\</code>: исходники <code>.cs</code>, <code>.csproj</code>, файлы студии.</li>
       <li>Целевая платформа: <strong>.NET Framework 4.8</strong>.</li>
       <li><code>.pdb</code> — по желанию.</li>
@@ -314,7 +340,6 @@ triggers: []</pre>
   "contractVersion": "1.0",
   "author": "Your Company",
   "bootDataRelativePath": "BootData",
-  "installerTemplateRelativePath": "installer/symbiont.iss",
   "schemaVersion": "1.0"
 }</pre>
     <table>
@@ -323,21 +348,27 @@ triggers: []</pre>
         <tr><td><code>id</code></td><td>Каталог в <code>Adapters\{id}\</code>; только <code>[a-z0-9_-]</code></td></tr>
         <tr><td><code>contractVersion</code></td><td>Версия контракта платформы; студия 1.x → <code>1.0</code></td></tr>
         <tr><td><code>bootDataRelativePath</code></td><td>Обычно <code>BootData</code></td></tr>
-        <tr><td><code>installerTemplateRelativePath</code></td><td>Путь к <code>.iss</code> от корня пакета (post-MVP)</td></tr>
       </tbody>
     </table>
 
     <h3>7.7. adapter-settings\Settings.xml (если нужен host)</h3>
     <p>Шаблон настроек <strong>среды исполнения</strong> на целевой машине. <strong>Не</strong> путать с <code>Settings\Settings.xml</code> проекта симбионта.</p>
 
-    <h3 id="manual-iss">7.8. installer\symbiont.iss (post-MVP)</h3>
-    <p>Скрипт Inno Setup. Студия вызывает <code>ISCC.exe</code> с define-параметрами:</p>
-    <ul>
-      <li><code>/DProjectRoot=...</code> — корень <strong>проекта симбионта</strong>;</li>
-      <li><code>/DDeployDataRoot=</code>, <code>/DDeployBootData=</code>, … — из <code>Settings.xml</code> <strong>проекта</strong> (пути);</li>
-      <li><code>/DAdapterId=...</code> — из <strong><code>Data\Gomeostas\AgentProperties.dat</code></strong> (<code>AdapterId|…</code>), <strong>не</strong> из Settings.xml;</li>
-      <li><code>/DRuntimeSource=...</code> — из зарегистрированного пакета в Adapters.</li>
-    </ul>
+    <h3 id="manual-flows">7.8. Типичные потоки в студии</h3>
+    <p><strong>Настройщик симбионта</strong>: получает готовый пакет → <strong>Зарегистрировать из ZIP…</strong> → <strong>Создать проект симбионта</strong> → настраивает файлы данных (гомеостаз, рецепты/триггеры).</p>
+    <p><strong>Разработчик адаптера</strong> (типичная цепочка):</p>
+    <ol>
+      <li><strong>Создать пакет…</strong> (SDK или SDK + host) → разработка host → DLL в <code>Adapters\{id}\runtime\</code>.</li>
+      <li><strong>Проверить</strong> пакет.</li>
+      <li><strong>Создать проект симбионта</strong> с типом <code>{id}</code> → гомеостаз, рецепты/триггеры, тесты.</li>
+      <li>Передать ZIP/папку пакета конечнику; настройщик регистрирует пакет и работает с данными в студии.</li>
+    </ol>
+    <h4>Без адаптера (исследовательский проект)</h4>
+    <ol>
+      <li><strong>Создать проект симбионта</strong> без типа среды (§ 1.3).</li>
+      <li>Работа через пульт оператора; меню «Среда» не используется.</li>
+    </ol>
+    <p>На целевой машине с внешней средой нужен runtime из пакета адаптера в <code>Adapters\{id}\runtime\</code>.</p>
 
     <h2 id="register">8. Регистрация и работа с проектом симбионта</h2>
     <h3>8.1. Регистрация пакета</h3>
@@ -351,7 +382,7 @@ triggers: []</pre>
 
     <h3>8.2. Проект симбионта и тип среды</h3>
     <ol>
-      <li><strong>Проект → Создать проект симбионта</strong> — опционально выбрать тип среды из списка <strong>зарегистрированных</strong> пакетов.</li>
+      <li><strong>Проект → Создать проект симбионта</strong> — выбрать тип среды или «(Без адаптера)» (§ 1.3).</li>
       <li>BootData из <code>Adapters\{id}\BootData\</code> копируется в <code>{project}\BootData\</code> (существующие файлы не перезаписываются).</li>
       <li><strong>AdapterId</strong> записывается в <code>{project}\Data\Gomeostas\AgentProperties.dat</code>:
         <pre>AdapterId|velum</pre>
@@ -373,8 +404,8 @@ triggers: []</pre>
       <thead><tr><th>Файл</th><th>Где</th><th>Кто редактирует</th><th>Зачем</th></tr></thead>
       <tbody>
         <tr><td><code>adapter-settings\Settings.xml</code></td><td>В <strong>пакете</strong> адаптера</td><td>Автор адаптера</td><td>Дефолты host-среды после установки у конечного пользователя</td></tr>
-        <tr><td><code>Settings\Settings.xml</code></td><td>В <strong>проекте</strong> симбионта</td><td>Студия</td><td>Пути Data, BootData, Logs, шаблон ISS (post-MVP); <strong>без AdapterId</strong></td></tr>
-        <tr><td><code>AgentProperties.dat</code></td><td><code>{project}\Data\Gomeostas\</code></td><td>UI «Свойства симбионта»</td><td><strong>AdapterId</strong>, имя, стадия, промпт; для ISS <code>/DAdapterId=...</code></td></tr>
+        <tr><td><code>Settings\Settings.xml</code></td><td>В <strong>проекте</strong> симбионта</td><td>Студия</td><td>Пути Data, BootData, Logs; <strong>без AdapterId</strong></td></tr>
+        <tr><td><code>AgentProperties.dat</code></td><td><code>{project}\Data\Gomeostas\</code></td><td>UI «Свойства симбионта»</td><td><strong>AdapterId</strong>, имя, стадия, промпт</td></tr>
       </tbody>
     </table>
     <p>Студия <strong>не</strong> подменяет <code>adapter-settings</code> при редактировании симбионта.</p>
@@ -397,8 +428,7 @@ triggers: []</pre>
         <tr><td><code>id</code> валиден</td><td>Пустой id, недопустимые символы</td></tr>
         <tr><td>Файлы <code>schema\</code> парсятся как JSON</td><td>Отсутствует файл, битый JSON</td></tr>
         <tr><td><code>BootData\Environment\*.yaml</code> читаются кодеком</td><td>Синтаксис YAML, нет секций <code>recipes</code> / <code>triggers</code></td></tr>
-        <tr><td><code>runtime\</code> не пустой</td><td>Нет DLL</td></tr>
-        <tr><td><code>installer\*.iss</code> существует, если указан в manifest</td><td>Путь битый</td></tr>
+        <tr><td><code>runtime\</code> с <code>isida.dll</code> и <code>SymbiontEnv.Contract.dll</code></td><td>Пустой каталог или нет SDK</td></tr>
       </tbody>
     </table>
     <p>При <strong>«Зарегистрировать из папки/ZIP»</strong> и <strong>«Создать пакет…»</strong> проверка выполняется <strong>до</strong> копирования в Adapters.</p>
@@ -409,7 +439,7 @@ triggers: []</pre>
       <tbody>
         <tr><td>«Неподдерживаемый contractVersion»</td><td>В manifest версия новее студии</td><td>Поставить <code>1.0</code> или обновить студию</td></tr>
         <tr><td>«Нет секции recipes/triggers»</td><td>Неверные имена YAML</td><td><code>EnvironmentRecipes.yaml</code>, <code>EnvironmentTriggers.yaml</code></td></tr>
-        <tr><td>«Пустой runtime»</td><td>DLL не скопированы</td><td>Указать <code>bin\Debug</code> в «Создать пакет…» или заполнить <code>runtime\</code> вручную</td></tr>
+        <tr><td>«Пустой runtime» / нет <code>isida.dll</code></td><td>DLL не скопированы</td><td>«Создать пакет…» (дополняет <code>isida.dll</code>) или <code>runtime\</code> вручную</td></tr>
         <tr><td>Пакет не зарегистрировался</td><td>Ошибка валидации до копирования</td><td>Исправить по отчёту «Проверить»</td></tr>
         <tr><td>Меню «Среда» недоступно</td><td>Нет типа среды в свойствах симбионта</td><td>Выбрать пакет в «Свойства симбионта»</td></tr>
         <tr><td>«Среда» была, пропала</td><td>Пакет удалён из Adapters</td><td>Зарегистрировать снова или сбросить тип среды</td></tr>
@@ -430,9 +460,8 @@ triggers: []</pre>
       <li><code>manifest.json</code> с уникальным <code>id</code></li>
       <li><code>contractVersion</code>: <code>1.0</code></li>
       <li><code>schema\</code> — четыре JSON-файла с осмысленным содержимым</li>
-      <li><code>runtime\</code> — полный набор DLL (проверено «Проверить» или «Создать пакет…»)</li>
-      <li><code>BootData\Environment\</code> — оба YAML</li>
-      <li><code>installer\symbiont.iss</code> (если post-MVP сборка из студии)</li>
+      <li><code>runtime\</code> — SDK + host DLL</li>
+      <li><code>BootData\Environment\</code> — оба YAML (если пакет для студии)</li>
       <li><code>adapter-settings\Settings.xml</code> (если host использует)</li>
       <li>Пример YAML проходит runtime на тестовой машине</li>
       <li>ZIP/папка без мусора (<code>.git</code>, <code>obj</code>)</li>
@@ -459,7 +488,7 @@ triggers: []</pre>
       <li>Редактирование рецептов с полями из <code>Adapters\velum\schema\</code>.</li>
     </ol>
 
-    <p class="footer">Версия 0.3: AdapterId в AgentProperties.dat; «Создать пакет…» с runtime и валидацией; schema-driven редакторы «Среда»; legacy миграция из Settings.xml.</p>
+    <p class="footer">Версия 0.7: стартовый SDK в demo/runtime; настройщик работает с данными в студии; режим без адаптера.</p>
   </main>
 </div>
 </body>

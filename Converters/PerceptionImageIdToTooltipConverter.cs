@@ -25,7 +25,6 @@ namespace AIStudio.Converters
             var perceptionSystem = PerceptionImagesSystem.Instance;
             var images = perceptionSystem.GetAllPerceptionImagesList();
             var image = images.FirstOrDefault(img => img.Id == imageId);
-
             if (image != null)
             {
               var tooltip = new StringBuilder();
@@ -47,7 +46,6 @@ namespace AIStudio.Converters
                         return $"{action.Name} (ID: {action.Id})";
                       })
                       .ToList();
-
                   if (actionNames.Any())
                   {
                     tooltip.Append(string.Join("; ", actionNames));
@@ -66,9 +64,7 @@ namespace AIStudio.Converters
               {
                 tooltip.Append("нет воздействий");
               }
-
               tooltip.AppendLine();
-
               tooltip.Append("Фразы: ");
               if (image.PhraseIdList != null && image.PhraseIdList.Any())
               {
@@ -76,7 +72,6 @@ namespace AIStudio.Converters
                 {
                   var sensorySystem = SensorySystem.Instance;
                   var phraseTexts = new List<string>();
-
                   foreach (var phraseId in image.PhraseIdList)
                   {
                     string phraseText = sensorySystem.VerbalChannel.GetPhraseFromPhraseId(phraseId);
@@ -85,7 +80,6 @@ namespace AIStudio.Converters
                     else
                       phraseTexts.Add($"[ID:{phraseId}] (фраза не найдена)");
                   }
-
                   if (phraseTexts.Any())
                   {
                     tooltip.Append(string.Join("; ", phraseTexts));
@@ -104,7 +98,6 @@ namespace AIStudio.Converters
               {
                 tooltip.Append("нет фраз");
               }
-
               tooltip.AppendLine();
               // Тон и настроение: в образе восприятия рефлексов не хранятся, по умолчанию — нормальные
               string toneText = "Нормальный";
@@ -117,7 +110,6 @@ namespace AIStudio.Converters
                 if (!string.IsNullOrEmpty(m)) moodText = m;
               }
               tooltip.Append($"Тон/Настроение: {toneText} - {moodText}.");
-
               return tooltip.ToString();
             }
             else
@@ -145,4 +137,3 @@ namespace AIStudio.Converters
     }
   }
 }
-

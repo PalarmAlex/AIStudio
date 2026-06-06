@@ -12,26 +12,19 @@ namespace AIStudio.Common.Adapters
   public static class AdapterPackageBuilder
   {
     /// <summary>
-    /// Копирует demo, подставляет runtime DLL, проверяет пакет и регистрирует в Adapters.
+    /// Копирует demo, подставляет стартовый SDK и опционально DLL host, проверяет пакет и регистрирует в Adapters.
     /// </summary>
+    /// <param name="hostBinDirectoryOptional">Каталог bin\Debug host; <c>null</c> — только стартовый SDK из <c>AdapterPackageTemplates\demo\runtime</c>.</param>
     public static bool TryCreateAndRegisterFromDemo(
         AdapterManifest manifest,
-        string runtimeSourceDirectory,
+        string hostBinDirectoryOptional,
         out string installedPath,
         out string errorMessage)
     {
       installedPath = null;
       errorMessage = null;
-
       if (!AdapterPackageManager.TryValidateManifest(manifest, isCreate: true, originalId: null, out errorMessage))
         return false;
-
-      if (string.IsNullOrWhiteSpace(runtimeSourceDirectory) || !Directory.Exists(runtimeSourceDirectory))
-      {
-        errorMessage = "Укажите каталог сборки host (bin\\Debug) с DLL адаптера.";
-        return false;
-      }
-
       string demoPath = AdapterPaths.GetDemoTemplatePath();
       if (!Directory.Exists(demoPath))
       {
@@ -39,31 +32,17 @@ namespace AIStudio.Common.Adapters
             + "\n\nОн должен быть создан установщиком AIStudio.";
         return false;
       }
-
       string tempRoot = Path.Combine(Path.GetTempPath(), "AIStudio.AdapterBuild", Guid.NewGuid().ToString("N"));
       try
       {
         CopyDirectoryRecursive(demoPath, tempRoot);
-
         string runtimeTarget = Path.Combine(tempRoot, "runtime");
         Directory.CreateDirectory(runtimeTarget);
-
-        string[] dllFiles = Directory.GetFiles(runtimeSourceDirectory, "*.dll", SearchOption.TopDirectoryOnly);
-        if (dllFiles.Length == 0)
-        {
-          errorMessage = "В каталоге сборки нет DLL:\n" + runtimeSourceDirectory;
+        if (!AdapterSdkRuntime.TryEnsureSdk(runtimeTarget, out errorMessage))
           return false;
-        }
-
-        for (int i = 0; i < dllFiles.Length; i++)
-        {
-          string fileName = Path.GetFileName(dllFiles[i]);
-          File.Copy(dllFiles[i], Path.Combine(runtimeTarget, fileName), overwrite: true);
-        }
-
+        AdapterSdkRuntime.MergeHostBin(hostBinDirectoryOptional, runtimeTarget);
         if (!AdapterPackageManager.TryWriteManifest(tempRoot, manifest, out errorMessage))
           return false;
-
         IReadOnlyList<AdapterValidationMessage> validation = AdapterValidator.Validate(tempRoot);
         if (AdapterValidator.HasErrors(validation))
         {
@@ -71,7 +50,6 @@ namespace AIStudio.Common.Adapters
               + FormatValidation(validation);
           return false;
         }
-
         AdapterPaths.EnsureAdaptersRoot();
         string targetDir = AdapterPaths.GetAdapterDirectory(manifest.Id);
         if (Directory.Exists(targetDir))
@@ -79,7 +57,6 @@ namespace AIStudio.Common.Adapters
           errorMessage = "Адаптер с id «" + manifest.Id + "» уже зарегистрирован:\n" + targetDir;
           return false;
         }
-
         CopyDirectoryRecursive(tempRoot, targetDir);
         installedPath = targetDir;
         manifest.PackageRootPath = targetDir;
@@ -101,7 +78,6 @@ namespace AIStudio.Common.Adapters
     {
       if (messages == null || messages.Count == 0)
         return string.Empty;
-
       return string.Join(
           Environment.NewLine,
           messages.Select(m => "[" + m.Severity + "] " + m.Text));
@@ -110,10 +86,8 @@ namespace AIStudio.Common.Adapters
     private static void CopyDirectoryRecursive(string sourceDir, string targetDir)
     {
       Directory.CreateDirectory(targetDir);
-
       foreach (string file in Directory.GetFiles(sourceDir))
         File.Copy(file, Path.Combine(targetDir, Path.GetFileName(file)), overwrite: true);
-
       foreach (string subDir in Directory.GetDirectories(sourceDir))
       {
         string name = Path.GetFileName(subDir);
@@ -125,7 +99,6 @@ namespace AIStudio.Common.Adapters
     {
       if (string.IsNullOrWhiteSpace(path) || !Directory.Exists(path))
         return;
-
       try
       {
         Directory.Delete(path, recursive: true);

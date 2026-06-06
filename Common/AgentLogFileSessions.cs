@@ -13,27 +13,22 @@ namespace AIStudio.Common
   public static class AgentLogFileSessions
   {
     public const string CurrentSessionKey = LogFileSessionInfo.CurrentSessionKey;
-
     private const string AgentLogCsvFileName = "AgentLogs.csv";
     private static readonly string[] TimeFormats =
     {
       "yyyy-MM-dd HH:mm:ss",
       "dd.MM.yyyy HH:mm:ss"
     };
-
     public static string GetAgentLogCsvPath() => ResolveAgentLogCsvPath();
-
     /// <summary>Путь к AgentLogs.csv: каталог из настроек проекта или ProgramData\ISIDA\Logs.</summary>
     public static string ResolveAgentLogCsvPath() =>
         LogFilePaths.ResolveLogFile(AgentLogCsvFileName);
-
     /// <summary>Список сессий из файла (без текущей в памяти), от новых к старым.</summary>
     public static IReadOnlyList<LogFileSessionInfo> ListFileSessions()
     {
       var path = ResolveAgentLogCsvPath();
       if (!File.Exists(path))
         return Array.Empty<LogFileSessionInfo>();
-
       try
       {
         var blocks = ReadSessionBlocks(path);
@@ -43,7 +38,6 @@ namespace AIStudio.Common
           var block = blocks[i];
           if (block.DataRowCount == 0)
             continue;
-
           list.Add(new LogFileSessionInfo
           {
             SessionKey = i.ToString(CultureInfo.InvariantCulture),
@@ -53,7 +47,6 @@ namespace AIStudio.Common
             EntryCount = block.DataRowCount
           });
         }
-
         if (list.Count > 0)
         {
           return list
@@ -65,7 +58,6 @@ namespace AIStudio.Common
         var jsonlPath = Path.Combine(Path.GetDirectoryName(path) ?? "", "AgentLogs.jsonl");
         if (File.Exists(jsonlPath))
           return ListFileSessionsFromJsonl(jsonlPath);
-
         return list;
       }
       catch (Exception ex)
@@ -86,15 +78,12 @@ namespace AIStudio.Common
       var path = ResolveAgentLogCsvPath();
       if (!File.Exists(path))
         return new List<LogEntry>();
-
       var blocks = ReadSessionBlocks(path);
       if (sessionIndex >= 0 && sessionIndex < blocks.Count && blocks[sessionIndex].DataRowCount > 0)
         return blocks[sessionIndex].Entries;
-
       var jsonlPath = Path.Combine(Path.GetDirectoryName(path) ?? "", "AgentLogs.jsonl");
       if (File.Exists(jsonlPath))
         return LoadSessionRawEntriesFromJsonl(jsonlPath, sessionIndex);
-
       return new List<LogEntry>();
     }
 
@@ -111,12 +100,10 @@ namespace AIStudio.Common
       var blocks = new List<SessionBlock>();
       SessionBlock current = null;
       Dictionary<string, int> columns = null;
-
       foreach (var line in ReadLinesShared(path))
       {
         if (string.IsNullOrWhiteSpace(line))
           continue;
-
         if (IsHeaderRow(line))
         {
           current = new SessionBlock();
@@ -124,22 +111,17 @@ namespace AIStudio.Common
           columns = ParseHeaderColumns(line);
           continue;
         }
-
         if (current == null || columns == null)
           continue;
-
         var entry = TryParseDataRow(line, columns);
         if (entry == null)
           continue;
-
         current.Entries.Add(entry);
         current.DataRowCount++;
-
         if (current.DataRowCount == 1)
           current.StartedLocal = entry.Timestamp;
         current.EndedLocal = entry.Timestamp;
       }
-
       return blocks;
     }
 
@@ -219,27 +201,22 @@ namespace AIStudio.Common
       var blocks = new List<SessionBlock>();
       SessionBlock current = null;
       int? lastPulse = null;
-
       foreach (var line in ReadLinesShared(jsonlPath))
       {
         if (string.IsNullOrWhiteSpace(line) || line[0] != '{')
           continue;
-
         var entry = TryParseJsonlRow(line);
         if (entry == null)
           continue;
-
         int pulse = entry.Pulse ?? 0;
         bool newSession = current == null
                           || (pulse == 1 && lastPulse.HasValue && lastPulse.Value > 1);
-
         if (newSession)
         {
           current = new SessionBlock();
           blocks.Add(current);
           lastPulse = null;
         }
-
         current.Entries.Add(entry);
         current.DataRowCount++;
         if (current.DataRowCount == 1)
@@ -247,7 +224,6 @@ namespace AIStudio.Common
         current.EndedLocal = entry.Timestamp;
         lastPulse = pulse;
       }
-
       return blocks;
     }
 
@@ -259,7 +235,6 @@ namespace AIStudio.Common
         string timeRaw = (string)jo["Время"];
         if (!TryParseTimestamp(timeRaw, out DateTime timestamp))
           return null;
-
         string or = (string)jo["ОР"] ?? "";
         string um = (string)jo["УМ"] ?? "";
         string umOk = null;
@@ -269,7 +244,6 @@ namespace AIStudio.Common
               ? ((bool)umOkToken).ToString()
               : (string)umOkToken;
         ParseOrUm(or, um, umOk, out int? ort, out int? tl, out bool? tls);
-
         return new LogEntry
         {
           Timestamp = timestamp,
@@ -306,20 +280,16 @@ namespace AIStudio.Common
       var parts = line.Split(';');
       if (parts.Length < 5)
         return null;
-
       string Get(string name)
       {
         if (!columns.TryGetValue(name, out int ix) || ix >= parts.Length)
           return string.Empty;
         return parts[ix]?.Trim() ?? string.Empty;
       }
-
       if (!TryParseTimestamp(Get("Время"), out DateTime timestamp))
         return null;
-
       ParseOrUm(Get("ОР"), Get("УМ"), Get("УМ_успех"),
           out int? orientationReflexType, out int? thinkingLevel, out bool? thinkingLevelSuccess);
-
       var entry = new LogEntry
       {
         Timestamp = timestamp,
@@ -346,12 +316,10 @@ namespace AIStudio.Common
         InformationEnvironmentVeryActual = Get("Актуально") == "1",
         AutomatizmUsefulnessAtSnapshot = ParseNullableInt(Get("Полезность"))
       };
-
       if (string.IsNullOrEmpty(entry.ClassName))
         entry.ClassName = "ResearchLogger";
       if (string.IsNullOrEmpty(entry.Method))
         entry.Method = "LogSystemState";
-
       return entry;
     }
 
@@ -361,7 +329,6 @@ namespace AIStudio.Common
       orientationReflexType = null;
       thinkingLevel = null;
       thinkingLevelSuccess = null;
-
       var um = (umCol ?? string.Empty).Trim();
       if (um == "УМ1" || um == "1")
       {
@@ -369,14 +336,12 @@ namespace AIStudio.Common
         thinkingLevelSuccess = ParseNullableBool(umSuccessCol);
         return;
       }
-
       if (um == "УМ2" || um == "2")
       {
         thinkingLevel = 2;
         thinkingLevelSuccess = ParseNullableBool(umSuccessCol);
         return;
       }
-
       var or = (orCol ?? string.Empty).Trim();
       if (or == "ОР1" || or == "1")
         orientationReflexType = 1;
@@ -391,11 +356,9 @@ namespace AIStudio.Common
       timestamp = default;
       if (string.IsNullOrWhiteSpace(raw))
         return false;
-
       if (DateTime.TryParseExact(raw, TimeFormats, CultureInfo.InvariantCulture,
               DateTimeStyles.AssumeLocal, out timestamp))
         return true;
-
       return DateTime.TryParse(raw, CultureInfo.CurrentCulture, DateTimeStyles.AssumeLocal, out timestamp);
     }
 
@@ -421,7 +384,6 @@ namespace AIStudio.Common
     }
 
     private static string NullIfEmpty(string s) => string.IsNullOrWhiteSpace(s) ? null : s.Trim();
-
     /// <summary>Удаляет сохранённые сессии из AgentLogs.csv и при наличии — из AgentLogs.jsonl.</summary>
     public static bool TryDeleteFileSessions(IEnumerable<int> blockIndicesToDelete, out string errorMessage)
     {
@@ -429,20 +391,17 @@ namespace AIStudio.Common
       var toDelete = new HashSet<int>(blockIndicesToDelete ?? Enumerable.Empty<int>());
       if (toDelete.Count == 0)
         return true;
-
       var path = ResolveAgentLogCsvPath();
       if (!File.Exists(path))
       {
         errorMessage = "Файл логов не найден.";
         return false;
       }
-
       try
       {
         var csvBlocks = ReadRawCsvBlocks(path);
         var remainingCsv = csvBlocks.Where((_, i) => !toDelete.Contains(i)).ToList();
         WriteRawCsvBlocks(path, remainingCsv);
-
         var jsonlPath = Path.Combine(Path.GetDirectoryName(path) ?? "", "AgentLogs.jsonl");
         if (File.Exists(jsonlPath))
         {
@@ -450,7 +409,6 @@ namespace AIStudio.Common
           var remainingJsonl = jsonlBlocks.Where((_, i) => !toDelete.Contains(i)).ToList();
           WriteRawJsonlBlocks(jsonlPath, remainingJsonl);
         }
-
         return true;
       }
       catch (Exception ex)
@@ -476,22 +434,18 @@ namespace AIStudio.Common
     {
       var blocks = new List<RawCsvBlock>();
       RawCsvBlock current = null;
-
       foreach (var line in ReadLinesShared(path))
       {
         if (string.IsNullOrWhiteSpace(line))
           continue;
-
         if (IsHeaderRow(line))
         {
           current = new RawCsvBlock { HeaderLine = line };
           blocks.Add(current);
           continue;
         }
-
         current?.DataLines.Add(line);
       }
-
       return blocks;
     }
 
@@ -504,7 +458,6 @@ namespace AIStudio.Common
         foreach (var line in block.DataLines)
           sb.AppendLine(line);
       }
-
       WriteFileAtomically(path, sb.ToString());
     }
 
@@ -513,31 +466,25 @@ namespace AIStudio.Common
       var blocks = new List<RawJsonlBlock>();
       RawJsonlBlock current = null;
       int? lastPulse = null;
-
       foreach (var line in ReadLinesShared(jsonlPath))
       {
         if (string.IsNullOrWhiteSpace(line) || line[0] != '{')
           continue;
-
         var entry = TryParseJsonlRow(line);
         if (entry == null)
           continue;
-
         int pulse = entry.Pulse ?? 0;
         bool newSession = current == null
                           || (pulse == 1 && lastPulse.HasValue && lastPulse.Value > 1);
-
         if (newSession)
         {
           current = new RawJsonlBlock();
           blocks.Add(current);
           lastPulse = null;
         }
-
         current.Lines.Add(line);
         lastPulse = pulse;
       }
-
       return blocks;
     }
 
@@ -549,7 +496,6 @@ namespace AIStudio.Common
         foreach (var line in block.Lines)
           sb.AppendLine(line);
       }
-
       WriteFileAtomically(jsonlPath, sb.ToString());
     }
 

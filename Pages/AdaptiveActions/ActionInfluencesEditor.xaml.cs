@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Windows;
@@ -13,16 +13,13 @@ namespace AIStudio.Dialogs
   public partial class ActionInfluencesEditor : Window
   {
     public Dictionary<int, int> SelectedInfluences { get; private set; }
-
     public ActionInfluencesEditor(string title,
                                 List<GomeostasSystem.ParameterData> parameters,
                                 Dictionary<int, int> currentInfluences)
     {
       InitializeComponent();
       Title = title;
-
       SelectedInfluences = new Dictionary<int, int>(currentInfluences ?? new Dictionary<int, int>());
-
       var items = parameters?
           .Where(p => p != null)
           .GroupBy(p => p.Id) 
@@ -34,7 +31,6 @@ namespace AIStudio.Dialogs
             Effect = SelectedInfluences.TryGetValue(p.Id, out var effect) ? effect : 0
           })
           .ToList() ?? new List<ParameterInfluence>();
-
       ParametersGrid.ItemsSource = items;
     }
 
@@ -45,15 +41,12 @@ namespace AIStudio.Dialogs
         e.Handled = true;
         return;
       }
-
       try
       {
         string currentText = textBox.Text ?? string.Empty;
         int selectionStart = Math.Min(textBox.SelectionStart, currentText.Length);
         int selectionLength = Math.Min(textBox.SelectionLength, currentText.Length - selectionStart);
-
         string newText = currentText.Remove(selectionStart, selectionLength) + e.Text;
-
         e.Handled = !IsValidInput(newText);
       }
       catch
@@ -71,7 +64,6 @@ namespace AIStudio.Dialogs
           e.CancelCommand();
           return;
         }
-
         string text = e.DataObject.GetData(typeof(string)) as string;
         if (!IsValidInput(text))
         {
@@ -96,7 +88,6 @@ namespace AIStudio.Dialogs
       // Удаляем все минусы для проверки цифр
       string digitsOnly = input.Replace("-", "");
       if (digitsOnly.Length == 0) return true; // Только минус
-
       return int.TryParse(input, out int result) && result >= -10 && result <= 10;
     }
 
@@ -105,14 +96,12 @@ namespace AIStudio.Dialogs
       try
       {
         ParametersGrid.CommitEdit();
-
         if (!(ParametersGrid.ItemsSource is IEnumerable<ParameterInfluence> items))
         {
           DialogResult = false;
           Close();
           return;
         }
-
         var itemList = items.ToList();
         var validationResults = itemList
             .Select(item =>
@@ -120,11 +109,9 @@ namespace AIStudio.Dialogs
               return SettingsValidator.ValidateInfluencesParametr(item.Effect);
             })
             .ToList();
-
         var invalidResults = validationResults
             .Where(result => !result.isValid)
             .ToList();
-
         if (invalidResults.Any())
         {
           string errorMessage = string.Join("\n", invalidResults.Select(r => r.errorMessage).Take(5));
@@ -136,11 +123,9 @@ namespace AIStudio.Dialogs
               MessageBoxImage.Warning);
           return;
         }
-
         SelectedInfluences = itemList
             .Where(item => item != null && item.Effect != 0)
             .ToDictionary(item => item.Id, item => item.Effect);
-
         DialogResult = true;
       }
       catch (Exception ex)

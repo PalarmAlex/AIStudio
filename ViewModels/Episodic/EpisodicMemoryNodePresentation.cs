@@ -36,7 +36,6 @@ namespace AIStudio.ViewModels.Episodic
     private readonly SensorySystem _sensorySystem;
     private readonly AutomatizmTreeSystem _automatizmTree;
     private readonly VerbalBrocaImagesSystem _verbalBroca;
-
     public EpisodicMemoryNodePresentation(
       GomeostasSystem gomeostas,
       EmotionsImageSystem emotionsImage,
@@ -79,11 +78,9 @@ namespace AIStudio.ViewModels.Episodic
     public (string text, string tooltip, Brush effectBrush) GetNodeDisplayAndTooltip(EpisodicMemoryNode node, int depth)
     {
       if (node == null) return ("—", "—", null);
-
       string text;
       string tooltip;
       Brush effectBrush = null;
-
       switch (depth)
       {
         case 0:
@@ -141,7 +138,6 @@ namespace AIStudio.ViewModels.Episodic
           tooltip = $"ID: {node.ID}";
           break;
       }
-
       return (text ?? $"ID:{node.ID}", tooltip ?? text, effectBrush);
     }
 
@@ -212,18 +208,14 @@ namespace AIStudio.ViewModels.Episodic
     /// NodePID — ID узла дерева проблем; по AutTreeID строится та же подсказка условий, что для «ID дерева условий» в таблице автоматизмов.
     /// </summary>
     public string GetNodePidConditionsTooltip(int nodePid) => BuildNodePidTooltip(nodePid);
-
     private string GetNodePidTooltip(int nodePid) => BuildNodePidTooltip(nodePid);
-
     private string BuildNodePidTooltip(int nodePid)
     {
       if (nodePid <= 0)
         return $"NodePID: {nodePid}";
-
       var pn = FindProblemNodeById(_problemTree?.Tree, nodePid);
       if (pn == null)
         return $"NodePID: {nodePid}\nУзел дерева проблем не найден.";
-
       int branchId = pn.AutTreeID;
       if (branchId > 0 && branchId < 1_000_000)
       {
@@ -231,17 +223,14 @@ namespace AIStudio.ViewModels.Episodic
         {
           return $"NodePID: {nodePid}\nAutTreeID: {branchId}\nДерево автоматизмов недоступно для расшифровки условий.";
         }
-
         var treeNode = _automatizmTree.GetNodeById(branchId);
         if (treeNode != null)
         {
           var item = BuildAutomatizmDisplayItemForAutTreeNode(treeNode);
           return TreeNodeConditionsToTooltipConverter.FormatConditionsTooltip(item);
         }
-
         return $"NodePID: {nodePid}\nAutTreeID: {branchId}\nУзел дерева условий не найден.";
       }
-
       var sb = new StringBuilder();
       sb.AppendLine($"NodePID: {nodePid} — узел дерева проблем.");
       if (branchId <= 0)
@@ -261,7 +250,6 @@ namespace AIStudio.ViewModels.Episodic
         if (emotionImage?.BaseStylesList != null)
           emotionIdList = emotionImage.BaseStylesList.ToList();
       }
-
       var influenceActionIds = new List<int>();
       if (treeNode.ActivityID > 0 && _influenceActionsImages != null)
       {
@@ -269,14 +257,12 @@ namespace AIStudio.ViewModels.Episodic
         if (ids != null)
           influenceActionIds = ids.ToList();
       }
-
       string toneMoodText = string.Empty;
       if (treeNode.ToneMoodID > 0)
       {
         try { toneMoodText = PsychicSystem.GetToneMoodString(treeNode.ToneMoodID); }
         catch { /* ignore */ }
       }
-
       string verbalText = string.Empty;
       if (treeNode.VerbID > 0 && _verbalBroca != null && _sensorySystem?.VerbalChannel != null)
       {
@@ -296,7 +282,6 @@ namespace AIStudio.ViewModels.Episodic
         }
         catch { /* ignore */ }
       }
-
       return new AutomatizmsViewModel.AutomatizmDisplayItem
       {
         ToneMoodID = treeNode.ToneMoodID,
@@ -423,7 +408,6 @@ namespace AIStudio.ViewModels.Episodic
         actionText = names.Any() ? string.Join(", ", names) : "Нет";
       }
       sb.AppendLine($"Действие: {actionText}");
-
       string phraseText = "Нет";
       if (actImg.PhraseIdList != null && actImg.PhraseIdList.Count > 0 && _sensorySystem?.VerbalChannel != null)
       {
@@ -431,7 +415,6 @@ namespace AIStudio.ViewModels.Episodic
         phraseText = phrases.Any() ? string.Join(" ", phrases) : "Нет";
       }
       sb.AppendLine($"Фраза: {phraseText}");
-
       string tone = ActionsImagesSystem.GetToneText(actImg.ToneId);
       string mood = ActionsImagesSystem.GetMoodText(actImg.MoodId);
       sb.AppendLine(string.IsNullOrEmpty(tone) ? "Тон: —" : $"Тон: {tone}");

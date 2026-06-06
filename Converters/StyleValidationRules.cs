@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
@@ -14,7 +14,6 @@ namespace AIStudio.Converters
       {
         var ids = input.Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries)
             .Select(s => s.Trim());
-
         foreach (var idStr in ids)
         {
           if (!int.TryParse(idStr, out _))
@@ -22,10 +21,8 @@ namespace AIStudio.Converters
             return new ValidationResult(false, $"Некорректный ID: {idStr}");
           }
         }
-
         return ValidationResult.ValidResult;
       }
-
       return new ValidationResult(false, "Некорректный формат данных");
     }
   }
@@ -38,7 +35,6 @@ namespace AIStudio.Converters
       {
         var parts = input.Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries)
             .Select(s => s.Trim());
-
         foreach (var part in parts)
         {
           if (part.StartsWith("-"))
@@ -63,10 +59,8 @@ namespace AIStudio.Converters
             }
           }
         }
-
         return ValidationResult.ValidResult;
       }
-
       return new ValidationResult(false, "Некорректный формат данных");
     }
   }

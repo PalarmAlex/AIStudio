@@ -31,7 +31,6 @@ namespace AIStudio.Pages.Research
     }
 
     private void BackButton_Click(object sender, RoutedEventArgs e) => CloseButton_Click(sender, e);
-
     private void RepeatBlockButton_Click(object sender, RoutedEventArgs e)
     {
       if (!(DataContext is ScenarioEditorViewModel vm))
@@ -59,7 +58,6 @@ namespace AIStudio.Pages.Research
     {
       if (!(sender is DataGrid) || !(DataContext is ScenarioEditorViewModel vm))
         return;
-
       var dep = e.OriginalSource as DependencyObject;
       while (dep != null && !(dep is DataGridCell))
         dep = VisualTreeHelper.GetParent(dep);
@@ -71,17 +69,14 @@ namespace AIStudio.Pages.Research
         return;
       if (!(cell.DataContext is ScenarioLineRow row))
         return;
-
       var owner = Window.GetWindow(this);
       var dlg = new ScenarioInfluenceActionsEditor(
           "Воздействия по шагу",
           vm.InfluenceActions.GetAllInfluenceActions(),
           row.ActionIds)
       { Owner = owner };
-
       if (dlg.ShowDialog() != true)
         return;
-
       var newIds = dlg.SelectedActionIds != null
           ? new List<int>(dlg.SelectedActionIds)
           : new List<int>();
@@ -117,7 +112,6 @@ namespace AIStudio.Pages.Research
     {
       if (!(DataContext is ScenarioEditorViewModel vm))
         return;
-
       var dialog = new TextInputDialog
       {
         Owner = Window.GetWindow(this),
@@ -127,7 +121,6 @@ namespace AIStudio.Pages.Research
         Width = 700,
         Height = 500
       };
-
       if (dialog.ShowDialog() == true)
       {
         var text = dialog.Text ?? "";

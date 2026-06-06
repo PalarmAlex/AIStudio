@@ -13,16 +13,13 @@ namespace AIStudio.Common
   {
     private const string GroupRegistryFormatHeader = "# SCENARIO_GROUP_REGISTRY_FORMAT|";
     private const string GroupLinesFormatHeader = "# SCENARIO_GROUP_LINES_FORMAT|";
-
     public static void EnsureFolder() => ScenarioStorage.EnsureFolder();
-
     public static List<ScenarioGroupHeader> LoadGroupRegistry()
     {
       EnsureFolder();
       var path = ScenarioPaths.GroupRegistryPath;
       if (!File.Exists(path))
         return new List<ScenarioGroupHeader>();
-
       var allLines = File.ReadAllLines(path, Encoding.UTF8);
       var list = new List<ScenarioGroupHeader>();
       foreach (var line in allLines)
@@ -42,7 +39,6 @@ namespace AIStudio.Common
           Description = ScenarioStorage.Unescape(p[2])
         });
       }
-
       return list.OrderBy(h => h.Id).ToList();
     }
 
@@ -62,7 +58,6 @@ namespace AIStudio.Common
             ScenarioStorage.Escape(h.Title ?? ""),
             ScenarioStorage.Escape(h.Description ?? "")));
       }
-
       return FileValidator.SafeSaveFile(
           ScenarioPaths.GroupRegistryPath,
           lines,
@@ -89,7 +84,6 @@ namespace AIStudio.Common
       var path = ScenarioPaths.GroupLinesPath(groupId);
       if (!File.Exists(path))
         throw new FileNotFoundException("Файл группы сценариев не найден", path);
-
       return ParseGroupContent(File.ReadAllLines(path, Encoding.UTF8), groupId);
     }
 
@@ -106,7 +100,6 @@ namespace AIStudio.Common
         var t = line?.Trim();
         if (string.IsNullOrEmpty(t) || !t.StartsWith("#"))
           continue;
-
         if (t.StartsWith("# SCENARIO_GROUP_META|", StringComparison.Ordinal))
         {
           var meta = t.Substring("# SCENARIO_GROUP_META|".Length).Split('|');
@@ -128,7 +121,6 @@ namespace AIStudio.Common
           }
           continue;
         }
-
         if (t.StartsWith("# SCENARIO_GROUP_MEMBER|", StringComparison.Ordinal))
         {
           var p = t.Substring("# SCENARIO_GROUP_MEMBER|".Length).Split('|');
@@ -152,7 +144,6 @@ namespace AIStudio.Common
           doc.Members.Add(row);
         }
       }
-
       return doc;
     }
 
@@ -169,11 +160,9 @@ namespace AIStudio.Common
       int coeff = doc.RunPulseTimingCoefficient;
       if (coeff != 1 && coeff != 5 && coeff != 10 && coeff != 20 && coeff != 50 && coeff != 100)
         coeff = 1;
-
       int rf = (int)doc.ReportFormat;
       if (!Enum.IsDefined(typeof(ScenarioGroupReportFormat), rf))
         rf = (int)ScenarioGroupReportFormat.Detailed;
-
       var lines = new List<string>
       {
         "# Группа сценариев оператора",
@@ -181,7 +170,6 @@ namespace AIStudio.Common
         $"# SCENARIO_GROUP_META|{ScenarioStorage.Escape(doc.Title ?? "")}|{ScenarioStorage.Escape(doc.Description ?? "")}|{coeff.ToString(CultureInfo.InvariantCulture)}|{rf.ToString(CultureInfo.InvariantCulture)}",
         "# SCENARIO_GROUP_MEMBER|SortOrder|ScenarioId|PreRunStage|Clear|Norm|Obs|Auth"
       };
-
       foreach (var m in doc.Members.OrderBy(x => x.SortOrderInGroup).ThenBy(x => x.ScenarioId))
       {
         lines.Add(
@@ -194,7 +182,6 @@ namespace AIStudio.Common
             + (m.ScenarioObservationMode ? "1" : "0") + "|"
             + (m.ScenarioAuthoritativeRecording ? "1" : "0"));
       }
-
       var path = ScenarioPaths.GroupLinesPath(doc.Id);
       return FileValidator.SafeSaveFile(
           path,

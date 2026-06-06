@@ -6,14 +6,11 @@ namespace AIStudio.ViewModels
   public sealed class LiveLogSessionPickerItem : INotifyPropertyChanged
   {
     public event PropertyChangedEventHandler PropertyChanged;
-
     public string SessionKey { get; }
     public bool IsCurrent { get; }
     public string DisplayLabel { get; }
-
     private bool _isChecked;
     private bool _isVisible = true;
-
     public bool IsChecked
     {
       get => _isChecked;

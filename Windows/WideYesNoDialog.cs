@@ -42,7 +42,6 @@ namespace AIStudio.Windows
       };
       buttons.Children.Add(btnYes);
       buttons.Children.Add(btnNo);
-
       var root = new Grid();
       root.RowDefinitions.Add(new RowDefinition { Height = new GridLength(1, GridUnitType.Star) });
       root.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
@@ -50,7 +49,6 @@ namespace AIStudio.Windows
       Grid.SetRow(buttons, 1);
       root.Children.Add(scroll);
       root.Children.Add(buttons);
-
       var win = new Window
       {
         Title = title,
@@ -69,10 +67,8 @@ namespace AIStudio.Windows
       }
       else
         win.WindowStartupLocation = WindowStartupLocation.CenterScreen;
-
       btnYes.Click += (_, __) => { win.DialogResult = true; };
       btnNo.Click += (_, __) => { win.DialogResult = false; };
-
       return win.ShowDialog() == true;
     }
   }

@@ -1,4 +1,4 @@
-﻿using AIStudio.Converters;
+using AIStudio.Converters;
 using ISIDA.Actions;
 using ISIDA.Reflexes;
 using System;
@@ -26,7 +26,6 @@ namespace AIStudio.Dialogs
 
     private readonly ReflexChainsSystem _reflexChainsSystem;
     private readonly AdaptiveActionsSystem _actionsSystem;
-
     private int _chainId;
     private string _chainName;
     private string _chainDescription;
@@ -34,14 +33,12 @@ namespace AIStudio.Dialogs
     private readonly int _initialChainId;
     private readonly List<int> _reflexAdaptiveActions;
     private bool _hasUnsavedChanges = false;
-
     public int ChainId => _chainId;
     public int ReflexId { get; }
     public int ReflexLevel1 { get; }
     public string ReflexLevel2Text { get; }
     public string ReflexLevel3Text { get; }
     public string ReflexAdaptiveActionsText { get; }
-
     public string ChainName
     {
       get => _chainName;
@@ -74,7 +71,6 @@ namespace AIStudio.Dialogs
 
     public ObservableCollection<ChainLink> ChainLinks { get; } = new ObservableCollection<ChainLink>();
     public ICollectionView ChainLinksView { get; }
-
     private ChainLink _selectedLink;
     public ChainLink SelectedLink
     {
@@ -89,9 +85,7 @@ namespace AIStudio.Dialogs
 
     public bool IsLinkSelected => SelectedLink != null;
     public bool CanSave => !string.IsNullOrWhiteSpace(ChainName) && ChainLinks.Any();
-
     public List<KeyValuePair<int, string>> ActionOptions { get; private set; }
-
     public ReflexChainEditorDialog(int reflexId, int reflexLevel1,
     List<int> reflexLevel2, List<int> reflexLevel3,
     List<int> reflexAdaptiveActions, int chainId,
@@ -100,10 +94,8 @@ namespace AIStudio.Dialogs
     {
       if (reflexChainsSystem == null)
         throw new ArgumentNullException(nameof(reflexChainsSystem));
-
       if (actionsSystem == null)
         throw new ArgumentNullException(nameof(actionsSystem));
-
       ReflexId = reflexId;
       ReflexLevel1 = reflexLevel1;
       ReflexLevel2Text = ConvertIdsToText(reflexLevel2, "Level2");
@@ -113,23 +105,19 @@ namespace AIStudio.Dialogs
       _initialChainId = chainId;
       _reflexChainsSystem = reflexChainsSystem;
       _actionsSystem = actionsSystem;
-
       InitializeComponent();
-
       ChainLinksView = CollectionViewSource.GetDefaultView(ChainLinks);
       ChainLinks.CollectionChanged += (s, e) =>
       {
         _hasUnsavedChanges = true;
         OnPropertyChanged(nameof(CanSave));
       };
-
       if (_initialChainId > 0)
         LoadExistingChain();
       else
       {
         ChainName = $"Цепочка для рефлекса {ReflexId}";
         ChainDescription = $"Автоматически созданная цепочка для рефлекса {ReflexId}";
-
         if (_reflexAdaptiveActions.Any())
         {
           var startLink = new ChainLink
@@ -143,16 +131,13 @@ namespace AIStudio.Dialogs
           ChainLinks.Add(startLink);
         }
       }
-
       LoadActionOptions();
-
       DataContext = this;
     }
 
     protected override void OnClosing(System.ComponentModel.CancelEventArgs e)
     {
       string validationError = ValidateChain();
-
       if (!string.IsNullOrEmpty(validationError))
       {
         var result = MessageBox.Show(
@@ -165,7 +150,6 @@ namespace AIStudio.Dialogs
             MessageBoxButton.YesNoCancel,
             MessageBoxImage.Warning,
             MessageBoxResult.Yes);
-
         if (result == MessageBoxResult.Yes)
         {
           e.Cancel = true;
@@ -190,7 +174,6 @@ namespace AIStudio.Dialogs
             MessageBoxButton.YesNoCancel,
             MessageBoxImage.Question,
             MessageBoxResult.Yes);
-
         if (result == MessageBoxResult.Yes)
         {
           e.Cancel = true;
@@ -211,7 +194,6 @@ namespace AIStudio.Dialogs
           return;
         }
       }
-
       base.OnClosing(e);
     }
 
@@ -225,7 +207,6 @@ namespace AIStudio.Dialogs
     {
       if (ids == null || !ids.Any())
         return "Нет";
-
       try
       {
         var converter = new IdListToNamesConverter();
@@ -248,7 +229,6 @@ namespace AIStudio.Dialogs
           _chainId = chain.ID;
           ChainName = chain.Name;
           ChainDescription = chain.Description;
-
           ChainLinks.Clear();
           foreach (var link in chain.Links.OrderBy(l => l.ID))
           {
@@ -268,13 +248,11 @@ namespace AIStudio.Dialogs
     private void LoadActionOptions()
     {
       ActionOptions = new List<KeyValuePair<int, string>>();
-
       var allActions = _actionsSystem.GetAllAdaptiveActions();
       foreach (var action in allActions.OrderBy(a => a.Id))
       {
         ActionOptions.Add(new KeyValuePair<int, string>(action.Id, $"{action.Name} (ID:{action.Id})"));
       }
-
       OnPropertyChanged(nameof(ActionOptions));
     }
 
@@ -282,9 +260,7 @@ namespace AIStudio.Dialogs
     {
       if (!ChainLinks.Any())
         return "Цепочка не содержит звеньев";
-
       StringBuilder errorMessage = new StringBuilder();
-
       foreach (var link in ChainLinks)
       {
         string validationError = ValidateLink(link);
@@ -293,20 +269,17 @@ namespace AIStudio.Dialogs
           errorMessage.AppendLine(validationError);
         }
       }
-
       var terminalLinks = ChainLinks.Where(l => l.SuccessNextLink == 0 && l.FailureNextLink == 0).ToList();
       if (terminalLinks.Count == 0)
       {
         errorMessage.AppendLine("Цепочка не содержит конечных звеньев (оба следующих звена = 0) - возможен бесконечный цикл");
       }
-
       return errorMessage.ToString();
     }
 
     private void AddLinkButton_Click(object sender, RoutedEventArgs e)
     {
       int newLinkId = ChainLinks.Any() ? ChainLinks.Max(l => l.ID) + 1 : 1;
-
       var newLink = new ChainLink
       {
         ID = newLinkId,
@@ -315,9 +288,7 @@ namespace AIStudio.Dialogs
         FailureNextLink = 0,
         Description = $"Звено {newLinkId}"
       };
-
       ChainLinks.Add(newLink);
-
       OnPropertyChanged(nameof(CanSave));
     }
 
@@ -329,12 +300,10 @@ namespace AIStudio.Dialogs
             MessageBoxButton.OK, MessageBoxImage.Warning);
         return;
       }
-
       var linkIdToRemove = SelectedLink.ID;
       var referencingLinks = ChainLinks.Where(l =>
           l.SuccessNextLink == linkIdToRemove ||
           l.FailureNextLink == linkIdToRemove).ToList();
-
       if (referencingLinks.Any())
       {
         var result = MessageBox.Show(
@@ -343,7 +312,6 @@ namespace AIStudio.Dialogs
             "Подтверждение удаления",
             MessageBoxButton.YesNo,
             MessageBoxImage.Question);
-
         if (result == MessageBoxResult.Yes)
         {
           foreach (var refLink in referencingLinks)
@@ -359,10 +327,8 @@ namespace AIStudio.Dialogs
           return;
         }
       }
-
       ChainLinks.Remove(SelectedLink);
       SelectedLink = null;
-
       OnPropertyChanged(nameof(CanSave));
     }
 
@@ -374,15 +340,12 @@ namespace AIStudio.Dialogs
             MessageBoxButton.OK, MessageBoxImage.Warning);
         return;
       }
-
       string validationError = ValidateLink(SelectedLink);
-
       if (!string.IsNullOrEmpty(validationError))
       {
         MessageBox.Show(validationError, "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
         return;
       }
-
       _hasUnsavedChanges = true;
       OnPropertyChanged(nameof(CanSave));
       MessageBox.Show("Звено обновлено", "Успех",
@@ -395,40 +358,32 @@ namespace AIStudio.Dialogs
       {
         if (link.SuccessNextLink == link.ID)
           return $"Звено {link.ID} ссылается само на себя (SuccessNextLink)";
-
         if (!ChainLinks.Any(l => l.ID == link.SuccessNextLink))
           return $"Следующее звено при успехе (ID:{link.SuccessNextLink}) не найдено";
-
         if (link.SuccessNextLink <= link.ID)
           return $"Следующее звено при успехе должно иметь ID больше текущего ({link.ID})";
       }
-
       if (link.FailureNextLink > 0)
       {
         if (link.FailureNextLink == link.ID)
           return $"Звено {link.ID} ссылается само на себя (FailureNextLink)";
-
         if (!ChainLinks.Any(l => l.ID == link.FailureNextLink))
           return $"Следующее звено при неудаче (ID:{link.FailureNextLink}) не найдено";
-
         if (link.FailureNextLink <= link.ID)
           return $"Следующее звено при неудаче должно иметь ID больше текущего ({link.ID})";
       }
-
       return null;
     }
 
     private void ValidateChainButton_Click(object sender, RoutedEventArgs e)
     {
       string validationError = ValidateChain();
-
       if (!string.IsNullOrEmpty(validationError))
       {
         MessageBox.Show($"Ошибки валидации:\n{validationError}", "Ошибка валидации",
             MessageBoxButton.OK, MessageBoxImage.Error);
         return;
       }
-
       MessageBox.Show("Цепочка валидна", "Проверка пройдена",
           MessageBoxButton.OK, MessageBoxImage.Information);
     }
@@ -441,7 +396,6 @@ namespace AIStudio.Dialogs
             "Ошибка сохранения", MessageBoxButton.OK, MessageBoxImage.Error);
         return;
       }
-
       string validationError = ValidateChain();
       if (!string.IsNullOrEmpty(validationError))
       {
@@ -449,21 +403,17 @@ namespace AIStudio.Dialogs
             "Ошибка сохранения", MessageBoxButton.OK, MessageBoxImage.Error);
         return;
       }
-
       try
       {
         var links = new List<ChainLink>(ChainLinks);
-
         if (_editingChain != null)
         {
           _editingChain.Name = ChainName;
           _editingChain.Description = ChainDescription;
           _editingChain.Links = links;
-
           var (success, _) = _reflexChainsSystem.SaveReflexChains();
           if (!success)
             throw new Exception("Не удалось сохранить цепочку");
-
           _chainId = _editingChain.ID;
         }
         else
@@ -472,20 +422,16 @@ namespace AIStudio.Dialogs
               ChainName,
               ChainDescription,
               links);
-
           if (warnings != null && warnings.Any())
           {
             MessageBox.Show($"Предупреждения при создании цепочки:\n{string.Join("\n", warnings)}",
                 "Предупреждения", MessageBoxButton.OK, MessageBoxImage.Warning);
           }
-
           _chainId = newChainId;
-
           var (saveSuccess, error) = _reflexChainsSystem.SaveReflexChains();
           if (!saveSuccess)
             throw new Exception($"Не удалось сохранить цепочку: {error}");
         }
-
         _hasUnsavedChanges = false;
         DialogResult = true;
         Close();
@@ -505,7 +451,6 @@ namespace AIStudio.Dialogs
     private void CloseWithConfirmation()
     {
       string validationError = ValidateChain();
-
       if (!string.IsNullOrEmpty(validationError))
       {
         var result = MessageBox.Show(
@@ -515,7 +460,6 @@ namespace AIStudio.Dialogs
             MessageBoxButton.YesNo,
             MessageBoxImage.Warning,
             MessageBoxResult.No);
-
         if (result == MessageBoxResult.No)
           return;
       }
@@ -527,11 +471,9 @@ namespace AIStudio.Dialogs
             MessageBoxButton.YesNo,
             MessageBoxImage.Question,
             MessageBoxResult.No);
-
         if (result == MessageBoxResult.No)
           return;
       }
-
       DialogResult = false;
       Close();
     }

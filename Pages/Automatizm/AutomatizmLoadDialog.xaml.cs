@@ -17,7 +17,6 @@ namespace AIStudio.Dialogs
   public partial class AutomatizmLoadDialog : Window
   {
     public AutomatizmLoadDialogViewModel ViewModel { get; private set; }
-
     public AutomatizmLoadDialog(
         string bootDataFolder,
         AutomatizmFileLoader automatizmFileLoader = null)
@@ -65,13 +64,10 @@ namespace AIStudio.Dialogs
     public event PropertyChangedEventHandler PropertyChanged;
     protected virtual void OnPropertyChanged(string propertyName) =>
         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-
     private readonly string _bootDataFolder;
     private readonly AutomatizmFileLoader _automatizmFileLoader;
-
     public Action<bool> CloseAction { get; set; }
     public Action SwitchToPromptTabAction { get; set; }
-
     private bool _isBusy;
     public bool IsBusy
     {
@@ -95,12 +91,10 @@ namespace AIStudio.Dialogs
     public RelayCommand SavePromptCommand { get; }
     public RelayCommand SaveInsertTextCommand { get; }
     public RelayCommand CreatePromptCommand { get; }
-
     public AutomatizmLoadDialogViewModel(string bootDataFolder, AutomatizmFileLoader automatizmFileLoader)
     {
       _bootDataFolder = bootDataFolder;
       _automatizmFileLoader = automatizmFileLoader;
-
       CancelCommand = new RelayCommand(ExecuteCancel);
       ApplyCommand = new RelayCommand(ExecuteApply, CanExecuteApply);
       SaveCsvCommand = new RelayCommand(ExecuteSaveCsv, CanExecuteSaveCsv);
@@ -108,14 +102,11 @@ namespace AIStudio.Dialogs
       SavePromptCommand = new RelayCommand(ExecuteSavePrompt, CanExecuteSavePrompt);
       SaveInsertTextCommand = new RelayCommand(ExecuteSaveInsertText, CanExecuteSaveInsertText);
       CreatePromptCommand = new RelayCommand(ExecuteCreatePrompt);
-
       LoadCsvContent();
       LoadPromptContent();
       LoadInsertTextContent();
     }
-
     #region CSV Properties
-
     private string _filePath;
     public string FilePath
     {
@@ -141,14 +132,10 @@ namespace AIStudio.Dialogs
     }
 
     public bool IsEditingEnabled => true;
-
     #endregion
-
     #region Prompt Properties
-
     private string _promptFilePath;
     public string PromptFilePath => _promptFilePath ?? (_promptFilePath = Path.Combine(_bootDataFolder, PromptFileName));
-
     private string _promptContent;
     public string PromptContent
     {
@@ -174,13 +161,9 @@ namespace AIStudio.Dialogs
     }
 
     public bool IsPromptEditingEnabled => !string.IsNullOrEmpty(PromptFilePath);
-
     #endregion
-
     public bool CanApply => !string.IsNullOrWhiteSpace(CsvContent);
-
     #region Command CanExecute
-
     private bool CanExecuteApply(object parameter)
     {
       return CanApply;
@@ -200,18 +183,13 @@ namespace AIStudio.Dialogs
     {
       return !string.IsNullOrWhiteSpace(PromptInsertText);
     }
-
     #endregion
-
     #region Helper Methods
-
     private bool HasValidSeparators()
     {
       if (string.IsNullOrWhiteSpace(CsvContent))
         return false;
-
       var lines = CsvContent.Split(new[] { "\r\n", "\r", "\n" }, StringSplitOptions.RemoveEmptyEntries);
-
       foreach (var line in lines)
       {
         var trimmedLine = line.Trim();
@@ -227,14 +205,10 @@ namespace AIStudio.Dialogs
             return true;
         }
       }
-
       return false;
     }
-
     #endregion
-
     #region Load Methods
-
     public void LoadCsvContent()
     {
       try
@@ -279,11 +253,8 @@ namespace AIStudio.Dialogs
         PromptInsertText = string.Empty;
       }
     }
-
     #endregion
-
     #region Command Executions
-
     private void ExecuteSaveCsv(object parameter)
     {
       ExecuteSaveCsvInternal(suppressSuccessMessage: false);
@@ -301,14 +272,12 @@ namespace AIStudio.Dialogs
               "Предупреждение",
               MessageBoxButton.YesNo,
               MessageBoxImage.Warning);
-
           if (result != MessageBoxResult.Yes)
             return;
         }
 
         // Создаем директорию, если её нет
         Directory.CreateDirectory(_bootDataFolder);
-
         File.WriteAllText(FilePath, CsvContent, Encoding.UTF8);
         if (!suppressSuccessMessage)
         {
@@ -337,26 +306,21 @@ namespace AIStudio.Dialogs
             MessageBoxImage.Warning);
         return;
       }
-
       var lines = CsvContent.Split(new[] { "\r\n", "\r", "\n" }, StringSplitOptions.RemoveEmptyEntries);
       int validLines = 0;
       int invalidLines = 0;
       int commentLines = 0;
       var invalidExamples = new List<string>();
-
       foreach (var line in lines)
       {
         var trimmedLine = line.Trim();
-
         if (string.IsNullOrWhiteSpace(trimmedLine))
           continue;
-
         if (trimmedLine.StartsWith("#"))
         {
           commentLines++;
           continue;
         }
-
         var parts = trimmedLine.Split('|');
         if (parts.Length >= 5)
         {
@@ -382,10 +346,8 @@ namespace AIStudio.Dialogs
             invalidExamples.Add(trimmedLine.Length > 50 ? trimmedLine.Substring(0, 47) + "..." : trimmedLine);
         }
       }
-
       string message;
       MessageBoxImage icon;
-
       if (invalidLines == 0 && validLines > 0)
       {
         message = $"✅ Текст корректен.\n\n" +
@@ -411,7 +373,6 @@ namespace AIStudio.Dialogs
           message += $"\nПримеры ошибок:\n{string.Join("\n", invalidExamples)}";
         icon = MessageBoxImage.Warning;
       }
-
       MessageBox.Show(message, "Проверка формата", MessageBoxButton.OK, icon);
     }
 
@@ -421,7 +382,6 @@ namespace AIStudio.Dialogs
       {
         // Создаем директорию, если её нет
         Directory.CreateDirectory(_bootDataFolder);
-
         File.WriteAllText(PromptFilePath, PromptContent, Encoding.UTF8);
         MessageBox.Show("Промпт успешно сохранен", "Сохранение",
             MessageBoxButton.OK, MessageBoxImage.Information);
@@ -483,7 +443,6 @@ namespace AIStudio.Dialogs
             MessageBoxButton.OK, MessageBoxImage.Warning);
         return;
       }
-
       IsBusy = true;
       try
       {
@@ -510,8 +469,6 @@ namespace AIStudio.Dialogs
     {
       CloseAction?.Invoke(false);
     }
-
     #endregion
   }
-
 }

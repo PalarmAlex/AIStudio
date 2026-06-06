@@ -1,4 +1,4 @@
-﻿using AIStudio.Common;
+using AIStudio.Common;
 using ISIDA.Actions;
 using ISIDA.Gomeostas;
 using ISIDA.Reflexes;
@@ -35,17 +35,14 @@ namespace AIStudio.ViewModels
     private readonly ReflexesActivator _reflexesActivator;
     private AntagonistManager _antagonistManager;
     private DispatcherTimer _chainStatusTimer;
-
     private ObservableCollection<InfluenceActionItem> _influenceActions;
     private ObservableCollection<InfluenceActionItem> _operatorActions;
     private ObservableCollection<InfluenceActionItem> _environmentActions;
-
     private bool _isAgentDead;
     private bool _authoritativeMode;
     private string _messageText;
     private string _commandMessageText;
     private string _recognitionDisplayText;
-
     private int _selectedToneId = 0;
     private int _selectedMoodId = 0;
     private int _selectedVisualColorId = AgentVisualColor.White;
@@ -57,7 +54,6 @@ namespace AIStudio.ViewModels
     private bool _chainStepSuccess = true;
     private System.Windows.Visibility _chainControlVisibility = System.Windows.Visibility.Collapsed;
     private bool _isChainActive = false;
-
     public bool IsEditingEnabled => !IsAgentDead;
     public bool IsAgentDead
     {
@@ -145,7 +141,6 @@ namespace AIStudio.ViewModels
     }
 
     private int _activeChainId = 0;
-
     public int ActiveChainId
     {
       get => _activeChainId;
@@ -173,9 +168,7 @@ namespace AIStudio.ViewModels
         return "Цепочка не активна";
       }
     }
-
     #region Свойства для тона и настроения
-
     /// <summary>
     /// Список доступных тонов
     /// </summary>
@@ -274,11 +267,8 @@ namespace AIStudio.ViewModels
     {
       get => ActionsImagesSystem.GetMoodText(SelectedMoodId);
     }
-
     #endregion
-
     #region Свойства для управления цепочкой
-
     /// <summary>
     /// Результат выполнения звена цепочки (успех)
     /// </summary>
@@ -295,7 +285,6 @@ namespace AIStudio.ViewModels
           // Если выбрано "Успех", сбрасываем неудачу
           if (value)
             ChainStepFailure = false;
-
           UpdateChainStepResult();
         }
       }
@@ -368,7 +357,6 @@ namespace AIStudio.ViewModels
 
     private string _currentChainType = "";
     private int _currentAutomatizmChainLinkId;
-
     /// <summary>
     /// Текст для цепочки автоматизмов: «Выполняется звено цепочки №N» (плашка с оценкой не используется).
     /// </summary>
@@ -407,15 +395,12 @@ namespace AIStudio.ViewModels
         return "";
       }
     }
-
     #endregion
-
     private ICommand _applyInfluenceCommand;
     public ICommand ApplyInfluenceCommand => _applyInfluenceCommand ??
         (_applyInfluenceCommand = new RelayCommand(
             ApplyInfluenceActions,
             _ => IsEditingEnabled));
-
     public AgentPultViewModel()
     {
       _gomeostas = GomeostasSystem.Instance;
@@ -427,15 +412,12 @@ namespace AIStudio.ViewModels
       _environmentActions = new ObservableCollection<InfluenceActionItem>();
       _recognitionDisplayText = "";
       MessageText = "";
-
       LoadInfluenceActions();
       UpdateAgentState();
       UpdateRecognitionDisplay();
-
       InitializeToneAndMoodLists();
       InitializeVisualColorList();
       InitializeChainStatusPolling();
-
       GlobalTimer.PulsationStateChanged += OnPulsationStateChanged;
     }
 
@@ -456,7 +438,6 @@ namespace AIStudio.ViewModels
       {
         ToneList = ActionsImagesSystem.GetToneList();
         MoodList = ActionsImagesSystem.GetMoodList();
-
         SelectedToneId = 0;
         SelectedMoodId = 0;
       }
@@ -501,7 +482,6 @@ namespace AIStudio.ViewModels
         bool isReflexChainActive = AppGlobalState.IsReflexChainActive;
         bool isAutomatizmChainActive = AppGlobalState.IsAutomatizmChainActive;
         bool isChainActive = isReflexChainActive || isAutomatizmChainActive;
-
         int newChainId = 0;
         string chainType = "";
 
@@ -522,7 +502,6 @@ namespace AIStudio.ViewModels
               _currentAutomatizmChainLinkId = AutomatismExecutionService.Instance.GetCurrentAutomatizmChainLink(newChainId);
           }
         }
-
         if (wasActive != isChainActive || ActiveChainId != newChainId || _currentChainType != chainType)
         {
           _isChainActive = isChainActive;
@@ -533,7 +512,6 @@ namespace AIStudio.ViewModels
           ChainControlVisibility = isReflexChainActive && _activeChainId > 0 ?
               System.Windows.Visibility.Visible :
               System.Windows.Visibility.Collapsed;
-
           OnPropertyChanged(nameof(ChainActiveStatusWithId));
           OnPropertyChanged(nameof(ChainActiveStatus));
           OnPropertyChanged(nameof(ChainActiveIndicatorColor));
@@ -542,16 +520,13 @@ namespace AIStudio.ViewModels
           OnPropertyChanged(nameof(ChainTypeText));
           OnPropertyChanged(nameof(AutomatizmChainStatusText));
           OnPropertyChanged(nameof(AutomatizmChainStatusVisibility));
-
           if (_isChainActive && isReflexChainActive)
             ChainStepSuccess = true; // Сбрасываем на значение по умолчанию
           else if (!_isChainActive)
             ChainControlVisibility = System.Windows.Visibility.Collapsed;
         }
-
         if (_isChainActive && isReflexChainActive)
           UpdateChainStepResult();
-
         if (_isChainActive && isAutomatizmChainActive && _activeChainId > 0 && AutomatismExecutionService.IsInitialized)
         {
           _currentAutomatizmChainLinkId = AutomatismExecutionService.Instance.GetCurrentAutomatizmChainLink(_activeChainId);
@@ -587,7 +562,6 @@ namespace AIStudio.ViewModels
           // Для цепочек автоматизмов
           // Преобразуем bool в int (1 - успех, -1 - неудача)
           int usefulness = _chainStepSuccess ? 1 : -1;
-
           AutomatismExecutionService.Instance.SetChainStepResult(ActiveChainId, usefulness);
         }
       }
@@ -617,7 +591,6 @@ namespace AIStudio.ViewModels
 
     /// <summary>Синхронизирует флаг смерти пульта с текущим состоянием гомеостаза (например после «Воскресить»).</summary>
     public void SyncAgentDeadFlagFromGomeostas() => UpdateAgentState();
-
     /// <summary>
     /// Обновляет отображение распознанного текста (речь и команды) с заменой нераспознанных слов на xxxxx
     /// </summary>
@@ -633,13 +606,11 @@ namespace AIStudio.ViewModels
         RecognitionDisplayText = "Текст будет распознан на хосте после применения.";
         return;
       }
-
       var lines = new List<string>();
       if (!string.IsNullOrWhiteSpace(MessageText))
         lines.Add("Речь: " + BuildVerbalRecognitionPreview(MessageText));
       if (!string.IsNullOrWhiteSpace(CommandMessageText))
         lines.Add(BuildCommandRecognitionPreview(CommandMessageText));
-
       RecognitionDisplayText = string.Join(Environment.NewLine, lines);
     }
 
@@ -650,9 +621,7 @@ namespace AIStudio.ViewModels
         var parts = Regex.Split(text, @"(\s+|[^\w\s])")
             .Where(part => !string.IsNullOrEmpty(part))
             .ToList();
-
         var resultParts = new List<string>();
-
         foreach (var part in parts)
         {
           if (Regex.IsMatch(part, @"\p{L}"))
@@ -665,7 +634,6 @@ namespace AIStudio.ViewModels
           else
             resultParts.Add(part);
         }
-
         return string.Join("", resultParts);
       }
       catch (Exception ex)
@@ -682,14 +650,12 @@ namespace AIStudio.ViewModels
         var ids = _sensorySystem.CommandChannel.RecognizeText(text.Trim(), authoritativeWrite: false);
         if (ids == null || ids.Count == 0)
           return "Команда: xxxxx";
-
         var parts = ids
             .Select(id => _sensorySystem.CommandChannel.GetPhraseFromPhraseId(id))
             .Where(s => !string.IsNullOrWhiteSpace(s))
             .ToList();
         if (parts.Count == 0)
           return "Команда: xxxxx";
-
         return "Команда: " + string.Join(" ", parts);
       }
       catch (Exception ex)
@@ -703,7 +669,6 @@ namespace AIStudio.ViewModels
     {
       if (string.IsNullOrWhiteSpace(commandText) || _sensorySystem == null)
         return new List<int>();
-
       return _sensorySystem.CommandChannel.RecognizeText(commandText.Trim(), AuthoritativeMode) ?? new List<int>();
     }
 
@@ -731,10 +696,8 @@ namespace AIStudio.ViewModels
     {
       _antagonistManager?.Dispose();
       _influenceActions.Clear();
-
       var operatorActions = new ObservableCollection<InfluenceActionItem>();
       var environmentActions = new ObservableCollection<InfluenceActionItem>();
-
       try
       {
         var allActions = _influenceActionSystem.GetAllInfluenceActions().ToList();
@@ -744,12 +707,9 @@ namespace AIStudio.ViewModels
         var environmentSource = allActions
             .Where(a => !string.IsNullOrWhiteSpace(a.EnvironmentMetricProbeKey))
             .ToList();
-
         AddInfluenceActionItems(operatorSource, operatorActions);
         AddInfluenceActionItems(environmentSource, environmentActions);
-
         _antagonistManager = new AntagonistManager(_influenceActions.Cast<AntagonistItem>().ToList());
-
         OperatorActions = operatorActions;
         EnvironmentActions = environmentActions;
       }
@@ -773,7 +733,6 @@ namespace AIStudio.ViewModels
           IsSelected = false,
           AntagonistIds = new List<int>(action.AntagonistInfluences ?? new List<int>())
         };
-
         _influenceActions.Add(item);
         targetColumn.Add(item);
       }
@@ -799,22 +758,18 @@ namespace AIStudio.ViewModels
     {
       if (IsAgentDead)
         return "Симбионт мёртв";
-
       if (!GlobalTimer.IsPulsationRunning)
         return "Пульсация выключена";
-
       var ids = actionIds == null ? new List<int>() : actionIds.Where(id => id > 0).Distinct().ToList();
       int colorForStep = AgentVisualColor.IsValidCode(visualColorId) ? visualColorId : AgentVisualColor.White;
       if (ids.Count == 0 && string.IsNullOrWhiteSpace(phraseText) && colorForStep == AgentVisualColor.White)
         return "Пустой шаг сценария";
-
       int prevTone = SelectedToneId;
       int prevMood = SelectedMoodId;
       try
       {
         SelectedToneId = toneId;
         SelectedMoodId = moodId;
-
         List<int> phraseIds = new List<int>();
         if (!string.IsNullOrWhiteSpace(phraseText))
         {
@@ -822,7 +777,6 @@ namespace AIStudio.ViewModels
               phraseText,
               authoritativeWrite: true);
         }
-
         var (success, errorMessage) = _influenceActionSystem.ApplyMultipleInfluenceActions(
             ids,
             phraseIds,
@@ -831,14 +785,12 @@ namespace AIStudio.ViewModels
             toneId: SelectedToneId,
             moodId: SelectedMoodId,
             visualColorId: colorForStep);
-
         if (!success)
         {
           if (errorMessage != null && errorMessage.Contains("Симбионт мертв"))
             IsAgentDead = true;
           return errorMessage ?? "Ошибка применения воздействий";
         }
-
         if (AppGlobalState.IsAutomatizmChainActive && AutomatismExecutionService.IsInitialized)
           AutomatismExecutionService.Instance.ApplyStimulusEffectAndAdvanceChain();
         UpdateAgentState();
@@ -867,7 +819,6 @@ namespace AIStudio.ViewModels
         MessageText = ""; // Очищаем только поле ввода
         return;
       }
-
       if (!GlobalTimer.IsPulsationRunning)
       {
         MessageBox.Show("Пульсация выключена — воздействия не применяются",
@@ -876,7 +827,6 @@ namespace AIStudio.ViewModels
             MessageBoxImage.Warning);
         return;
       }
-
       var selectedActions = GetSelectedInfluenceActions();
       if (selectedActions.Count == 0 && string.IsNullOrWhiteSpace(MessageText) &&
           string.IsNullOrWhiteSpace(CommandMessageText) &&
@@ -889,7 +839,6 @@ namespace AIStudio.ViewModels
         MessageText = ""; // Очищаем только поле ввода
         return;
       }
-
       try
       {
         List<int> phraseIds = new List<int>();
@@ -904,13 +853,11 @@ namespace AIStudio.ViewModels
           );
           MessageText = "";
         }
-
         if (!string.IsNullOrWhiteSpace(CommandMessageText))
         {
           commandPatternIds = RecognizeCommandPatterns(CommandMessageText);
           CommandMessageText = "";
         }
-
         UpdateRecognitionDisplay();
 
         // Применяем воздействия, если есть выбранные действия, фраза или команды
@@ -924,7 +871,6 @@ namespace AIStudio.ViewModels
               toneId: SelectedToneId,
               moodId: SelectedMoodId,
               visualColorId: SelectedVisualColorId);
-
           if (!success)
           {
             if (errorMessage.Contains("Симбионт мертв"))
@@ -936,7 +882,6 @@ namespace AIStudio.ViewModels
                   MessageBoxImage.Warning);
               return;
             }
-
             MessageBox.Show($"Не удалось применить воздействия: {errorMessage}",
                 "Ошибка",
                 MessageBoxButton.OK,

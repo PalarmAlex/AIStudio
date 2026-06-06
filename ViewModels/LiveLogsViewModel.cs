@@ -1,4 +1,4 @@
-﻿using AIStudio.Common;
+using AIStudio.Common;
 using AIStudio.Windows;
 using ISIDA.Actions;
 using ISIDA.Common;
@@ -25,10 +25,8 @@ namespace AIStudio.ViewModels
   public class LiveLogsViewModel : INotifyPropertyChanged, IDisposable
   {
     public event PropertyChangedEventHandler PropertyChanged;
-
     private readonly DispatcherTimer _refreshTimer;
     private bool _disposed = false;
-
     private readonly AgentLogCellTooltipProvider _tooltipProvider;
     private readonly GomeostasSystem _gomeostas;
     private readonly ResearchLogger _researchLogger;
@@ -39,29 +37,20 @@ namespace AIStudio.ViewModels
     {
       LogFileSessionInfo.CurrentSessionKey
     };
-
     public ReadOnlyObservableCollection<LogEntry> LogEntries => MemoryLogManager.Instance.LogEntries;
-
     public string SessionsButtonLabel => LogSessionsUiHelper.BuildButtonLabel(_selectedSessionKeys);
-
     public bool IsLiveOnlyView => LogSessionsUiHelper.UsesOnlyCurrentSession(_selectedSessionKeys);
-
     private bool _suppressFileSessionLoad;
-
     public object DisplayedAgentLogEntries =>
         IsLiveOnlyView
             ? (object)MemoryLogManager.Instance.AgentDisplayLogEntries
             : _mergedDisplayEntries;
-
     public ReadOnlyObservableCollection<MemoryLogManager.ChainLogEntry> ChainLogEntries =>
         MemoryLogManager.Instance.ChainLogEntries;
-
     public ICommand ClearLogsCommand { get; }
     public ICommand OpenSessionsPickerCommand { get; }
-
     public string CurrentAgentTitle =>
         SymbiontPageTitleFormatter.Format("СИСТЕМНЫЕ ЛОГИ", _currentAgentName, _currentAgentStage);
-
     public LiveLogsViewModel(
         GomeostasSystem gomeostas,
         ResearchLogger researchLogger,
@@ -86,13 +75,10 @@ namespace AIStudio.ViewModels
           conditionedReflexesSystem ?? throw new ArgumentNullException(nameof(conditionedReflexesSystem)),
           automatizmSystem ?? throw new ArgumentNullException(nameof(automatizmSystem)),
           actionsImagesSystem ?? throw new ArgumentNullException(nameof(actionsImagesSystem)));
-
       ClearLogsCommand = new RelayCommand(_ => ClearLogs());
       OpenSessionsPickerCommand = new RelayCommand(_ => OpenSessionsPicker());
-
       RefreshAgentTitleContext();
       RebuildDisplayedEntries();
-
       _refreshTimer = new DispatcherTimer
       {
         Interval = TimeSpan.FromMilliseconds(100)
@@ -105,7 +91,6 @@ namespace AIStudio.ViewModels
     {
       if (!LogSessionPickerGate.EnsurePulsationStopped(Application.Current?.MainWindow))
         return;
-
       var dlg = new LogSessionPickerWindow(
           "Сессии системных логов",
           "ВЫБОР СЕССИЙ ЛОГОВ",
@@ -115,14 +100,11 @@ namespace AIStudio.ViewModels
       {
         Owner = Application.Current?.MainWindow
       };
-
       if (dlg.ShowDialog() != true)
         return;
-
       _selectedSessionKeys = dlg.ViewModel.GetSelectedKeys();
       if (_selectedSessionKeys.Count == 0)
         _selectedSessionKeys.Add(LogFileSessionInfo.CurrentSessionKey);
-
       _suppressFileSessionLoad = false;
       OnPropertyChanged(nameof(SessionsButtonLabel));
       OnPropertyChanged(nameof(IsLiveOnlyView));
@@ -137,22 +119,18 @@ namespace AIStudio.ViewModels
         OnPropertyChanged(nameof(DisplayedAgentLogEntries));
         return;
       }
-
       var combined = new List<LogEntry>();
-
       if (_selectedSessionKeys.Contains(LogFileSessionInfo.CurrentSessionKey))
       {
         foreach (var e in MemoryLogManager.Instance.AgentDisplayLogEntries)
           combined.Add(e);
       }
-
       if (!_suppressFileSessionLoad)
       {
         foreach (var key in _selectedSessionKeys.Where(k => k != LogFileSessionInfo.CurrentSessionKey))
         {
           if (!int.TryParse(key, out int sessionIndex))
             continue;
-
           try
           {
             combined.AddRange(AgentLogFileSessions.LoadSessionDisplayEntries(sessionIndex));
@@ -162,11 +140,9 @@ namespace AIStudio.ViewModels
           }
         }
       }
-
       _mergedDisplayEntries.Clear();
       foreach (var e in combined.OrderByDescending(x => x.Timestamp))
         _mergedDisplayEntries.Add(e);
-
       OnPropertyChanged(nameof(DisplayedAgentLogEntries));
     }
 
@@ -179,7 +155,6 @@ namespace AIStudio.ViewModels
     private void RefreshDisplay()
     {
       if (_disposed) return;
-
       if (IsLiveOnlyView)
       {
         OnPropertyChanged(nameof(DisplayedAgentLogEntries));
@@ -197,7 +172,6 @@ namespace AIStudio.ViewModels
     private void ClearLogs()
     {
       if (_disposed) return;
-
       _suppressFileSessionLoad = _selectedSessionKeys.Any(k => k != LogFileSessionInfo.CurrentSessionKey);
       MemoryLogManager.Instance.Clear();
       _mergedDisplayEntries.Clear();
@@ -220,26 +194,17 @@ namespace AIStudio.ViewModels
       _refreshTimer?.Stop();
       _disposed = true;
     }
-
     #region Конвертеры для ToolTip'ов
-
     public string GetReflexChainTooltip(string chainInfo) => _tooltipProvider.GetReflexChainTooltip(chainInfo);
-
     public string GetAutomatizmChainTooltip(string chainInfo) => _tooltipProvider.GetAutomatizmChainTooltip(chainInfo);
-
     public string GetStyleTooltip(string displayBaseStyleID) => _tooltipProvider.GetStyleTooltip(displayBaseStyleID);
-
     public string GetTriggerTooltip(string displayTriggerStimulusID) =>
         _tooltipProvider.GetTriggerTooltip(displayTriggerStimulusID);
-
     public string GetActionsForGeneticReflex(string displayReflexID) =>
         _tooltipProvider.GetActionsForGeneticReflex(displayReflexID);
-
     public string GetActionsForConditionReflex(string displayReflexID) =>
         _tooltipProvider.GetActionsForConditionReflex(displayReflexID);
-
     public List<int> GetActionsForGeneticReflexes(int reflexId) => _tooltipProvider.GetActionsForGeneticReflexes(reflexId);
-
     public AutomatizmsViewModel.ActionsImageDisplay GetActionsForAutomatizm(string displayAutomatizmID, int? usefulnessAtSnapshot = null)
     {
       var d = _tooltipProvider.TryGetAutomatizmActionsImageData(displayAutomatizmID);
@@ -256,7 +221,6 @@ namespace AIStudio.ViewModels
           Usefulness = usefulnessAtSnapshot
         };
       }
-
       return new AutomatizmsViewModel.ActionsImageDisplay
       {
         ActIdList = d.ActIdList ?? new List<int>(),
@@ -269,10 +233,8 @@ namespace AIStudio.ViewModels
 
     public string GetOrientationReflexTooltip(string displayOrientationReflexType) =>
         _tooltipProvider.GetOrientationReflexTooltip(displayOrientationReflexType);
-
     public string GetThinkingLevelTooltip(string displayThinkingLevel, bool? thinkingLevelSuccess) =>
         _tooltipProvider.GetThinkingLevelTooltip(displayThinkingLevel, thinkingLevelSuccess);
-
     #endregion
   }
 }

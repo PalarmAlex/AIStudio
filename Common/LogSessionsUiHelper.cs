@@ -11,7 +11,6 @@ namespace AIStudio.Common
     {
       bool hasCurrent = selectedSessionKeys.Contains(LogFileSessionInfo.CurrentSessionKey);
       int fileCount = selectedSessionKeys.Count(k => k != LogFileSessionInfo.CurrentSessionKey);
-
       if (hasCurrent && fileCount == 0)
         return "СЕССИИ: текущая";
       if (!hasCurrent && fileCount == 1)
@@ -20,7 +19,6 @@ namespace AIStudio.Common
         return "СЕССИИ: " + fileCount + " из файла";
       if (hasCurrent && fileCount > 0)
         return "СЕССИИ: текущая + " + fileCount;
-
       return "СЕССИИ: не выбрано";
     }
 

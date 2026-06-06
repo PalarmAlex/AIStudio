@@ -6,7 +6,6 @@ namespace AIStudio.Common
   public static class SymbiontPageTitleFormatter
   {
     public const string UndefinedAgentName = "Не определен";
-
     public static string Format(string pageTitle, string agentName, int evolutionStage)
     {
       var name = string.IsNullOrWhiteSpace(agentName) ? UndefinedAgentName : agentName;

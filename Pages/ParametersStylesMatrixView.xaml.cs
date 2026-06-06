@@ -1,4 +1,4 @@
-﻿using AIStudio.Dialogs;
+using AIStudio.Dialogs;
 using AIStudio.ViewModels;
 using ISIDA.Gomeostas;
 using System.Collections.Generic;
@@ -33,7 +33,6 @@ namespace AIStudio.Pages
       if (DataContext is ParametersStylesMatrixViewModel viewModel)
       {
         var currentAgentStage = viewModel.EditingEvolutionStage;
-
         if (currentAgentStage != 0)
         {
           MessageBox.Show(
@@ -44,16 +43,13 @@ namespace AIStudio.Pages
             MessageBoxImage.Warning);
           return;
         }
-
         var parameter = viewModel.GetParameterById(cell.ParameterId);
         if (parameter == null) return;
-
         var currentStyleIds = GetCurrentStyleIdsForZone(parameter, cell.ZoneId);
         var editor = new StyleSelectionEditor(
             $"Выбор стилей для параметра '{parameter.Name}' (Зона: {GetZoneName(cell.ZoneId)})",
             viewModel.GetAllStyles(),
             currentStyleIds);
-
         if (editor.ShowDialog() == true)
         {
           UpdateParameterStyles(parameter, cell.ZoneId, editor.SelectedStyleIds.ToList());

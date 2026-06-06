@@ -1,4 +1,4 @@
-﻿using AIStudio.Common;
+using AIStudio.Common;
 using AIStudio.Converters;
 using AIStudio.Dialogs;
 using AIStudio.Views;
@@ -47,12 +47,10 @@ namespace AIStudio.ViewModels
     private readonly ConditionedReflexToAutomatizmConverter _reflexConverter;
     private readonly AutomatizmFileLoader _automatizmFileLoader;
     private readonly Stage2PrimitivesLoader _stage2PrimitivesLoader;
-
     private string _currentAgentName;
     private int _currentAgentStage;
     private bool _isCloningInProgress;
     private bool _isClearingInProgress;
-
     private int? _selectedBaseConditionFilter;
     private string _selectedUsefulnessFilter;
     private int? _selectedBeliefFilter;
@@ -65,23 +63,18 @@ namespace AIStudio.ViewModels
     private string _filterBranchIdInput = string.Empty;
     private string _filterBranchId = string.Empty;
     private bool _isLoadingInProgress;
-
     private Dictionary<int, ActionsImagesSystem.ActionsImage> _actionsImageCache = new Dictionary<int, ActionsImagesSystem.ActionsImage>();
     private Dictionary<int, AutomatizmNode> _nodeCache = new Dictionary<int, AutomatizmNode>();
     private Dictionary<int, List<int>> _influenceActionsImagesCache = new Dictionary<int, List<int>>();
     private Dictionary<int, EmotionsImageSystem.EmotionsImage> _emotionImageCache = new Dictionary<int, EmotionsImageSystem.EmotionsImage>();
-
     public GomeostasSystem GomeostasSystem => _gomeostas;
     public bool IsStageTwoOrHigher => _currentAgentStage >= 2;
-
     public string CurrentAgentTitle =>
         SymbiontPageTitleFormatter.Format("Автоматизмы", _currentAgentName, _currentAgentStage);
-
     private ObservableCollection<AutomatizmDisplayItem> _allAutomatizms = new ObservableCollection<AutomatizmDisplayItem>();
     private ObservableCollection<AutomatizmDisplayItem> _displayAutomatizms = new ObservableCollection<AutomatizmDisplayItem>();
     private ICollectionView _automatizmsView;
     public ICollectionView AutomatizmsView => _automatizmsView;
-
     public List<KeyValuePair<int?, string>> PageSizeOptions { get; } = new List<KeyValuePair<int?, string>>
     {
       new KeyValuePair<int?, string>(100, "100"),
@@ -91,7 +84,6 @@ namespace AIStudio.ViewModels
       new KeyValuePair<int?, string>(10000, "10000"),
       new KeyValuePair<int?, string>(null, "Все")
     };
-
     private int? _selectedPageSize = 100;
     public int? SelectedPageSize
     {
@@ -119,7 +111,6 @@ namespace AIStudio.ViewModels
     public ICommand CloneReflexesCommand { get; }
     public ICommand SaveCommand { get; }
     public ICommand LoadFromFileCommand { get; }
-
     public AutomatizmsViewModel(
         GomeostasSystem gomeostasSystem,
         AutomatizmSystem automatizmSystem,
@@ -148,26 +139,21 @@ namespace AIStudio.ViewModels
       _reflexConverter = reflexConverter ?? throw new ArgumentNullException(nameof(reflexConverter));
       _automatizmFileLoader = automatizmFileLoader ?? throw new ArgumentNullException(nameof(automatizmFileLoader));
       _stage2PrimitivesLoader = stage2PrimitivesLoader;
-
       _automatizmsView = CollectionViewSource.GetDefaultView(_displayAutomatizms);
-
       PerceptionActionFilterOptions.Add(new KeyValuePair<int, string>(0, "Все действия"));
       var influenceActions = _influenceActionSystem?.GetAllInfluenceActions();
       if (influenceActions != null)
         foreach (var a in influenceActions)
           PerceptionActionFilterOptions.Add(new KeyValuePair<int, string>(a.Id, a.Name));
-
       ActionFilterOptions.Add(new KeyValuePair<int, string>(0, "Все действия"));
       var actionsCollection = _adaptiveActionsSystem?.GetAllAdaptiveActions();
       var actionsList = actionsCollection != null ? actionsCollection.ToList() : new List<AdaptiveActionsSystem.AdaptiveAction>();
       foreach (var a in actionsList)
         ActionFilterOptions.Add(new KeyValuePair<int, string>(a.Id, a.Name));
-
       ApplyFiltersCommand = new RelayCommand(ApplyFiltersFromButton);
       ClearFiltersCommand = new RelayCommand(ClearFilters);
       RemoveAllCommand = new RelayCommand(RemoveAllAutomatizms);
       CloneReflexesCommand = new RelayCommand(CloneReflexesToAutomatizms, CanCloneReflexes);
-
       GlobalTimer.PulsationStateChanged += OnPulsationStateChanged;
       LoadFromFileCommand = new RelayCommand(LoadFromFile, CanLoadFromFile);
       LoadAgentData();
@@ -202,18 +188,14 @@ namespace AIStudio.ViewModels
       return IsLoadFromFileEnabled;
     }
 
-
     private bool FilterAutomatizms(object item)
     {
       if (!(item is AutomatizmDisplayItem automatizm))
         return false;
-
       bool baseConditionMatch = !SelectedBaseConditionFilter.HasValue ||
                                automatizm.BaseCondition == SelectedBaseConditionFilter.Value;
-
       bool level2Match = !SelectedLevel2Filter.HasValue ||
                         (automatizm.EmotionIdList != null && automatizm.EmotionIdList.Contains(SelectedLevel2Filter.Value));
-
       bool usefulnessMatch = string.IsNullOrEmpty(SelectedUsefulnessFilter);
       if (!usefulnessMatch)
       {
@@ -224,36 +206,29 @@ namespace AIStudio.ViewModels
           case ">0": usefulnessMatch = automatizm.Usefulness > 0; break;
         }
       }
-
       bool beliefMatch = !SelectedBeliefFilter.HasValue || automatizm.Belief == SelectedBeliefFilter.Value;
-
       if (SelectedPerceptionActionFilterId != 0 && (automatizm.InfluenceActionIds == null || !automatizm.InfluenceActionIds.Contains(SelectedPerceptionActionFilterId)))
         return false;
-
       if (SelectedActionFilterId != 0 && (automatizm.ActionsImageDisplay?.ActIdList == null || !automatizm.ActionsImageDisplay.ActIdList.Contains(SelectedActionFilterId)))
         return false;
-
       if (!string.IsNullOrWhiteSpace(FilterPhrasePerception))
       {
         var phrase = (automatizm.VerbalText ?? string.Empty);
         if (string.IsNullOrEmpty(phrase) || phrase.IndexOf(FilterPhrasePerception.Trim(), StringComparison.OrdinalIgnoreCase) < 0)
           return false;
       }
-
       if (!string.IsNullOrWhiteSpace(FilterPhrase))
       {
         var phrase = (automatizm.AutomatizmPhraseText ?? string.Empty);
         if (string.IsNullOrEmpty(phrase) || phrase.IndexOf(FilterPhrase.Trim(), StringComparison.OrdinalIgnoreCase) < 0)
           return false;
       }
-
       if (!string.IsNullOrWhiteSpace(FilterBranchId))
       {
         var branchIdStr = automatizm.BranchID.ToString();
         if (branchIdStr.IndexOf(FilterBranchId.Trim(), StringComparison.OrdinalIgnoreCase) < 0)
           return false;
       }
-
       return baseConditionMatch && level2Match && usefulnessMatch && beliefMatch;
     }
 
@@ -279,9 +254,7 @@ namespace AIStudio.ViewModels
         ((RelayCommand)SaveCommand)?.RaiseCanExecuteChanged();
       });
     }
-
     #region Блокировка страницы в зависимости от стажа
-
     /// <summary>Удаление автоматизмов разрешено на стадии 2 и 3.</summary>
     public bool IsDeletionEnabled =>
         IsStageTwoOrHigher &&
@@ -289,14 +262,12 @@ namespace AIStudio.ViewModels
         !GlobalTimer.IsPulsationRunning &&
         !_isCloningInProgress &&
         !_isClearingInProgress;
-
     /// <summary>Кнопка «Клонировать рефлексы» отображается и доступна только на стадии 2.</summary>
     public bool IsCloneReflexesAvailable =>
         !_isCloningInProgress &&
         _currentAgentStage == 2 &&
         !GlobalTimer.IsPulsationRunning &&
         _reflexConverter != null;
-
     public string PulseWarningMessage =>
         !IsStageTwoOrHigher
             ? "[КРИТИЧНО] Управление автоматизмами доступно только в стадии 2"
@@ -307,16 +278,12 @@ namespace AIStudio.ViewModels
                     : _currentAgentStage == 3
                         ? "Клонирование только на стадии 2; удаление доступно на стадии 2 и 3."
                         : string.Empty;
-
     public Brush WarningMessageColor =>
         !IsStageTwoOrHigher || _currentAgentStage > 3
             ? Brushes.Red
             : Brushes.Gray;
-
     #endregion
-
     #region Фильтры
-
     public List<KeyValuePair<int?, string>> BaseConditionFilterOptions { get; } = new List<KeyValuePair<int?, string>>
         {
             new KeyValuePair<int?, string>(null, "Все состояния"),
@@ -341,7 +308,6 @@ namespace AIStudio.ViewModels
     public List<KeyValuePair<int?, string>> Level2FilterOptions { get; private set; } = new List<KeyValuePair<int?, string>>();
     public List<KeyValuePair<int, string>> PerceptionActionFilterOptions { get; } = new List<KeyValuePair<int, string>>();
     public List<KeyValuePair<int, string>> ActionFilterOptions { get; } = new List<KeyValuePair<int, string>>();
-
     public int? SelectedBaseConditionFilter
     {
       get => _selectedBaseConditionFilter;
@@ -446,7 +412,6 @@ namespace AIStudio.ViewModels
     }
 
     public ICommand ApplyFiltersCommand { get; }
-
     public bool IsCloningInProgress
     {
       get => _isCloningInProgress;
@@ -479,9 +444,7 @@ namespace AIStudio.ViewModels
     }
 
     public bool IsOperationInProgress => _isCloningInProgress || _isClearingInProgress;
-
     public string OperationStatusMessage { get; private set; } = string.Empty;
-
     private void RefreshDisplay()
     {
       var filtered = _allAutomatizms.Where(FilterAutomatizms).ToList();
@@ -513,19 +476,15 @@ namespace AIStudio.ViewModels
       FilterBranchId = string.Empty;
       RefreshDisplay();
     }
-
     #endregion
-
     private void LoadFromFile(object parameter)
     {
       if (!IsLoadFromFileEnabled) return;
-
       try
       {
         string bootDataFolder = Path.Combine(
             Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData),
             "ISIDA", "BootData");
-
         if (_currentAgentStage == 3)
         {
           var dialog = new AutomatizmLoadDialog(bootDataFolder, _automatizmFileLoader)
@@ -538,7 +497,6 @@ namespace AIStudio.ViewModels
           }
           return;
         }
-
         if (_currentAgentStage == 2 && _stage2PrimitivesLoader != null)
         {
           var primitivesDialog = new PrimitivesLoadDialog(bootDataFolder, _stage2PrimitivesLoader)
@@ -584,26 +542,21 @@ namespace AIStudio.ViewModels
         var agentInfo = _gomeostas.GetAgentState();
         _currentAgentStage = agentInfo?.EvolutionStage ?? 0;
         _currentAgentName = agentInfo.Name;
-
         _allAutomatizms.Clear();
         _actionsImageCache.Clear();
         _nodeCache.Clear();
         _influenceActionsImagesCache.Clear();
         _emotionImageCache.Clear();
-
         foreach (var automatizm in _automatizmSystem.GetAllAutomatizms().OrderBy(a => a.ID))
         {
           var treeNode = GetTreeNode(automatizm.BranchID);
           var actionsImage = GetActionsImage(automatizm.ActionsImageID);
-
           List<int> emotionIdList = new List<int>();
           if (treeNode?.EmotionID > 0)
             emotionIdList = GetEmotionIdsFromEmotionImage(treeNode.EmotionID);
-
           List<int> influenceActionIds = new List<int>();
           if (treeNode?.ActivityID > 0)
             influenceActionIds = GetInfluenceActionIds(treeNode.ActivityID);
-
           string toneMoodText = string.Empty;
           if (treeNode?.ToneMoodID > 0)
           {
@@ -613,7 +566,6 @@ namespace AIStudio.ViewModels
             }
             catch { }
           }
-
           string verbalText = string.Empty;
           if (treeNode?.VerbID > 0)
           {
@@ -631,7 +583,6 @@ namespace AIStudio.ViewModels
                   else
                     phraseTexts.Add($"[ID:{phraseId}]");
                 }
-
                 if (phraseTexts.Any())
                   verbalText = string.Join(" ", phraseTexts);
               }
@@ -641,7 +592,6 @@ namespace AIStudio.ViewModels
               Logger.Error($"Ошибка получения текста фразы: {ex.Message}");
             }
           }
-
           string automatizmPhraseText = string.Empty;
           if (actionsImage?.PhraseIdList != null && actionsImage.PhraseIdList.Any())
           {
@@ -685,7 +635,6 @@ namespace AIStudio.ViewModels
               }
             }
           }
-
           var displayItem = new AutomatizmDisplayItem
           {
             ID = automatizm.ID,
@@ -699,7 +648,6 @@ namespace AIStudio.ViewModels
             ChainID = chainId,
             ChainInfo = chainInfo,
             ChainDetailedInfo = GetChainDetailedInfo(chainId),
-
             BaseCondition = treeNode?.BaseID ?? 0,
             EmotionIdList = emotionIdList,
             ActivityID = treeNode?.ActivityID ?? 0,
@@ -716,7 +664,6 @@ namespace AIStudio.ViewModels
             ToneMoodText = toneMoodText,
             VerbalText = verbalText,
             AutomatizmPhraseText = automatizmPhraseText,
-
             ActionsImageDisplay = actionsImage != null ? new ActionsImageDisplay
             {
               ActIdList = actionsImage.ActIdList ?? new List<int>(),
@@ -726,13 +673,10 @@ namespace AIStudio.ViewModels
               Usefulness = automatizm.Usefulness
             } : null
           };
-
           _allAutomatizms.Add(displayItem);
         }
-
         RefreshDisplay();
         LoadLevel2FilterOptions();
-
         OnPropertyChanged(nameof(IsStageTwoOrHigher));
         OnPropertyChanged(nameof(IsDeletionEnabled));
         OnPropertyChanged(nameof(IsCloneReflexesAvailable));
@@ -771,7 +715,6 @@ namespace AIStudio.ViewModels
     {
       if (emotionIds == null || !emotionIds.Any())
         return "Нет эмоций";
-
       try
       {
         var behaviorStyles = _gomeostas.GetAllBehaviorStyles();
@@ -779,7 +722,6 @@ namespace AIStudio.ViewModels
             .Where(id => behaviorStyles.ContainsKey(id))
             .Select(id => behaviorStyles[id].Name)
             .ToList();
-
         return names.Any() ? string.Join(", ", names) : $"Стили: {string.Join(", ", emotionIds)}";
       }
       catch
@@ -792,7 +734,6 @@ namespace AIStudio.ViewModels
     {
       if (actionIds == null || !actionIds.Any())
         return "Нет воздействий";
-
       try
       {
         var allActions = _influenceActionSystem.GetAllInfluenceActions();
@@ -800,7 +741,6 @@ namespace AIStudio.ViewModels
             .Where(id => allActions.Any(a => a.Id == id))
             .Select(id => allActions.First(a => a.Id == id).Name)
             .ToList();
-
         return names.Any() ? string.Join(", ", names) : $"Действия: {string.Join(", ", actionIds)}";
       }
       catch
@@ -813,10 +753,8 @@ namespace AIStudio.ViewModels
     {
       if (emotionImageId <= 0)
         return new List<int>();
-
       if (_emotionImageCache.TryGetValue(emotionImageId, out var cachedEmotionImage))
         return cachedEmotionImage.BaseStylesList?.ToList() ?? new List<int>();
-
       try
       {
         var emotionImage = _emotionsImageSystem.GetEmotionsImage(emotionImageId);
@@ -837,10 +775,8 @@ namespace AIStudio.ViewModels
     {
       if (activityId <= 0)
         return new List<int>();
-
       if (_influenceActionsImagesCache.TryGetValue(activityId, out var cachedIds))
         return cachedIds;
-
       try
       {
         var influenceActions = _influenceActionsImagesSystem.GetInfluenceActionIds(activityId);
@@ -881,21 +817,18 @@ namespace AIStudio.ViewModels
         var treeNode = GetTreeNode(branchId);
         if (treeNode == null)
           return $"Узел дерева ID:{branchId} не найден";
-
         var emotionIdList = new List<int>();
         if (treeNode.EmotionID > 0)
           emotionIdList = GetEmotionIdsFromEmotionImage(treeNode.EmotionID);
         var influenceActionIds = new List<int>();
         if (treeNode.ActivityID > 0)
           influenceActionIds = GetInfluenceActionIds(treeNode.ActivityID);
-
         string toneMoodText = string.Empty;
         if (treeNode.ToneMoodID > 0)
         {
           try { toneMoodText = PsychicSystem.GetToneMoodString(treeNode.ToneMoodID); }
           catch { }
         }
-
         string verbalText = string.Empty;
         if (treeNode.VerbID > 0)
         {
@@ -915,7 +848,6 @@ namespace AIStudio.ViewModels
           }
           catch { }
         }
-
         var displayItem = new AutomatizmDisplayItem
         {
           BaseConditionText = GetBaseConditionText(treeNode.BaseID),
@@ -926,7 +858,6 @@ namespace AIStudio.ViewModels
           SimbolID = treeNode.SimbolID,
           VisualID = treeNode.VisualID
         };
-
         var sb = new System.Text.StringBuilder();
         sb.AppendLine($"Состояние: {displayItem.BaseConditionText}");
         sb.AppendLine($"Эмоции: {displayItem.EmotionText}");
@@ -957,7 +888,6 @@ namespace AIStudio.ViewModels
         }
         else
           sb.AppendLine("Первый символ: Нет");
-
         int visualCode = AgentVisualColor.IsValidCode(treeNode.VisualID)
             ? treeNode.VisualID
             : AgentVisualColor.White;
@@ -984,7 +914,6 @@ namespace AIStudio.ViewModels
             }
             else
               sb.AppendLine("  Действия: нет");
-
             if (actionsImage.PhraseIdList != null && actionsImage.PhraseIdList.Any())
             {
               var phraseTexts = actionsImage.PhraseIdList
@@ -996,7 +925,6 @@ namespace AIStudio.ViewModels
             }
             else
               sb.AppendLine("  Фразы: нет");
-
             string toneStr = ActionsImagesSystem.IsInitialized ? ActionsImagesSystem.GetToneText(actionsImage.ToneId) : null;
             string moodStr = ActionsImagesSystem.IsInitialized ? ActionsImagesSystem.GetMoodText(actionsImage.MoodId) : null;
             sb.AppendLine(string.IsNullOrEmpty(toneStr) ? "  Тон: —" : "  Тон: " + toneStr);
@@ -1005,7 +933,6 @@ namespace AIStudio.ViewModels
         }
         else
           sb.AppendLine("Образ действия: —");
-
         return sb.ToString();
       }
       catch (Exception ex)
@@ -1021,7 +948,6 @@ namespace AIStudio.ViewModels
       {
         if (_nodeCache.TryGetValue(branchId, out var cachedNode))
           return cachedNode;
-
         var node = _automatizmTreeSystem.GetNodeById(branchId);
         if (node != null)
         {
@@ -1039,14 +965,11 @@ namespace AIStudio.ViewModels
     {
       if (actionsImageId <= 0)
         return null;
-
       if (_actionsImageCache.TryGetValue(actionsImageId, out var cachedImage))
         return cachedImage;
-
       var image = _actionsImagesSystem.GetActionsImage(actionsImageId);
       if (image != null)
         _actionsImageCache[actionsImageId] = image;
-
       return image;
     }
 
@@ -1068,11 +991,9 @@ namespace AIStudio.ViewModels
           if (_allAutomatizms.Contains(automatizm))
             _allAutomatizms.Remove(automatizm);
           RefreshDisplay();
-
           if (automatizm.ID > 0)
           {
             _automatizmSystem.DeleteAutomatizm(automatizm.ID);
-
             var (success, error) = _automatizmSystem.SaveAutomatizm();
             if (!success)
             {
@@ -1100,13 +1021,11 @@ namespace AIStudio.ViewModels
             MessageBoxImage.Warning);
         return;
       }
-
       var result = MessageBox.Show(
           $"Вы действительно хотите удалить ВСЕ автоматизмы симбионта? Это действие нельзя будет отменить.",
           "Подтверждение удаления",
           MessageBoxButton.YesNo,
           MessageBoxImage.Warning);
-
       if (result == MessageBoxResult.Yes)
       {
         IsClearingInProgress = true;
@@ -1115,7 +1034,6 @@ namespace AIStudio.ViewModels
           System.Threading.Tasks.Task.Run(() =>
           {
             var success = _automatizmSystem.DeleteAllAutomatizm();
-
             Application.Current.Dispatcher.Invoke(() =>
             {
               IsClearingInProgress = false;
@@ -1125,7 +1043,6 @@ namespace AIStudio.ViewModels
                 {
                   _allAutomatizms.Clear();
                   RefreshDisplay();
-
                   var (saveSuccess, error) = _automatizmSystem.SaveAutomatizm();
                   if (saveSuccess)
                   {
@@ -1190,30 +1107,24 @@ namespace AIStudio.ViewModels
             MessageBoxImage.Warning);
         return;
       }
-
       var result = MessageBox.Show(
           "Вы действительно хотите создать автоматизмы на основе всех условных рефлексов?\n" +
           "Существующие автоматизмы останутся без изменений.",
           "Подтверждение клонирования",
           MessageBoxButton.YesNo,
           MessageBoxImage.Question);
-
       if (result != MessageBoxResult.Yes)
         return;
-
       IsCloningInProgress = true;
-
       try
       {
         System.Threading.Tasks.Task.Run(() =>
         {
           var (newCount, existingCount, totalCount, duplicateCount, chainsCreated, errors) =
               ConditionedReflexToAutomatizmConverter.Instance.CloneAllConditionedReflexesToAutomatisms();
-
           Application.Current.Dispatcher.Invoke(() =>
           {
             IsCloningInProgress = false;
-
             string message;
             if (totalCount == 0)
             {
@@ -1226,24 +1137,20 @@ namespace AIStudio.ViewModels
                         $"• Уже существовало: {existingCount}\n" +
                         $"• Пропущено (дубликаты): {duplicateCount}\n" +
                         $"• Создано цепочек автоматизмов: {chainsCreated}";
-
               if (errors != null && errors.Any())
               {
                 var errorCount = errors.Count;
                 var errorDetails = string.Join("\n", errors.Take(5));
                 if (errors.Count > 5)
                   errorDetails += $"\n... и еще {errors.Count - 5} ошибок";
-
                 message += $"\n\nОшибки ({errorCount}):\n{errorDetails}";
               }
             }
-
             MessageBox.Show(
                 message,
                 "Результат клонирования",
                 MessageBoxButton.OK,
                 newCount > 0 || chainsCreated > 0 ? MessageBoxImage.Information : MessageBoxImage.Warning);
-
             RefreshAllCollections();
           });
         });
@@ -1263,30 +1170,24 @@ namespace AIStudio.ViewModels
     {
       if (chainId <= 0 || !AutomatizmChainsSystem.IsInitialized)
         return "Цепочка не привязана";
-
       try
       {
         var chainSystem = AutomatizmChainsSystem.Instance;
         var chain = chainSystem.GetChain(chainId);
         if (chain == null)
           return $"Цепочка {chainId} не найдена";
-
         var links = chainSystem.GetChainLinks(chainId);
         if (!links.Any())
           return $"Цепочка {chainId} не содержит звеньев";
-
         var sb = new StringBuilder();
         sb.AppendLine($"Цепочка: {chain.Name ?? $"ID {chainId}"}");
         if (!string.IsNullOrEmpty(chain.Description))
           sb.AppendLine($"Описание: {chain.Description}");
-
         sb.AppendLine($"Всего звеньев: {links.Count}");
         sb.AppendLine();
-
         foreach (var link in links.OrderBy(l => l.ID))
         {
           sb.AppendLine($"Звено {link.ID}:");
-
           var actionsImage = _actionsImagesSystem.GetActionsImage(link.ActionsImageId);
           if (actionsImage != null)
           {
@@ -1303,7 +1204,6 @@ namespace AIStudio.ViewModels
             string toneStr = ActionsImagesSystem.IsInitialized ? ActionsImagesSystem.GetToneText(actionsImage.ToneId) : "";
             string moodStr = ActionsImagesSystem.IsInitialized ? ActionsImagesSystem.GetMoodText(actionsImage.MoodId) : "";
             sb.AppendLine($"  Тон-Настроение: {toneStr}-{moodStr}");
-
             if (actionsImage.ActIdList?.Any() == true)
             {
               var allActions = _adaptiveActionsSystem.GetAllAdaptiveActions();
@@ -1313,10 +1213,8 @@ namespace AIStudio.ViewModels
               sb.AppendLine($"  Действия: {string.Join(", ", actionNames)}");
             }
           }
-
           if (!string.IsNullOrEmpty(link.Description))
             sb.AppendLine($"  Описание: {link.Description}");
-
           if (link.SuccessNextLink > 0)
             sb.AppendLine($"  При успехе → звено {link.SuccessNextLink}");
           if (link.FailureNextLink > 0)
@@ -1324,7 +1222,6 @@ namespace AIStudio.ViewModels
 
           //sb.AppendLine();
         }
-
         return sb.ToString();
       }
       catch (Exception ex)
@@ -1389,7 +1286,6 @@ namespace AIStudio.ViewModels
       public string LinkText { get; set; } = "Подробнее...";
       public string Url { get; set; } = "https://scorcher.ru/isida/iadaptive_agents_guide.php#automatism";
       public ICommand OpenLinkCommand { get; }
-
       public DescriptionWithLink()
       {
         OpenLinkCommand = new RelayCommand(_ =>

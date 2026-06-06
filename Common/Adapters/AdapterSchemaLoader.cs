@@ -18,13 +18,11 @@ namespace AIStudio.Common.Adapters
       "rebuild",
       "log"
     };
-
     private static readonly string[] DefaultDetectKinds =
     {
       "command_before",
       "document_saved"
     };
-
     /// <summary>
     /// Загружает schema для адаптера; при отсутствии файлов — fallback Velum-like defaults.
     /// </summary>
@@ -32,33 +30,25 @@ namespace AIStudio.Common.Adapters
     {
       if (string.IsNullOrWhiteSpace(adapterId))
         return CreateVelumLikeFallback();
-
       AdapterManifest manifest = AdapterRegistry.TryGetById(adapterId);
       if (manifest == null || string.IsNullOrWhiteSpace(manifest.PackageRootPath))
         return CreateVelumLikeFallback();
-
       string schemaDir = Path.Combine(manifest.PackageRootPath, "schema");
       if (!Directory.Exists(schemaDir))
         return CreateVelumLikeFallback();
-
       var schema = new AdapterEnvironmentSchema();
       LoadFields(Path.Combine(schemaDir, "recipe-preconditions.json"), "fields", schema.RecipePreconditions);
       LoadStepTypes(Path.Combine(schemaDir, "recipe-steps.json"), schema.RecipeStepTypes);
       LoadFields(Path.Combine(schemaDir, "trigger-filter.json"), "fields", schema.TriggerFilterFields);
       LoadDetectKinds(Path.Combine(schemaDir, "trigger-detect.json"), schema.TriggerDetectKinds);
-
       if (schema.RecipeStepTypes.Count == 0)
         FillDefaultStepTypes(schema.RecipeStepTypes);
-
       if (schema.RecipePreconditions.Count == 0)
         FillDefaultRecipePreconditions(schema.RecipePreconditions);
-
       if (schema.TriggerFilterFields.Count == 0)
         FillDefaultTriggerFilter(schema.TriggerFilterFields);
-
       if (schema.TriggerDetectKinds.Count == 0)
         FillDefaultDetectKinds(schema.TriggerDetectKinds);
-
       return schema;
     }
 
@@ -67,7 +57,6 @@ namespace AIStudio.Common.Adapters
     {
       if (!SymbiontProjectAdapterSettings.TryGetValidatedCurrentAdapterId(out string adapterId))
         return CreateVelumLikeFallback();
-
       return LoadForAdapter(adapterId);
     }
 
@@ -75,19 +64,16 @@ namespace AIStudio.Common.Adapters
     {
       if (!File.Exists(path))
         return;
-
       try
       {
         JObject jo = JObject.Parse(File.ReadAllText(path));
         JArray arr = jo[arrayName] as JArray;
         if (arr == null)
           return;
-
         foreach (JToken token in arr)
         {
           if (!(token is JObject item))
             continue;
-
           var field = new AdapterSchemaField
           {
             Key = item["key"]?.ToString(),
@@ -95,7 +81,6 @@ namespace AIStudio.Common.Adapters
             Type = item["type"]?.ToString(),
             Required = item["required"]?.Value<bool>() ?? false
           };
-
           if (item["enumValues"] is JArray enumArr)
           {
             var values = new List<string>();
@@ -105,10 +90,8 @@ namespace AIStudio.Common.Adapters
               if (!string.IsNullOrWhiteSpace(s))
                 values.Add(s);
             }
-
             field.EnumValues = values;
           }
-
           if (!string.IsNullOrWhiteSpace(field.Key))
             target.Add(field);
         }
@@ -123,23 +106,19 @@ namespace AIStudio.Common.Adapters
     {
       if (!File.Exists(path))
         return;
-
       try
       {
         JObject jo = JObject.Parse(File.ReadAllText(path));
         JArray arr = jo["stepTypes"] as JArray;
         if (arr == null)
           return;
-
         foreach (JToken token in arr)
         {
           if (!(token is JObject item))
             continue;
-
           string type = item["type"]?.ToString();
           if (string.IsNullOrWhiteSpace(type))
             continue;
-
           target.Add(new AdapterSchemaStepType
           {
             Type = type,
@@ -157,23 +136,19 @@ namespace AIStudio.Common.Adapters
     {
       if (!File.Exists(path))
         return;
-
       try
       {
         JObject jo = JObject.Parse(File.ReadAllText(path));
         JArray arr = jo["detectKinds"] as JArray;
         if (arr == null)
           return;
-
         foreach (JToken token in arr)
         {
           if (!(token is JObject item))
             continue;
-
           string kind = item["kind"]?.ToString();
           if (string.IsNullOrWhiteSpace(kind))
             continue;
-
           target.Add(new AdapterSchemaDetectKind
           {
             Kind = kind,

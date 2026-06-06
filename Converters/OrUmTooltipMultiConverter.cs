@@ -12,7 +12,6 @@ namespace AIStudio.Converters
     {
       if (values.Length < 2 || !(values[0] is LiveLogsViewModel viewModel) || !(values[1] is string displayOrUm))
         return "ОР/УМ";
-
       var s = displayOrUm.Trim();
       if (s == "1" || s == "2" || s == "УМ1" || s == "УМ2")
       {
@@ -24,10 +23,8 @@ namespace AIStudio.Converters
         }
         return viewModel.GetThinkingLevelTooltip(s, success);
       }
-
       if (s == "-" || string.IsNullOrEmpty(s))
         return "Нет активации ОР или уровня мышления";
-
       return viewModel.GetOrientationReflexTooltip(s);
     }
 

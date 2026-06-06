@@ -34,7 +34,6 @@ namespace AIStudio.ViewModels.Research
     private string _filterIdText = "";
     private string _filterTitleText = "";
     private string _filterStageText = "";
-
     public ScenarioGroupScenarioPickerViewModel()
     {
       Items = new ObservableCollection<ScenarioGroupScenarioPickerRow>();
@@ -44,7 +43,6 @@ namespace AIStudio.ViewModels.Research
     }
 
     public ObservableCollection<ScenarioGroupScenarioPickerRow> Items { get; }
-
     public string FilterIdText
     {
       get => _filterIdText;
@@ -65,7 +63,6 @@ namespace AIStudio.ViewModels.Research
 
     public ICommand ApplyFiltersCommand { get; }
     public ICommand ResetFiltersCommand { get; }
-
     public void Reload()
     {
       _registryAll.Clear();
@@ -93,7 +90,6 @@ namespace AIStudio.ViewModels.Research
               || h.PreRunTargetStage.ToString(CultureInfo.InvariantCulture).IndexOf(stageF, StringComparison.OrdinalIgnoreCase) >= 0
               || (h.PreRunStageNumberDisplay ?? "").IndexOf(stageF, StringComparison.OrdinalIgnoreCase) >= 0);
       }
-
       Items.Clear();
       foreach (var h in q.OrderBy(x => x.Id))
         Items.Add(new ScenarioGroupScenarioPickerRow(h.Id, h.Title, StageCaptionFor(h)));
@@ -123,7 +119,6 @@ namespace AIStudio.ViewModels.Research
     }
 
     public event PropertyChangedEventHandler PropertyChanged;
-
     private void OnPropertyChanged([CallerMemberName] string name = null) =>
         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
   }

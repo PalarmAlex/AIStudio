@@ -1,4 +1,4 @@
-﻿using AIStudio.Common;
+using AIStudio.Common;
 using AIStudio.Views;
 using AIStudio.Dialogs;
 using ISIDA.Actions;
@@ -39,7 +39,6 @@ namespace AIStudio.ViewModels
     private string _currentAgentName;
     private int _currentAgentStage;
     private readonly string _bootDataFolder;
-
     private int? _selectedLevel1Filter;
     private int? _selectedLevel2Filter;
     private int? _selectedLevel3Filter;
@@ -48,20 +47,16 @@ namespace AIStudio.ViewModels
     private int _selectedMoodFilter = FilterAllToneMood;
     private string _filterTriggerPhrase = string.Empty;
     private string _filterTriggerPhraseInput = string.Empty;
-
     private Dictionary<int, List<int>> _sourceGeneticReflexActionsCache = new Dictionary<int, List<int>>();
-
     public GomeostasSystem GomeostasSystem => _gomeostas;
     public PerceptionImagesSystem PerceptionImagesSystem => _perceptionImagesSystem;
     public bool IsStageOneOrHigher => _currentAgentStage >= 1;
     public string CurrentAgentTitle =>
         SymbiontPageTitleFormatter.Format("Условные рефлексы", _currentAgentName, _currentAgentStage);
-
     private ObservableCollection<ConditionedReflexWithSourceActions> _allConditionedReflexes = new ObservableCollection<ConditionedReflexWithSourceActions>();
     private HashSet<ConditionedReflexWithSourceActions> _visibleSet = new HashSet<ConditionedReflexWithSourceActions>();
     private ICollectionView _conditionedReflexesView;
     public ICollectionView ConditionedReflexesView => _conditionedReflexesView;
-
     public List<KeyValuePair<int?, string>> PageSizeOptions { get; } = new List<KeyValuePair<int?, string>>
     {
       new KeyValuePair<int?, string>(100, "100"),
@@ -71,7 +66,6 @@ namespace AIStudio.ViewModels
       new KeyValuePair<int?, string>(10000, "10000"),
       new KeyValuePair<int?, string>(null, "Все")
     };
-
     private int? _selectedPageSize = 100;
     public int? SelectedPageSize
     {
@@ -101,9 +95,7 @@ namespace AIStudio.ViewModels
     public ICommand RemoveAllCommand { get; }
     public ICommand OpenSettingsCommand { get; }
     public ICommand OpenTemplateCommand { get; }
-
     public bool IsTemplateCreationEnabled => _currentAgentStage == 1 && !GlobalTimer.IsPulsationRunning && !string.IsNullOrEmpty(_bootDataFolder);
-
     public ConditionedReflexesViewModel(
         GomeostasSystem gomeostasSystem,
         ConditionedReflexesSystem conditionedReflexesSystem,
@@ -120,10 +112,8 @@ namespace AIStudio.ViewModels
       _geneticReflexesSystem = geneticReflexesSystem ?? throw new ArgumentNullException(nameof(geneticReflexesSystem));
       _sensorySystem = sensorySystem;
       _bootDataFolder = bootDataFolder;
-
       _conditionedReflexesView = CollectionViewSource.GetDefaultView(_allConditionedReflexes);
       _conditionedReflexesView.Filter = item => _visibleSet != null && item is ConditionedReflexWithSourceActions r && _visibleSet.Contains(r);
-
       SaveCommand = new RelayCommand(SaveData);
       RemoveCommand = new RelayCommand(RemoveSelectedReflexes);
       ClearFiltersCommand = new RelayCommand(ClearFilters);
@@ -131,7 +121,6 @@ namespace AIStudio.ViewModels
       RemoveAllCommand = new RelayCommand(RemoveAllReflexes);
       OpenSettingsCommand = new RelayCommand(OpenSettings);
       OpenTemplateCommand = new RelayCommand(OpenTemplate, _ => IsTemplateCreationEnabled);
-
       ToneFilterOptions.Add(new KeyValuePair<int, string>(FilterAllToneMood, "Все"));
       if (ActionsImagesSystem.IsInitialized)
       {
@@ -148,7 +137,6 @@ namespace AIStudio.ViewModels
           foreach (var kvp in moods.OrderBy(k => k.Key))
             MoodFilterOptions.Add(new KeyValuePair<int, string>(kvp.Key, kvp.Value));
       }
-
       GlobalTimer.PulsationStateChanged += OnPulsationStateChanged;
       LoadAgentData();
     }
@@ -157,11 +145,9 @@ namespace AIStudio.ViewModels
     {
       if (!(item is ConditionedReflexWithSourceActions reflex))
         return false;
-
       bool level1Match = !SelectedLevel1Filter.HasValue || reflex.Level1 == SelectedLevel1Filter.Value;
       bool level2Match = !SelectedLevel2Filter.HasValue || (reflex.Level2 != null && reflex.Level2.Contains(SelectedLevel2Filter.Value));
       bool level3Match = !SelectedLevel3Filter.HasValue || reflex.Level3 == SelectedLevel3Filter.Value;
-
       bool adaptiveActionsMatch = true;
       if (SelectedAdaptiveActionsFilter.HasValue)
       {
@@ -172,7 +158,6 @@ namespace AIStudio.ViewModels
       // Тон и настроение хранятся в условном рефлексе (ToneId, MoodId). Фильтр: FilterAllToneMood = все, иначе совпадение с reflex.ToneId/MoodId.
       bool toneMatch = SelectedToneFilter == FilterAllToneMood || reflex.ToneId == SelectedToneFilter;
       bool moodMatch = SelectedMoodFilter == FilterAllToneMood || reflex.MoodId == SelectedMoodFilter;
-
       bool phraseMatch = true;
       if (!string.IsNullOrWhiteSpace(FilterTriggerPhrase))
       {
@@ -180,7 +165,6 @@ namespace AIStudio.ViewModels
         phraseMatch = !string.IsNullOrEmpty(triggerPhraseText) &&
             triggerPhraseText.IndexOf(FilterTriggerPhrase.Trim(), StringComparison.OrdinalIgnoreCase) >= 0;
       }
-
       return level1Match && level2Match && level3Match && adaptiveActionsMatch && toneMatch && moodMatch && phraseMatch;
     }
 
@@ -215,10 +199,8 @@ namespace AIStudio.ViewModels
     {
       if (sourceGeneticReflexId <= 0)
         return new List<int>();
-
       if (_sourceGeneticReflexActionsCache.TryGetValue(sourceGeneticReflexId, out var cachedActions))
         return cachedActions;
-
       var geneticReflex = _geneticReflexesSystem?.GetGeneticReflex(sourceGeneticReflexId);
       if (geneticReflex != null)
       {
@@ -226,7 +208,6 @@ namespace AIStudio.ViewModels
         _sourceGeneticReflexActionsCache[sourceGeneticReflexId] = actions;
         return actions;
       }
-
       var allGeneticReflexes = _geneticReflexesSystem?.GetAllGeneticReflexesList();
       if (allGeneticReflexes != null)
       {
@@ -238,7 +219,6 @@ namespace AIStudio.ViewModels
           return actions;
         }
       }
-
       return new List<int>();
     }
 
@@ -253,12 +233,9 @@ namespace AIStudio.ViewModels
         OnPropertyChanged(nameof(WarningMessageColor));
       });
     }
-
     #region Блокировка страницы в зависимости от стажа
-
     public bool IsEditingEnabled => false;
     public bool IsDeletionEnabled => IsStageOneOrHigher && !GlobalTimer.IsPulsationRunning;
-
     public string PulseWarningMessage =>
         !IsStageOneOrHigher
             ? "[КРИТИЧНО] Редактирование параметров доступно только начиная со стадии 1"
@@ -267,11 +244,8 @@ namespace AIStudio.ViewModels
                 : string.Empty;
     public Brush WarningMessageColor =>
         !IsStageOneOrHigher ? Brushes.Red : Brushes.Gray;
-
     #endregion
-
     #region Фильтры
-
     public List<KeyValuePair<int?, string>> Level1FilterOptions { get; } = new List<KeyValuePair<int?, string>>
         {
             new KeyValuePair<int?, string>(null, "Все состояния"),
@@ -279,11 +253,9 @@ namespace AIStudio.ViewModels
             new KeyValuePair<int?, string>(0, "Норма"),
             new KeyValuePair<int?, string>(1, "Хорошо")
         };
-
     public List<KeyValuePair<int?, string>> Level2FilterOptions { get; private set; } = new List<KeyValuePair<int?, string>>();
     public List<KeyValuePair<int?, string>> Level3FilterOptions { get; private set; } = new List<KeyValuePair<int?, string>>();
     public List<KeyValuePair<int?, string>> AdaptiveActionsFilterOptions { get; private set; } = new List<KeyValuePair<int?, string>>();
-
     public int? SelectedLevel1Filter
     {
       get => _selectedLevel1Filter;
@@ -330,7 +302,6 @@ namespace AIStudio.ViewModels
 
     public List<KeyValuePair<int, string>> ToneFilterOptions { get; } = new List<KeyValuePair<int, string>>();
     public List<KeyValuePair<int, string>> MoodFilterOptions { get; } = new List<KeyValuePair<int, string>>();
-
     public int SelectedToneFilter
     {
       get => _selectedToneFilter;
@@ -389,15 +360,11 @@ namespace AIStudio.ViewModels
       Level2FilterOptions = new List<KeyValuePair<int?, string>> { new KeyValuePair<int?, string>(null, "Все контексты") };
       var level2Items = _gomeostas?.GetAllBehaviorStyles()?.Values?.ToList() ?? new List<BehaviorStyle>();
       Level2FilterOptions.AddRange(level2Items.Select(x => new KeyValuePair<int?, string>(x.Id, x.Name)));
-
       Level3FilterOptions = new List<KeyValuePair<int?, string>> { new KeyValuePair<int?, string>(null, "Все образы") };
       var level3Items = _perceptionImagesSystem?.GetAllPerceptionImagesList() ?? new List<PerceptionImagesSystem.PerceptionImage>();
-
       Level3FilterOptions.AddRange(level3Items.Select(x =>
           new KeyValuePair<int?, string>(x.Id, CreatePerceptionImageDescription(x))));
-
       AdaptiveActionsFilterOptions = new List<KeyValuePair<int?, string>> { new KeyValuePair<int?, string>(null, "Все действия") };
-
       var allSourceActions = new HashSet<int>();
       foreach (var reflex in _allConditionedReflexes)
       {
@@ -407,13 +374,11 @@ namespace AIStudio.ViewModels
           allSourceActions.Add(actionId);
         }
       }
-
       var adaptiveItems = _actionsSystem?.GetAllAdaptiveActions()?.ToList() ?? new List<AdaptiveActionsSystem.AdaptiveAction>();
       foreach (var action in adaptiveItems.Where(a => allSourceActions.Contains(a.Id)))
       {
         AdaptiveActionsFilterOptions.Add(new KeyValuePair<int?, string>(action.Id, action.Name));
       }
-
       OnPropertyChanged(nameof(Level2FilterOptions));
       OnPropertyChanged(nameof(Level3FilterOptions));
       OnPropertyChanged(nameof(AdaptiveActionsFilterOptions));
@@ -422,25 +387,19 @@ namespace AIStudio.ViewModels
     private string CreatePerceptionImageDescription(PerceptionImagesSystem.PerceptionImage image)
     {
       var description = $"Образ {image.Id}";
-
       if (image.InfluenceActionsList != null && image.InfluenceActionsList.Any())
         description += $", возд.: {image.InfluenceActionsList.Count}";
-
       if (image.PhraseIdList != null && image.PhraseIdList.Any())
         description += $", фраз: {image.PhraseIdList.Count}";
-
       return description;
     }
-
     #endregion
-
     public List<KeyValuePair<int, string>> Level1Options { get; } = new List<KeyValuePair<int, string>>
         {
             new KeyValuePair<int, string>(-1, "Плохо"),
             new KeyValuePair<int, string>(0, "Норма"),
             new KeyValuePair<int, string>(1, "Хорошо")
         };
-
     private void LoadAgentData()
     {
       try
@@ -461,10 +420,8 @@ namespace AIStudio.ViewModels
       _currentAgentName = agentInfo.Name;
       OnPropertyChanged(nameof(IsTemplateCreationEnabled));
       ((RelayCommand)OpenTemplateCommand)?.RaiseCanExecuteChanged();
-
       _allConditionedReflexes.Clear();
       _sourceGeneticReflexActionsCache.Clear();
-
       foreach (var reflex in _conditionedReflexesSystem.GetAllConditionedReflexes().OrderBy(a => a.Id))
       {
         var sourceActions = GetSourceGeneticReflexActions(reflex.SourceGeneticReflexId);
@@ -482,12 +439,10 @@ namespace AIStudio.ViewModels
           ToneId = reflex.ToneId,
           MoodId = reflex.MoodId
         };
-
         _allConditionedReflexes.Add(reflexCopy);
       }
       LoadFilterOptions();
       RefreshDisplay();
-
       OnPropertyChanged(nameof(IsStageOneOrHigher));
       OnPropertyChanged(nameof(IsEditingEnabled));
       OnPropertyChanged(nameof(IsDeletionEnabled));
@@ -508,11 +463,9 @@ namespace AIStudio.ViewModels
               MessageBoxImage.Error);
           return;
         }
-
         try
         {
           var (success, error) = _conditionedReflexesSystem.SaveConditionedReflexes();
-
           if (success)
           {
             RefreshAllCollections();
@@ -527,7 +480,6 @@ namespace AIStudio.ViewModels
                 "Ошибка сохранения",
                 MessageBoxButton.OK,
                 MessageBoxImage.Error);
-
             RefreshAllCollections();
           }
         }
@@ -537,7 +489,6 @@ namespace AIStudio.ViewModels
               "Ошибка сохранения",
               MessageBoxButton.OK,
               MessageBoxImage.Error);
-
           RefreshAllCollections();
         }
       }
@@ -567,7 +518,6 @@ namespace AIStudio.ViewModels
                 MessageBoxImage.Warning);
           }
         }
-
         foreach (var reflex in _allConditionedReflexes)
         {
           if (currentReflexes.ContainsKey(reflex.Id) && reflex.Id > 0)
@@ -598,7 +548,6 @@ namespace AIStudio.ViewModels
         {
           if (_allConditionedReflexes.Contains(reflex))
             _allConditionedReflexes.Remove(reflex);
-
           if (reflex.Id > 0)
           {
             bool removed = _conditionedReflexesSystem.RemoveConditionedReflex(reflex.Id);
@@ -633,17 +582,14 @@ namespace AIStudio.ViewModels
           "Подтверждение удаления",
           MessageBoxButton.YesNo,
           MessageBoxImage.Warning);
-
       if (result == MessageBoxResult.Yes)
       {
         try
         {
           var success = _conditionedReflexesSystem.RemoveAllConditionedReflexes();
-
           if (success)
           {
             _allConditionedReflexes.Clear();
-
             var (saveSuccess, error) = _conditionedReflexesSystem.SaveConditionedReflexes();
             if (saveSuccess)
             {
@@ -722,9 +668,7 @@ namespace AIStudio.ViewModels
         {
           Owner = Application.Current.MainWindow
         };
-
         var result = settingsWindow.ShowDialog();
-
         if (result == true)
         {
           MessageBox.Show("Настройки успешно применены и сохранены!",
@@ -759,7 +703,6 @@ namespace AIStudio.ViewModels
       public string LinkText { get; set; } = "Подробнее...";
       public string Url { get; set; } = "https://scorcher.ru/isida/iadaptive_agents_guide.php#ref_16";
       public ICommand OpenLinkCommand { get; }
-
       public DescriptionWithLink()
       {
         OpenLinkCommand = new RelayCommand(_ =>

@@ -1,4 +1,4 @@
-﻿using AIStudio.Common;
+using AIStudio.Common;
 using AIStudio.Dialogs;
 using AIStudio.ViewModels;
 using ISIDA.Reflexes;
@@ -26,12 +26,9 @@ namespace AIStudio.Pages.Reflexes
           e.Handled = true;
           return;
         }
-
         var grid = (DataGrid)sender;
-
         if (grid.IsEditing())
           return;
-
         if (grid.SelectedItems.Count > 0 && DataContext is ConditionedReflexesViewModel viewModel)
         {
           var actions = grid.SelectedItems
@@ -39,13 +36,11 @@ namespace AIStudio.Pages.Reflexes
             .Where(item => item is ConditionedReflexesViewModel.ConditionedReflexWithSourceActions)
             .Cast<ConditionedReflexesViewModel.ConditionedReflexWithSourceActions>()
             .ToList();
-
           var result = MessageBox.Show(
               $"Вы действительно хотите удалить {actions.Count} условных рефлексов?",
               "Подтверждение удаления",
               MessageBoxButton.YesNo,
               MessageBoxImage.Question);
-
           if (result == MessageBoxResult.Yes)
           {
             foreach (var action in actions)
@@ -53,7 +48,6 @@ namespace AIStudio.Pages.Reflexes
               viewModel.RemoveSelectedReflexes(action);
             }
           }
-
           e.Handled = true;
         }
       }
@@ -75,6 +69,5 @@ namespace AIStudio.Pages.Reflexes
         return true;
       }
     }
-
   }
 }

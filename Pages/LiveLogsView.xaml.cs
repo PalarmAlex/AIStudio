@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -41,7 +41,6 @@ namespace AIStudio.Pages
     {
       var dataGrid = sender as DataGrid;
       if (dataGrid == null) return;
-
       var hitTestResult = VisualTreeHelper.HitTest(dataGrid, e.GetPosition(dataGrid));
       if (hitTestResult?.VisualHit == null) return;
 
@@ -52,7 +51,6 @@ namespace AIStudio.Pages
       // Получить DataGridColumn
       var column = cell.Column as DataGridTextColumn;
       if (column == null) return;
-
       var binding = column.Binding as Binding;
       if (binding == null) return;
 
@@ -61,10 +59,8 @@ namespace AIStudio.Pages
       {
         var dataContext = cell.DataContext as AIStudio.Common.MemoryLogManager.LogEntry;
         if (dataContext == null) return;
-
         var viewModel = this.DataContext as LiveLogsViewModel;
         if (viewModel == null) return;
-
         string tooltip = "";
         if (binding.Path.Path == "DisplayReflexChainInfo")
         {
@@ -74,7 +70,6 @@ namespace AIStudio.Pages
         {
           tooltip = viewModel.GetAutomatizmChainTooltip(dataContext.DisplayAutomatizmChainInfo);
         }
-
         if (!string.IsNullOrEmpty(tooltip))
         {
           cell.ToolTip = tooltip;
@@ -88,7 +83,6 @@ namespace AIStudio.Pages
       {
         if (obj is T parent)
           return parent;
-
         obj = VisualTreeHelper.GetParent(obj);
       }
       return null;

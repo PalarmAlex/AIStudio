@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
@@ -23,9 +23,7 @@ namespace AIStudio.Pages
       {
         return;
       }
-
       int newStage = (e.AddedItems[0] as EvolutionStageItem)?.StageNumber ?? viewModel.SelectedStage;
-
       int currentStage = viewModel.Gomeostas.GetAgentState().EvolutionStage;
       if (newStage == currentStage)
       {
@@ -33,31 +31,26 @@ namespace AIStudio.Pages
           viewModel.SelectedStage = currentStage;
         return;
       }
-
       if (newStage > currentStage + 1)
       {
         MessageBox.Show($"Недопустимый переход! Можно переходить только на следующую стадию.",
             "Ошибка",
             MessageBoxButton.OK,
             MessageBoxImage.Warning);
-
         comboBox.Dispatcher.InvokeAsync(() =>
         {
           comboBox.SelectedValue = currentStage;
         });
         return;
       }
-
       bool isBackward = newStage < currentStage;
       string title = isBackward ? "ВНИМАНИЕ: Возврат на предыдущую стадию" : "Подтверждение перехода";
       string message = isBackward
           ? $"Возврат на стадию {newStage} очистит все данные последующих стадий. Продолжить?"
           : $"Перейти со стадии {currentStage} на стадию {newStage}?";
-
       var result = MessageBox.Show(message, title,
           MessageBoxButton.YesNo,
           isBackward ? MessageBoxImage.Warning : MessageBoxImage.Question);
-
       if (result != MessageBoxResult.Yes)
       {
         comboBox.Dispatcher.InvokeAsync(() =>
@@ -66,13 +59,10 @@ namespace AIStudio.Pages
         });
         return;
       }
-
       var stageResult = viewModel.Gomeostas.SetEvolutionStage(newStage, isBackward, false);
-
       if (stageResult.Success)
       {
         viewModel.LoadAgentData();
-
         var (saveSuccess, error) = viewModel.Gomeostas.SaveAgentProperties();
         if (!saveSuccess)
         {
@@ -91,7 +81,6 @@ namespace AIStudio.Pages
       {
         MessageBox.Show(stageResult.Message, "Ошибка",
             MessageBoxButton.OK, MessageBoxImage.Error);
-
         comboBox.Dispatcher.InvokeAsync(() =>
         {
           comboBox.SelectedValue = currentStage;
@@ -108,7 +97,6 @@ namespace AIStudio.Pages
 
         // Нормализуем символы новой строки для отображения в диалоге
         currentDescription = currentDescription?.Replace("\r\n", "\n").Replace("\r", "\n").Replace("\n", Environment.NewLine) ?? "";
-
         var dialog = new TextInputDialog
         {
           Owner = Window.GetWindow(textBox),
@@ -116,14 +104,12 @@ namespace AIStudio.Pages
           Text = currentDescription,
           Multiline = true
         };
-
         if (dialog.ShowDialog() == true)
         {
           // Сохраняем текст как есть (символы новой строки уже в правильном формате)
           viewModel.AgentProperties[1].Value = dialog.Text;
         }
       }
-
       e.Handled = true;
     }
   }

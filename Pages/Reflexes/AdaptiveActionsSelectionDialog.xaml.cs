@@ -1,4 +1,4 @@
-﻿using AIStudio.Common;
+using AIStudio.Common;
 using ISIDA.Actions;
 using ISIDA.Common;
 using System;
@@ -15,7 +15,6 @@ namespace AIStudio.Dialogs
     private List<AdaptiveActionItem> _adaptiveActions;
     private AntagonistManager _antagonistManager;
     private bool _isManualSelection = false;
-
     public AdaptiveActionsSelectionDialog(List<int> initiallySelected)
     {
       InitializeComponent();
@@ -25,7 +24,6 @@ namespace AIStudio.Dialogs
     private void LoadAdaptiveActions(List<int> initiallySelected)
     {
       _adaptiveActions = new List<AdaptiveActionItem>();
-
       try
       {
         if (!AdaptiveActionsSystem.IsInitialized)
@@ -34,10 +32,8 @@ namespace AIStudio.Dialogs
               "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
           return;
         }
-
         var adaptiveSystem = AdaptiveActionsSystem.Instance;
         var allActions = adaptiveSystem.GetAllAdaptiveActions();
-
         foreach (var action in allActions.OrderBy(a => a.Id))
         {
           _adaptiveActions.Add(new AdaptiveActionItem
@@ -72,7 +68,6 @@ namespace AIStudio.Dialogs
         {
           item.OnSelectionChanged += UpdateConflictMessage;
         }
-
         UpdateConflictMessage(null);
       }
       catch (Exception ex)
@@ -80,7 +75,6 @@ namespace AIStudio.Dialogs
         MessageBox.Show($"Ошибка загрузки адаптивных действий: {ex.Message}",
             "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
       }
-
       AdaptiveActionsList.ItemsSource = _adaptiveActions;
     }
 
@@ -97,54 +91,43 @@ namespace AIStudio.Dialogs
     private bool OnConflictResolutionRequired(List<AntagonistConflict> conflicts, AntagonistItem newlySelectedItem)
     {
       if (!_isManualSelection) return true; // Автоматические изменения — разрешаем
-
       var conflictItems = conflicts
           .Where(c => c.FirstId == newlySelectedItem.Id || c.SecondId == newlySelectedItem.Id)
           .SelectMany(c => new[] { c.FirstId, c.SecondId })
           .Where(id => id != newlySelectedItem.Id)
           .Distinct()
           .ToList();
-
       if (conflictItems.Any())
       {
         var conflictNames = conflictItems
             .Select(id => _adaptiveActions.FirstOrDefault(a => a.Id == id)?.Name ?? $"ID {id}")
             .ToList();
-
         var message = $"Выбор '{newlySelectedItem.Name}' конфликтует с:\n" +
                      string.Join("\n", conflictNames.Select(name => $"• {name}")) +
                      "\n\nЭти действия будут автоматически сняты. Продолжить?";
-
         var result = MessageBox.Show(message, "Конфликт действий",
             MessageBoxButton.YesNo, MessageBoxImage.Warning);
-
         if (result == MessageBoxResult.No)
         {
           _isManualSelection = false;
         }
-
         return result == MessageBoxResult.Yes;
       }
-
       return true;
     }
 
     private void UpdateConflictMessage(AntagonistItem changedItem)
     {
       var selectedIds = _adaptiveActions.Where(x => x.IsSelected).Select(x => x.Id).ToList();
-
       if (!selectedIds.Any())
       {
         ConflictMessage.Visibility = Visibility.Collapsed;
         return;
       }
-
       var antagonistsMap = _adaptiveActions.ToDictionary(
           item => item.Id,
           item => item.AntagonistIds);
-
       var conflicts = AntagonistValidator.ValidateAntagonists(selectedIds, antagonistsMap);
-
       if (conflicts.Any())
       {
         var conflictDetails = conflicts
@@ -155,7 +138,6 @@ namespace AIStudio.Dialogs
               return $"• {action1?.Name} (ID:{c.FirstId}) ↔ {action2?.Name} (ID:{c.SecondId})";
             })
             .ToList();
-
         ConflictMessage.Text = "Обнаружены конфликты:\n" + string.Join("\n", conflictDetails);
         ConflictMessage.Visibility = Visibility.Visible;
       }
@@ -171,13 +153,10 @@ namespace AIStudio.Dialogs
           .Where(x => x.IsSelected)
           .Select(x => x.Id)
           .ToList();
-
       var antagonistsMap = _adaptiveActions.ToDictionary(
           item => item.Id,
           item => item.AntagonistIds);
-
       var conflicts = AntagonistValidator.ValidateAntagonists(selectedIds, antagonistsMap);
-
       if (conflicts.Any())
       {
         var conflictDetails = conflicts
@@ -188,20 +167,16 @@ namespace AIStudio.Dialogs
               return $"• {action1?.Name} (ID:{c.FirstId}) ↔ {action2?.Name} (ID:{c.SecondId})";
             })
             .ToList();
-
         var message = "Обнаружены конфликтующие действия:\n" +
                      string.Join("\n", conflictDetails) +
                      "\n\nСохранить несмотря на конфликты?";
-
         var result = MessageBox.Show(message, "Подтверждение сохранения",
             MessageBoxButton.YesNo, MessageBoxImage.Warning);
-
         if (result == MessageBoxResult.No)
         {
           return;
         }
       }
-
       SelectedAdaptiveActions = selectedIds;
       DialogResult = true;
       Close();

@@ -16,18 +16,16 @@
       <ResourceDictionary.MergedDictionaries>
         <ResourceDictionary Source="Styles/MenuStyles.xaml"/>
       </ResourceDictionary.MergedDictionaries>
-      
+
       <!--конвертеры-->
       <conv:BrightnessToBlurConverter x:Key="BrightnessToBlurConverter"/>
       <conv:BoolToAngleConverter x:Key="BoolToAngleConverter"/>
       <conv:BoolToVisibilityConverter x:Key="BoolToVisibilityConverter"/>
-
       <BitmapImage x:Key="ActivateIcon" UriSource="/Resources/activate.png"/>
       <BitmapImage x:Key="DeactivateIcon" UriSource="/Resources/deactivate.png"/>
       <BitmapImage x:Key="DeleteIcon" UriSource="/Resources/delete.png"/>
       <BitmapImage x:Key="EditIcon" UriSource="/Resources/Modify.png"/>
       <BitmapImage x:Key="AddIcon" UriSource="/Resources/Add.ico"/>
-
       <Style x:Key="StatusTextStyle" TargetType="TextBlock">
         <Setter Property="Foreground" Value="#FF333335"/>
         <Setter Property="FontSize" Value="12"/>
@@ -85,7 +83,6 @@
                  Padding="0,0,5,0">
 
       <StackPanel Grid.Column="0" Grid.RowSpan="3" Background="#FFE0E0E0">
-
         <Expander Header="Проект" Style="{StaticResource MenuExpanderStyle}">
           <StackPanel>
             <Button Content="Создать проект симбионта" Margin="20,2,5,2"
@@ -119,18 +116,31 @@
           </StackPanel>
         </Expander>
 
+        <Expander Header="Среда" Style="{StaticResource MenuExpanderStyle}">
+          <StackPanel>
+            <Button Content="Рецепты среды" Margin="20,2,5,2"
+              Style="{StaticResource MenuButtonStyle}"
+              Command="{Binding VerticalMenuItemClickedCommand}"
+              CommandParameter="45"/>
+            <Button Content="Триггеры среды" Margin="20,2,5,2"
+              Style="{StaticResource MenuButtonStyle}"
+              Command="{Binding VerticalMenuItemClickedCommand}"
+              CommandParameter="46"/>
+          </StackPanel>
+        </Expander>
+
         <Expander Header="Гомеостаз симбионта" Style="{StaticResource MenuExpanderStyle}">
           <StackPanel>
             <Button Content="Адаптивные действия" Margin="20,2,5,2"
               Style="{StaticResource MenuButtonStyle}"
               Command="{Binding VerticalMenuItemClickedCommand}"
               CommandParameter="3"/>            
-            
+
             <Button Content="Стили реагирования" Margin="20,2,5,2" 
               Style="{StaticResource MenuButtonStyle}"
               Command="{Binding VerticalMenuItemClickedCommand}"
               CommandParameter="2"/>            
-            
+
             <Button Content="Жизненные параметры" Margin="20,2,5,2" 
               Style="{StaticResource MenuButtonStyle}"
               Command="{Binding VerticalMenuItemClickedCommand}"
@@ -145,7 +155,7 @@
               Style="{StaticResource MenuButtonStyle}"
               Command="{Binding VerticalMenuItemClickedCommand}"
               CommandParameter="28"/>
-            
+
           </StackPanel>
         </Expander>
 
@@ -220,7 +230,7 @@
               Style="{StaticResource MenuButtonStyle}"
               Command="{Binding VerticalMenuItemClickedCommand}"
               CommandParameter="16"/>
-            
+
           </StackPanel>
         </Expander>
 
@@ -230,19 +240,6 @@
               Style="{StaticResource MenuButtonStyle}"
               Command="{Binding VerticalMenuItemClickedCommand}"
               CommandParameter="18"/>
-          </StackPanel>
-        </Expander>
-
-        <Expander Header="Среда" Style="{StaticResource MenuExpanderStyle}">
-          <StackPanel>
-            <Button Content="Рецепты среды" Margin="20,2,5,2"
-              Style="{StaticResource MenuButtonStyle}"
-              Command="{Binding VerticalMenuItemClickedCommand}"
-              CommandParameter="45"/>
-            <Button Content="Триггеры среды" Margin="20,2,5,2"
-              Style="{StaticResource MenuButtonStyle}"
-              Command="{Binding VerticalMenuItemClickedCommand}"
-              CommandParameter="46"/>
           </StackPanel>
         </Expander>
 

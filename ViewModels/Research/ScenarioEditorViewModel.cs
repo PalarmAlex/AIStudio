@@ -1,12 +1,10 @@
 using AIStudio;
 using AIStudio.Common;
 using AIStudio.ViewModels;
-
 using ISIDA.Actions;
 using ISIDA.Psychic.Automatism;
 using ISIDA.Reflexes;
 using ISIDA.Scenarios;
-
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -23,7 +21,6 @@ namespace AIStudio.ViewModels.Research
   public sealed class ScenarioEditorViewModel : INotifyPropertyChanged
   {
     private readonly InfluenceActionSystem _influenceActions;
-
     private string _title = "";
     private string _description = "";
     private int _preRunTargetStage = -1;
@@ -36,7 +33,6 @@ namespace AIStudio.ViewModels.Research
     private int _runPulseTimingCoefficient = 1;
     private bool _reportHideEmptyComparisonColumns = true;
     private bool _reportHideExpectedWhenNoMismatch = true;
-
     public List<ScenarioExpectationChoiceItem> MassFillOptions { get; } = new List<ScenarioExpectationChoiceItem>
     {
       new ScenarioExpectationChoiceItem { Label = "Неизвестно", Code = "Unknown" },
@@ -45,14 +41,12 @@ namespace AIStudio.ViewModels.Research
     private ScenarioLineRow _selectedLine;
     private ScenarioLogExpectationRow _selectedExpectationRow;
     private string _repeatBlockCountText = "1";
-
     public ScenarioEditorViewModel(
         InfluenceActionSystem influenceActions,
         ScenarioDocument doc)
     {
       _influenceActions = influenceActions ?? throw new ArgumentNullException(nameof(influenceActions));
       Document = doc ?? throw new ArgumentNullException(nameof(doc));
-
       _title = doc.Header.Title ?? "";
       _description = doc.Header.Description ?? "";
       _preRunTargetStage = doc.Header.PreRunTargetStage >= -1 && doc.Header.PreRunTargetStage <= 5
@@ -66,9 +60,7 @@ namespace AIStudio.ViewModels.Research
       _runPulseTimingCoefficient = NormalizeRunPulseTimingCoefficient(doc.Header.RunPulseTimingCoefficient);
       _reportHideEmptyComparisonColumns = doc.Header.ReportHideEmptyComparisonColumns;
       _reportHideExpectedWhenNoMismatch = doc.Header.ReportHideExpectedWhenNoMismatch;
-
       PulseTimingCoefficientChoices = new List<int> { 1, 5, 10, 20 };
-
       PulseStepIncrementChoices = new List<ScenarioPulseIncrementChoiceItem>
       {
         new ScenarioPulseIncrementChoiceItem { Code = (int)ScenarioPulseStepIncrement.Sequential, Label = "Следующий по порядку" },
@@ -76,7 +68,6 @@ namespace AIStudio.ViewModels.Research
         new ScenarioPulseIncrementChoiceItem { Code = (int)ScenarioPulseStepIncrement.ActionHoldPlusOne, Label = "Время удержания действий + 1" },
         new ScenarioPulseIncrementChoiceItem { Code = (int)ScenarioPulseStepIncrement.StateHoldPlusOne, Label = "Время удержания состояний + 1" }
       };
-
       ToneChoiceOptions = ActionsImagesSystem.GetToneList()
           .OrderBy(kv => kv.Key)
           .Select(kv => new ScenarioToneMoodChoiceItem { Id = kv.Key, Label = kv.Value })
@@ -85,12 +76,10 @@ namespace AIStudio.ViewModels.Research
           .OrderBy(kv => kv.Key)
           .Select(kv => new ScenarioToneMoodChoiceItem { Id = kv.Key, Label = kv.Value })
           .ToList();
-
       VisualColorChoiceOptions = Enumerable
           .Range(AgentVisualColor.MinCode, AgentVisualColor.MaxCode - AgentVisualColor.MinCode + 1)
           .Select(c => new ScenarioToneMoodChoiceItem { Id = c, Label = AgentVisualColor.GetDisplayName(c) })
           .ToList();
-
       PreRunStageChoices = new ObservableCollection<EvolutionStageItem>();
       PreRunStageChoices.Add(new EvolutionStageItem { StageNumber = -1, Description = "Не менять стадию" });
       for (int i = 0; i <= 5; i++)
@@ -99,12 +88,10 @@ namespace AIStudio.ViewModels.Research
           StageNumber = i,
           Description = $"{i}: {EvolutionStageItem.GetDescription(i)}"
         });
-
       StateChoiceOptions = ScenarioExpectationChoiceLists.BuildStateChoices();
       OrUmChoiceOptions = ScenarioExpectationChoiceLists.BuildOrUmChoices();
       var combPath = Path.Combine(AppConfig.DataGomeostasFolderPath, "StyleCombinations.comb");
       StyleChoiceOptions = ScenarioExpectationChoiceLists.LoadStyleChoices(combPath);
-
       Lines = new BindingList<ScenarioLineRow>();
       Lines.AllowNew = false;
       Lines.AllowRemove = true;
@@ -117,30 +104,23 @@ namespace AIStudio.ViewModels.Research
         row.RefreshActionNames(_influenceActions);
       }
       Lines.RaiseListChangedEvents = true;
-
       ScenarioPulseSchedule.EnsureSequentialStepIndices(Lines);
       foreach (var l in Lines)
         l.RefreshActionNames(_influenceActions);
-
       if (Document.LogExpectationColumnSkips == null)
         Document.LogExpectationColumnSkips = new ScenarioLogExpectationColumnSkips();
       ExpectationRows = new ObservableCollection<ScenarioLogExpectationRow>();
       LoadExpectationsFromDocument();
-
       Lines.ListChanged += OnLinesListChanged;
-
       SaveCommand = new RelayCommand(_ => Save(requestCloseAfterSuccess: false, showSuccessMessage: true));
       AddLineCommand = new RelayCommand(_ => AddLine());
       MassFillExpectationsCommand = new RelayCommand(_ => MassFillExpectations());
-
       HasUnsavedChanges = false;
     }
 
     public ScenarioDocument Document { get; }
     public BindingList<ScenarioLineRow> Lines { get; }
-
     public ObservableCollection<ScenarioLogExpectationRow> ExpectationRows { get; }
-
     public ScenarioLogExpectationRow SelectedExpectationRow
     {
       get => _selectedExpectationRow;
@@ -154,20 +134,15 @@ namespace AIStudio.ViewModels.Research
     }
 
     public ObservableCollection<EvolutionStageItem> PreRunStageChoices { get; }
-
     public List<ScenarioToneMoodChoiceItem> ToneChoiceOptions { get; }
     public List<ScenarioToneMoodChoiceItem> MoodChoiceOptions { get; }
     public List<ScenarioToneMoodChoiceItem> VisualColorChoiceOptions { get; }
-
     public List<ScenarioExpectationChoiceItem> StateChoiceOptions { get; }
     public List<ScenarioExpectationChoiceItem> StyleChoiceOptions { get; }
     public List<ScenarioExpectationChoiceItem> OrUmChoiceOptions { get; }
-
     public List<ScenarioPulseIncrementChoiceItem> PulseStepIncrementChoices { get; }
-
     /// <summary>Допустимые значения коэфф. пульсации для привязки ComboBox.</summary>
     public List<int> PulseTimingCoefficientChoices { get; }
-
     public int RunPulseTimingCoefficient
     {
       get => _runPulseTimingCoefficient;
@@ -184,7 +159,6 @@ namespace AIStudio.ViewModels.Research
 
     private static int NormalizeRunPulseTimingCoefficient(int v) =>
         v == 1 || v == 5 || v == 10 || v == 20 ? v : 1;
-
     public int PulseStepIncrement
     {
       get => _pulseStepIncrement;
@@ -206,7 +180,6 @@ namespace AIStudio.ViewModels.Research
         || code == (int)ScenarioPulseStepIncrement.StateHoldPlusOne
             ? code
             : (int)ScenarioPulseStepIncrement.ActionHoldPlusOne;
-
     private int CurrentPulseStepDelta()
     {
       var mode = (ScenarioPulseStepIncrement)_pulseStepIncrement;
@@ -223,7 +196,6 @@ namespace AIStudio.ViewModels.Research
     }
 
     public ICommand MassFillExpectationsCommand { get; }
-
     private void MassFillExpectations()
     {
       bool unknown = string.Equals(_massFillMode, "Unknown", StringComparison.Ordinal);
@@ -320,7 +292,6 @@ namespace AIStudio.ViewModels.Research
 
     private static string NormalizeExpectedCell(string s) =>
         s == null ? "-" : s.Trim();
-
     private void LoadExpectationsFromDocument()
     {
       var byStep = (Document.LogExpectations ?? new List<ScenarioLogExpectationRow>())
@@ -380,7 +351,6 @@ namespace AIStudio.ViewModels.Research
     }
 
     public InfluenceActionSystem InfluenceActions => _influenceActions;
-
     public string Title
     {
       get => _title;
@@ -407,7 +377,6 @@ namespace AIStudio.ViewModels.Research
     }
 
     private const int DescriptionDisplayLimit = 100;
-
     public string DescriptionDisplay
     {
       get
@@ -518,7 +487,6 @@ namespace AIStudio.ViewModels.Research
 
     public ICommand SaveCommand { get; }
     public ICommand AddLineCommand { get; }
-
     /// <summary>Количество повторов выделенного блока строк (ввод в поле рядом с кнопкой «Повторить»).</summary>
     public string RepeatBlockCountText
     {
@@ -549,7 +517,6 @@ namespace AIStudio.ViewModels.Research
             MessageBoxImage.Warning);
         return;
       }
-
       if (selectedItems == null || selectedItems.Count == 0)
       {
         MessageBox.Show(
@@ -559,7 +526,6 @@ namespace AIStudio.ViewModels.Research
             MessageBoxImage.Information);
         return;
       }
-
       var uniqueRows = selectedItems.Where(r => r != null).Distinct().ToList();
       if (uniqueRows.Count == 0)
       {
@@ -570,7 +536,6 @@ namespace AIStudio.ViewModels.Research
             MessageBoxImage.Information);
         return;
       }
-
       var indices = uniqueRows.Select(r => Lines.IndexOf(r)).Where(i => i >= 0).OrderBy(i => i).ToList();
       if (indices.Count != uniqueRows.Count)
       {
@@ -581,7 +546,6 @@ namespace AIStudio.ViewModels.Research
             MessageBoxImage.Warning);
         return;
       }
-
       int minIx = indices[0];
       int maxIx = indices[indices.Count - 1];
       if (indices.Count != maxIx - minIx + 1)
@@ -593,16 +557,13 @@ namespace AIStudio.ViewModels.Research
             MessageBoxImage.Warning);
         return;
       }
-
       if (ExpectationRows.Count != Lines.Count)
         SyncExpectationRowsWithLines();
-
       int blockStart = minIx;
       int blockEnd = maxIx;
       int blockLen = blockEnd - blockStart + 1;
       int pulseDelta = CurrentPulseStepDelta();
       int pulseAtBlockEndBeforeInsert = Lines[blockEnd].PulseWithinScenario;
-
       Lines.ListChanged -= OnLinesListChanged;
       try
       {
@@ -625,7 +586,6 @@ namespace AIStudio.ViewModels.Research
           }
           insertAfter += blockLen;
         }
-
         int lastInsertedIndex = blockEnd + repeatCount * blockLen;
         if (lastInsertedIndex + 1 < Lines.Count)
         {
@@ -642,7 +602,6 @@ namespace AIStudio.ViewModels.Research
       {
         Lines.ListChanged += OnLinesListChanged;
       }
-
       ScenarioPulseSchedule.EnsureSequentialStepIndices(Lines);
       foreach (var l in Lines)
         l.RefreshActionNames(_influenceActions);
@@ -654,11 +613,8 @@ namespace AIStudio.ViewModels.Research
     }
 
     public event EventHandler<bool> RequestClose;
-
     public Action CloseAction { get; set; }
-
     public bool HasUnsavedChanges { get; private set; }
-
     public bool TryCancelWithPrompt()
     {
       if (!HasUnsavedChanges)
@@ -677,7 +633,6 @@ namespace AIStudio.ViewModels.Research
       int delta = CurrentPulseStepDelta();
       int maxPulse = Lines.Count == 0 ? 0 : Lines.Max(l => l.PulseWithinScenario);
       int nextPulse = maxPulse <= 0 ? 1 : maxPulse + delta;
-
       var row = new ScenarioLineRow
       {
         StepIndex = Lines.Count + 1,
@@ -705,20 +660,17 @@ namespace AIStudio.ViewModels.Research
       var victims = rows.Where(r => r != null && Lines.Contains(r)).Distinct().ToList();
       if (victims.Count == 0)
         return;
-
       var deleteIndices = victims.Select(r => Lines.IndexOf(r)).Distinct().OrderBy(i => i).ToList();
       var pulseSnapshot = Lines.Select(l => l.PulseWithinScenario).ToList();
       int n = Lines.Count;
       var deleteRanges = MergeContiguousSortedIndices(deleteIndices);
       var deleteSet = new HashSet<int>(deleteIndices);
       var indexByVictim = victims.ToDictionary(r => r, r => Lines.IndexOf(r));
-
       Lines.ListChanged -= OnLinesListChanged;
       try
       {
         foreach (var r in victims.OrderByDescending(r => indexByVictim[r]))
           Lines.Remove(r);
-
         int k = 0;
         for (int oldIx = 0; oldIx < n; oldIx++)
         {
@@ -734,7 +686,6 @@ namespace AIStudio.ViewModels.Research
       {
         Lines.ListChanged += OnLinesListChanged;
       }
-
       ScenarioPulseSchedule.EnsureSequentialStepIndices(Lines);
       foreach (var l in Lines)
         l.RefreshActionNames(_influenceActions);
@@ -758,11 +709,9 @@ namespace AIStudio.ViewModels.Research
         MessageBox.Show(err, "Проверка сценария", MessageBoxButton.OK, MessageBoxImage.Warning);
         return false;
       }
-
       ScenarioStorage.EnsureFolder();
       if (doc.Header.Id == 0)
         doc.Header.Id = ScenarioStorage.NextScenarioId();
-
       doc.Header.Title = Title?.Trim() ?? "";
       doc.Header.Description = Description?.Trim() ?? "";
       doc.Header.PreRunTargetStage = PreRunTargetStage;
@@ -774,14 +723,12 @@ namespace AIStudio.ViewModels.Research
       doc.Header.RunPulseTimingCoefficient = RunPulseTimingCoefficient;
       doc.Header.ReportHideEmptyComparisonColumns = ReportHideEmptyComparisonColumns;
       doc.Header.ReportHideExpectedWhenNoMismatch = ReportHideExpectedWhenNoMismatch;
-
       var (okLines, errLines) = ScenarioStorage.SaveScenarioLines(doc);
       if (!okLines)
       {
         MessageBox.Show(errLines, "Ошибка сохранения", MessageBoxButton.OK, MessageBoxImage.Error);
         return false;
       }
-
       var reg = ScenarioStorage.LoadRegistry();
       var existing = reg.FirstOrDefault(h => h.Id == doc.Header.Id);
       if (existing != null)
@@ -793,18 +740,15 @@ namespace AIStudio.ViewModels.Research
         Description = doc.Header.Description,
         PreRunTargetStage = doc.Header.PreRunTargetStage
       });
-
       var (okReg, errReg) = ScenarioStorage.SaveRegistry(reg);
       if (!okReg)
       {
         MessageBox.Show(errReg, "Ошибка сохранения реестра", MessageBoxButton.OK, MessageBoxImage.Error);
         return false;
       }
-
       Document.Header.Id = doc.Header.Id;
       Document.Header.ReportHideEmptyComparisonColumns = doc.Header.ReportHideEmptyComparisonColumns;
       Document.Header.ReportHideExpectedWhenNoMismatch = doc.Header.ReportHideExpectedWhenNoMismatch;
-
       HasUnsavedChanges = false;
       if (showSuccessMessage)
         MessageBox.Show("Сценарий успешно сохранен", "Сохранение",
@@ -849,7 +793,6 @@ namespace AIStudio.ViewModels.Research
     }
 
     public event PropertyChangedEventHandler PropertyChanged;
-
     private void OnPropertyChanged([CallerMemberName] string name = null)
     {
       PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));

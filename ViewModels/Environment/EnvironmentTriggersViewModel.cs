@@ -24,7 +24,6 @@ namespace AIStudio.ViewModels.SymbiontEnv
     private int _currentAgentStage;
     private string _filterId = string.Empty;
     private string _filterTitle = string.Empty;
-
     /// <summary>
     /// Создаёт модель таблицы триггеров.
     /// </summary>
@@ -35,17 +34,14 @@ namespace AIStudio.ViewModels.SymbiontEnv
       SaveCommand = new RelayCommand(_ => SaveToDisk(), _ => IsEditingEnabled);
       ApplyFiltersCommand = new RelayCommand(_ => ApplyFilters());
       ResetFiltersCommand = new RelayCommand(_ => ResetFilters());
-
       GlobalTimer.PulsationStateChanged += OnPulsationStateChanged;
       ReloadFromDisk();
     }
 
     /// <summary>Строки таблицы.</summary>
     public ObservableCollection<EnvironmentTriggerRow> Triggers { get; }
-
     public string CurrentAgentTitle =>
         SymbiontPageTitleFormatter.Format("Триггеры среды", _currentAgentName, _currentAgentStage);
-
     public string FilterIdText
     {
       get => _filterId;
@@ -61,7 +57,6 @@ namespace AIStudio.ViewModels.SymbiontEnv
     public ICommand SaveCommand { get; }
     public ICommand ApplyFiltersCommand { get; }
     public ICommand ResetFiltersCommand { get; }
-
     public bool IsStageZero => _currentAgentStage == 0;
     public bool HasAdapter => SymbiontEnvironmentGate.IsEnvironmentEditingAllowed();
     public bool IsEditingEnabled => HasAdapter && IsStageZero && !GlobalTimer.IsPulsationRunning;
@@ -75,7 +70,6 @@ namespace AIStudio.ViewModels.SymbiontEnv
                     ? "Редактирование доступно только при выключенной пульсации"
                     : string.Empty;
     public Brush WarningMessageColor => !HasAdapter || !IsStageZero ? Brushes.Red : Brushes.Gray;
-
     /// <summary>
     /// Перезагрузка с диска.
     /// </summary>
@@ -84,18 +78,15 @@ namespace AIStudio.ViewModels.SymbiontEnv
       var agent = _gomeostas.GetAgentState();
       _currentAgentStage = agent?.EvolutionStage ?? 0;
       _currentAgentName = agent?.Name ?? string.Empty;
-
       _allRows.Clear();
       var errors = new List<string>();
       List<EnvironmentTriggerData> loaded = EnvironmentCatalogStorage.LoadTriggers(errors);
-
       foreach (EnvironmentTriggerData trigger in loaded)
       {
         EnvironmentTriggerRow row = EnvironmentTriggerMapper.ToRow(trigger);
         row.DetectSummary = BuildDetectSummary(row);
         _allRows.Add(row);
       }
-
       if (errors.Count > 0)
       {
         MessageBox.Show(
@@ -104,7 +95,6 @@ namespace AIStudio.ViewModels.SymbiontEnv
             MessageBoxButton.OK,
             MessageBoxImage.Warning);
       }
-
       ApplyFilters();
     }
 
@@ -115,7 +105,6 @@ namespace AIStudio.ViewModels.SymbiontEnv
     {
       if (row == null)
         return;
-
       if (!_allRows.Contains(row))
         _allRows.Add(row);
     }
@@ -133,7 +122,6 @@ namespace AIStudio.ViewModels.SymbiontEnv
         n++;
       }
       while (_allRows.Any(r => string.Equals(r.Id, id, StringComparison.OrdinalIgnoreCase)));
-
       return new EnvironmentTriggerRow
       {
         Id = id,
@@ -164,20 +152,16 @@ namespace AIStudio.ViewModels.SymbiontEnv
     {
       if (rows == null || rows.Count == 0 || !IsEditingEnabled)
         return false;
-
       string msg = rows.Count == 1
           ? "Удалить триггер \"" + rows[0].DisplayName + "\"?"
           : "Удалить выбранные триггеры (" + rows.Count + ")?";
-
       if (MessageBox.Show(msg, "Подтверждение", MessageBoxButton.YesNo, MessageBoxImage.Question) != MessageBoxResult.Yes)
         return false;
-
       foreach (EnvironmentTriggerRow row in rows)
       {
         _allRows.Remove(row);
         Triggers.Remove(row);
       }
-
       return true;
     }
 
@@ -199,10 +183,8 @@ namespace AIStudio.ViewModels.SymbiontEnv
         {
           if (string.IsNullOrWhiteSpace(row?.Id))
             continue;
-
           definitions.Add(EnvironmentTriggerMapper.ToData(row));
         }
-
         EnvironmentCatalogStorage.SaveTriggers(definitions);
         MessageBox.Show("Триггеры среды сохранены.", "Сохранение", MessageBoxButton.OK, MessageBoxImage.Information);
         ReloadFromDisk();
@@ -221,13 +203,11 @@ namespace AIStudio.ViewModels.SymbiontEnv
         string f = _filterId.Trim();
         q = q.Where(r => (r.Id ?? string.Empty).IndexOf(f, StringComparison.OrdinalIgnoreCase) >= 0);
       }
-
       if (!string.IsNullOrWhiteSpace(_filterTitle))
       {
         string f = _filterTitle.Trim();
         q = q.Where(r => (r.DisplayName ?? string.Empty).IndexOf(f, StringComparison.OrdinalIgnoreCase) >= 0);
       }
-
       Triggers.Clear();
       foreach (EnvironmentTriggerRow row in q)
         Triggers.Add(row);
@@ -244,7 +224,6 @@ namespace AIStudio.ViewModels.SymbiontEnv
     {
       if (row?.DetectRules == null || row.DetectRules.Count == 0)
         return string.Empty;
-
       return string.Join(
           "; ",
           row.DetectRules.Select(r =>

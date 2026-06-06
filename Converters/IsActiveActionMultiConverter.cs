@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.ObjectModel;
 using System.Globalization;
 using System.Linq;
@@ -17,20 +17,16 @@ namespace AIStudio.Converters
       {
         return targetType == typeof(Brush) ? (object)Brushes.Gray : false;
       }
-
       if (values[0] is ObservableCollection<AdaptiveAction> currentActiveActions &&
           values[1] is AdaptiveAction actionToCheck)
       {
         bool isCurrentlyActive = currentActiveActions.Any(a => a.Id == actionToCheck.Id);
-
         if (targetType == typeof(Brush))
         {
           return isCurrentlyActive ? GetActiveColorBrush(actionToCheck) : Brushes.Gray;
         }
-
         return isCurrentlyActive;
       }
-
       return targetType == typeof(Brush) ? (object)Brushes.Gray : false;
     }
 

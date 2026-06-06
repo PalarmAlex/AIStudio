@@ -1,4 +1,4 @@
-﻿using AIStudio.Common;
+using AIStudio.Common;
 using ISIDA.Actions;
 using ISIDA.Reflexes;
 using System;
@@ -23,9 +23,7 @@ namespace AIStudio.ViewModels
     private readonly GeneticReflexesSystem _reflexesSystem;
     private readonly int _reflexId;
     private readonly int _currentChainId;
-
     #region Properties
-
     private string _reflexInfo;
     public string ReflexInfo
     {
@@ -248,16 +246,11 @@ namespace AIStudio.ViewModels
 
     // Опции фильтров
     public List<KeyValuePair<int, string>> BindingFilterOptions { get; private set; }
-
     #endregion
-
     #region Commands
-
     private ICommand _clearFiltersCommand;
     public ICommand ClearFiltersCommand => _clearFiltersCommand ?? (_clearFiltersCommand = new RelayCommand(ClearFilters));
-
     #endregion
-
     public ReflexChainBindingViewModel(int reflexId, int currentChainId,
         ReflexChainsSystem chainsSystem, GeneticReflexesSystem reflexesSystem)
     {
@@ -265,7 +258,6 @@ namespace AIStudio.ViewModels
       _currentChainId = currentChainId;
       _chainsSystem = chainsSystem;
       _reflexesSystem = reflexesSystem;
-
       InitializeProperties();
       InitializeFilterOptions();
     }
@@ -277,11 +269,9 @@ namespace AIStudio.ViewModels
       SelectionInfo = "Выберите цепочку для просмотра звеньев";
       CurrentBindingInfo = _currentChainId > 0 ? $"Текущая привязка: цепочка {_currentChainId}" : "Текущая привязка: отсутствует";
       HasCurrentBinding = _currentChainId > 0;
-
       AllChains = new List<ReflexChainsSystem.ReflexChain>();
       FilteredChains = new ObservableCollection<ReflexChainsSystem.ReflexChain>();
       SelectedChainLinks = new ObservableCollection<ReflexChainsSystem.ChainLink>();
-
       ChainIdFilter = string.Empty;
       ChainNameFilter = string.Empty;
     }
@@ -307,17 +297,14 @@ namespace AIStudio.ViewModels
         AllChains = allChainsDict.Values
             .OrderBy(c => c.ID)
             .ToList();
-
         ChainsCount = AllChains.Count;
         ChainsInfo = $"Загружено цепочек: {ChainsCount}";
-
         ChainReflexesInfo = new Dictionary<int, string>();
         foreach (var chain in AllChains)
         {
           var reflexes = _reflexesSystem.GetReflexesForChain(chain.ID);
           ChainReflexesInfo[chain.ID] = reflexes.Any() ? string.Join(", ", reflexes) : "Нет";
         }
-
         FilterChains();
         UpdateCurrentBindingInfo();
       }
@@ -333,7 +320,6 @@ namespace AIStudio.ViewModels
     private void FilterChains()
     {
       if (AllChains == null) return;
-
       var filtered = AllChains.AsEnumerable();
 
       // Фильтр по ID (контекстный поиск)
@@ -359,16 +345,13 @@ namespace AIStudio.ViewModels
         {
           var reflexes = _reflexesSystem.GetReflexesForChain(c.ID);
           bool hasBinding = reflexes.Any();
-
           if (SelectedBindingFilter == 1) return !hasBinding; // Свободные
           if (SelectedBindingFilter == 2) return hasBinding;  // Привязанные
           if (SelectedBindingFilter == 3) return reflexes.Contains(_reflexId); // К текущему рефлексу
           return true;
         });
       }
-
       FilteredChains = new ObservableCollection<ReflexChainsSystem.ReflexChain>(filtered);
-
       if (SelectedChain != null && !FilteredChains.Contains(SelectedChain))
       {
         SelectedChain = null;
@@ -384,7 +367,6 @@ namespace AIStudio.ViewModels
         SelectedChainInfo = "Цепочка не выбрана";
         return;
       }
-
       var links = _chainsSystem.GetChainLinks(SelectedChain.ID);
       SelectedChainLinks = new ObservableCollection<ReflexChainsSystem.ChainLink>(links);
       LinksCount = links.Count;
@@ -398,7 +380,6 @@ namespace AIStudio.ViewModels
         SelectionInfo = "Выберите цепочку для просмотра звеньев";
         return;
       }
-
       var reflexes = _reflexesSystem.GetReflexesForChain(SelectedChain.ID);
       string bindingInfo = reflexes.Any()
           ? $"Привязана к рефлексам: {string.Join(", ", reflexes)}"
@@ -420,7 +401,6 @@ namespace AIStudio.ViewModels
           return;
         }
       }
-
       CurrentBindingInfo = "Текущая привязка: отсутствует";
       HasCurrentBinding = false;
     }

@@ -20,13 +20,11 @@ namespace AIStudio.Common
         errorMessage = "Логгер недоступен.";
         return false;
       }
-
       if (researchLogger.IsDisposed)
       {
         errorMessage = "Логгер уже освобождён.";
         return false;
       }
-
       string innerError = null;
       try
       {

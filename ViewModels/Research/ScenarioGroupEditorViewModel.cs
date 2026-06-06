@@ -22,7 +22,6 @@ namespace AIStudio.ViewModels.Research
     private ScenarioGroupReportFormat _reportFormat = ScenarioGroupReportFormat.Detailed;
     private ScenarioGroupMemberRow _selectedMember;
     private bool _hasUnsavedChanges;
-
     public ScenarioGroupEditorViewModel(ScenarioGroupDocument doc)
     {
       Document = doc ?? throw new ArgumentNullException(nameof(doc));
@@ -32,12 +31,10 @@ namespace AIStudio.ViewModels.Research
       _reportFormat = Enum.IsDefined(typeof(ScenarioGroupReportFormat), doc.ReportFormat)
           ? doc.ReportFormat
           : ScenarioGroupReportFormat.Detailed;
-
       ScenarioChoices = new ObservableCollection<ScenarioRegistryPickItem>(
           ScenarioStorage.LoadRegistry()
               .OrderBy(h => h.Id)
               .Select(h => new ScenarioRegistryPickItem(h.Id, h.Title ?? "")));
-
       PreRunStageChoices = new ObservableCollection<EvolutionStageItem>();
       PreRunStageChoices.Add(new EvolutionStageItem { StageNumber = -1, Description = "Не менять стадию" });
       for (int i = 0; i <= 5; i++)
@@ -46,7 +43,6 @@ namespace AIStudio.ViewModels.Research
           StageNumber = i,
           Description = $"{i}: {EvolutionStageItem.GetDescription(i)}"
         });
-
       Members = new ObservableCollection<ScenarioGroupMemberRow>();
       foreach (var m in doc.Members.OrderBy(x => x.SortOrderInGroup).ThenBy(x => x.ScenarioId))
       {
@@ -54,36 +50,25 @@ namespace AIStudio.ViewModels.Research
         Members.Add(row);
         WireMember(row);
       }
-
       Members.CollectionChanged += Members_CollectionChanged;
-
       PulseTimingCoefficientChoices = new ObservableCollection<int> { 1, 5, 10, 20 };
-
       ReportFormatChoices = new ObservableCollection<ScenarioGroupReportFormatItem>
       {
         new ScenarioGroupReportFormatItem { Format = ScenarioGroupReportFormat.Detailed, Display = "Подробный" },
         new ScenarioGroupReportFormatItem { Format = ScenarioGroupReportFormat.Compact, Display = "Сокращенный" }
       };
-
       SaveCommand = new RelayCommand(_ => Save(invokeCloseAfterSuccess: true), _ => Members.Count > 0);
       AddMemberCommand = new RelayCommand(_ => AddMember());
       RemoveMemberCommand = new RelayCommand(_ => RemoveMember(), _ => SelectedMember != null);
-
       _hasUnsavedChanges = false;
     }
 
     public ScenarioGroupDocument Document { get; }
-
     public ObservableCollection<ScenarioGroupMemberRow> Members { get; }
-
     public ObservableCollection<int> PulseTimingCoefficientChoices { get; }
-
     public ObservableCollection<ScenarioGroupReportFormatItem> ReportFormatChoices { get; }
-
     public ObservableCollection<ScenarioRegistryPickItem> ScenarioChoices { get; }
-
     public ObservableCollection<EvolutionStageItem> PreRunStageChoices { get; }
-
     public string Title
     {
       get => _title;
@@ -110,7 +95,6 @@ namespace AIStudio.ViewModels.Research
     }
 
     private const int DescriptionDisplayLimit = 100;
-
     public string DescriptionDisplay
     {
       get
@@ -157,11 +141,8 @@ namespace AIStudio.ViewModels.Research
     public ICommand SaveCommand { get; }
     public ICommand AddMemberCommand { get; }
     public ICommand RemoveMemberCommand { get; }
-
     public event EventHandler<bool> RequestClose;
-
     public Action CloseAction { get; set; }
-
     private void Members_CollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
     {
       MarkDirty();
@@ -181,7 +162,6 @@ namespace AIStudio.ViewModels.Research
 
     private void UnwireMember(ScenarioGroupMemberRow m) =>
         m.PropertyChanged -= Member_PropertyChanged;
-
     private void Member_PropertyChanged(object sender, PropertyChangedEventArgs e)
     {
       MarkDirty();
@@ -238,7 +218,6 @@ namespace AIStudio.ViewModels.Research
       int idx = Members.IndexOf(anchor);
       if (idx < 0)
         return;
-
       anchor.ScenarioId = scenarioIds[0];
       for (int i = 1; i < scenarioIds.Count; i++)
       {
@@ -266,7 +245,6 @@ namespace AIStudio.ViewModels.Research
     }
 
     private void MarkDirty() => _hasUnsavedChanges = true;
-
     public bool TryCancelWithPrompt()
     {
       if (!_hasUnsavedChanges)
@@ -307,7 +285,6 @@ namespace AIStudio.ViewModels.Research
         MessageBox.Show("Добавьте хотя бы одну строку сценария.", "Группа", MessageBoxButton.OK, MessageBoxImage.Warning);
         return false;
       }
-
       foreach (var m in Members)
       {
         if (m.ScenarioId <= 0)
@@ -321,12 +298,10 @@ namespace AIStudio.ViewModels.Research
           return false;
         }
       }
-
       ScenarioGroupStorage.EnsureFolder();
       int coeff = RunPulseTimingCoefficient;
       if (coeff != 1 && coeff != 5 && coeff != 10 && coeff != 20 && coeff != 50 && coeff != 100)
         coeff = 1;
-
       var doc = new ScenarioGroupDocument
       {
         Id = Document.Id,
@@ -336,10 +311,8 @@ namespace AIStudio.ViewModels.Research
         ReportFormat = ReportFormat,
         Members = Members.Select(m => m.Clone()).ToList()
       };
-
       if (doc.Id <= 0)
         doc.Id = ScenarioGroupStorage.NextGroupId();
-
       var reg = ScenarioGroupStorage.LoadGroupRegistry();
       var existing = reg.FirstOrDefault(h => h.Id == doc.Id);
       if (existing != null)
@@ -356,7 +329,6 @@ namespace AIStudio.ViewModels.Research
         MessageBox.Show(errReg, "Ошибка реестра", MessageBoxButton.OK, MessageBoxImage.Error);
         return false;
       }
-
       Document.Id = doc.Id;
       var (okG, errG) = ScenarioGroupStorage.SaveGroup(doc);
       if (!okG)
@@ -364,7 +336,6 @@ namespace AIStudio.ViewModels.Research
         MessageBox.Show(errG, "Ошибка сохранения", MessageBoxButton.OK, MessageBoxImage.Error);
         return false;
       }
-
       _hasUnsavedChanges = false;
       MessageBox.Show("Группа сохранена.", "Группа", MessageBoxButton.OK, MessageBoxImage.Information);
       if (invokeCloseAfterSuccess)

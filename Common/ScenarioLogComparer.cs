@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
@@ -13,13 +13,10 @@ namespace AIStudio.Common
   {
     /// <summary>Идентификатор экземпляра цикла.</summary>
     public int Id { get; set; }
-
     /// <summary>Статус: Awaiting / NoSolution / Solved / Completed.</summary>
     public string TaskStatus { get; set; }
-
     /// <summary>Подсказка с этой записи лога.</summary>
     public string Tooltip { get; set; }
-
     /// <summary>Вес цикла (для сортировки «Циклы Ф» по убыванию в агрегате).</summary>
     public int Weight { get; set; }
   }
@@ -34,10 +31,8 @@ namespace AIStudio.Common
       public string Theme { get; set; } = "-";
       public string Trigger { get; set; } = "-";
       public string OrUm { get; set; } = "-";
-
       /// <summary>Для отображения «УМ1»/«УМ2» в отчёте: успех с последней записи лога на пульсе; иначе null.</summary>
       public bool? OrUmThinkingSuccess { get; set; }
-
       public string Danger { get; set; } = "-";
       public string VeryActual { get; set; } = "-";
       public string GeneticReflex { get; set; } = "-";
@@ -48,21 +43,15 @@ namespace AIStudio.Common
       public string ReflexChain { get; set; } = "-";
       public string AutomatizmChain { get; set; } = "-";
       public string MainCycle { get; set; } = "-";
-
       /// <summary>Номера циклов на пульсе по порядку появления в логе (для раскраски в отчёте).</summary>
       public List<MainCyclePulseSegment> MainCycleSegments { get; } = new List<MainCyclePulseSegment>();
-
       public string BackgroundCycles { get; set; } = "-";
-
       /// <summary>Фоновые циклы на пульсе (по убыванию веса в агрегате).</summary>
       public List<MainCyclePulseSegment> BackgroundCycleSegments { get; } = new List<MainCyclePulseSegment>();
-
       /// <summary>Текст подсказки темы с последней записи лога на пульсе (если есть).</summary>
       public string ThemeTooltip { get; set; }
-
       /// <summary>Текст подсказки главного цикла мышления с последней записи на пульсе.</summary>
       public string MainCycleTooltip { get; set; }
-
       /// <summary>Подсказка по фоновым циклам на пульсе.</summary>
       public string BackgroundCyclesTooltip { get; set; }
     }
@@ -75,7 +64,6 @@ namespace AIStudio.Common
       var result = new Dictionary<int, AggregatedLogSnapshot>();
       if (entries == null)
         return result;
-
       foreach (var g in entries.Where(e => e.Pulse.HasValue).GroupBy(e => e.Pulse.Value))
       {
         var ordered = g.OrderBy(e => e.Timestamp).ToList();
@@ -109,7 +97,6 @@ namespace AIStudio.Common
             if (!string.IsNullOrWhiteSpace(e.MainThinkingCycleTooltip))
               snap.MainCycleTooltip = e.MainThinkingCycleTooltip.Trim();
           }
-
           if (e.MainThinkingCycleId.HasValue && e.MainThinkingCycleId.Value > 0)
           {
             var st = string.IsNullOrWhiteSpace(e.MainThinkingCycleTaskStatus)
@@ -134,7 +121,6 @@ namespace AIStudio.Common
                 Tooltip = tip
               });
             }
-
             snap.MainCycle = string.Join(", ", snap.MainCycleSegments.Select(s => s.Id.ToString(CultureInfo.InvariantCulture)));
             var tipParts = snap.MainCycleSegments
                 .Select(s => string.IsNullOrEmpty(s.Tooltip) ? null : $"Цикл {s.Id}: {s.Tooltip}")
@@ -143,7 +129,6 @@ namespace AIStudio.Common
             if (tipParts.Count > 0)
               snap.MainCycleTooltip = string.Join("\n\n", tipParts);
           }
-
           if (!string.IsNullOrWhiteSpace(e.BackgroundThinkingCyclesJson))
           {
             snap.BackgroundCycleSegments.Clear();
@@ -161,7 +146,6 @@ namespace AIStudio.Common
                 Weight = it.Weight
               });
             }
-
             if (snap.BackgroundCycleSegments.Count > 0)
             {
               var orderedBg = snap.BackgroundCycleSegments.OrderByDescending(s => s.Weight).ThenBy(s => s.Id).ToList();
@@ -190,7 +174,6 @@ namespace AIStudio.Common
           snap.ConditionReflex = "-";
           snap.ReflexChain = "-";
         }
-
         result[g.Key] = snap;
       }
       return result;
@@ -207,9 +190,7 @@ namespace AIStudio.Common
     {
       if (byGlobalPulse.TryGetValue(globalPulse, out var exact))
         return exact;
-
       var snap = new AggregatedLogSnapshot();
-
       int nearest = -1;
       foreach (var key in byGlobalPulse.Keys)
       {
@@ -298,7 +279,6 @@ namespace AIStudio.Common
         usefulnessLogged.HasValue
             ? usefulnessLogged.Value.ToString(CultureInfo.InvariantCulture)
             : "-";
-
     /// <summary>
     /// Сравнение ячейки ожидания с нормализованным значением из лога (как в <see cref="NormalizeDisplay"/>).
     /// Если ожидание содержит «|», перечислены допустимые альтернативы: достаточно совпадения с любым непустым вариантом (после Trim).
@@ -334,7 +314,6 @@ namespace AIStudio.Common
     /// <summary>Та же логика, что <see cref="DangerExpectationMatches"/>, для столбца «Актуально».</summary>
     public static bool VeryActualExpectationMatches(string expectedRaw, string actualFromLog) =>
         DangerExpectationMatches(expectedRaw, actualFromLog);
-
     private static bool DangerExpectationMatchesCanon(string expectedTrimmed, string actualCanon01)
     {
       if (expectedTrimmed.IndexOf('|') < 0)
@@ -349,7 +328,6 @@ namespace AIStudio.Common
     }
 
     private static string DangerTokenToCanon(string token) => token == "1" ? "1" : "0";
-
     public sealed class StepCompareResult
     {
       public int StepIndex { get; set; }
@@ -374,15 +352,12 @@ namespace AIStudio.Common
       var list = new List<StepCompareResult>();
       if (doc?.Lines == null)
         return list;
-
       var expectations = doc.LogExpectations ?? new List<ScenarioLogExpectationRow>();
-
       foreach (var line in doc.Lines.OrderBy(l => l.StepIndex))
       {
         var step = line.StepIndex;
         var pulseWithin = line.PulseWithinScenario;
         var globalPulse = anchorGlobalPulse + pulseWithin;
-
         var exp = expectations.FirstOrDefault(e => e.StepIndex == step && e.PulseWithinScenario == pulseWithin)
             ?? expectations.FirstOrDefault(e => e.StepIndex == step);
         if (exp == null)
@@ -397,9 +372,7 @@ namespace AIStudio.Common
           });
           continue;
         }
-
         var actual = ResolveSnapshot(globalPulse, byGlobalPulse);
-
         var mismatches = new List<string>();
 
         // Пусто — не сравниваем; непустое ожидание сравнивается с фактом (в т.ч. «-» с прочерком в логе).
@@ -442,7 +415,6 @@ namespace AIStudio.Common
             mismatches.Add($"{label}: ожид. «{expPhrase}», факт «{factPhrase}»");
           }
         }
-
         Check("Состояние", exp.StateText, actual.State);
         Check("Стиль", exp.StyleText, actual.Style);
         Check("Тема", exp.ThemeText, actual.Theme);
@@ -458,14 +430,12 @@ namespace AIStudio.Common
         Check("Цепочка АВ", exp.AutomatizmChainText, actual.AutomatizmChain);
         Check("Цикл М", exp.MainCycleText, actual.MainCycle);
         Check("Циклы Ф", exp.BackgroundCyclesText, actual.BackgroundCycles);
-
         var ok = mismatches.Count == 0;
         var sb = new StringBuilder();
         if (ok)
           sb.Append("Все проверяемые поля совпали.");
         else
           sb.Append(string.Join("; ", mismatches));
-
         list.Add(new StepCompareResult
         {
           StepIndex = step,
@@ -475,7 +445,6 @@ namespace AIStudio.Common
           Details = sb.ToString()
         });
       }
-
       return list;
     }
 

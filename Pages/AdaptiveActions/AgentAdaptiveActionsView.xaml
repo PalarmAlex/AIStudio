@@ -1,4 +1,4 @@
-﻿<UserControl x:Class="AIStudio.Pages.AgentAdaptiveActionsView"
+<UserControl x:Class="AIStudio.Pages.AgentAdaptiveActionsView"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
@@ -14,7 +14,6 @@
     <converters:ActionSizeConverter x:Key="ActionSizeConverter"/>
     <converters:IntToVisibilityConverter x:Key="IntToVisibilityConverter"/>
     <converters:ActionDisplayTextConverter x:Key="ActionDisplayTextConverter"/>
-
     <Style x:Key="NoAdaptationTextStyle" TargetType="TextBlock">
       <Setter Property="Foreground" Value="#FFA0A0A0"/>
       <Setter Property="FontSize" Value="14"/>

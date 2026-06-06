@@ -20,26 +20,20 @@ namespace AIStudio.Common
       projectRoot = null;
       adapterId = null;
       errorMessage = null;
-
       IReadOnlyList<AdapterManifest> adapters = AdapterRegistry.GetInstalledAdapters();
-
       var dialog = new NewSymbiontProjectWindow(adapters)
       {
         Owner = owner
       };
-
       if (dialog.ShowDialog() != true)
         return false;
-
       adapterId = dialog.SelectedAdapterId;
-
       if (!ProjectFolderPicker.TryPickFolderForNewProject(owner, out projectRoot, out string pickError))
       {
         if (!string.IsNullOrEmpty(pickError))
           errorMessage = pickError;
         return false;
       }
-
       return true;
     }
   }

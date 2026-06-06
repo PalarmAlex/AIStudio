@@ -27,7 +27,6 @@ namespace AIStudio.ViewModels.SymbiontEnv
     private readonly AdapterEnvironmentSchema _schema;
     private string _currentAgentName;
     private int _currentAgentStage;
-
     /// <summary>
     /// Создаёт модель редактора.
     /// </summary>
@@ -42,29 +41,22 @@ namespace AIStudio.ViewModels.SymbiontEnv
       _isNew = isNew;
       _onSaveAll = onSaveAll ?? throw new ArgumentNullException(nameof(onSaveAll));
       _schema = AdapterSchemaLoader.LoadForCurrentProject();
-
       SaveCommand = new RelayCommand(_ => Save(), _ => IsEditingEnabled);
       CancelCommand = new RelayCommand(_ => RequestClose?.Invoke(false));
-
       RefreshAgent();
       UpdateRecommendedTriggersDisplay();
     }
 
     /// <summary>Модель полей.</summary>
     public EnvironmentRecipeEditorModel Model { get; }
-
     /// <summary>Закрыть редактор (saved).</summary>
     public event Action<bool> RequestClose;
-
     /// <summary>Вернуться к реестру без сохранения.</summary>
     public Action CloseAction { get; set; }
-
     public ICommand SaveCommand { get; }
     public ICommand CancelCommand { get; }
-
     public string CurrentAgentTitle =>
         SymbiontPageTitleFormatter.Format("Редактор рецепта среды", _currentAgentName, _currentAgentStage);
-
     public bool IsStageZero => _currentAgentStage == 0;
     public bool HasAdapter => SymbiontEnvironmentGate.IsEnvironmentEditingAllowed();
     public bool IsEditingEnabled => HasAdapter && IsStageZero && !GlobalTimer.IsPulsationRunning;
@@ -77,28 +69,24 @@ namespace AIStudio.ViewModels.SymbiontEnv
                     ? "Редактирование доступно только при выключенной пульсации"
                     : string.Empty;
     public Brush WarningMessageColor => !HasAdapter || !IsStageZero ? Brushes.Red : Brushes.Gray;
-
     public bool ShowDocumentKindPart => _schema.HasDocumentKind("part");
     public bool ShowDocumentKindAssembly => _schema.HasDocumentKind("assembly");
     public bool ShowDocumentKindDrawing => _schema.HasDocumentKind("drawing");
     public bool ShowNotSketchEdit => _schema.HasRecipePrecondition("not_sketch_edit");
     public bool ShowNotReadOnly => _schema.HasRecipePrecondition("not_read_only");
     public bool ShowPdmCheckoutRequired => _schema.HasRecipePrecondition("pdm_checkout_required");
-
     public IReadOnlyList<EnvironmentRecipeRiskTier> RiskTierChoices { get; } = new[]
     {
       EnvironmentRecipeRiskTier.A,
       EnvironmentRecipeRiskTier.B,
       EnvironmentRecipeRiskTier.C
     };
-
     public string[] StepTypeChoices
     {
       get
       {
         if (_schema?.RecipeStepTypes == null || _schema.RecipeStepTypes.Count == 0)
           return new[] { "set_property", "run_sw_command", "rebuild", "log" };
-
         return _schema.RecipeStepTypes
             .Select(s => s?.Type)
             .Where(s => !string.IsNullOrWhiteSpace(s))
@@ -114,12 +102,10 @@ namespace AIStudio.ViewModels.SymbiontEnv
     {
       if (!IsEditingEnabled)
         return;
-
       var dialog = new InfluenceActionsSelectionDialog(
           new List<int>(Model.RecommendedTriggerInfluenceIds ?? new List<int>()));
       if (owner != null)
         dialog.Owner = owner;
-
       if (dialog.ShowDialog() == true)
       {
         Model.RecommendedTriggerInfluenceIds = dialog.SelectedInfluenceActions ?? new List<int>();
@@ -134,15 +120,12 @@ namespace AIStudio.ViewModels.SymbiontEnv
     {
       if (!IsEditingEnabled || !AdaptiveActionsSystem.IsInitialized)
         return;
-
       var current = Model.AdaptiveActionId > 0
           ? new List<int> { Model.AdaptiveActionId }
           : new List<int>();
-
       var dialog = new AdaptiveActionsSelectionDialog(current);
       if (owner != null)
         dialog.Owner = owner;
-
       if (dialog.ShowDialog() == true && dialog.SelectedAdaptiveActions != null &&
           dialog.SelectedAdaptiveActions.Count > 0)
       {
@@ -157,13 +140,11 @@ namespace AIStudio.ViewModels.SymbiontEnv
         Model.RecommendedTriggersDisplay = string.Empty;
         return;
       }
-
       if (!InfluenceActionSystem.IsInitialized)
       {
         Model.RecommendedTriggersDisplay = string.Join(", ", Model.RecommendedTriggerInfluenceIds);
         return;
       }
-
       var names = new List<string>();
       foreach (int id in Model.RecommendedTriggerInfluenceIds)
       {
@@ -171,7 +152,6 @@ namespace AIStudio.ViewModels.SymbiontEnv
         var action = allActions?.FirstOrDefault(a => a.Id == id);
         names.Add(action != null ? id + ": " + action.Name : id.ToString(CultureInfo.InvariantCulture));
       }
-
       Model.RecommendedTriggersDisplay = string.Join("; ", names);
     }
 
@@ -182,13 +162,11 @@ namespace AIStudio.ViewModels.SymbiontEnv
         MessageBox.Show("Укажите ID рецепта.", "Сохранение", MessageBoxButton.OK, MessageBoxImage.Warning);
         return;
       }
-
       if (Model.AdaptiveActionId <= 0)
       {
         MessageBox.Show("Укажите адаптивное действие.", "Сохранение", MessageBoxButton.OK, MessageBoxImage.Warning);
         return;
       }
-
       try
       {
         _onSaveAll(Model, _isNew);

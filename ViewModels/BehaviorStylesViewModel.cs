@@ -1,4 +1,4 @@
-﻿using AIStudio.Common;
+using AIStudio.Common;
 using AIStudio.Pages;
 using ISIDA.Common;
 using ISIDA.Gomeostas;
@@ -27,7 +27,6 @@ namespace AIStudio.ViewModels
     private int _currentAgentStage;
     public bool IsStageZero => _currentAgentStage == 0;
     public bool IsReadOnlyMode => !IsEditingEnabled;
-
     private string _description;
     public string Description
     {
@@ -45,13 +44,11 @@ namespace AIStudio.ViewModels
     public string CurrentAgentTitle =>
         SymbiontPageTitleFormatter.Format("Стили реагирования", _currentAgentName, _currentAgentStage);
     public ObservableCollection<GomeostasSystem.BehaviorStyle> BehaviorStyles { get; } = new ObservableCollection<GomeostasSystem.BehaviorStyle>();
-
     public ICommand SaveCommand { get; }
     public ICommand RemoveStyleCommand { get; }
     public ICommand RemoveAllCommand { get; }
     private ICommand _showMatrixCommand;
     public ICommand ShowMatrixCommand => _showMatrixCommand ?? (_showMatrixCommand = new RelayCommand(ShowAntagonistMatrix));
-
     public BehaviorStylesViewModel(
         GomeostasSystem gomeostas,
         List<GomeostasSystem.BehaviorStyle> currentStyles = null)
@@ -60,9 +57,7 @@ namespace AIStudio.ViewModels
       SaveCommand = new RelayCommand(SaveData);
       RemoveStyleCommand = new RelayCommand(RemoveSelectedStyle);
       RemoveAllCommand = new RelayCommand(RemoveAllStyles);
-
       GlobalTimer.PulsationStateChanged += OnPulsationStateChanged;
-
       if (currentStyles != null)
         LoadAgentDataFromStyles(currentStyles);
       else
@@ -85,9 +80,7 @@ namespace AIStudio.ViewModels
       var agentInfo = _gomeostas.GetAgentState();
       _currentAgentStage = _gomeostas?.GetAgentState()?.EvolutionStage ?? 0;
       _currentAgentName = agentInfo.Name;
-
       BehaviorStyles.Clear();
-
       foreach (var style in _gomeostas.GetAllBehaviorStyles().Values.OrderBy(s => s.Id))
       {
         BehaviorStyles.Add(new GomeostasSystem.BehaviorStyle
@@ -98,7 +91,6 @@ namespace AIStudio.ViewModels
           AntagonistStyles = style.AntagonistStyles
         });
       }
-
       OnPropertyChanged(nameof(IsStageZero));
       OnPropertyChanged(nameof(IsEditingEnabled));
       OnPropertyChanged(nameof(PulseWarningMessage));
@@ -106,9 +98,7 @@ namespace AIStudio.ViewModels
       OnPropertyChanged(nameof(CurrentAgentTitle));
       OnPropertyChanged(nameof(IsReadOnlyMode));
     }
-
     #region Блокировка страницы в зависимости от стажа
-
     public bool IsEditingEnabled => IsStageZero && !GlobalTimer.IsPulsationRunning;
     public string PulseWarningMessage =>
       !IsStageZero
@@ -119,9 +109,7 @@ namespace AIStudio.ViewModels
     public Brush WarningMessageColor =>
       !IsStageZero ? Brushes.Red :
       Brushes.Gray;
-
     #endregion
-
     private void ShowAntagonistMatrix(object parameter)
     {
       try
@@ -134,10 +122,8 @@ namespace AIStudio.ViewModels
           Description = bs.Description,
           AntagonistStyles = bs.AntagonistStyles
         }).ToList();
-
         var matrixViewModel = new AntagonistMatrixViewModel(_gomeostas, currentStyles);
         matrixView.DataContext = matrixViewModel;
-
         var mainWindow = Application.Current.MainWindow as MainWindow;
         if (mainWindow?.DataContext is MainViewModel mainViewModel)
         {
@@ -158,7 +144,6 @@ namespace AIStudio.ViewModels
         var agentInfo = _gomeostas.GetAgentState();
         _currentAgentStage = _gomeostas?.GetAgentState()?.EvolutionStage ?? 0;
         _currentAgentName = agentInfo.Name;
-
         BehaviorStyles.Clear();
 
         // Используем переданные стили
@@ -172,7 +157,6 @@ namespace AIStudio.ViewModels
             AntagonistStyles = style.AntagonistStyles
           });
         }
-
         OnPropertyChanged(nameof(IsStageZero));
         OnPropertyChanged(nameof(IsEditingEnabled));
         OnPropertyChanged(nameof(PulseWarningMessage));
@@ -205,9 +189,7 @@ namespace AIStudio.ViewModels
       {
         if (!UpdateGomeostasStylesFromTable())
           return;
-
         var (success, error) = _gomeostas.SaveAgentBehaviorStyles();
-
         if (success)
         {
           MessageBox.Show("Стили поведения успешно сохранены",
@@ -237,7 +219,6 @@ namespace AIStudio.ViewModels
     private bool UpdateGomeostasStylesFromTable()
     {
       bool needRevalidation = false;
-
       if (!_gomeostas.ValidateAgentBehaviorStyles(BehaviorStyles, out string errorMsg))
       {
         if (errorMsg.Contains("AsymmetricStyles"))
@@ -246,7 +227,6 @@ namespace AIStudio.ViewModels
           if (asymmetricStyles.Any())
           {
             var asymmetricList = string.Join(", ", asymmetricStyles.Select(s => $"{s.Name} (ID:{s.Id})"));
-
             var result = MessageBox.Show(
                 $"Обнаружены асимметричные антагонистические связи:\n{asymmetricList}\n\n" +
                 "Выберите действие:\n" +
@@ -256,7 +236,6 @@ namespace AIStudio.ViewModels
                 "Асимметричные антагонисты",
                 MessageBoxButton.YesNoCancel,
                 MessageBoxImage.Warning);
-
             switch (result)
             {
               case MessageBoxResult.Yes:
@@ -265,16 +244,12 @@ namespace AIStudio.ViewModels
                     "Автокоррекция завершена",
                     MessageBoxButton.OK,
                     MessageBoxImage.Information);
-
                 ApplyLocalStylesToGomeostas();
                 RefreshAllCollections();
-
                 needRevalidation = true;
                 break;
-
               case MessageBoxResult.No:
                 break;
-
               case MessageBoxResult.Cancel:
                 return false;
             }
@@ -289,7 +264,6 @@ namespace AIStudio.ViewModels
           return false;
         }
       }
-
       if (needRevalidation)
       {
         if (!_gomeostas.ValidateAgentBehaviorStyles(BehaviorStyles, out errorMsg))
@@ -301,10 +275,8 @@ namespace AIStudio.ViewModels
           return false;
         }
       }
-
       if (!needRevalidation)
         ApplyLocalStylesToGomeostas();
-
       return true;
     }
 
@@ -340,7 +312,6 @@ namespace AIStudio.ViewModels
               style.Name,
               style.Description,
               new List<int>(style.AntagonistStyles));
-
           style.Id = newId;
         }
       }
@@ -364,10 +335,8 @@ namespace AIStudio.ViewModels
           // Удаляем из локальной коллекции в любом случае
           if (BehaviorStyles.Contains(style)) 
             BehaviorStyles.Remove(style);
-
           var existingBehaviorStyle = _gomeostas.GetAllBehaviorStyles().ToList();
           bool stileExistsInSystem = BehaviorStyles.Any(s => s.Id == style.Id);
-
           if (stileExistsInSystem)
           {
             if (!_gomeostas.RemoveBehaviorStyle(style.Id))
@@ -375,7 +344,6 @@ namespace AIStudio.ViewModels
               MessageBox.Show("Не удалось удалить стиль из системы", "Ошибка",
                             MessageBoxButton.OK, MessageBoxImage.Error);
             }
-
             var (success, error) = _gomeostas.SaveAgentBehaviorStyles();
             if (!success)
             {
@@ -411,7 +379,6 @@ namespace AIStudio.ViewModels
             Description = bs.Description,
             AntagonistStyles = bs.AntagonistStyles
           }).ToList();
-
           matrixViewModel.LoadMatrixFromStyles(currentStyles);
         }
       }
@@ -424,7 +391,6 @@ namespace AIStudio.ViewModels
           "Подтверждение удаления",
           MessageBoxButton.YesNo,
           MessageBoxImage.Warning);
-
       if (result == MessageBoxResult.Yes)
       {
         try
@@ -442,7 +408,6 @@ namespace AIStudio.ViewModels
           BehaviorStyles.Clear();
           if (defaultStyle != null)
             BehaviorStyles.Add(defaultStyle);
-
           var (success, error) = _gomeostas.SaveAgentBehaviorStyles(false); // все удалено - не надо валидаций 
           if (success)
           {
@@ -475,7 +440,6 @@ namespace AIStudio.ViewModels
       public string LinkText { get; set; } = "Подробнее...";
       public string Url { get; set; } = "https://scorcher.ru/isida/iadaptive_agents_guide.php#ref_7";
       public ICommand OpenLinkCommand { get; }
-
       public DescriptionWithLink()
       {
         OpenLinkCommand = new RelayCommand(_ =>
@@ -499,7 +463,5 @@ namespace AIStudio.ViewModels
         };
       }
     }
-
   }
-
 }

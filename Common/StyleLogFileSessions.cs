@@ -9,10 +9,8 @@ namespace AIStudio.Common
   public static class StyleLogFileSessions
   {
     private const string CsvFileName = "AgentLogs_Styles.csv";
-
     public static IReadOnlyList<LogFileSessionInfo> ListFileSessions() =>
         CsvLogFileSessionReader.ListSessions(CsvFileName, IsHeaderRow, "Time");
-
     public static StyleLogSessionData LoadSessionData(int sessionIndex)
     {
       var rows = CsvLogFileSessionReader.ReadSessionRows(CsvFileName, sessionIndex, IsHeaderRow, "Time");
@@ -24,14 +22,12 @@ namespace AIStudio.Common
       var data = new StyleLogSessionData();
       if (sessionIndices == null)
         return data;
-
       foreach (int ix in sessionIndices)
       {
         var part = LoadSessionData(ix);
         data.StyleEntries.AddRange(part.StyleEntries);
         data.Activations.AddRange(part.Activations);
       }
-
       return data;
     }
 
@@ -51,10 +47,8 @@ namespace AIStudio.Common
       {
         if (!CsvLogFileSessionReader.TryParseTimestamp(row["Time"], out DateTime ts))
           continue;
-
         int pulse = CsvLogFileSessionReader.ParseInt(row.TryGetValue("Pulse", out string p) ? p : "0");
         string stage = row.TryGetValue("Stage", out string st) ? st : "";
-
         if (string.Equals(stage, "Final", StringComparison.OrdinalIgnoreCase))
         {
           data.StyleEntries.Add(new StyleLogEntry
@@ -67,7 +61,6 @@ namespace AIStudio.Common
           });
           continue;
         }
-
         if (string.Equals(stage, "ParameterActivation", StringComparison.OrdinalIgnoreCase))
         {
           data.Activations.Add(new StyleParameterActivationEntry
@@ -84,7 +77,6 @@ namespace AIStudio.Common
           });
         }
       }
-
       return data;
     }
 

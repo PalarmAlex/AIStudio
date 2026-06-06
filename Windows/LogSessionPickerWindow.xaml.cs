@@ -9,7 +9,6 @@ namespace AIStudio.Windows
   public partial class LogSessionPickerWindow : Window
   {
     public LogSessionPickerViewModel ViewModel { get; }
-
     public LogSessionPickerWindow(
         string title,
         string headerText,

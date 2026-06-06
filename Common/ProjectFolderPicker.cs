@@ -16,7 +16,6 @@ namespace AIStudio.Common
     {
       projectRoot = null;
       errorMessage = null;
-
       if (!TryShowFolderDialog(
               owner,
               "Укажите каталог для нового проекта данных (можно ввести имя новой папки в поле «Папка» или создать папку кнопкой «Создать папку»)...",
@@ -25,7 +24,6 @@ namespace AIStudio.Common
       {
         return false;
       }
-
       return ProjectBootstrap.TryEnsureFolderFromDialogSelection(rawPath, out projectRoot, out errorMessage);
     }
 
@@ -39,14 +37,12 @@ namespace AIStudio.Common
         out string projectRoot)
     {
       projectRoot = null;
-
       string initialPath = ProjectBootstrap.GetDefaultProjectsFolderDialogPath();
       if (SettingsValidator.TryInferProjectRoot(settingsPath, dataGomeostasFolderPath, out string currentRoot)
           && Directory.Exists(currentRoot))
       {
         initialPath = ProjectBootstrap.ToFolderDialogInitialPath(currentRoot);
       }
-
       if (!TryShowFolderDialog(
               owner,
               "Укажите корневой каталог данных проекта...",
@@ -55,7 +51,6 @@ namespace AIStudio.Common
       {
         return false;
       }
-
       projectRoot = selectedPath;
       return !string.IsNullOrWhiteSpace(projectRoot);
     }
@@ -67,21 +62,17 @@ namespace AIStudio.Common
         out string resultPath)
     {
       resultPath = null;
-
       var dialog = new VistaFolderBrowserDialog
       {
         Description = description,
         UseDescriptionForTitle = true,
         SelectedPath = SanitizeSelectedPathForOokii(selectedPath)
       };
-
       bool? accepted = owner != null
           ? dialog.ShowDialog(owner)
           : dialog.ShowDialog();
-
       if (accepted != true)
         return false;
-
       resultPath = dialog.SelectedPath;
       return !string.IsNullOrWhiteSpace(resultPath);
     }
@@ -91,7 +82,6 @@ namespace AIStudio.Common
     {
       if (string.IsNullOrWhiteSpace(path))
         return string.Empty;
-
       try
       {
         string full = Path.GetFullPath(path.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar));
@@ -102,7 +92,6 @@ namespace AIStudio.Common
       {
         // невалидный путь — диалог откроется в каталоге по умолчанию Ookii
       }
-
       return string.Empty;
     }
   }

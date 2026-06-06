@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Globalization;
 using System.Windows.Data;
 using static ISIDA.Actions.AdaptiveActionsSystem;
@@ -16,7 +16,6 @@ namespace AIStudio.Converters
         // Компактный формат: "Имя [Интенсивность]"
         return $"{action.Name} [{vigorPercentage}]";
       }
-
       return string.Empty;
     }
 

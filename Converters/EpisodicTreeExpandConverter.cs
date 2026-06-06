@@ -18,7 +18,6 @@ namespace AIStudio.Converters
       bool collapseUnderstanding = values[2] is bool b2 && b2;
       bool collapseNodePid = values[3] is bool b3 && b3;
       bool collapseTrigger = values[4] is bool b4 && b4;
-
       bool shouldCollapse =
           (level == 1 && collapseEmotions) ||
           (level == 2 && collapseUnderstanding) ||

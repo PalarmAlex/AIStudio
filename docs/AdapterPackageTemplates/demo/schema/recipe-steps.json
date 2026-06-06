@@ -2,8 +2,8 @@
   "schemaVersion": "1.0",
   "stepTypes": [
     { "type": "set_property", "label": "Установить свойство" },
-    { "type": "run_sw_command", "label": "Команда SolidWorks" },
-    { "type": "rebuild", "label": "Перестроить" },
+    { "type": "run_command", "label": "Выполнить команду" },
+    { "type": "refresh", "label": "Обновить" },
     { "type": "log", "label": "Запись в лог" }
   ]
 }

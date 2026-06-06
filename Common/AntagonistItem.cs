@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
@@ -14,7 +14,6 @@ namespace AIStudio.Common
     public string Name { get; set; }
     public string Description { get; set; }
     public List<int> AntagonistIds { get; set; } = new List<int>();
-
     private bool _isSelected;
     public bool IsSelected
     {
@@ -46,7 +45,6 @@ namespace AIStudio.Common
 
     public event Action<AntagonistItem> OnSelectionChanged;
     public event PropertyChangedEventHandler PropertyChanged;
-
     protected virtual void OnPropertyChanged([CallerMemberName] string propertyName = null)
     {
       PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));

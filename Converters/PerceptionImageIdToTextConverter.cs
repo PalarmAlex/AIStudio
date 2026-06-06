@@ -1,4 +1,4 @@
-﻿using ISIDA.Actions;
+using ISIDA.Actions;
 using ISIDA.Common;
 using ISIDA.Reflexes;
 using ISIDA.Sensors;
@@ -23,22 +23,18 @@ namespace AIStudio.Converters
             var perceptionSystem = PerceptionImagesSystem.Instance;
             var images = perceptionSystem.GetAllPerceptionImagesList();
             var image = images.FirstOrDefault(img => img.Id == imageId);
-
             if (image != null)
             {
               // Создаем описание аналогичное тому, что в фильтрах
               var description = $"Образ {image.Id}";
-
               if (image.InfluenceActionsList != null && image.InfluenceActionsList.Any())
               {
                 description += $", возд.: {image.InfluenceActionsList.Count}";
               }
-
               if (image.PhraseIdList != null && image.PhraseIdList.Any())
               {
                 description += $", фраз: {image.PhraseIdList.Count}";
               }
-
               return description;
             }
             return $"Образ #{imageId}";
@@ -58,5 +54,4 @@ namespace AIStudio.Converters
       throw new NotImplementedException();
     }
   }
-
 }

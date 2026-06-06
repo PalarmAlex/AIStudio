@@ -27,14 +27,11 @@ namespace AIStudio.ViewModels
     private readonly GomeostasSystem _gomeostas;
     private string _currentAgentName;
     private int _currentAgentStage;
-
     public string CurrentAgentTitle =>
         SymbiontPageTitleFormatter.Format("Цепочки безусловных рефлексов", _currentAgentName, _currentAgentStage);
-
     private readonly ObservableCollection<ChainDisplayItem> _allChains = new ObservableCollection<ChainDisplayItem>();
     private readonly ObservableCollection<ChainDisplayItem> _displayChains = new ObservableCollection<ChainDisplayItem>();
     private readonly Dictionary<int, string> _actionNameById = new Dictionary<int, string>();
-
     public List<KeyValuePair<int?, string>> PageSizeOptions { get; } = new List<KeyValuePair<int?, string>>
     {
       new KeyValuePair<int?, string>(100, "100"),
@@ -44,7 +41,6 @@ namespace AIStudio.ViewModels
       new KeyValuePair<int?, string>(10000, "10000"),
       new KeyValuePair<int?, string>(null, "Все")
     };
-
     private int? _selectedPageSize = 100;
     public int? SelectedPageSize
     {
@@ -71,12 +67,10 @@ namespace AIStudio.ViewModels
     private string _filterChainId;
     private int _selectedActionFilterId;
     private string _filterChainName;
-
     public ICollectionView ChainsView { get; }
     public ICommand ClearFiltersCommand { get; }
     public ICommand ApplyFiltersCommand { get; }
     public List<KeyValuePair<int, string>> ActionFilterOptions { get; } = new List<KeyValuePair<int, string>>();
-
     public string FilterReflexId
     {
       get => _filterReflexId;
@@ -128,12 +122,9 @@ namespace AIStudio.ViewModels
       _actionsSystem = actionsSystem ?? throw new ArgumentNullException(nameof(actionsSystem));
       _gomeostas = gomeostas;
       RefreshAgentTitleContext();
-
       ChainsView = CollectionViewSource.GetDefaultView(_displayChains);
-
       ClearFiltersCommand = new RelayCommand(ClearFilters);
       ApplyFiltersCommand = new RelayCommand(_ => ApplyFilters());
-
       LoadActionNames();
       InitializeActionFilterOptions();
       LoadChainsData();
@@ -148,7 +139,6 @@ namespace AIStudio.ViewModels
     private void LoadActionNames()
     {
       _actionNameById.Clear();
-
       foreach (var action in _actionsSystem.GetAllAdaptiveActions())
       {
         _actionNameById[action.Id] = action.Name;
@@ -159,12 +149,10 @@ namespace AIStudio.ViewModels
     {
       ActionFilterOptions.Clear();
       ActionFilterOptions.Add(new KeyValuePair<int, string>(0, "Все действия"));
-
       foreach (var action in _actionsSystem.GetAllAdaptiveActions().OrderBy(a => a.Name))
       {
         ActionFilterOptions.Add(new KeyValuePair<int, string>(action.Id, action.Name));
       }
-
       SelectedActionFilterId = 0;
     }
 
@@ -173,26 +161,21 @@ namespace AIStudio.ViewModels
       try
       {
         _allChains.Clear();
-
         var allChains = _chainsSystem.GetAllReflexChains();
         foreach (var chain in allChains.Values.OrderBy(c => c.ID))
         {
           var linkedReflexIds = _reflexesSystem.GetReflexesForChain(chain.ID)
             .OrderBy(id => id)
             .ToList();
-
           var reflexIdsText = linkedReflexIds.Any()
             ? string.Join(", ", linkedReflexIds)
             : string.Empty;
-
           var reflexIdsTooltip = linkedReflexIds.Any()
             ? $"Привязана к рефлексам: {reflexIdsText}"
             : "Цепочка пока не привязана ни к одному рефлексу";
-
           var links = (chain.Links ?? new List<ReflexChainsSystem.ChainLink>())
             .OrderBy(l => l.ID)
             .ToList();
-
           if (!links.Any())
           {
             _allChains.Add(new ChainDisplayItem
@@ -206,7 +189,6 @@ namespace AIStudio.ViewModels
             });
             continue;
           }
-
           foreach (var link in links)
           {
             var actionText = GetActionText(link.ActionId);
@@ -233,7 +215,6 @@ namespace AIStudio.ViewModels
       {
         Logger.Error(ex.Message);
       }
-
       RefreshDisplay();
     }
 
@@ -251,10 +232,8 @@ namespace AIStudio.ViewModels
     {
       if (actionId <= 0)
         return string.Empty;
-
       if (_actionNameById.TryGetValue(actionId, out var actionName))
         return actionName;
-
       return $"Действие #{actionId}";
     }
 
@@ -262,34 +241,29 @@ namespace AIStudio.ViewModels
     {
       if (!(item is ChainDisplayItem chainItem))
         return false;
-
       if (!string.IsNullOrWhiteSpace(FilterReflexId))
       {
         var reflexIdsStr = chainItem.ReflexIdsText ?? string.Empty;
         if (reflexIdsStr.IndexOf(FilterReflexId.Trim(), StringComparison.OrdinalIgnoreCase) < 0)
           return false;
       }
-
       if (!string.IsNullOrWhiteSpace(FilterChainId))
       {
         var chainIdStr = chainItem.ChainId.ToString();
         if (chainIdStr.IndexOf(FilterChainId.Trim(), StringComparison.OrdinalIgnoreCase) < 0)
           return false;
       }
-
       if (SelectedActionFilterId > 0)
       {
         if (chainItem.ActionId != SelectedActionFilterId)
           return false;
       }
-
       if (!string.IsNullOrWhiteSpace(FilterChainName))
       {
         var chainName = chainItem.ChainName ?? string.Empty;
         if (chainName.IndexOf(FilterChainName.Trim(), StringComparison.OrdinalIgnoreCase) < 0)
           return false;
       }
-
       return true;
     }
 

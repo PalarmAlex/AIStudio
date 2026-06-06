@@ -1,4 +1,4 @@
-﻿using ISIDA.Common;
+using ISIDA.Common;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -12,14 +12,12 @@ namespace AIStudio.Common
     private readonly Dictionary<int, List<int>> _antagonistsMap;
     private bool _isUpdatingSelection = false;
     private readonly Func<List<AntagonistConflict>, AntagonistItem, bool> _conflictResolutionCallback;
-
     public AntagonistManager(List<AntagonistItem> items,
                            Func<List<AntagonistConflict>, AntagonistItem, bool> conflictResolutionCallback = null)
     {
       _allItems = items;
       _antagonistsMap = items.ToDictionary(item => item.Id, item => item.AntagonistIds);
       _conflictResolutionCallback = conflictResolutionCallback;
-
       foreach (var item in items)
       {
         item.OnSelectionChanged += HandleSelectionChanged;
@@ -29,11 +27,9 @@ namespace AIStudio.Common
     private void HandleSelectionChanged(AntagonistItem changedItem)
     {
       if (_isUpdatingSelection) return;
-
       try
       {
         _isUpdatingSelection = true;
-
         var selectedIds = _allItems.Where(i => i.IsSelected).Select(i => i.Id).ToList();
         var conflicts = AntagonistValidator.ValidateAntagonists(selectedIds, _antagonistsMap);
 
@@ -74,13 +70,11 @@ namespace AIStudio.Common
         conflictIds.Add(conflict.FirstId);
         conflictIds.Add(conflict.SecondId);
       }
-
       var itemsToDeselect = _allItems
           .Where(item => conflictIds.Contains(item.Id) &&
                         item.Id != recentlyChangedItem.Id &&
                         item.IsSelected)
           .ToList();
-
       foreach (var item in itemsToDeselect)
       {
         item.IsSelected = false;
@@ -90,7 +84,6 @@ namespace AIStudio.Common
     private void UpdateBlockedItems(List<int> selectedIds)
     {
       _blockedItemIds.Clear();
-
       foreach (var selectedId in selectedIds)
       {
         if (_antagonistsMap.TryGetValue(selectedId, out var antagonists))

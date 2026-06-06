@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
@@ -14,12 +14,10 @@ namespace AIStudio.Dialogs
     public class ActivationItem
     {
       private readonly List<GomeostasSystem.BehaviorStyle> _availableStyles;
-
       public int Level { get; set; }
       public string LevelName { get; set; }
       public List<int> ActivateStyles { get; set; } = new List<int>();
       public List<int> DeactivateStyles { get; set; } = new List<int>();
-
       public ActivationItem(List<GomeostasSystem.BehaviorStyle> availableStyles)
       {
         _availableStyles = availableStyles;
@@ -27,7 +25,6 @@ namespace AIStudio.Dialogs
 
       public string ActivateStylesText => GetStylesText(ActivateStyles);
       public string DeactivateStylesText => GetStylesText(DeactivateStyles, true);
-
       private string GetStylesText(List<int> styleIds, bool withMinus = false)
       {
         var prefix = withMinus ? "-" : "";
@@ -49,12 +46,9 @@ namespace AIStudio.Dialogs
             {5, "5 - Сильное отклонение"},
             {6, "6 - Критическое отклонение"}
         };
-
     private readonly List<GomeostasSystem.BehaviorStyle> _availableStyles;
     private ObservableCollection<ActivationItem> _items;
-
     public Dictionary<int, List<int>> ResultActivations { get; private set; }
-
     public StyleActivationsEditor(
         string title,
         Dictionary<int, List<int>> activations,
@@ -78,7 +72,6 @@ namespace AIStudio.Dialogs
     private void InitializeItems(Dictionary<int, List<int>> activations)
     {
       _items = new ObservableCollection<ActivationItem>();
-
       foreach (var level in LevelNames)
       {
         var item = new ActivationItem(_availableStyles)
@@ -86,7 +79,6 @@ namespace AIStudio.Dialogs
           Level = level.Key,
           LevelName = level.Value
         };
-
         if (activations.TryGetValue(level.Key, out var styleIds))
         {
           foreach (var styleId in styleIds)
@@ -97,10 +89,8 @@ namespace AIStudio.Dialogs
               item.DeactivateStyles.Add(Math.Abs(styleId));
           }
         }
-
         _items.Add(item);
       }
-
       ActivationsGrid.ItemsSource = _items;
     }
 
@@ -112,7 +102,6 @@ namespace AIStudio.Dialogs
             "Выбор активируемых стилей",
             _availableStyles,
             item.ActivateStyles);
-
         if (editor.ShowDialog() == true)
         {
           item.ActivateStyles = editor.SelectedStyleIds.ToList();
@@ -130,7 +119,6 @@ namespace AIStudio.Dialogs
             _availableStyles,
             item.DeactivateStyles,
             true); // не проверять антагонистов
-
         if (editor.ShowDialog() == true)
         {
           item.DeactivateStyles = editor.SelectedStyleIds.ToList();
@@ -144,7 +132,6 @@ namespace AIStudio.Dialogs
       var result = new Dictionary<int, List<int>>();
       var hasErrors = false;
       var errorMessages = new List<string>();
-
       foreach (var item in _items)
       {
         // Проверяем пересечение активируемых и деактивируемых стилей
@@ -153,19 +140,15 @@ namespace AIStudio.Dialogs
         {
           var styleNames = string.Join(", ", conflictingStyles.Select(id =>
               _availableStyles.FirstOrDefault(s => s.Id == id)?.Name ?? id.ToString()));
-
           errorMessages.Add($"Уровень {item.LevelName}: стили {styleNames} одновременно активируются и деактивируются");
           hasErrors = true;
         }
-
         var styleIds = new List<int>();
         styleIds.AddRange(item.ActivateStyles);
         styleIds.AddRange(item.DeactivateStyles.Select(x => -x));
-
         if (styleIds.Any())
           result[item.Level] = styleIds;
       }
-
       if (hasErrors)
       {
         MessageBox.Show(
@@ -175,7 +158,6 @@ namespace AIStudio.Dialogs
             MessageBoxImage.Error);
         return;
       }
-
       ResultActivations = result;
       DialogResult = true;
       Close();

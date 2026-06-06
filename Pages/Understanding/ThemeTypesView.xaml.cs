@@ -66,7 +66,6 @@ namespace AIStudio.Pages.Understanding
         var editor = new InfoFunctionsChecklistEditor(
             $"Инфо-функции темы: {item.Description} (ID {item.Id})",
             item.AllowedInfoFuncIds);
-
         if (editor.ShowDialog() == true)
         {
           item.SetAllowedInfoFuncIds(editor.SelectedIds);

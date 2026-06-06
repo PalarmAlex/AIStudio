@@ -1,4 +1,4 @@
-﻿using AIStudio.Common;
+using AIStudio.Common;
 using AIStudio.Dialogs;
 using AIStudio.ViewModels;
 using ISIDA.Psychic.Automatism;
@@ -27,12 +27,9 @@ namespace AIStudio.Pages.Automatizm
           e.Handled = true;
           return;
         }
-
         var grid = (DataGrid)sender;
-
         if (grid.IsEditing())
           return;
-
         if (grid.SelectedItems.Count > 0 && DataContext is AutomatizmsViewModel viewModel)
         {
           var automatizms = grid.SelectedItems
@@ -40,13 +37,11 @@ namespace AIStudio.Pages.Automatizm
               .Where(item => item is AutomatizmsViewModel.AutomatizmDisplayItem)
               .Cast<AutomatizmsViewModel.AutomatizmDisplayItem>()
               .ToList();
-
           var result = MessageBox.Show(
               $"Вы действительно хотите удалить {automatizms.Count} автоматизмов?",
               "Подтверждение удаления",
               MessageBoxButton.YesNo,
               MessageBoxImage.Question);
-
           if (result == MessageBoxResult.Yes)
           {
             foreach (var automatizm in automatizms)
@@ -54,7 +49,6 @@ namespace AIStudio.Pages.Automatizm
               viewModel.RemoveSelectedAutomatizm(automatizm);
             }
           }
-
           e.Handled = true;
         }
       }

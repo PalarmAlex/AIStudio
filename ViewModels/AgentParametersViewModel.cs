@@ -1,4 +1,4 @@
-﻿using System.Collections.ObjectModel;
+using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Windows;
 using AIStudio.Common;
@@ -9,10 +9,8 @@ namespace AIStudio.ViewModels
   public class AgentParametersViewModel : INotifyPropertyChanged
   {
     private readonly GomeostasSystem _gomeostas;
-
     public ObservableCollection<GomeostasSystem.ParameterData> Parameters { get; }
         = new ObservableCollection<GomeostasSystem.ParameterData>();
-
     public AgentParametersViewModel(GomeostasSystem gomeostas)
     {
       _gomeostas = gomeostas;
@@ -22,7 +20,6 @@ namespace AIStudio.ViewModels
     private void LoadParameters()
     {
       var parameters = _gomeostas.GetAllParameters();
-
       Parameters.Clear();
       foreach (var param in parameters)
       {

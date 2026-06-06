@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Globalization;
 using System.Windows;
 using System.Windows.Data;
@@ -16,7 +16,6 @@ namespace AIStudio.Converters
         {
           boolValue = !boolValue;
         }
-
         return boolValue ? Visibility.Visible : Visibility.Collapsed;
       }
       return Visibility.Collapsed;

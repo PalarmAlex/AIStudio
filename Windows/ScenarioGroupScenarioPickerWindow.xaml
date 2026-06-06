@@ -58,7 +58,6 @@
     </Grid.RowDefinitions>
 
     <TextBlock Grid.Row="0" Text="Выберите один или несколько сценариев" FontSize="14" FontWeight="SemiBold" Margin="0,0,0,10"/>
-
     <Border Grid.Row="1" BorderBrush="#FFE0E0E0" BorderThickness="1" CornerRadius="4" Padding="8,8" Margin="0,0,0,10" Background="#FFF9FBE7">
       <Grid>
         <Grid.ColumnDefinitions>

@@ -33,16 +33,13 @@ namespace AIStudio.ViewModels.Research
     private readonly GomeostasSystem _gomeostas;
     private string _currentAgentName;
     private int _currentAgentStage;
-
     public string CurrentAgentTitle =>
         SymbiontPageTitleFormatter.Format("Группы сценариев оператора", _currentAgentName, _currentAgentStage);
-
     private ScenarioGroupHeader _selected;
     private readonly List<ScenarioGroupHeader> _registryAll = new List<ScenarioGroupHeader>();
     private string _filterIdText = "";
     private string _filterTitleText = "";
     private string _reportOutputFolder = "";
-
     public ScenarioGroupRegistryViewModel(
         OperatorScenarioRunner runner,
         Func<ScenarioGroupDocument, string, bool> tryStartGroup,
@@ -62,9 +59,7 @@ namespace AIStudio.ViewModels.Research
       _canStopScenarioSession = canStopScenarioSession ?? (() => _runner.IsRunning);
       _gomeostas = gomeostas;
       RefreshAgentTitleContext();
-
       _reportOutputFolder = AppConfig.ScenarioReportsFolderPath ?? "";
-
       Items = new ObservableCollection<ScenarioGroupHeader>();
       RefreshCommand = new RelayCommand(_ => Refresh());
       NewCommand = new RelayCommand(_ => NewGroup(), _ => !_isScenarioRunSessionBusy());
@@ -76,13 +71,11 @@ namespace AIStudio.ViewModels.Research
       ApplyFiltersCommand = new RelayCommand(_ => ApplyFilters());
       ResetFiltersCommand = new RelayCommand(_ => ResetFilters());
       BrowseReportFolderCommand = new RelayCommand(_ => BrowseReportFolder());
-
       _runner.RunningStateChanged += () =>
       {
         Application.Current?.Dispatcher?.BeginInvoke(DispatcherPriority.Normal,
             new Action(() => CommandManager.InvalidateRequerySuggested()));
       };
-
       Refresh();
     }
 
@@ -99,7 +92,6 @@ namespace AIStudio.ViewModels.Research
     }
 
     public ObservableCollection<ScenarioGroupHeader> Items { get; }
-
     public ScenarioGroupHeader Selected
     {
       get => _selected;
@@ -121,7 +113,6 @@ namespace AIStudio.ViewModels.Research
     public ICommand ApplyFiltersCommand { get; }
     public ICommand ResetFiltersCommand { get; }
     public ICommand BrowseReportFolderCommand { get; }
-
     public string ReportOutputFolder
     {
       get => _reportOutputFolder;
@@ -170,7 +161,6 @@ namespace AIStudio.ViewModels.Research
         MessageBox.Show("Дождитесь завершения сценария или подготовки к запуску.", "Группа", MessageBoxButton.OK, MessageBoxImage.Information);
         return true;
       }
-
       var ids = new HashSet<int>(headers.Select(h => h.Id));
       string confirm = ids.Count == 1
           ? $"Удалить группу «{headers[0].Title}» (ID={headers[0].Id.ToString(CultureInfo.InvariantCulture)})?"
@@ -178,7 +168,6 @@ namespace AIStudio.ViewModels.Research
       if (MessageBox.Show(confirm, "Подтверждение",
             MessageBoxButton.YesNo, MessageBoxImage.Question) != MessageBoxResult.Yes)
         return true;
-
       foreach (var id in ids)
         ScenarioGroupStorage.DeleteGroupFiles(id);
       var reg = ScenarioGroupStorage.LoadGroupRegistry().Where(h => !ids.Contains(h.Id)).ToList();
@@ -221,7 +210,6 @@ namespace AIStudio.ViewModels.Research
         MessageBox.Show("Дождитесь завершения сценария или подготовки к запуску.", "Группа", MessageBoxButton.OK, MessageBoxImage.Information);
         return;
       }
-
       ScenarioGroupStorage.EnsureFolder();
       var doc = new ScenarioGroupDocument
       {
@@ -278,13 +266,11 @@ namespace AIStudio.ViewModels.Research
         var groupDoc = ScenarioGroupStorage.LoadGroup(Selected.Id);
         groupDoc.Title = Selected.Title;
         groupDoc.Description = Selected.Description;
-
         if (groupDoc.Members == null || groupDoc.Members.Count == 0)
         {
           MessageBox.Show("В группе нет сценариев для запуска.", "Группа", MessageBoxButton.OK, MessageBoxImage.Information);
           return;
         }
-
         if (_getLaunchPrecheckError != null)
         {
           var preErr = _getLaunchPrecheckError();
@@ -294,7 +280,6 @@ namespace AIStudio.ViewModels.Research
             return;
           }
         }
-
         var ordered = groupDoc.Members.OrderBy(m => m.SortOrderInGroup).ThenBy(m => m.ScenarioId).ToList();
         var sb = new StringBuilder();
         sb.Append("Будут запущены сценарии в таком порядке (коэфф. пульсации группы: ")
@@ -309,11 +294,9 @@ namespace AIStudio.ViewModels.Research
               .Append(", авт.зап. ").AppendLine(m.ScenarioAuthoritativeRecording ? "да" : "нет");
         }
         sb.AppendLine().AppendLine("Продолжить?");
-
         var owner = Application.Current?.MainWindow as Window;
         if (!WideYesNoDialog.Show(owner, sb.ToString(), "Подтверждение группового запуска"))
           return;
-
         var folder = string.IsNullOrWhiteSpace(ReportOutputFolder)
             ? AppConfig.ScenarioReportsFolderPath
             : ReportOutputFolder.Trim();
@@ -334,7 +317,6 @@ namespace AIStudio.ViewModels.Research
         var doc = ScenarioGroupStorage.LoadGroup(Selected.Id);
         doc.Id = ScenarioGroupStorage.NextGroupId();
         doc.Title = (Selected.Title ?? "Группа") + "_copy1";
-
         var reg = ScenarioGroupStorage.LoadGroupRegistry();
         reg.Add(new ScenarioGroupHeader
         {
@@ -385,7 +367,6 @@ namespace AIStudio.ViewModels.Research
     }
 
     public event PropertyChangedEventHandler PropertyChanged;
-
     private void OnPropertyChanged([CallerMemberName] string name = null) =>
         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
   }

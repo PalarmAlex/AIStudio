@@ -32,16 +32,12 @@
 
     <TextBlock Grid.Row="2" Grid.Column="0" VerticalAlignment="Center" Text="Название:"/>
     <TextBox Grid.Row="2" Grid.Column="1" x:Name="DisplayNameTextBox" Margin="0,0,0,8" MinHeight="26"/>
-
     <TextBlock Grid.Row="3" Grid.Column="0" VerticalAlignment="Center" Text="Версия:"/>
     <TextBox Grid.Row="3" Grid.Column="1" x:Name="VersionTextBox" Margin="0,0,0,8" MinHeight="26"/>
-
     <TextBlock Grid.Row="4" Grid.Column="0" VerticalAlignment="Center" Text="Контракт:"/>
     <TextBox Grid.Row="4" Grid.Column="1" x:Name="ContractVersionTextBox" Margin="0,0,0,8" MinHeight="26" IsReadOnly="True" Background="#FFF5F5F5"/>
-
     <TextBlock Grid.Row="5" Grid.Column="0" VerticalAlignment="Center" Text="Автор:"/>
     <TextBox Grid.Row="5" Grid.Column="1" x:Name="AuthorTextBox" Margin="0,0,0,8" MinHeight="26"/>
-
     <TextBlock Grid.Row="6" Grid.Column="0" VerticalAlignment="Top" Margin="0,4,0,0" Text="Описание:"/>
     <TextBox Grid.Row="6" Grid.Column="1" x:Name="DescriptionTextBox" Margin="0,0,0,8"
              AcceptsReturn="True" TextWrapping="Wrap" VerticalScrollBarVisibility="Auto" MinHeight="72"/>

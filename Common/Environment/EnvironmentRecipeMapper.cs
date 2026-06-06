@@ -16,7 +16,6 @@ namespace AIStudio.Common.SymbiontEnv
     {
       if (recipe == null)
         return null;
-
       return new EnvironmentRecipeListItem
       {
         Id = recipe.Id,
@@ -31,7 +30,6 @@ namespace AIStudio.Common.SymbiontEnv
     {
       if (recipe == null)
         return new EnvironmentRecipeEditorModel();
-
       var model = new EnvironmentRecipeEditorModel
       {
         Id = recipe.Id,
@@ -52,7 +50,6 @@ namespace AIStudio.Common.SymbiontEnv
         NotReadOnly = recipe.NotReadOnly,
         PdmCheckoutRequired = recipe.PdmCheckoutRequired
       };
-
       foreach (EnvironmentRecipeStepData step in recipe.Steps)
       {
         model.Steps.Add(new EnvironmentRecipeStepRow
@@ -61,7 +58,6 @@ namespace AIStudio.Common.SymbiontEnv
           ParametersText = FormatParameters(step?.Parameters)
         });
       }
-
       return model;
     }
 
@@ -70,7 +66,6 @@ namespace AIStudio.Common.SymbiontEnv
     {
       if (model == null)
         throw new ArgumentNullException(nameof(model));
-
       var data = new EnvironmentRecipeData
       {
         Id = model.Id?.Trim() ?? string.Empty,
@@ -86,14 +81,12 @@ namespace AIStudio.Common.SymbiontEnv
         TestNotes = model.TestNotes ?? string.Empty,
         RecommendedTriggerInfluenceIds = model.RecommendedTriggerInfluenceIds?.ToList() ?? new List<int>()
       };
-
       if (model.DocumentKindPart)
         data.DocumentKinds.Add(EnvironmentDocumentKind.Part);
       if (model.DocumentKindAssembly)
         data.DocumentKinds.Add(EnvironmentDocumentKind.Assembly);
       if (model.DocumentKindDrawing)
         data.DocumentKinds.Add(EnvironmentDocumentKind.Drawing);
-
       foreach (EnvironmentRecipeStepRow row in model.Steps)
       {
         data.Steps.Add(new EnvironmentRecipeStepData
@@ -102,7 +95,6 @@ namespace AIStudio.Common.SymbiontEnv
           Parameters = new Dictionary<string, string>(ParseParameters(row?.ParametersText), StringComparer.OrdinalIgnoreCase)
         });
       }
-
       return data;
     }
 
@@ -110,7 +102,6 @@ namespace AIStudio.Common.SymbiontEnv
     {
       if (recipe.DocumentKinds == null || recipe.DocumentKinds.Count == 0)
         return kind == EnvironmentDocumentKind.Part || kind == EnvironmentDocumentKind.Assembly;
-
       return recipe.DocumentKinds.Contains(kind);
     }
 
@@ -118,7 +109,6 @@ namespace AIStudio.Common.SymbiontEnv
     {
       if (parameters == null || parameters.Count == 0)
         return string.Empty;
-
       return string.Join(
           System.Environment.NewLine,
           parameters.Select(kv => kv.Key + "=" + kv.Value));
@@ -129,7 +119,6 @@ namespace AIStudio.Common.SymbiontEnv
       var dict = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
       if (string.IsNullOrWhiteSpace(text))
         return dict;
-
       foreach (string line in text.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries))
       {
         int eq = line.IndexOf('=');
@@ -140,7 +129,6 @@ namespace AIStudio.Common.SymbiontEnv
         if (key.Length > 0)
           dict[key] = value;
       }
-
       return dict;
     }
   }

@@ -20,11 +20,8 @@ namespace AIStudio.ViewModels
   public sealed class LogSessionPickerViewModel : INotifyPropertyChanged
   {
     public event PropertyChangedEventHandler PropertyChanged;
-
     public ObservableCollection<LiveLogSessionPickerItem> Items { get; } = new ObservableCollection<LiveLogSessionPickerItem>();
-
     private string _filterText = string.Empty;
-
     public string FilterText
     {
       get => _filterText;
@@ -40,10 +37,8 @@ namespace AIStudio.ViewModels
 
     public ICommand SelectAllCommand { get; }
     public ICommand ClearAllCommand { get; }
-
     private readonly LogSessionPickerKind _kind;
     private readonly ResearchLogger _researchLogger;
-
     public LogSessionPickerViewModel(
         LogSessionPickerKind kind,
         ResearchLogger researchLogger,
@@ -53,13 +48,11 @@ namespace AIStudio.ViewModels
       _researchLogger = researchLogger;
       var selected = new HashSet<string>(initiallySelectedKeys ?? Enumerable.Empty<string>(), StringComparer.Ordinal);
       LoadItems(selected);
-
       SelectAllCommand = new RelayCommand(_ =>
       {
         foreach (var item in Items.Where(i => i.IsVisible))
           item.IsChecked = true;
       });
-
       ClearAllCommand = new RelayCommand(_ =>
       {
         foreach (var item in Items)
@@ -85,7 +78,6 @@ namespace AIStudio.ViewModels
     private void LoadItems(HashSet<string> selected)
     {
       Items.Clear();
-
       int liveCount = GetLiveEntryCount(_kind);
       string currentSuffix = liveCount > 0 ? " (" + liveCount + ")" : " (пусто)";
       Items.Add(new LiveLogSessionPickerItem(
@@ -93,7 +85,6 @@ namespace AIStudio.ViewModels
           true,
           "Текущая сессия" + currentSuffix,
           selected.Contains(LogFileSessionInfo.CurrentSessionKey)));
-
       foreach (var fileSession in ListFileSessions(_kind))
       {
         Items.Add(new LiveLogSessionPickerItem(
@@ -102,13 +93,11 @@ namespace AIStudio.ViewModels
             fileSession.BuildDisplayLabel(),
             selected.Contains(fileSession.SessionKey)));
       }
-
       ApplyFilter();
     }
 
     public HashSet<string> GetSelectedKeys() =>
         new HashSet<string>(Items.Where(i => i.IsChecked).Select(i => i.SessionKey), StringComparer.Ordinal);
-
     private static int GetLiveEntryCount(LogSessionPickerKind kind)
     {
       switch (kind)

@@ -1,4 +1,4 @@
-﻿using System.Windows.Controls;
+using System.Windows.Controls;
 using System.Windows;
 using System.Windows.Media;
 using System;
@@ -26,7 +26,6 @@ namespace AIStudio.Common
     {
       if (parent == null)
         return null;
-
       for (int i = 0; i < VisualTreeHelper.GetChildrenCount(parent); i++)
       {
         var child = VisualTreeHelper.GetChild(parent, i);

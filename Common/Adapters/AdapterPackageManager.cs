@@ -15,7 +15,6 @@ namespace AIStudio.Common.Adapters
     private static readonly Regex IdPattern = new Regex(
         @"^[a-z0-9_-]+$",
         RegexOptions.CultureInvariant | RegexOptions.Compiled);
-
     /// <summary>
     /// Проверяет поля manifest перед сохранением.
     /// </summary>
@@ -31,35 +30,28 @@ namespace AIStudio.Common.Adapters
         errorMessage = "Не заданы данные пакета.";
         return false;
       }
-
       string id = (manifest.Id ?? string.Empty).Trim();
       if (string.IsNullOrEmpty(id))
       {
         errorMessage = "Укажите идентификатор адаптера (id).";
         return false;
       }
-
       if (!IdPattern.IsMatch(id))
       {
         errorMessage = "Идентификатор допускает только латинские буквы, цифры, «_» и «-» ([a-z0-9_-]+).";
         return false;
       }
-
       manifest.Id = id;
-
       if (string.IsNullOrWhiteSpace(manifest.DisplayName))
       {
         errorMessage = "Укажите отображаемое имя адаптера.";
         return false;
       }
-
       manifest.DisplayName = manifest.DisplayName.Trim();
-
       if (string.IsNullOrWhiteSpace(manifest.Version))
         manifest.Version = "0.1.0";
       else
         manifest.Version = manifest.Version.Trim();
-
       if (string.IsNullOrWhiteSpace(manifest.ContractVersion))
         manifest.ContractVersion = AdapterManifest.SupportedContractVersion;
       else if (!string.Equals(manifest.ContractVersion, AdapterManifest.SupportedContractVersion, StringComparison.Ordinal))
@@ -67,18 +59,15 @@ namespace AIStudio.Common.Adapters
         errorMessage = "Поддерживается только contractVersion «" + AdapterManifest.SupportedContractVersion + "».";
         return false;
       }
-
       if (string.IsNullOrWhiteSpace(manifest.BootDataRelativePath))
         manifest.BootDataRelativePath = "BootData";
       else
         manifest.BootDataRelativePath = manifest.BootDataRelativePath.Trim();
-
       if (!IsIdAvailable(id, isCreate ? null : originalId))
       {
         errorMessage = "Адаптер с id «" + id + "» уже зарегистрирован. Выберите уникальный идентификатор.";
         return false;
       }
-
       return true;
     }
 
@@ -89,15 +78,12 @@ namespace AIStudio.Common.Adapters
     {
       if (string.IsNullOrWhiteSpace(id))
         return false;
-
       string targetDir = AdapterPaths.GetAdapterDirectory(id.Trim());
       if (!Directory.Exists(targetDir))
         return true;
-
       if (!string.IsNullOrWhiteSpace(exceptId) &&
           string.Equals(id.Trim(), exceptId.Trim(), StringComparison.OrdinalIgnoreCase))
         return true;
-
       return false;
     }
 
@@ -108,10 +94,8 @@ namespace AIStudio.Common.Adapters
     {
       installedPath = null;
       errorMessage = null;
-
       if (!TryValidateManifest(manifest, isCreate: true, originalId: null, out errorMessage))
         return false;
-
       string demoPath = AdapterPaths.GetDemoTemplatePath();
       if (!Directory.Exists(demoPath))
       {
@@ -119,13 +103,11 @@ namespace AIStudio.Common.Adapters
             + "\n\nОн должен быть создан установщиком AIStudio.";
         return false;
       }
-
       if (!AdapterManifest.TryLoad(demoPath, out _, out string demoManifestError))
       {
         errorMessage = "Каркас demo повреждён: " + demoManifestError;
         return false;
       }
-
       AdapterPaths.EnsureAdaptersRoot();
       string targetDir = AdapterPaths.GetAdapterDirectory(manifest.Id);
       if (Directory.Exists(targetDir))
@@ -133,7 +115,6 @@ namespace AIStudio.Common.Adapters
         errorMessage = "Каталог адаптера уже существует: " + targetDir;
         return false;
       }
-
       try
       {
         CopyDirectoryRecursive(demoPath, targetDir);
@@ -142,7 +123,6 @@ namespace AIStudio.Common.Adapters
           TryDeleteDirectory(targetDir);
           return false;
         }
-
         installedPath = targetDir;
         manifest.PackageRootPath = targetDir;
         AdapterRegistry.InvalidateCache();
@@ -168,19 +148,15 @@ namespace AIStudio.Common.Adapters
     {
       updatedPath = packageRoot;
       errorMessage = null;
-
       if (string.IsNullOrWhiteSpace(packageRoot) || !Directory.Exists(packageRoot))
       {
         errorMessage = "Каталог пакета не найден.";
         return false;
       }
-
       if (!TryValidateManifest(manifest, isCreate: false, originalId: originalId, out errorMessage))
         return false;
-
       string root = Path.GetFullPath(packageRoot);
       string newDir = AdapterPaths.GetAdapterDirectory(manifest.Id);
-
       try
       {
         if (!string.Equals(manifest.Id, originalId, StringComparison.OrdinalIgnoreCase))
@@ -190,14 +166,11 @@ namespace AIStudio.Common.Adapters
             errorMessage = "Адаптер с id «" + manifest.Id + "» уже зарегистрирован.";
             return false;
           }
-
           MoveDirectory(root, newDir);
           root = newDir;
         }
-
         if (!TryWriteManifest(root, manifest, out errorMessage))
           return false;
-
         manifest.PackageRootPath = root;
         updatedPath = root;
         AdapterRegistry.InvalidateCache();
@@ -221,14 +194,12 @@ namespace AIStudio.Common.Adapters
         errorMessage = "Не указан идентификатор адаптера.";
         return false;
       }
-
       string targetDir = AdapterPaths.GetAdapterDirectory(adapterId.Trim());
       if (!Directory.Exists(targetDir))
       {
         errorMessage = "Каталог адаптера не найден:\n" + targetDir;
         return false;
       }
-
       try
       {
         Directory.Delete(targetDir, recursive: true);
@@ -253,7 +224,6 @@ namespace AIStudio.Common.Adapters
         errorMessage = "Не заданы данные manifest.";
         return false;
       }
-
       try
       {
         string manifestPath = AdapterPaths.GetManifestPath(packageRoot);
@@ -268,19 +238,14 @@ namespace AIStudio.Common.Adapters
               ? "BootData"
               : manifest.BootDataRelativePath
         };
-
         if (!string.IsNullOrWhiteSpace(manifest.SchemaVersion))
           jo["schemaVersion"] = manifest.SchemaVersion;
-
         if (!string.IsNullOrWhiteSpace(manifest.InstallerTemplateRelativePath))
           jo["installerTemplateRelativePath"] = manifest.InstallerTemplateRelativePath;
-
         if (!string.IsNullOrWhiteSpace(manifest.AdapterSettingsRelativePath))
           jo["adapterSettingsRelativePath"] = manifest.AdapterSettingsRelativePath;
-
         if (!string.IsNullOrWhiteSpace(manifest.Description))
           jo["description"] = manifest.Description;
-
         File.WriteAllText(manifestPath, jo.ToString(Formatting.Indented));
         return true;
       }
@@ -301,7 +266,6 @@ namespace AIStudio.Common.Adapters
         Directory.Move(sourceDir, targetDir);
         return;
       }
-
       CopyDirectoryRecursive(sourceDir, targetDir);
       TryDeleteDirectory(sourceDir);
     }
@@ -309,10 +273,8 @@ namespace AIStudio.Common.Adapters
     private static void CopyDirectoryRecursive(string sourceDir, string targetDir)
     {
       Directory.CreateDirectory(targetDir);
-
       foreach (string file in Directory.GetFiles(sourceDir))
         File.Copy(file, Path.Combine(targetDir, Path.GetFileName(file)), overwrite: true);
-
       foreach (string subDir in Directory.GetDirectories(sourceDir))
       {
         string name = Path.GetFileName(subDir);
@@ -324,7 +286,6 @@ namespace AIStudio.Common.Adapters
     {
       if (string.IsNullOrWhiteSpace(path) || !Directory.Exists(path))
         return;
-
       try
       {
         Directory.Delete(path, recursive: true);

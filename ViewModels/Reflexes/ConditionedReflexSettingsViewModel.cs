@@ -19,7 +19,6 @@ namespace AIStudio.ViewModels
 
     private readonly ConditionedReflexesSystem _conditionedReflexesSystem;
     private bool _isSaving;
-
     private bool _hasChanges;
     public bool HasChanges
     {
@@ -35,24 +34,18 @@ namespace AIStudio.ViewModels
     }
 
     public ConditionedReflexesSystem.ConditionedReflexSettings Settings { get; private set; }
-
     public ICommand SaveCommand { get; }
     public ICommand CancelCommand { get; }
     public ICommand ApplyCommand { get; }
-
     public event EventHandler SettingsSaved;
     public event EventHandler SettingsCancelled;
-
     public ConditionedReflexSettingsViewModel(ConditionedReflexesSystem conditionedReflexesSystem)
     {
       _conditionedReflexesSystem = conditionedReflexesSystem ?? throw new ArgumentNullException(nameof(conditionedReflexesSystem));
-
       LoadSettings();
-
       SaveCommand = new RelayCommand(SaveSettings);
       CancelCommand = new RelayCommand(Cancel);
       ApplyCommand = new RelayCommand(ApplySettings);
-
       PropertyChanged += (s, e) =>
       {
         if (e.PropertyName.StartsWith("Settings."))
@@ -76,14 +69,12 @@ namespace AIStudio.ViewModels
         CompetitionStrengthRatioThreshold = _conditionedReflexesSystem.Settings.CompetitionStrengthRatioThreshold,
         TieBreakPreferSmallerReflexId = _conditionedReflexesSystem.Settings.TieBreakPreferSmallerReflexId
       };
-
       OnPropertyChanged(nameof(Settings));
     }
 
     private void SaveSettings(object parameter)
     {
       if (_isSaving) return;
-
       _isSaving = true;
       try
       {
@@ -126,7 +117,6 @@ namespace AIStudio.ViewModels
       {
         return;
       }
-
       ApplySettingsToSystem();
       HasChanges = false;
       MessageBox.Show("Настройки применены!", "Успех",
@@ -170,14 +160,12 @@ namespace AIStudio.ViewModels
       // Дополнительная валидация для MaxAssociationStrength
       if (Settings.MaxAssociationStrength != 1.0f)
         errors.Add("Максимальная крепость связи (MaxAssociationStrength) должна быть равна 1.0");
-
       if (errors.Any())
       {
         MessageBox.Show($"Ошибки валидации:\n{string.Join("\n", errors)}",
             "Ошибка", MessageBoxButton.OK, MessageBoxImage.Warning);
         return false;
       }
-
       return true;
     }
 

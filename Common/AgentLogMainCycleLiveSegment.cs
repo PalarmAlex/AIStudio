@@ -8,7 +8,6 @@ namespace AIStudio.Common
     private static readonly Brush BrightRed = CreateFrozen(255, 90, 90);
     private static readonly Brush BrightYellow = CreateFrozen(255, 230, 70);
     private static readonly Brush BrightGreen = CreateFrozen(110, 255, 130);
-
     private static SolidColorBrush CreateFrozen(byte r, byte g, byte b)
     {
       var br = new SolidColorBrush(Color.FromRgb(r, g, b));
@@ -30,16 +29,12 @@ namespace AIStudio.Common
 
     /// <summary>Номер цикла.</summary>
     public int Id { get; }
-
     /// <summary>Статус задачи цикла.</summary>
     public string TaskStatus { get; }
-
     /// <summary>Запятая-разделитель перед этим номером.</summary>
     public bool ShowLeadingComma { get; }
-
     /// <summary>Цвет номера.</summary>
     public Brush IdForeground { get; }
-
     private static Brush BrushForStatus(string st)
     {
       if (string.IsNullOrEmpty(st))

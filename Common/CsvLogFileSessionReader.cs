@@ -17,7 +17,6 @@ namespace AIStudio.Common
       "yyyy-MM-dd HH:mm:ss",
       "dd.MM.yyyy HH:mm:ss"
     };
-
     public static IReadOnlyList<LogFileSessionInfo> ListSessions(
         string csvFileName,
         Func<string, bool> isHeaderRow,
@@ -26,7 +25,6 @@ namespace AIStudio.Common
       var path = LogFilePaths.ResolveLogFile(csvFileName);
       if (!File.Exists(path))
         return Array.Empty<LogFileSessionInfo>();
-
       try
       {
         var blocks = ReadBlocks(path, isHeaderRow, timeColumnName);
@@ -44,7 +42,6 @@ namespace AIStudio.Common
             EntryCount = blocks[i].RowCount
           });
         }
-
         return list.OrderByDescending(s => s.StartedLocal).ToList();
       }
       catch (Exception ex)
@@ -62,11 +59,9 @@ namespace AIStudio.Common
       var path = LogFilePaths.ResolveLogFile(csvFileName);
       if (!File.Exists(path))
         return new List<Dictionary<string, string>>();
-
       var blocks = ReadBlocks(path, isHeaderRow, "Time");
       if (sessionIndex < 0 || sessionIndex >= blocks.Count)
         return new List<Dictionary<string, string>>();
-
       return blocks[sessionIndex].Rows;
     }
 
@@ -79,11 +74,9 @@ namespace AIStudio.Common
       var path = LogFilePaths.ResolveLogFile(csvFileName);
       if (!File.Exists(path))
         return new List<Dictionary<string, string>>();
-
       var blocks = ReadBlocks(path, isHeaderRow, timeColumnName);
       if (sessionIndex < 0 || sessionIndex >= blocks.Count)
         return new List<Dictionary<string, string>>();
-
       return blocks[sessionIndex].Rows;
     }
 
@@ -100,12 +93,10 @@ namespace AIStudio.Common
       var blocks = new List<Block>();
       Block current = null;
       Dictionary<string, int> columns = null;
-
       foreach (var line in ReadLinesShared(path))
       {
         if (string.IsNullOrWhiteSpace(line))
           continue;
-
         if (isHeaderRow(line))
         {
           current = new Block();
@@ -113,17 +104,13 @@ namespace AIStudio.Common
           columns = ParseHeaderColumns(line);
           continue;
         }
-
         if (current == null || columns == null)
           continue;
-
         var row = ParseDataRow(line, columns, timeColumnName);
         if (row == null)
           continue;
-
         current.Rows.Add(row);
         current.RowCount++;
-
         if (TryParseTimestamp(row, timeColumnName, out DateTime ts))
         {
           if (current.RowCount == 1)
@@ -131,7 +118,6 @@ namespace AIStudio.Common
           current.EndedLocal = ts;
         }
       }
-
       return blocks;
     }
 
@@ -174,17 +160,14 @@ namespace AIStudio.Common
       var parts = line.Split(';');
       if (parts.Length < 3)
         return null;
-
       string Get(string name)
       {
         if (!columns.TryGetValue(name, out int ix) || ix >= parts.Length)
           return string.Empty;
         return parts[ix]?.Trim() ?? string.Empty;
       }
-
       if (!TryParseTimestamp(Get(timeColumnName), out _))
         return null;
-
       var row = new Dictionary<string, string>(StringComparer.Ordinal);
       foreach (var kv in columns)
         row[kv.Key] = Get(kv.Key);
@@ -202,11 +185,9 @@ namespace AIStudio.Common
       timestamp = default;
       if (string.IsNullOrWhiteSpace(raw))
         return false;
-
       if (DateTime.TryParseExact(raw, TimeFormats, CultureInfo.InvariantCulture,
               DateTimeStyles.AssumeLocal, out timestamp))
         return true;
-
       return DateTime.TryParse(raw, CultureInfo.CurrentCulture, DateTimeStyles.AssumeLocal, out timestamp);
     }
 
@@ -238,20 +219,17 @@ namespace AIStudio.Common
       var toDelete = new HashSet<int>(blockIndicesToDelete ?? Enumerable.Empty<int>());
       if (toDelete.Count == 0)
         return true;
-
       var path = LogFilePaths.ResolveLogFile(csvFileName);
       if (!File.Exists(path))
       {
         errorMessage = "Файл логов не найден.";
         return false;
       }
-
       try
       {
         var blocks = ReadRawBlocks(path, isHeaderRow);
         var remaining = blocks.Where((_, i) => !toDelete.Contains(i)).ToList();
         WriteRawBlocks(path, remaining);
-
         var jsonlPath = Path.ChangeExtension(path, ".jsonl");
         if (File.Exists(jsonlPath))
         {
@@ -259,7 +237,6 @@ namespace AIStudio.Common
           var remainingJsonl = jsonlBlocks.Where((_, i) => !toDelete.Contains(i)).ToList();
           WriteRawJsonlBlocks(jsonlPath, remainingJsonl);
         }
-
         return true;
       }
       catch (Exception ex)
@@ -284,22 +261,18 @@ namespace AIStudio.Common
     {
       var blocks = new List<RawBlock>();
       RawBlock current = null;
-
       foreach (var line in ReadLinesShared(path))
       {
         if (string.IsNullOrWhiteSpace(line))
           continue;
-
         if (isHeaderRow(line))
         {
           current = new RawBlock { HeaderLine = line };
           blocks.Add(current);
           continue;
         }
-
         current?.DataLines.Add(line);
       }
-
       return blocks;
     }
 
@@ -312,7 +285,6 @@ namespace AIStudio.Common
         foreach (var line in block.DataLines)
           sb.AppendLine(line);
       }
-
       WriteFileAtomically(path, sb.ToString());
     }
 
@@ -321,29 +293,23 @@ namespace AIStudio.Common
       var blocks = new List<RawJsonlBlock>();
       RawJsonlBlock current = null;
       int? lastPulse = null;
-
       foreach (var line in ReadLinesShared(jsonlPath))
       {
         if (string.IsNullOrWhiteSpace(line) || line[0] != '{')
           continue;
-
         if (!TryParseJsonlPulse(line, out int pulse))
           continue;
-
         bool newSession = current == null
                           || (pulse == 1 && lastPulse.HasValue && lastPulse.Value > 1);
-
         if (newSession)
         {
           current = new RawJsonlBlock();
           blocks.Add(current);
           lastPulse = null;
         }
-
         current.Lines.Add(line);
         lastPulse = pulse;
       }
-
       return blocks;
     }
 
@@ -355,7 +321,6 @@ namespace AIStudio.Common
         foreach (var line in block.Lines)
           sb.AppendLine(line);
       }
-
       WriteFileAtomically(jsonlPath, sb.ToString());
     }
 
@@ -367,7 +332,6 @@ namespace AIStudio.Common
         var token = JObject.Parse(line)["Pulse"];
         if (token == null)
           return false;
-
         return int.TryParse(token.ToString(), NumberStyles.Integer, CultureInfo.InvariantCulture, out pulse);
       }
       catch

@@ -1,4 +1,4 @@
-﻿using AIStudio.ViewModels;
+using AIStudio.ViewModels;
 using ISIDA.Actions;
 using ISIDA.Reflexes;
 using System;
@@ -15,22 +15,17 @@ namespace AIStudio.Dialogs
     private readonly GeneticReflexesSystem _reflexesSystem;
     private readonly int _reflexId;
     private readonly int _currentChainId;
-
     public int SelectedChainId { get; private set; }
     public bool ChainDeleted { get; private set; }
-
     public ReflexChainBindingDialog(int reflexId, int currentChainId,
         ReflexChainsSystem chainsSystem, GeneticReflexesSystem reflexesSystem)
     {
       InitializeComponent();
-
       _reflexId = reflexId;
       _currentChainId = currentChainId;
       _chainsSystem = chainsSystem ?? throw new ArgumentNullException(nameof(chainsSystem));
       _reflexesSystem = reflexesSystem ?? throw new ArgumentNullException(nameof(reflexesSystem));
-
       DataContext = new ReflexChainBindingViewModel(reflexId, currentChainId, chainsSystem, reflexesSystem);
-
       Loaded += ReflexChainBindingDialog_Loaded;
       PreviewKeyDown += Window_PreviewKeyDown;
     }
@@ -75,7 +70,6 @@ namespace AIStudio.Dialogs
             _chainsSystem,
             AdaptiveActionsSystem.Instance
         );
-
         if (chainEditor.ShowDialog() == true)
         {
           // Обновляем данные после редактирования
@@ -94,7 +88,6 @@ namespace AIStudio.Dialogs
             "Подтверждение удаления цепочки",
             MessageBoxButton.YesNo,
             MessageBoxImage.Warning);
-
         if (result == MessageBoxResult.Yes)
         {
           try
@@ -157,11 +150,9 @@ namespace AIStudio.Dialogs
               "Цепочка уже используется",
               MessageBoxButton.YesNo,
               MessageBoxImage.Question);
-
           if (result != MessageBoxResult.Yes)
             return;
         }
-
         try
         {
           // Привязываем к текущему рефлексу
@@ -169,13 +160,11 @@ namespace AIStudio.Dialogs
           if (attached)
           {
             SelectedChainId = viewModel.SelectedChain.ID;
-
             MessageBox.Show(
                 $"Цепочка \"{viewModel.SelectedChain.Name}\" успешно привязана к рефлексу {_reflexId}.",
                 "Цепочка привязана",
                 MessageBoxButton.OK,
                 MessageBoxImage.Information);
-
             DialogResult = true;
             Close();
           }

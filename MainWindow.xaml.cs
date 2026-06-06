@@ -1,4 +1,4 @@
-﻿using ISIDA.Common;
+using ISIDA.Common;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -23,11 +23,9 @@ namespace AIStudio
   public partial class MainWindow : Window
   {
     private MainViewModel _viewModel;
-
     public MainWindow()
     {
       InitializeComponent();
-
       _viewModel = new MainViewModel();
       DataContext = _viewModel;
 
@@ -47,7 +45,6 @@ namespace AIStudio
             "Подтверждение",
             MessageBoxButton.YesNo,
             MessageBoxImage.Question);
-
         if (result == MessageBoxResult.No)
         {
           e.Cancel = true;

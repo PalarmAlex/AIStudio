@@ -1,4 +1,4 @@
-﻿ <UserControl x:Class="AIStudio.Pages.Reflexes.ConditionedReflexesView"
+ <UserControl x:Class="AIStudio.Pages.Reflexes.ConditionedReflexesView"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
@@ -20,7 +20,6 @@
     <converters:PerceptionImageIdToTooltipConverter x:Key="PerceptionImageIdToTooltipConverter"/>
     <converters:ConditionedReflexPerceptionTooltipConverter x:Key="ConditionedReflexPerceptionTooltipConverter"/>
     <BooleanToVisibilityConverter x:Key="BoolToVis"/>
-
     <Style x:Key="BaseTextBlockStyle" TargetType="TextBlock">
       <Setter Property="Background" Value="White"/>
       <Style.Triggers>

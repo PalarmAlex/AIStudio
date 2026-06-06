@@ -21,7 +21,6 @@ namespace AIStudio.ViewModels.Understanding
     public ProblemTreeNode Node { get; }
     public string TextDisplay { get; }
     public ObservableCollection<ProblemTreeNodeItem> Children { get; } = new ObservableCollection<ProblemTreeNodeItem>();
-
     public ProblemTreeNodeItem(ProblemTreeNode node, string textDisplay)
     {
       Node = node;
@@ -68,17 +67,13 @@ namespace AIStudio.ViewModels.Understanding
     private ProblemTreeNodeItem _selectedNode;
     private string _currentAgentName;
     private int _currentAgentStage;
-
     public string CurrentAgentTitle =>
         SymbiontPageTitleFormatter.Format("Дерево проблем", _currentAgentName, _currentAgentStage);
-
     public DescriptionWithLink CurrentAgentDescription => new DescriptionWithLink
     {
       Text = "Дерево проблем — 4 уровня: AutTreeID, SituationTreeID, ThemeID, PurposeID. При клике на узел в правой панели отображаются свойства узла. "
     };
-
     #region Дерево
-
     private ObservableCollection<ProblemTreeNodeItem> _treeItems = new ObservableCollection<ProblemTreeNodeItem>();
     public ObservableCollection<ProblemTreeNodeItem> TreeItems
     {
@@ -89,7 +84,6 @@ namespace AIStudio.ViewModels.Understanding
     private ObservableCollection<PropertyRow> _selectedNodePropertyRows = new ObservableCollection<PropertyRow>();
     /// <summary>Строки панели свойств (подпись жирным + значение) для биндинга</summary>
     public ObservableCollection<PropertyRow> SelectedNodePropertyRows => _selectedNodePropertyRows;
-
     /// <summary>Выбранный узел дерева — для панели свойств</summary>
     public ProblemTreeNodeItem SelectedNode
     {
@@ -114,7 +108,6 @@ namespace AIStudio.ViewModels.Understanding
       var n = _selectedNode.Node;
       _selectedNodePropertyRows.Add(new PropertyRow { Label = "ID узла", Value = n.ID.ToString() });
       _selectedNodePropertyRows.Add(new PropertyRow { Label = "ID родителя", Value = n.ParentID.ToString() });
-
       if (n.AutTreeID > 0 && _getAutNodeDetails != null)
       {
         var details = _getAutNodeDetails(n.AutTreeID);
@@ -145,7 +138,6 @@ namespace AIStudio.ViewModels.Understanding
             // Сохраняем исходные пробелы в начале name
             bool isBold = name.TrimStart() == "Образ действия"; // Сравниваем без пробелов
             bool isInActionBlock = inActionBlock && !isBold;
-
             lines.Add(new ExpansionLine
             {
               Name = name, // Сохраняем исходную строку с пробелами
@@ -153,7 +145,6 @@ namespace AIStudio.ViewModels.Understanding
               IsBold = isBold,
               IsInActionBlock = isInActionBlock
             });
-
             if (isBold) inActionBlock = true;
           }
           _selectedNodePropertyRows.Add(new PropertyRow { Label = "Узел дерева автоматизмов", ValueLines = lines });
@@ -161,7 +152,6 @@ namespace AIStudio.ViewModels.Understanding
       }
       else
         _selectedNodePropertyRows.Add(new PropertyRow { Label = "Узел дерева автоматизмов", Value = GetAutTreeIdDisplay(n.AutTreeID) });
-
       _selectedNodePropertyRows.Add(new PropertyRow { Label = "Образ ситуации", Value = GetSituationTreeIdDisplay(n.SituationTreeID) });
       _selectedNodePropertyRows.Add(new PropertyRow { Label = "Образ темы", Value = GetThemeIdDisplay(n.ThemeID) });
       _selectedNodePropertyRows.Add(new PropertyRow { Label = "Образ цели", Value = GetPurposeIdDisplay(n.PurposeID) });
@@ -231,11 +221,8 @@ namespace AIStudio.ViewModels.Understanding
       }
       catch { return purposeId.ToString(); }
     }
-
     #endregion
-
     #region Панель фильтров
-
     public List<KeyValuePair<int, string>> MaxNodesOptions { get; } = new List<KeyValuePair<int, string>>
     {
       new KeyValuePair<int, string>(100, "100"),
@@ -246,13 +233,11 @@ namespace AIStudio.ViewModels.Understanding
       new KeyValuePair<int, string>(5000, "5000"),
       new KeyValuePair<int, string>(0, "Все")
     };
-
     private int _selectedMaxNodes = 500;
     private string _filterAutTreeIdInput = "";
     private string _filterSituationTreeIdInput = "";
     private string _filterThemeIdInput = "";
     private string _filterPurposeIdInput = "";
-
     public int SelectedMaxNodes
     {
       get => _selectedMaxNodes;
@@ -285,12 +270,9 @@ namespace AIStudio.ViewModels.Understanding
 
     public ICommand ApplyFiltersCommand { get; }
     public ICommand ClearFiltersCommand { get; }
-
     #endregion
-
     public bool IsProblemTreeAvailable =>
       _problemTree != null && ProblemTreeSystem.IsInitialized && AppGlobalState.EvolutionStage >= 4;
-
     public ProblemTreeViewModel(
         ProblemTreeSystem problemTree,
         AutomatizmTreeSystem automatizmTree = null,
@@ -346,11 +328,9 @@ namespace AIStudio.ViewModels.Understanding
         TreeItems = new ObservableCollection<ProblemTreeNodeItem>();
         return;
       }
-
       var root = _problemTree.Tree;
       int limit = SelectedMaxNodes <= 0 ? int.MaxValue : SelectedMaxNodes;
       var result = new ObservableCollection<ProblemTreeNodeItem>();
-
       const int startDepth = 1;
       foreach (var child in root.Children ?? Enumerable.Empty<ProblemTreeNode>())
       {
@@ -359,14 +339,12 @@ namespace AIStudio.ViewModels.Understanding
         if (item != null)
           result.Add(item);
       }
-
       TreeItems = result;
     }
 
     private ProblemTreeNodeItem BuildNodeItem(ProblemTreeNode node, ref int remainingLimit, int depth)
     {
       if (node == null || remainingLimit <= 0) return null;
-
       if (!PassesFilters(node))
       {
         bool anyChildPasses = false;
@@ -379,11 +357,9 @@ namespace AIStudio.ViewModels.Understanding
         if (!anyChildPasses)
           return null;
       }
-
       string text = BuildNodeDisplayText(node, depth);
       var item = new ProblemTreeNodeItem(node, text);
       remainingLimit--;
-
       foreach (var c in node.Children ?? Enumerable.Empty<ProblemTreeNode>())
       {
         if (remainingLimit <= 0) break;
@@ -391,7 +367,6 @@ namespace AIStudio.ViewModels.Understanding
         if (childItem != null)
           item.Children.Add(childItem);
       }
-
       return item;
     }
 
@@ -429,7 +404,6 @@ namespace AIStudio.ViewModels.Understanding
       public string LinkText { get; set; } = "Подробнее...";
       public string Url { get; set; } = "https://scorcher.ru/isida/iadaptive_agents_guide.php#understanding";
       public ICommand OpenLinkCommand { get; }
-
       public DescriptionWithLink()
       {
         OpenLinkCommand = new RelayCommand(_ =>

@@ -27,7 +27,6 @@ namespace AIStudio.Pages.Research
     }
 
     private void BackButton_Click(object sender, RoutedEventArgs e) => CloseButton_Click(sender, e);
-
     private void MembersDataGrid_OnPreviewKeyDown(object sender, KeyEventArgs e)
     {
       if (e.Key != Key.Delete)

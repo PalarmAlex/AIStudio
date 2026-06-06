@@ -7,7 +7,6 @@ namespace AIStudio.ViewModels
     public string PatternTreeHeader { get; }
     public string TokenCountWord { get; }
     public string PatternCountWord { get; }
-
     public SensorTreesPageLabels(
         string channelTabTitle,
         string tokenTreeHeader,
@@ -28,7 +27,6 @@ namespace AIStudio.ViewModels
         "Дерево паттернов",
         "токенов",
         "паттернов");
-
     public static readonly SensorTreesPageLabels Command = new SensorTreesPageLabels(
         "Команды",
         "Контуры",

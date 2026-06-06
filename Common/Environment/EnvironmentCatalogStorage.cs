@@ -16,7 +16,6 @@ namespace AIStudio.Common.SymbiontEnv
       string boot = EnvironmentPaths.GetBootDataFolder();
       if (string.IsNullOrWhiteSpace(boot))
         return;
-
       EnsureCatalogAt(boot);
     }
 

@@ -1,4 +1,4 @@
-﻿using AIStudio.Common;
+using AIStudio.Common;
 using ISIDA.Common;
 using ISIDA.Gomeostas;
 using ISIDA.Psychic.Understanding;
@@ -21,13 +21,10 @@ namespace AIStudio.ViewModels
     private string _description;
     private int _defaultWeight = 2;
     private List<int> _allowedInfoFuncIds = new List<int>();
-
     public int Id { get => _id; set { if (_id != value) { _id = value; OnPropertyChanged(nameof(Id)); } } }
     public string Description { get => _description; set { if (_description != value) { _description = value; OnPropertyChanged(nameof(Description)); } } }
     public int DefaultWeight { get => _defaultWeight; set { if (_defaultWeight != value) { _defaultWeight = value; OnPropertyChanged(nameof(DefaultWeight)); } } }
-
     public IReadOnlyList<int> AllowedInfoFuncIds => _allowedInfoFuncIds;
-
     public void SetAllowedInfoFuncIds(IEnumerable<int> ids)
     {
       _allowedInfoFuncIds = ids?.Where(x => x > 0).Distinct().OrderBy(x => x).ToList() ?? new List<int>();
@@ -49,20 +46,15 @@ namespace AIStudio.ViewModels
     private readonly GomeostasSystem _gomeostas;
     private int _currentAgentStage;
     private string _currentAgentName;
-
     public bool IsStageFour => _currentAgentStage == 4;
     public string CurrentAgentTitle =>
         SymbiontPageTitleFormatter.Format("Темы мышления", _currentAgentName, _currentAgentStage);
-
     public DescriptionWithLink CurrentAgentDescription => new DescriptionWithLink
     {
       Text = "Темы мышления симбионта. Состав тем и их Id фиксированы в коде движка; здесь задаются только вес по умолчанию и списки инфо-функций. "
     };
-
     public ObservableCollection<ThemeTypeItem> ThemeTypes { get; } = new ObservableCollection<ThemeTypeItem>();
-
     public ICommand SaveCommand { get; }
-
     public ThemeTypesViewModel(GomeostasSystem gomeostas)
     {
       _gomeostas = gomeostas ?? throw new ArgumentNullException(nameof(gomeostas));
@@ -81,24 +73,18 @@ namespace AIStudio.ViewModels
         OnPropertyChanged(nameof(IsReadOnlyMode));
       });
     }
-
     #region Блокировка страницы
-
     public bool IsEditingEnabled => IsStageFour && !GlobalTimer.IsPulsationRunning;
     public bool IsReadOnlyMode => !IsEditingEnabled;
-
     public string PulseWarningMessage =>
         !IsStageFour
             ? "[КРИТИЧНО] Редактирование тем мышления доступно только в стадии 4"
             : GlobalTimer.IsPulsationRunning
                 ? "Редактирование доступно только при выключенной пульсации"
                 : string.Empty;
-
     public Brush WarningMessageColor =>
         !IsStageFour ? Brushes.Red : Brushes.Gray;
-
     #endregion
-
     private void LoadData()
     {
       try
@@ -106,7 +92,6 @@ namespace AIStudio.ViewModels
         var agentInfo = _gomeostas.GetAgentState();
         _currentAgentStage = agentInfo?.EvolutionStage ?? 0;
         _currentAgentName = agentInfo?.Name;
-
         ThemeTypes.Clear();
         if (ThemeImageSystem.IsInitialized)
         {
@@ -122,7 +107,6 @@ namespace AIStudio.ViewModels
             ThemeTypes.Add(item);
           }
         }
-
         OnPropertyChanged(nameof(ThemeTypes));
         OnPropertyChanged(nameof(IsStageFour));
         OnPropertyChanged(nameof(IsEditingEnabled));
@@ -146,12 +130,10 @@ namespace AIStudio.ViewModels
             MessageBoxButton.OK, MessageBoxImage.Error);
         return;
       }
-
       var rows = ThemeTypes
           .Select(t => (t.Id, t.DefaultWeight, (IReadOnlyList<int>)t.AllowedInfoFuncIds.ToList()))
           .ToList();
       var (success, error) = ThemeImageSystem.Instance.SaveFixedCatalogThemeTypes(rows);
-
       if (success)
       {
         LoadData();
@@ -172,7 +154,6 @@ namespace AIStudio.ViewModels
       public string LinkText { get; set; } = "Подробнее...";
       public string Url { get; set; } = "https://scorcher.ru/isida/iadaptive_agents_guide.php#understanding";
       public ICommand OpenLinkCommand { get; }
-
       public DescriptionWithLink()
       {
         OpenLinkCommand = new RelayCommand(_ =>

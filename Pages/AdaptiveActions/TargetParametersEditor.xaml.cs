@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Windows;
@@ -9,16 +9,13 @@ namespace AIStudio.Dialogs
   public partial class TargetParametersEditor : Window
   {
     public List<int> SelectedParameterIds { get; private set; }
-
     public TargetParametersEditor(string title,
                                 List<GomeostasSystem.ParameterData> availableParameters,
                                 List<int> currentlySelectedIds)
     {
       InitializeComponent();
       Title = title;
-
       SelectedParameterIds = new List<int>(currentlySelectedIds ?? new List<int>());
-
       var items = availableParameters?
           .Where(p => p != null)
           .Select(p => new ParameterSelectionItem
@@ -30,7 +27,6 @@ namespace AIStudio.Dialogs
           })
           .OrderBy(p => p.Id)
           .ToList() ?? new List<ParameterSelectionItem>();
-
       ParametersList.ItemsSource = items;
     }
 
@@ -44,10 +40,8 @@ namespace AIStudio.Dialogs
           Close();
           return;
         }
-
         var selectedItems = items.Where(item => item.IsSelected).ToList();
         SelectedParameterIds = selectedItems.Select(item => item.Id).ToList();
-
         DialogResult = true;
       }
       catch (Exception ex)

@@ -14,7 +14,6 @@ namespace AIStudio.Dialogs
   public partial class ReflexLoadDialog : Window
   {
     public ReflexLoadDialogViewModel ViewModel { get; }
-
     public ReflexLoadDialog(string bootDataFolder, GeneticReflexFileLoader loader)
     {
       InitializeComponent();
@@ -47,12 +46,9 @@ namespace AIStudio.Dialogs
   {
     public event PropertyChangedEventHandler PropertyChanged;
     protected void OnPropertyChanged(string name) => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
-
     private readonly string _bootDataFolder;
     private readonly GeneticReflexFileLoader _loader;
-
     public Action<bool> CloseAction { get; set; }
-
     private bool _isBusy;
     public bool IsBusy
     {
@@ -65,12 +61,10 @@ namespace AIStudio.Dialogs
     public RelayCommand SavePromptCommand { get; }
     public RelayCommand ApplyCommand { get; }
     public RelayCommand CancelCommand { get; }
-
     public ReflexLoadDialogViewModel(string bootDataFolder, GeneticReflexFileLoader loader)
     {
       _bootDataFolder = bootDataFolder ?? throw new ArgumentNullException(nameof(bootDataFolder));
       _loader = loader ?? throw new ArgumentNullException(nameof(loader));
-
       SaveCsvCommand = new RelayCommand(ExecuteSaveCsv, CanExecuteSaveCsv);
       ValidateCsvCommand = new RelayCommand(ExecuteValidateCsv);
       SavePromptCommand = new RelayCommand(ExecuteSavePrompt, CanExecuteSavePrompt);
@@ -94,7 +88,6 @@ namespace AIStudio.Dialogs
 
     private string _promptFilePath;
     public string PromptFilePath => _promptFilePath ?? (_promptFilePath = Path.Combine(_bootDataFolder, "prompt_genetic_reflex_generate.txt"));
-
     private string _promptContent;
     public string PromptContent
     {
@@ -108,9 +101,7 @@ namespace AIStudio.Dialogs
     }
 
     public bool IsPromptEditingEnabled => !string.IsNullOrEmpty(PromptFilePath);
-
     public bool CanApply => !string.IsNullOrWhiteSpace(CsvContent);
-
     public void LoadCsvContent()
     {
       try
@@ -149,7 +140,6 @@ namespace AIStudio.Dialogs
     }
 
     private bool CanExecuteSaveCsv(object _) => !string.IsNullOrWhiteSpace(CsvContent);
-
     private void ExecuteSaveCsv(object _)
     {
       try
@@ -187,7 +177,6 @@ namespace AIStudio.Dialogs
     }
 
     private bool CanExecuteSavePrompt(object _) => !string.IsNullOrWhiteSpace(PromptContent);
-
     private void ExecuteSavePrompt(object _)
     {
       try

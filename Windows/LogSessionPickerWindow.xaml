@@ -10,7 +10,6 @@
 
   <Window.Resources>
     <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter"/>
-
     <Style x:Key="MatrixTextStyle" TargetType="TextBlock">
       <Setter Property="Foreground" Value="#00FF00"/>
       <Setter Property="FontFamily" Value="Consolas, Courier New"/>

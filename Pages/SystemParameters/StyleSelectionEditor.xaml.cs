@@ -1,4 +1,4 @@
-﻿using AIStudio.Common;
+using AIStudio.Common;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -18,12 +18,10 @@ namespace AIStudio.Dialogs
 
     public IEnumerable<int> SelectedStyleIds =>
         _styleItems.Where(x => x.IsSelected).Select(x => x.Id);
-
     private readonly List<StyleItem> _styleItems;
     private AntagonistManager _antagonistManager;
     private bool _isManualSelection = false;
     private bool _notСheckАntagonists = false;
-
     public StyleSelectionEditor(
         string title,
         IEnumerable<GomeostasSystem.BehaviorStyle> availableStyles,
@@ -34,7 +32,6 @@ namespace AIStudio.Dialogs
       DataContext = this;
       Title = title;
       _notСheckАntagonists = notСheckАntagonists;
-
       var selectedIds = new HashSet<int>(selectedStyleIds);
       _styleItems = availableStyles
           .OrderBy(s => s.Id)
@@ -47,7 +44,6 @@ namespace AIStudio.Dialogs
             IsSelected = selectedIds.Contains(s.Id)
           })
           .ToList();
-
       StylesListBox.ItemsSource = _styleItems;
 
       // Если проверка антагонистов отключена, просто показываем список
@@ -61,7 +57,6 @@ namespace AIStudio.Dialogs
       _antagonistManager = new AntagonistManager(
           _styleItems.Cast<AntagonistItem>().ToList(),
           OnConflictResolutionRequired);
-
       if (_styleItems.Any(item => item.IsSelected))
       {
         // Находим первый выбранный элемент и "триггерим" его изменение
@@ -80,7 +75,6 @@ namespace AIStudio.Dialogs
       {
         item.OnSelectionChanged += UpdateConflictMessage;
       }
-
       UpdateConflictMessage(null);
     }
 
@@ -95,7 +89,6 @@ namespace AIStudio.Dialogs
           .Where(id => id != newlySelectedItem.Id)
           .Distinct()
           .ToList();
-
       if (conflictItems.Any())
       {
         var conflictNames = conflictItems
@@ -105,23 +98,18 @@ namespace AIStudio.Dialogs
               return style != null ? $"{style.Name} (ID:{style.Id})" : $"ID {id}";
             })
             .ToList();
-
         var message = $"Выбор '{newlySelectedItem.Name}' (ID:{newlySelectedItem.Id}) конфликтует с:\n" +
                      string.Join("\n", conflictNames.Select(name => $"• {name}")) +
                      "\n\nЭти стили будут автоматически сняты. Продолжить?";
-
         var result = MessageBox.Show(message, "Конфликт стилей",
             MessageBoxButton.YesNo, MessageBoxImage.Warning);
-
         if (result == MessageBoxResult.No)
         {
           // Сбрасываем флаг ручного выбора для этого изменения
           _isManualSelection = false;
         }
-
         return result == MessageBoxResult.Yes;
       }
-
       return true;
     }
 
@@ -143,21 +131,16 @@ namespace AIStudio.Dialogs
         ConflictMessage.Visibility = Visibility.Collapsed;
         return;
       }
-
       var selectedIds = _styleItems.Where(x => x.IsSelected).Select(x => x.Id).ToList();
-
       if (!selectedIds.Any())
       {
         ConflictMessage.Visibility = Visibility.Collapsed;
         return;
       }
-
       var antagonistsMap = _styleItems.ToDictionary(
           item => item.Id,
           item => item.AntagonistIds);
-
       var conflicts = AntagonistValidator.ValidateAntagonists(selectedIds, antagonistsMap);
-
       if (conflicts.Any())
       {
         var conflictDetails = conflicts
@@ -168,7 +151,6 @@ namespace AIStudio.Dialogs
               return $"• {style1?.Name} (ID:{c.FirstId}) ↔ {style2?.Name} (ID:{c.SecondId})";
             })
             .ToList();
-
         ConflictMessage.Text = "Обнаружены конфликты:\n" + string.Join("\n", conflictDetails);
         ConflictMessage.Visibility = Visibility.Visible;
       }
@@ -193,9 +175,7 @@ namespace AIStudio.Dialogs
       var antagonistsMap = _styleItems.ToDictionary(
           item => item.Id,
           item => item.AntagonistIds);
-
       var conflicts = AntagonistValidator.ValidateAntagonists(selectedIds, antagonistsMap);
-
       if (conflicts.Any())
       {
         var conflictDetails = conflicts
@@ -206,20 +186,16 @@ namespace AIStudio.Dialogs
               return $"• {style1?.Name} (ID:{c.FirstId}) ↔ {style2?.Name} (ID:{c.SecondId})";
             })
             .ToList();
-
         var message = "Обнаружены конфликтующие стили поведения:\n" +
                      string.Join("\n", conflictDetails) +
                      "\n\nСохранить несмотря на конфликты?";
-
         var result = MessageBox.Show(message, "Подтверждение сохранения",
             MessageBoxButton.YesNo, MessageBoxImage.Warning);
-
         if (result == MessageBoxResult.No)
         {
           return;
         }
       }
-
       DialogResult = true;
       Close();
     }
@@ -251,7 +227,6 @@ namespace AIStudio.Dialogs
         }
         _antagonistManager?.Dispose();
       }
-
       base.OnClosed(e);
     }
   }

@@ -1,4 +1,4 @@
-﻿<Window x:Class="AIStudio.Dialogs.PerceptionImageSelectionDialog"
+<Window x:Class="AIStudio.Dialogs.PerceptionImageSelectionDialog"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         Title="Выбор образа восприятия" Height="500" Width="700"
@@ -14,7 +14,6 @@
     </Grid.RowDefinitions>
 
     <TextBlock Grid.Row="0" Text="Выберите образ восприятия:" Margin="0,0,0,10" FontWeight="Bold"/>
-
     <ListView x:Name="PerceptionImagesList" Grid.Row="1" SelectionMode="Single"
               MouseDoubleClick="PerceptionImagesList_MouseDoubleClick">
       <ListView.View>

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -25,7 +25,6 @@ namespace AIStudio.Common
     private readonly ConditionedReflexesSystem _conditionedReflexesSystem;
     private readonly AutomatizmSystem _automatizmSystem;
     private readonly ActionsImagesSystem _actionsImagesSystem;
-
     public AgentLogCellTooltipProvider(
         GomeostasSystem gomeostas,
         PerceptionImagesSystem perceptionImagesSystem,
@@ -52,11 +51,9 @@ namespace AIStudio.Common
     {
       if (string.IsNullOrEmpty(chainInfo) || chainInfo == "-")
         return "Нет активных цепочек рефлексов";
-
       var parts = chainInfo.Split(':');
       if (parts.Length != 2 || !int.TryParse(parts[1], out int actionId) || actionId <= 0)
         return "Неверный формат цепочки рефлекса";
-
       try
       {
         var allActions = _adaptiveActionsSystem.GetAllAdaptiveActions();
@@ -73,11 +70,9 @@ namespace AIStudio.Common
     {
       if (string.IsNullOrEmpty(chainInfo) || chainInfo == "-")
         return "Нет активных цепочек автоматизмов";
-
       var parts = chainInfo.Split(':');
       if (parts.Length != 2 || !int.TryParse(parts[1], out int actionId) || actionId <= 0)
         return "Неверный формат цепочки автоматизма";
-
       try
       {
         var allActions = _adaptiveActionsSystem.GetAllAdaptiveActions();
@@ -95,20 +90,16 @@ namespace AIStudio.Common
     {
       if (string.IsNullOrEmpty(displayBaseStyleID) || !int.TryParse(displayBaseStyleID, out int imageId) || imageId <= 0)
         return "Нет данных о стилях";
-
       try
       {
         var styleImages = _perceptionImagesSystem.GetAllBehaviorStyleImagesList();
         var styleImage = styleImages.FirstOrDefault(img => img.Id == imageId);
-
         if (styleImage != null && styleImage.BehaviorStylesList.Any())
         {
           var allStyles = _gomeostas.GetAllBehaviorStyles();
-
           var styleNames = styleImage.BehaviorStylesList
               .Select(styleId => allStyles.ContainsKey(styleId) ? allStyles[styleId].Name : $"Стиль {styleId}")
               .Where(name => !string.IsNullOrEmpty(name));
-
           return string.Join(", ", styleNames);
         }
       }
@@ -116,7 +107,6 @@ namespace AIStudio.Common
       {
         return $"Ошибка загрузки стилей: {ex.Message}";
       }
-
       return "Нет данных о стилях";
     }
 
@@ -128,10 +118,8 @@ namespace AIStudio.Common
       var t = cellRaw.Trim();
       if (t == "-")
         return "Нет данных о стилях";
-
       if (t.IndexOf(',') >= 0)
         return GetStyleCombinationNamesFromCodes(t);
-
       if (int.TryParse(t, out int id) && id > 0)
       {
         var byImage = GetStyleTooltip(t);
@@ -139,7 +127,6 @@ namespace AIStudio.Common
           return byImage;
         return GetSingleBehaviorStyleName(id);
       }
-
       return "Нет данных о стилях";
     }
 
@@ -156,7 +143,6 @@ namespace AIStudio.Common
         }
         if (!ids.Any())
           return "Нет данных о стилях";
-
         var allStyles = _gomeostas.GetAllBehaviorStyles();
         var names = ids
             .OrderBy(x => x)
@@ -190,12 +176,10 @@ namespace AIStudio.Common
     {
       if (string.IsNullOrEmpty(displayTriggerStimulusID) || !int.TryParse(displayTriggerStimulusID, out int imageId) || imageId <= 0)
         return "Нет данных о триггере";
-
       try
       {
         var perceptionImages = _perceptionImagesSystem.GetAllPerceptionImagesList();
         var perceptionImage = perceptionImages.FirstOrDefault(img => img.Id == imageId);
-
         if (perceptionImage != null)
         {
           string influenceLine;
@@ -209,7 +193,6 @@ namespace AIStudio.Common
           }
           else
             influenceLine = "нет";
-
           string phrasesLine;
           if (perceptionImage.PhraseIdList?.Any() == true)
           {
@@ -220,7 +203,6 @@ namespace AIStudio.Common
           }
           else
             phrasesLine = "нет";
-
           string toneLine = "—";
           string moodLine = "—";
           if (VerbalBrocaImagesSystem.IsInitialized && perceptionImage.PhraseIdList?.Any() == true)
@@ -235,12 +217,10 @@ namespace AIStudio.Common
               moodLine = string.IsNullOrEmpty(m) ? broca.MoodId.ToString() : $"{m} ({broca.MoodId})";
             }
           }
-
           int colorCode = AgentVisualColor.IsValidCode(perceptionImage.VisualColorId)
               ? perceptionImage.VisualColorId
               : AgentVisualColor.White;
           string colorLine = AgentVisualColor.GetDisplayName(colorCode);
-
           return "Воздействие: " + influenceLine
               + "\nФразы: " + phrasesLine
               + "\nТон: " + toneLine
@@ -252,7 +232,6 @@ namespace AIStudio.Common
       {
         return $"Ошибка загрузки триггера: {ex.Message}";
       }
-
       return "Нет данных о триггере";
     }
 
@@ -260,24 +239,19 @@ namespace AIStudio.Common
     {
       if (string.IsNullOrEmpty(displayReflexID) || !int.TryParse(displayReflexID, out int reflexId) || reflexId <= 0)
         return "Нет данных о действиях рефлекса";
-
       try
       {
         var reflex = _geneticReflexesSystem.GetAllGeneticReflexesList()
             .FirstOrDefault(r => r.Id == reflexId);
-
         if (reflex != null)
         {
           var tooltipParts = new List<string>();
           var allActions = _adaptiveActionsSystem.GetAllAdaptiveActions();
-
           var actionNames = reflex.AdaptiveActions
               .Select(actionId => allActions.FirstOrDefault(a => a.Id == actionId)?.Name ?? $"Действие {actionId}")
               .Where(name => !string.IsNullOrEmpty(name));
-
           if (actionNames.Any())
             tooltipParts.Add($"Действия: {string.Join(", ", actionNames)}");
-
           return tooltipParts.Any() ? string.Join("\n", tooltipParts) : "Пустой образ действий рефлекса";
         }
       }
@@ -285,7 +259,6 @@ namespace AIStudio.Common
       {
         return $"Ошибка загрузки действий рефлекса: {ex.Message}";
       }
-
       return "Нет данных о действиях рефлекса";
     }
 
@@ -293,26 +266,20 @@ namespace AIStudio.Common
     {
       if (string.IsNullOrEmpty(displayReflexID) || !int.TryParse(displayReflexID, out int reflexId) || reflexId <= 0)
         return "Нет данных о действиях рефлекса";
-
       try
       {
         var conditionedReflex = _conditionedReflexesSystem.GetAllConditionedReflexes()
           .FirstOrDefault(r => r.Id == reflexId);
-
         if (conditionedReflex == null)
           return "Нет данных о действиях рефлекса";
-
         var conditionReflexesActions = GetActionsForGeneticReflexes(conditionedReflex.SourceGeneticReflexId);
-
         var tooltipParts = new List<string>();
         var allActions = _adaptiveActionsSystem.GetAllAdaptiveActions();
         var actionNames = conditionReflexesActions
             .Select(actionId => allActions.FirstOrDefault(a => a.Id == actionId)?.Name ?? $"Действие {actionId}")
             .Where(name => !string.IsNullOrEmpty(name));
-
         if (actionNames.Any())
           tooltipParts.Add($"Действия: {string.Join(", ", actionNames)}");
-
         return tooltipParts.Any() ? string.Join("\n", tooltipParts) : "Пустой образ действий рефлекса";
       }
       catch (Exception ex)
@@ -327,10 +294,8 @@ namespace AIStudio.Common
       {
         var reflex = _geneticReflexesSystem.GetAllGeneticReflexesList()
             .FirstOrDefault(r => r.Id == reflexId);
-
         if (reflex == null)
           return new List<int>();
-
         return reflex.AdaptiveActions?.ToList() ?? new List<int>();
       }
       catch
@@ -353,7 +318,6 @@ namespace AIStudio.Common
     {
       if (string.IsNullOrEmpty(displayAutomatizmID) || !int.TryParse(displayAutomatizmID, out int atmzId) || atmzId <= 0)
         return null;
-
       try
       {
         var atmz = _automatizmSystem.GetAutomatizmById(atmzId);
@@ -361,7 +325,6 @@ namespace AIStudio.Common
         {
           int atmzImg = atmz.ActionsImageID;
           var actionsImage = _actionsImagesSystem.GetActionsImage(atmzImg);
-
           if (actionsImage != null)
           {
             return new AutomatizmActionsImageData
@@ -373,7 +336,6 @@ namespace AIStudio.Common
               Usefulness = atmz.Usefulness
             };
           }
-
           return new AutomatizmActionsImageData
           {
             ActIdList = new List<int>(),
@@ -395,7 +357,6 @@ namespace AIStudio.Common
           MoodId = 0
         };
       }
-
       return null;
     }
 
@@ -407,7 +368,6 @@ namespace AIStudio.Common
         return "Нет данных о действиях автоматизма";
       if (img == null)
         return $"Полезность: {usefulnessAtSnapshot.Value}";
-
       AutomatizmActionsImageData forFormat = img;
       if (usefulnessAtSnapshot.HasValue)
       {
@@ -420,14 +380,12 @@ namespace AIStudio.Common
           Usefulness = usefulnessAtSnapshot
         };
       }
-
       return FormatAutomatizmActionsImageTooltip(forFormat);
     }
 
     private string FormatAutomatizmActionsImageTooltip(AutomatizmActionsImageData actionsImage)
     {
       var sb = new StringBuilder();
-
       if (actionsImage.ActIdList != null && actionsImage.ActIdList.Any())
       {
         var allActions = _adaptiveActionsSystem.GetAllAdaptiveActions();
@@ -435,28 +393,23 @@ namespace AIStudio.Common
             .Where(id => allActions.Any(a => a.Id == id))
             .Select(id => allActions.First(a => a.Id == id).Name)
             .ToList();
-
         sb.AppendLine($"Действия ({actionsImage.ActIdList.Count}): {string.Join(", ", names)}");
       }
       else
         sb.AppendLine("Действия: нет");
-
       if (actionsImage.PhraseIdList != null && actionsImage.PhraseIdList.Any())
       {
         if (_verbalSensor != null)
         {
           var phraseTexts = new List<string>();
-
           foreach (var phraseId in actionsImage.PhraseIdList)
           {
             string phraseText = _verbalSensor.GetPhraseFromPhraseId(phraseId);
-
             if (!string.IsNullOrEmpty(phraseText))
               phraseTexts.Add($"\"{phraseText}\" (ID: {phraseId})");
             else
               phraseTexts.Add($"ID: {phraseId} (фраза не найдена)");
           }
-
           if (phraseTexts.Any())
             sb.AppendLine($"Фразы ({actionsImage.PhraseIdList.Count}): {string.Join(", ", phraseTexts)}");
         }
@@ -465,16 +418,12 @@ namespace AIStudio.Common
       }
       else
         sb.AppendLine("Фразы: нет");
-
       string toneText = ActionsImagesSystem.GetToneText(actionsImage.ToneId);
       sb.AppendLine(string.IsNullOrEmpty(toneText) ? "Тон: —" : $"Тон: {toneText}");
-
       string moodText = ActionsImagesSystem.GetMoodText(actionsImage.MoodId);
       sb.AppendLine(string.IsNullOrEmpty(moodText) ? "Настроение: —" : $"Настроение: {moodText}");
-
       if (actionsImage.Usefulness.HasValue)
         sb.AppendLine($"Полезность: {actionsImage.Usefulness.Value}");
-
       return sb.ToString().TrimEnd();
     }
 
@@ -482,18 +431,13 @@ namespace AIStudio.Common
     {
       string or1 = "Нет автоматизма, нужно быстро создать его по гомеостатическим целям";
       string or2 = "Автоматизм есть, надо его проверить в текущих условиях";
-
       if (string.IsNullOrEmpty(displayOrientationReflexType))
         return "Нет ориентировочного рефлекса";
-
       var orValue = displayOrientationReflexType.Trim();
-
       if (orValue == "ОР1")
         return or1;
-
       if (orValue == "ОР2")
         return or2;
-
       if (int.TryParse(orValue, out int orType))
       {
         return orType == 1
@@ -502,7 +446,6 @@ namespace AIStudio.Common
                 ? or2
                 : $"Ориентировочный рефлекс типа {orType}";
       }
-
       return $"Ориентировочный рефлекс: {orValue}";
     }
 
@@ -510,7 +453,6 @@ namespace AIStudio.Common
     {
       if (string.IsNullOrEmpty(displayThinkingLevel) || displayThinkingLevel == "-")
         return "Уровень мышления не активирован";
-
       var value = displayThinkingLevel.Trim();
       bool isUm1 = value == "1" || value == "УМ1";
       bool isUm2 = value == "2" || value == "УМ2";
@@ -543,14 +485,11 @@ namespace AIStudio.Common
     {
       if (string.IsNullOrWhiteSpace(displayOrUm))
         return "ОР/УМ";
-
       var s = displayOrUm.Trim();
       if (s == "1" || s == "2" || s == "УМ1" || s == "УМ2")
         return GetThinkingLevelTooltip(s, thinkingLevelSuccessForUm);
-
       if (s == "-" || string.IsNullOrEmpty(s))
         return "Нет активации ОР или уровня мышления";
-
       return GetOrientationReflexTooltip(s);
     }
 

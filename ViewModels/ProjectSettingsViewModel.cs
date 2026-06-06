@@ -27,7 +27,6 @@ namespace AIStudio.ViewModels
     private readonly AdaptiveActionsSystem _actionsSystem;
     /// <summary>При смене корня проекта вызывается после подстановки путей и параметров из XML — перезагрузка движка ISIDA в AIStudio.</summary>
     private readonly Action<ProjectSettingsViewModel> _reloadRuntimeAfterProjectRootSwitch;
-
     private bool _isInitialized = false;
     private bool _bulkApplyingProjectSettings = false;
     private bool _logEnabled = false;
@@ -49,24 +48,17 @@ namespace AIStudio.ViewModels
     private int _thinkingCycleDecayBase;
     private int _thinkingCycleMainMaxAgePulses;
     private int _noOperatorStimulusSilencePulses;
-
     private bool _homeostasisPulseSpeedDriftEnabled;
-
     private int _recognitionThreshold;
     private int _previousRecognitionThreshold;
-
     private int _compareLevel;
     private int _previousCompareLevel;
-
     private float _difSensorPar;
     private string _difSensorParText;
-
     private int _dynamicTime;
     private int _previousDynamicTime;
-
     private int _reflexActionDisplayDuration;
     private int _previousReflexActionDisplayDuration;
-
     private bool _settingsPathNotMatchingTemplate;
     private bool _dataGomeostasNotMatchingTemplate;
     private bool _dataActionsNotMatchingTemplate;
@@ -254,7 +246,6 @@ namespace AIStudio.ViewModels
           OnPropertyChanged(nameof(ThinkingCycleDecayAgeDivisor));
           return;
         }
-
         if (value < 1)
         {
           MessageBox.Show("Делитель возраста цикла (A) должен быть не меньше 1.", "Ошибка ввода");
@@ -276,7 +267,6 @@ namespace AIStudio.ViewModels
           OnPropertyChanged(nameof(ThinkingCycleDecayBase));
           return;
         }
-
         if (value < 0)
         {
           MessageBox.Show("Базовое снятие веса (B) не может быть отрицательным.", "Ошибка ввода");
@@ -298,7 +288,6 @@ namespace AIStudio.ViewModels
           OnPropertyChanged(nameof(ThinkingCycleMainMaxAgePulses));
           return;
         }
-
         if (value < 1)
         {
           MessageBox.Show("Максимальный возраст главного цикла (пульсов) должен быть не меньше 1.", "Ошибка ввода");
@@ -321,7 +310,6 @@ namespace AIStudio.ViewModels
           OnPropertyChanged(nameof(NoOperatorStimulusSilencePulses));
           return;
         }
-
         if (value < 1)
         {
           MessageBox.Show("Порог тишины для события «долго без оператора» должен быть не меньше 1 пульса.", "Ошибка ввода");
@@ -381,7 +369,6 @@ namespace AIStudio.ViewModels
           _previousRecognitionThreshold = value;
           return;
         }
-
         var validation = SettingsValidator.ValidateRecognitionThreshold(value);
         if (validation.isValid)
         {
@@ -408,7 +395,6 @@ namespace AIStudio.ViewModels
           _previousCompareLevel = value;
           return;
         }
-
         var validation = SettingsValidator.ValidateCompareLevel(value);
         if (validation.isValid)
         {
@@ -431,9 +417,7 @@ namespace AIStudio.ViewModels
       {
         if (string.IsNullOrEmpty(value))
           return;
-
         string normalizedValue = value.Replace(',', '.');
-
         if (float.TryParse(normalizedValue, NumberStyles.Float, CultureInfo.InvariantCulture, out float result))
         {
           var validation = SettingsValidator.ValidateDifSensorPar(result);
@@ -470,7 +454,6 @@ namespace AIStudio.ViewModels
           OnPropertyChanged(nameof(DifSensorParText));
           return;
         }
-
         if (validation.isValid)
         {
           _difSensorPar = value;
@@ -493,7 +476,6 @@ namespace AIStudio.ViewModels
           _previousDynamicTime = value;
           return;
         }
-
         var validation = SettingsValidator.ValidateDynamicTime(value);
         if (validation.isValid)
         {
@@ -520,7 +502,6 @@ namespace AIStudio.ViewModels
           _previousReflexActionDisplayDuration = value;
           return;
         }
-
         if (value < _dynamicTime)
         {
           _previousReflexActionDisplayDuration = _reflexActionDisplayDuration;
@@ -549,13 +530,11 @@ namespace AIStudio.ViewModels
     /// <summary>Выбор корня проекта данных и подстановка путей по шаблону ISIDA.</summary>
     /// <summary>Открывает текстовое описание шаблона каталогов в редакторе по умолчанию.</summary>
     public ICommand OpenProjectDirectoryTemplateCommand { get; }
-
     public ObservableCollection<SelectableItem> BehaviorStylesWithNone { get; } = new ObservableCollection<SelectableItem>();
     public ObservableCollection<SelectableItem> AdaptiveActionsWithNone { get; } = new ObservableCollection<SelectableItem>();
     public ObservableCollection<SelectableItem> ThemeTypesWithNone { get; } = new ObservableCollection<SelectableItem>();
     public ObservableCollection<SelectableItem> GeneticReflexesWithNone { get; } = new ObservableCollection<SelectableItem>();
     public ObservableCollection<SelectableItem> FormatLog { get; } = new ObservableCollection<SelectableItem>();
-
     public class SelectableItem
     {
       public int Id { get; set; }
@@ -597,7 +576,6 @@ namespace AIStudio.ViewModels
       _reflexActionDisplayDuration = AppConfig.ReflexActionDisplayDuration;
       _previousReflexActionDisplayDuration = _reflexActionDisplayDuration;
       _gomeostas = gomeostas;
-
       try
       {
         if (!AdaptiveActionsSystem.IsInitialized)
@@ -606,7 +584,6 @@ namespace AIStudio.ViewModels
               DataActionsFolderPath);
         }
         _actionsSystem = AdaptiveActionsSystem.Instance;
-
         if (!GeneticReflexesSystem.IsInitialized)
           GeneticReflexesSystem.InitializeInstance(_gomeostas, ReflexesFolderPath);
       }
@@ -622,29 +599,24 @@ namespace AIStudio.ViewModels
         };
         errorDialog.ShowDialog();
       }
-
       LoadBehaviorStylesWithNone();
       LoadAdaptiveActionsWithNone();
       LoadThemeTypesWithNone();
       LoadLogFormats();
-
       DefaultFormatLog = (int)AppConfig.LogFormat;
       BrowseFolderCommand = new RelayCommand(BrowseFolderWithParameter);
       SaveSettingsCommand = new RelayCommand(SaveSettingsWithParameter);
       OpenProjectDirectoryTemplateCommand = new RelayCommand(OpenProjectDirectoryTemplate);
-
       _isInitialized = true;
       OnPropertyChanged(nameof(ThinkingCycleDecayAgeDivisor));
       OnPropertyChanged(nameof(ThinkingCycleDecayBase));
       OnPropertyChanged(nameof(ThinkingCycleMainMaxAgePulses));
       OnPropertyChanged(nameof(NoOperatorStimulusSilencePulses));
-
       RefreshProjectPathTemplateWarnings();
     }
     private void LoadLogFormats()
     {
       FormatLog.Clear();
-
       FormatLog.Add(new SelectableItem { Id = (int)ResearchLogger.LogFormat.None, Name = "Нет" });
       FormatLog.Add(new SelectableItem { Id = (int)ResearchLogger.LogFormat.JsonL, Name = "JSON" });
       FormatLog.Add(new SelectableItem { Id = (int)ResearchLogger.LogFormat.Csv, Name = "CSV" });
@@ -655,7 +627,6 @@ namespace AIStudio.ViewModels
     {
       BehaviorStylesWithNone.Clear();
       BehaviorStylesWithNone.Add(new SelectableItem { Id = 0, Name = "Нет" });
-
       if (_gomeostas?.GetAllBehaviorStyles() != null)
       {
         foreach (var style in _gomeostas.GetAllBehaviorStyles().Values.OrderBy(s => s.Id))
@@ -669,7 +640,6 @@ namespace AIStudio.ViewModels
     {
       AdaptiveActionsWithNone.Clear();
       AdaptiveActionsWithNone.Add(new SelectableItem { Id = 0, Name = "Нет" });
-
       if (_actionsSystem?.GetAllAdaptiveActions() != null)
       {
         foreach (var action in _actionsSystem.GetAllAdaptiveActions().OrderBy(a => a.Id))
@@ -698,7 +668,6 @@ namespace AIStudio.ViewModels
     private void BrowseFolderWithParameter(object parameter)
     {
       if (!(parameter is string paramStr)) return;
-
       var dialog = new VistaFolderBrowserDialog
       {
         Description = $"Выберите папку для {paramStr}",
@@ -740,9 +709,7 @@ namespace AIStudio.ViewModels
           initialPath = "";
           break;
       }
-
       dialog.SelectedPath = initialPath;
-
       if (dialog.ShowDialog() == true)
       {
         switch (paramStr)
@@ -803,7 +770,6 @@ namespace AIStudio.ViewModels
         ScenarioReportsNotMatchingTemplate = false;
         return;
       }
-
       SettingsPathNotMatchingTemplate = !SettingsValidator.IsFolderPathMatchingProjectTemplate(root, SettingsPath, nameof(SettingsPath));
       DataGomeostasNotMatchingTemplate = !SettingsValidator.IsFolderPathMatchingProjectTemplate(root, DataGomeostasFolderPath, nameof(DataGomeostasFolderPath));
       DataActionsNotMatchingTemplate = !SettingsValidator.IsFolderPathMatchingProjectTemplate(root, DataActionsFolderPath, nameof(DataActionsFolderPath));
@@ -861,7 +827,6 @@ namespace AIStudio.ViewModels
             "Структура проекта");
         return;
       }
-
       if (SettingsValidator.TryInferProjectRoot(SettingsPath, DataGomeostasFolderPath, out string currentProjectRoot)
           && PathsReferToSameDirectory(projectRoot, currentProjectRoot))
       {
@@ -872,7 +837,6 @@ namespace AIStudio.ViewModels
             MessageBoxImage.Information);
         return;
       }
-
       var errors = new List<string>();
       string[] pathKeys =
       {
@@ -886,7 +850,6 @@ namespace AIStudio.ViewModels
         nameof(PsychicDataFolderPath),
         nameof(ScenarioReportsFolderPath)
       };
-
       var newPaths = new Dictionary<string, string>();
       for (int i = 0; i < pathKeys.Length; i++)
       {
@@ -901,13 +864,11 @@ namespace AIStudio.ViewModels
           errors.Add(GetPathSettingDisplayName(key) + ": ошибка вычисления пути.");
           continue;
         }
-
         if (Directory.Exists(expected))
           newPaths[key] = expected;
         else
           errors.Add(GetPathSettingDisplayName(key) + " (каталог): " + expected);
       }
-
       string projectSettingsXml = Path.Combine(projectRoot, "Settings", AppConfig.StudioSettingsFileName);
       if (!File.Exists(projectSettingsXml))
       {
@@ -915,7 +876,6 @@ namespace AIStudio.ViewModels
         if (File.Exists(legacyProjectSettings))
           projectSettingsXml = legacyProjectSettings;
       }
-
       XElement appSettings = null;
       if (File.Exists(projectSettingsXml))
       {
@@ -933,16 +893,13 @@ namespace AIStudio.ViewModels
       {
         errors.Add("Файл «" + AppConfig.StudioSettingsFileName + "» (или «" + AppConfig.LegacyStudioSettingsFileName + "») в каталоге Settings не найден; параметры со страницы не загружены из проекта.");
       }
-
       bool wasInit = _isInitialized;
       _isInitialized = false;
       _bulkApplyingProjectSettings = true;
-
       try
       {
         foreach (var kv in newPaths)
           ApplyPathSetting(kv.Key, kv.Value);
-
         if (appSettings != null)
           ApplyScalarSettingsFromAppSettings(appSettings, errors);
       }
@@ -951,15 +908,12 @@ namespace AIStudio.ViewModels
         _bulkApplyingProjectSettings = false;
         _isInitialized = wasInit;
       }
-
       AgentPropertiesAdapterBinding.TryMigrateFromSettingsXml(projectRoot, out _);
       string agentPropertiesPath = AgentPropertiesAdapterBinding.GetAgentPropertiesPath(projectRoot);
       SymbiontProjectAdapterSettings.SyncAppConfigFromAgentPropertiesFile(agentPropertiesPath);
-
       string adapterInAgent = string.Empty;
       if (File.Exists(agentPropertiesPath))
         AgentPropertiesAdapterBinding.TryReadAdapterId(agentPropertiesPath, out adapterInAgent);
-
       if (string.IsNullOrWhiteSpace(adapterInAgent))
       {
         MessageBox.Show(
@@ -970,10 +924,8 @@ namespace AIStudio.ViewModels
             MessageBoxButton.OK,
             MessageBoxImage.Information);
       }
-
       bool useRuntimeReload = _reloadRuntimeAfterProjectRootSwitch != null;
       bool reloadExecuted = false;
-
       if (useRuntimeReload)
       {
         if (!ValidateAllSettings())
@@ -987,7 +939,6 @@ namespace AIStudio.ViewModels
           OnPropertyChanged(nameof(DifSensorParText));
           return;
         }
-
         if (MessageBox.Show(
                 "Сейчас будет записан файл конфигурации студии и полностью перезагружен движок ISIDA из файлов выбранного проекта. Продолжить?",
                 "Переключение проекта",
@@ -1037,14 +988,12 @@ namespace AIStudio.ViewModels
         OnPropertyChanged(nameof(DefaultFormatLog));
         OnPropertyChanged(nameof(DifSensorParText));
       }
-
       if (errors.Count > 0)
       {
         var sb = new StringBuilder();
         sb.AppendLine("По указанному пути не обнаружены следующие настройки или не удалось их применить:");
         for (int i = 0; i < errors.Count; i++)
           sb.AppendLine(errors[i]);
-
         MessageBox.Show(sb.ToString(), "Переключение проекта", MessageBoxButton.OK, MessageBoxImage.Warning);
       }
       else if (reloadExecuted)
@@ -1127,7 +1076,6 @@ namespace AIStudio.ViewModels
     {
       TryReadInt(appSettings, nameof(DefaultStileId), v => DefaultStileId = v, "Стиль реагирования по умолчанию", errors);
       TryReadInt(appSettings, nameof(WaitingPeriodForActionsVal), v => WaitingPeriodForActionsVal = v, "Период ожидания ответа оператора (пульсов)", errors);
-
       TryReadIntValidated(
           appSettings,
           nameof(ThinkingCycleDecayAgeDivisor),
@@ -1156,11 +1104,9 @@ namespace AIStudio.ViewModels
           v => NoOperatorStimulusSilencePulses = v,
           "Событие «долго без оператора»: порог тишины",
           errors);
-
       TryReadBool(appSettings, nameof(HomeostasisPulseSpeedDriftEnabled), v => HomeostasisPulseSpeedDriftEnabled = v, "Изменение параметров по Speed на каждом пульсе", errors);
       TryReadInt(appSettings, nameof(DefaultAdaptiveActionId), v => DefaultAdaptiveActionId = v, "Адаптивное действие по умолчанию", errors);
       TryReadInt(appSettings, nameof(DefaultThemeTypeId), v => DefaultThemeTypeId = v, "Тема мышления по умолчанию", errors);
-
       TryReadIntWithValidator(
           appSettings,
           nameof(RecognitionThreshold),
@@ -1182,7 +1128,6 @@ namespace AIStudio.ViewModels
           v => DifSensorPar = v,
           "Мин. детектирование параметра",
           errors);
-
       TryReadIntWithValidator(
           appSettings,
           nameof(DynamicTime),
@@ -1190,7 +1135,6 @@ namespace AIStudio.ViewModels
           v => DynamicTime = v,
           "Время удержания состояний (пульсов)",
           errors);
-
       XElement reflexEl = appSettings.Element(nameof(ReflexActionDisplayDuration));
       if (reflexEl != null && !string.IsNullOrWhiteSpace(reflexEl.Value))
       {
@@ -1204,9 +1148,7 @@ namespace AIStudio.ViewModels
       }
       else
         errors.Add("Время удержания действий (пульсов)");
-
       TryReadBool(appSettings, nameof(LogEnabled), v => LogEnabled = v, "Включить логирование событий", errors);
-
       XElement logFormatEl = appSettings.Element("DefaultFormatLog");
       if (logFormatEl == null)
         logFormatEl = appSettings.Element("LogFormat");
@@ -1227,7 +1169,6 @@ namespace AIStudio.ViewModels
       }
       else
         errors.Add("Формат логов");
-
       OnPropertyChanged(nameof(DefaultStileId));
       OnPropertyChanged(nameof(WaitingPeriodForActionsVal));
       OnPropertyChanged(nameof(ThinkingCycleDecayAgeDivisor));
@@ -1260,14 +1201,12 @@ namespace AIStudio.ViewModels
         errors.Add(displayName);
         return;
       }
-
       int v;
       if (!int.TryParse(el.Value.Trim(), out v) || !rangeOk(v))
       {
         errors.Add(displayName);
         return;
       }
-
       apply(v);
     }
 
@@ -1285,21 +1224,18 @@ namespace AIStudio.ViewModels
         errors.Add(displayName);
         return;
       }
-
       int v;
       if (!int.TryParse(el.Value.Trim(), out v))
       {
         errors.Add(displayName);
         return;
       }
-
       var validation = validator(v);
       if (!validation.isValid)
       {
         errors.Add(displayName);
         return;
       }
-
       apply(v);
     }
 
@@ -1317,21 +1253,18 @@ namespace AIStudio.ViewModels
         errors.Add(displayName);
         return;
       }
-
       float v;
       if (!float.TryParse(el.Value.Trim(), NumberStyles.Float, CultureInfo.InvariantCulture, out v))
       {
         errors.Add(displayName);
         return;
       }
-
       var validation = validator(v);
       if (!validation.isValid)
       {
         errors.Add(displayName);
         return;
       }
-
       apply(v);
     }
 
@@ -1343,14 +1276,12 @@ namespace AIStudio.ViewModels
         errors.Add(displayName);
         return;
       }
-
       int v;
       if (!int.TryParse(el.Value.Trim(), out v))
       {
         errors.Add(displayName);
         return;
       }
-
       apply(v);
     }
 
@@ -1362,14 +1293,12 @@ namespace AIStudio.ViewModels
         errors.Add(displayName);
         return;
       }
-
       bool v;
       if (!bool.TryParse(el.Value.Trim(), out v))
       {
         errors.Add(displayName);
         return;
       }
-
       apply(v);
     }
 
@@ -1382,7 +1311,6 @@ namespace AIStudio.ViewModels
         SettingsValidator.ValidateDifSensorPar(DifSensorPar),
         SettingsValidator.ValidateDynamicTime(DynamicTime)
     };
-
       var failedValidations = validations.Where(v => !v.isValid).ToList();
       if (failedValidations.Any())
       {
@@ -1390,7 +1318,6 @@ namespace AIStudio.ViewModels
         MessageBox.Show($"Обнаружены ошибки в настройках:\n\n{errorMessage}", "Ошибка валидации");
         return false;
       }
-
       return true;
     }
 
@@ -1425,7 +1352,6 @@ namespace AIStudio.ViewModels
       AppConfig.SetIntSetting(nameof(ReflexActionDisplayDuration), ReflexActionDisplayDuration);
       AppConfig.SetBoolSetting(nameof(LogEnabled), LogEnabled);
       AppConfig.SetLogFormatSetting(nameof(DefaultFormatLog), (ResearchLogger.LogFormat)DefaultFormatLog);
-
       AppConfig.MirrorHubToProjectProfile();
     }
 
@@ -1433,18 +1359,15 @@ namespace AIStudio.ViewModels
     {
       if (!ValidateAllSettings())
         return;
-
       try
       {
         PushSettingsToAppConfig();
-
         var reloadQuestion = MessageBox.Show(
             "Настройки успешно сохранены.\n\nПерегрузить проект с изменёнными настройками?",
             "Успех",
             MessageBoxButton.YesNo,
             MessageBoxImage.Question,
             MessageBoxResult.No);
-
         if (reloadQuestion == MessageBoxResult.Yes && _reloadRuntimeAfterProjectRootSwitch != null)
         {
           _reloadRuntimeAfterProjectRootSwitch(this);
@@ -1465,7 +1388,6 @@ namespace AIStudio.ViewModels
           MainIcon = TaskDialogIcon.Error,
           Buttons = { new TaskDialogButton(ButtonType.Ok) }
         };
-
         errorDialog.ShowDialog();
       }
     }

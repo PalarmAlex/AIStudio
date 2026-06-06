@@ -15,7 +15,6 @@ namespace AIStudio.Dialogs
   public partial class PrimitivesLoadDialog : Window
   {
     public PrimitivesLoadDialogViewModel ViewModel { get; }
-
     public PrimitivesLoadDialog(string bootDataFolder, Stage2PrimitivesLoader loader)
     {
       InitializeComponent();
@@ -54,33 +53,25 @@ namespace AIStudio.Dialogs
   {
     public event PropertyChangedEventHandler PropertyChanged;
     protected void OnPropertyChanged(string name) => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
-
     private const string PrimitivesListFileName = "primitives_generate_list.txt";
     private const string PromptFileName = "prompt_primitives_generate.txt";
     private const string PromptInsertFileName = "primitives_prompt_insert.txt";
-
     private static readonly string DefaultInsertTextTemplate = @"Сгенерируй строки базовых примитивов в формате (строка — одна запись, поля разделены только символом |):
 Состояние|Стили|Трехсложный паттерн|Тон|Настроение
-
 Правила:
 - Состояние: строго одно из — Плохо, Норма, Хорошо
 - Стили: комбинации стилей через + (например: Расслабление+Игра)
 - Трехсложный паттерн: три слога или коротких слова через пробел или дефис, без символа | (например: со ба ка или тик-так; при пробелах вербальная часть — без пробелов)
 - Тон: строго одно из списка, только кириллица, без замены букв на латинские — Вялый, Нормальный, Повышенный
 - Настроение: строго одно из списка, только кириллица, без замены букв на латинские — Нормальное, Хорошее, Плохое, Игривое, Учитель, Агрессивное, Защитное, Протест
-
 Примеры (копируй написание Тон и Настроение точно, кириллицей):
 Норма|Расслабление+Игра|со ба ка|Нормальный|Хорошее
 Хорошо|Расслабление|ма ма мы|Нормальный|Нормальное
-
 Сгенерируй примерно 10–15 строк на каждое состояние.";
-
     private readonly string _bootDataFolder;
     private readonly Stage2PrimitivesLoader _loader;
-
     public Action<bool> CloseAction { get; set; }
     public Action SwitchToPromptTabAction { get; set; }
-
     private bool _isBusy;
     public bool IsBusy
     {
@@ -95,12 +86,10 @@ namespace AIStudio.Dialogs
     public RelayCommand CreatePromptCommand { get; }
     public RelayCommand ApplyCommand { get; }
     public RelayCommand CancelCommand { get; }
-
     public PrimitivesLoadDialogViewModel(string bootDataFolder, Stage2PrimitivesLoader loader)
     {
       _bootDataFolder = bootDataFolder;
       _loader = loader;
-
       SaveCsvCommand = new RelayCommand(ExecuteSaveCsv, CanExecuteSaveCsv);
       ValidateCsvCommand = new RelayCommand(ExecuteValidateCsv);
       SavePromptCommand = new RelayCommand(ExecuteSavePrompt, CanExecuteSavePrompt);
@@ -126,7 +115,6 @@ namespace AIStudio.Dialogs
 
     private string _promptFilePath;
     public string PromptFilePath => _promptFilePath ?? (_promptFilePath = Path.Combine(_bootDataFolder, PromptFileName));
-
     private string _promptInsertText;
     public string PromptInsertText
     {
@@ -152,9 +140,7 @@ namespace AIStudio.Dialogs
     }
 
     public bool IsPromptEditingEnabled => !string.IsNullOrEmpty(PromptFilePath);
-
     public bool CanApply => !string.IsNullOrWhiteSpace(CsvContent);
-
     public void LoadCsvContent()
     {
       try
@@ -195,9 +181,7 @@ namespace AIStudio.Dialogs
     }
 
     private bool CanExecuteSaveCsv(object _) => !string.IsNullOrWhiteSpace(CsvContent);
-
     private bool CanExecuteSaveInsertText(object _) => !string.IsNullOrWhiteSpace(PromptInsertText);
-
     private void ExecuteSaveInsertText(object _)
     {
       try
@@ -277,7 +261,6 @@ namespace AIStudio.Dialogs
     }
 
     private bool CanExecuteSavePrompt(object _) => !string.IsNullOrWhiteSpace(PromptContent);
-
     private void ExecuteSavePrompt(object _)
     {
       try

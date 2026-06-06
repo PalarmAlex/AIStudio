@@ -11,12 +11,10 @@ namespace AIStudio.Common
   {
     public const string PulsationBlockedMessage =
         "Выбор и удаление сессий логов доступны только при выключенной пульсации.";
-
     public static bool EnsurePulsationStopped(Window owner)
     {
       if (!GlobalTimer.IsPulsationRunning)
         return true;
-
       MessageBox.Show(
           owner,
           PulsationBlockedMessage,

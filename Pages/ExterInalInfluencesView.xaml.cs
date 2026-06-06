@@ -1,4 +1,4 @@
-﻿using AIStudio.Common;
+using AIStudio.Common;
 using AIStudio.Dialogs;
 using AIStudio.ViewModels;
 using ISIDA.Actions;
@@ -52,7 +52,6 @@ namespace AIStudio.Pages
     private void DataGrid_AddingNewItem(object sender, AddingNewItemEventArgs e)
     {
       int nextId = GetNextId();
-
       e.NewItem = new InfluenceActionSystem.GomeostasisInfluenceAction
       {
         Id = nextId,
@@ -66,13 +65,11 @@ namespace AIStudio.Pages
     {
       var viewModel = DataContext as ExterInalInfluencesViewModel;
       if (viewModel == null) return 1;
-
       int maxId = 0;
       if (viewModel.InfluenceActions != null && viewModel.InfluenceActions.Any())
       {
         maxId = viewModel.InfluenceActions.Max(a => a.Id);
       }
-
       var grid = ExternInfluencesGrid;
       if (grid?.ItemsSource != null)
       {
@@ -83,7 +80,6 @@ namespace AIStudio.Pages
           maxId = Math.Max(maxId, gridMaxId);
         }
       }
-
       return maxId + 1;
     }
 
@@ -96,12 +92,9 @@ namespace AIStudio.Pages
           e.Handled = true;
           return;
         }
-
         var grid = (DataGrid)sender;
-
         if (grid.IsEditing())
           return;
-
         if (grid.SelectedItems.Count > 0 && DataContext is ExterInalInfluencesViewModel viewModel)
         {
           var actions = grid.SelectedItems
@@ -109,13 +102,11 @@ namespace AIStudio.Pages
             .Where(item => item is InfluenceActionSystem.GomeostasisInfluenceAction)
             .Cast<InfluenceActionSystem.GomeostasisInfluenceAction>()
             .ToList();
-
           var result = MessageBox.Show(
               $"Вы действительно хотите удалить {actions.Count} гомеостатических воздействий?",
               "Подтверждение удаления",
               MessageBoxButton.YesNo,
               MessageBoxImage.Question);
-
           if (result == MessageBoxResult.Yes)
           {
             foreach (var action in actions)
@@ -123,7 +114,6 @@ namespace AIStudio.Pages
               viewModel.RemoveSelectedInfluence(action);
             }
           }
-
           e.Handled = true;
         }
       }
@@ -147,7 +137,6 @@ namespace AIStudio.Pages
           e.Handled = true;
           return;
         }
-
         if (sender is FrameworkElement element &&
             element.DataContext is InfluenceActionSystem.GomeostasisInfluenceAction action)
         {
@@ -155,13 +144,11 @@ namespace AIStudio.Pages
               $"Влияния гомеостатического воздействия: {action.Name} (ID: {action.Id})",
               vm.GetAllParameters(),
               action.Influences);
-
           if (editor.ShowDialog() == true)
           {
             action.Influences = editor.SelectedInfluences.ToDictionary(
                 kvp => kvp.Key,
                 kvp => GomeostasSystem.ClampInt(kvp.Value, -10, 10));
-
             ExternInfluencesGrid.CommitEdit(DataGridEditingUnit.Row, true);
             ExternInfluencesGrid.Items.Refresh();
           }
@@ -179,7 +166,6 @@ namespace AIStudio.Pages
           e.Handled = true;
           return;
         }
-
         if (sender is FrameworkElement element &&
             element.DataContext is InfluenceActionSystem.GomeostasisInfluenceAction action)
         {
@@ -190,12 +176,10 @@ namespace AIStudio.Pages
               Id = a.Id,
               Name = a.Name,
             });
-
           var editor = new AntagonistInfluenceEditor(
               $"Антагонисты действия: {action.Name} (ID: {action.Id})",
               availableActions,
               action.AntagonistInfluences ?? new List<int>());
-
           if (editor.ShowDialog() == true)
           {
             action.AntagonistInfluences = editor.SelectedInfluenceIds.ToList();
@@ -213,7 +197,6 @@ namespace AIStudio.Pages
       {
         ExternInfluencesGrid.CommitEdit(DataGridEditingUnit.Cell, true);
         ExternInfluencesGrid.CommitEdit(DataGridEditingUnit.Row, true);
-
         var dialog = new TextInputDialog
         {
           Owner = Window.GetWindow(this),
@@ -221,7 +204,6 @@ namespace AIStudio.Pages
           Text = action.Description,
           Multiline = true
         };
-
         if (dialog.ShowDialog() == true)
         {
           action.Description = dialog.Text;
@@ -247,6 +229,5 @@ namespace AIStudio.Pages
         return true;
       }
     }
-
   }
 }

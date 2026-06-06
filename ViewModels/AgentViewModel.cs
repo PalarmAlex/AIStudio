@@ -1,4 +1,4 @@
-﻿using AIStudio.Common;
+using AIStudio.Common;
 using ISIDA.Common;
 using ISIDA.Gomeostas;
 using System;
@@ -18,7 +18,6 @@ namespace AIStudio.ViewModels
   {
     public int StageNumber { get; set; }
     public string Description { get; set; } = string.Empty;
-
     private static readonly string[] StageDescriptions =
     {
       "Настройка системы гомеостаза",
@@ -28,7 +27,6 @@ namespace AIStudio.ViewModels
       "Формирование эпизодической памяти, дерева понимания, активация циклов мышления",
       "Творчество и инсайды"
     };
-
     public static string GetDescription(int stageNumber)
     {
       if (stageNumber >= 0 && stageNumber < StageDescriptions.Length)
@@ -63,7 +61,6 @@ namespace AIStudio.ViewModels
     private bool _disposed = false;
     private int _previousStage;
     private bool _isAgentDead;
-
     public ObservableCollection<AgentProperty> AgentProperties { get; }
     public ObservableCollection<EvolutionStageItem> AvailableStages { get; } = new ObservableCollection<EvolutionStageItem>
     {
@@ -74,7 +71,6 @@ namespace AIStudio.ViewModels
       new EvolutionStageItem { StageNumber = 4, Description = EvolutionStageItem.GetDescription(4) },
       new EvolutionStageItem { StageNumber = 5, Description = EvolutionStageItem.GetDescription(5) }
     };
-
     private string _agentName;
     public string AgentName
     {
@@ -106,12 +102,10 @@ namespace AIStudio.ViewModels
         IsAgentOverviewExpanded
             ? "Действия симбионта"
             : $"Действия симбионта. Стадия: {SelectedStage}. Состояние: {HomeostasisStatus}";
-
     public Brush AgentActionsSectionForeground =>
         IsAgentOverviewExpanded
             ? HeaderBackground
             : HomeostasisStatusColor;
-
     private void NotifyAgentActionsSectionHeaderChanged()
     {
       OnPropertyChanged(nameof(AgentActionsSectionTitle));
@@ -121,7 +115,6 @@ namespace AIStudio.ViewModels
     public string AgentBaseSost => IsAgentDead
         ? "СИМБИОНТ МЕРТВ, все операции заблокированы"
         : $"Жизненные параметры симбионта. Состояние: {HomeostasisStatus}";
-
     private Brush _headerBackground;
     public Brush HeaderBackground
     {
@@ -261,7 +254,6 @@ namespace AIStudio.ViewModels
           OnPropertyChanged(nameof(HomeostasisStatus));
           OnPropertyChanged(nameof(HomeostasisStatusColor));
           NotifyAgentActionsSectionHeaderChanged();
-
           (_updateCommand as RelayCommand)?.RaiseCanExecuteChanged();
           (_setNormalHomeostasisCommand as RelayCommand)?.RaiseCanExecuteChanged();
           (_resurrectAgentCommand as RelayCommand)?.RaiseCanExecuteChanged();
@@ -284,7 +276,6 @@ namespace AIStudio.ViewModels
     }
 
     private string _waitingPeriodText = "";
-
     public string WaitingPeriodText
     {
       get => _waitingPeriodText;
@@ -316,7 +307,6 @@ namespace AIStudio.ViewModels
     public bool IsStageComboEnabled => IsAnyControlEnabled;
     public bool IsStageSelectionEnabled => IsAnyControlEnabled;
     public bool IsEditingEnabled => IsAnyControlEnabled;
-
     private Brush _warningMessageColor;
     public Brush WarningMessageColor
     {
@@ -354,10 +344,8 @@ namespace AIStudio.ViewModels
           OnPropertyChanged(nameof(PulseWarningMessage));
           OnPropertyChanged(nameof(WarningMessageColor));
           NotifyAgentActionsSectionHeaderChanged();
-
           if (AgentProperties.Count > 0 && !IsAgentDead)
             AgentName = $"{AgentProperties[0].Value}. Стадия развития: {value}";
-
           UpdateEditableProperties();
         }
       }
@@ -365,7 +353,6 @@ namespace AIStudio.ViewModels
 
     /// <summary>Описание выбранной стадии для всплывающей подсказки.</summary>
     public string SelectedStageDescription => EvolutionStageItem.GetDescription(SelectedStage);
-
     private AgentAdaptiveActionsViewModel _agentAdaptiveActionsViewModel;
     public AgentAdaptiveActionsViewModel AgentAdaptiveActionsViewModel
     {
@@ -430,11 +417,9 @@ namespace AIStudio.ViewModels
     public string HomeostasisStatus => IsAgentDead
         ? "СМЕРТЬ"
         : AppConfig.GetBaseStateDisplay((int)(CurrentHomeostasisState?.OverallState ?? HomeostasisOverallState.Normal));
-
     public Brush HomeostasisStatusColor => IsAgentDead
         ? Brushes.Black
         : AppConfig.GetBaseStateColor((int)(CurrentHomeostasisState?.OverallState ?? HomeostasisOverallState.Normal));
-
     public AgentViewModel(GomeostasSystem gomeostas, Action onCancelWaitingPeriod = null, Action onAgentEngineStateSynced = null)
     {
       _gomeostas = gomeostas;
@@ -450,14 +435,12 @@ namespace AIStudio.ViewModels
       // Инициализация цветов
       TextForeground = Brushes.Black;
       WarningMessageColor = Brushes.Transparent;
-
       GlobalTimer.PulsationStateChanged += OnPulsationStateChanged;
       GlobalTimer.OnPulseStateChanged += isActive =>
       {
         if (isActive)
           OnPulseStateChanged(isActive);
       };
-
       LoadAgentData();
       UpdateEditableProperties();
       UpdateWarningMessage();
@@ -468,19 +451,16 @@ namespace AIStudio.ViewModels
     {
       if (!IsAgentDead || GlobalTimer.IsPulsationRunning)
         return;
-
       var agentInfo = _gomeostas.GetAgentState();
       string name = agentInfo?.Name?.Trim();
       if (string.IsNullOrEmpty(name))
         name = "симбионт";
-
       if (MessageBox.Show(
               $"Воскресить симбионта «{name}»?\nБудет снята отметка смерти, параметры приведутся к состоянию «Норма».",
               "Воскрешение симбионта",
               MessageBoxButton.YesNo,
               MessageBoxImage.Question) != MessageBoxResult.Yes)
         return;
-
       var (reviveOk, reviveErr) = _gomeostas.ReviveAgentSaveProperties();
       if (!reviveOk)
       {
@@ -491,11 +471,9 @@ namespace AIStudio.ViewModels
             MessageBoxImage.Warning);
         return;
       }
-
       LoadAgentData();
       _onAgentEngineStateSynced?.Invoke();
       AgentPultViewModel.SyncAgentDeadFlagFromGomeostas();
-
       ApplyNormalHomeostasisManually();
     }
 
@@ -503,7 +481,6 @@ namespace AIStudio.ViewModels
     {
       if (IsAgentDead || !IsAnyControlEnabled)
         return;
-
       try
       {
         _gomeostas.ApplySpeedOrientedNormalHomeostasisForScenarioPreRun();
@@ -517,7 +494,6 @@ namespace AIStudio.ViewModels
             MessageBoxImage.Warning);
         return;
       }
-
       var (propsOk, propsErr) = _gomeostas.SaveAgentProperties();
       if (!propsOk)
       {
@@ -527,7 +503,6 @@ namespace AIStudio.ViewModels
             MessageBoxButton.OK,
             MessageBoxImage.Warning);
       }
-
       var (paramsOk, paramsErr) = _gomeostas.SaveAgentParameters();
       if (!paramsOk)
       {
@@ -537,7 +512,6 @@ namespace AIStudio.ViewModels
             MessageBoxButton.OK,
             MessageBoxImage.Warning);
       }
-
       LoadAgentData();
     }
 
@@ -551,12 +525,10 @@ namespace AIStudio.ViewModels
             MessageBoxImage.Error);
         return;
       }
-
       try
       {
         _gomeostas.SetAgentName(AgentProperties[0].Value);
         _gomeostas.SetAgentDescription(AgentProperties[1].Value);
-
         var stageResult = _gomeostas.SetEvolutionStage(SelectedStage, false, false);
         if (!stageResult.Success)
         {
@@ -564,23 +536,18 @@ namespace AIStudio.ViewModels
               "Ошибка",
               MessageBoxButton.OK,
               MessageBoxImage.Error);
-
           LoadAgentData();
           return;
         }
-
         var (saveSuccess, error) = _gomeostas.SaveAgentProperties();
-
         if (saveSuccess)
         {
           AgentName = $"{AgentProperties[0].Value}. Стадия развития: {SelectedStage}";
-
           var result = MessageBox.Show("Изменения успешно сохранены.\n" +
               "Сохранить так же значения параметров?",
               "Подтверждение сохранения значений параметров",
               MessageBoxButton.YesNo,
               MessageBoxImage.Question);
-
           if (result == MessageBoxResult.Yes)
           {
             (saveSuccess, error) = _gomeostas.SaveAgentParameters(false);
@@ -640,7 +607,6 @@ namespace AIStudio.ViewModels
         OnPropertyChanged(nameof(IsStageSelectionEnabled));
         OnPropertyChanged(nameof(IsAnyControlEnabled));
         UpdateEditableProperties();
-
         if (!GlobalTimer.IsPulsationRunning)
         {
           LoadAgentData();
@@ -654,9 +620,7 @@ namespace AIStudio.ViewModels
       {
         var agentInfo = _gomeostas.GetAgentState();
         if (agentInfo == null) return;
-
         IsAgentDead = agentInfo.IsDead;
-
         if (IsAgentDead)
         {
           // Устанавливаем визуальные индикации смерти
@@ -703,7 +667,6 @@ namespace AIStudio.ViewModels
             }
           }
         }
-
         var activeActions = _gomeostas.GetActiveAdaptiveActionsList();
         AgentAdaptiveActionsViewModel.UpdateActions(activeActions);
 
@@ -712,9 +675,7 @@ namespace AIStudio.ViewModels
         {
           OverallState = agentInfo.OverallState,
         };
-
         UpdateWarningMessage();
-
         OnPropertyChanged(nameof(HeaderBackground));
         OnPropertyChanged(nameof(TextForeground));
         OnPropertyChanged(nameof(AgentName));
@@ -722,10 +683,8 @@ namespace AIStudio.ViewModels
         OnPropertyChanged(nameof(HomeostasisStatus));
         OnPropertyChanged(nameof(HomeostasisStatusColor));
         NotifyAgentActionsSectionHeaderChanged();
-
         UpdateEditableProperties();
         UpdateWaitingPeriodDisplay();
-
         BehaviorStylesViewModel.LoadBehaviorStyles();
       }
       catch (Exception ex)
@@ -737,12 +696,10 @@ namespace AIStudio.ViewModels
     public void UpdateEditableProperties()
     {
       bool isEditable = !IsAgentDead && !GlobalTimer.IsPulsationRunning;
-
       foreach (var prop in AgentProperties)
       {
         prop.IsEditable = isEditable;
       }
-
       UpdateWarningMessage();
       OnPropertyChanged(nameof(IsStageSelectionEnabled));
       OnPropertyChanged(nameof(IsEditingEnabled));
@@ -762,7 +719,6 @@ namespace AIStudio.ViewModels
           else
             AppGlobalState.ForceStopWaitingForOperatorEvaluation();
           UpdateWaitingPeriodDisplay();
-
           Logger.Info("Период ожидания оценки оператора отменен пользователем");
         }
       }
@@ -812,18 +768,15 @@ namespace AIStudio.ViewModels
     protected virtual void Dispose(bool disposing)
     {
       if (_disposed) return;
-
       if (disposing)
       {
         GlobalTimer.PulsationStateChanged -= OnPulsationStateChanged;
         GlobalTimer.OnPulseStateChanged -= OnPulseStateChanged;
       }
-
       _disposed = true;
     }
 
     public event PropertyChangedEventHandler PropertyChanged;
-
     protected virtual void OnPropertyChanged(string propertyName) =>
         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
   }
@@ -832,7 +785,6 @@ namespace AIStudio.ViewModels
   {
     private string _value;
     private bool _isEditable;
-
     public string Name { get; }
     public bool IsEditable
     {

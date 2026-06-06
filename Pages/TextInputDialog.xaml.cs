@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Windows;
 using System.Windows.Input;
 
@@ -7,10 +7,8 @@ namespace AIStudio.Dialogs
   public partial class TextInputDialog : Window
   {
     private const string NewLineReplacement = "\\n"; // Специальный символ для замены переносов строк
-
     public string Text { get; set; }
     public bool Multiline { get; set; }
-
     public TextInputDialog()
     {
       InitializeComponent();
@@ -21,7 +19,6 @@ namespace AIStudio.Dialogs
     public void SetText(string text, bool isMultiline)
     {
       Multiline = isMultiline;
-
       if (isMultiline && !string.IsNullOrEmpty(text))
       {
         // Заменяем специальные символы на настоящие переносы строк для отображения
@@ -58,7 +55,6 @@ namespace AIStudio.Dialogs
                    .Replace("\n", NewLineReplacement)
                    .Replace("\r", NewLineReplacement);
       }
-
       DialogResult = true;
       Close();
     }

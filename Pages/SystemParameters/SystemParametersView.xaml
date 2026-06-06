@@ -1,4 +1,4 @@
-﻿<UserControl x:Class="AIStudio.Pages.SystemParametersView"
+<UserControl x:Class="AIStudio.Pages.SystemParametersView"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
@@ -133,7 +133,6 @@
         <DataGrid.Columns>
           <DataGridTextColumn Header="ID" Binding="{Binding Id}" Width="50" IsReadOnly="True"/>
           <DataGridTextColumn Header="Название" Binding="{Binding Name, Mode=TwoWay}" Width="*"/>
-
           <DataGridTextColumn Header="Описание" Binding="{Binding Description, Mode=TwoWay}" Width="*">
             <DataGridTextColumn.CellStyle>
               <Style TargetType="DataGridCell" BasedOn="{StaticResource {x:Type DataGridCell}}">
@@ -174,7 +173,7 @@
               </Style>
             </DataGridTextColumn.EditingElementStyle>
           </DataGridTextColumn>
-          
+
           <DataGridTextColumn Header="Норма" Binding="{Binding NormaWell, Mode=TwoWay}" Width="Auto">
             <DataGridTextColumn.HeaderStyle>
               <Style TargetType="DataGridColumnHeader">
@@ -226,7 +225,7 @@
                     Value="Максимальное допустимое значение для жизненно важных параметров.&#x0a;Выше приводит к смерти симбионта."/>
               </Style>
             </DataGridTextColumn.HeaderStyle>
-           
+
             <DataGridTextColumn.EditingElementStyle>
               <Style TargetType="TextBox">
                 <EventSetter Event="PreviewTextInput" Handler="NumericColumn_PreviewTextInput"/>
@@ -247,14 +246,13 @@
           </DataGridTextColumn>
 
           <DataGridTemplateColumn Header="Жизн. важный" Width="50">
-
             <DataGridTemplateColumn.HeaderStyle>
               <Style TargetType="DataGridColumnHeader">
                 <Setter Property="ToolTip" 
                     Value="Флаг, указывающий что параметр является жизненно важным.&#x0a;Критические мин/макс значения только таких параметров могут вызвать 'смерть' симбионта."/>
               </Style>
             </DataGridTemplateColumn.HeaderStyle>
-         
+
             <DataGridTemplateColumn.CellTemplate>
               <DataTemplate>
                 <CheckBox IsChecked="{Binding IsVital}"

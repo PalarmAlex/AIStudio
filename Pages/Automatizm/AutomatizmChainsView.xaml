@@ -258,7 +258,7 @@
                 <Setter Property="HorizontalContentAlignment" Value="Center"/>
               </Style>
             </DataGridTemplateColumn.CellStyle>
-            
+
           </DataGridTemplateColumn>
 
           <!-- Действия -->

@@ -14,16 +14,13 @@ namespace AIStudio.Common.Adapters
         Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData),
         "ISIDA",
         "Adapters");
-
     /// <summary>Каркасы пакетов (не зарегистрированные адаптеры): <c>%ProgramData%\ISIDA\AdapterPackageTemplates</c>.</summary>
     public static readonly string PackageTemplatesRootPath = Path.Combine(
         Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData),
         "ISIDA",
         "AdapterPackageTemplates");
-
     /// <summary>Имя каталога каркаса пакета по умолчанию.</summary>
     public const string DemoTemplateFolderName = "demo";
-
     /// <summary>
     /// Путь к шаблону <c>demo</c>: <c>AdapterPackageTemplates\demo\</c> (кладёт установщик студии).
     /// </summary>
@@ -39,7 +36,6 @@ namespace AIStudio.Common.Adapters
     {
       if (string.IsNullOrWhiteSpace(adapterId))
         throw new ArgumentException("adapterId");
-
       return Path.Combine(AdaptersRootPath, adapterId.Trim());
     }
 

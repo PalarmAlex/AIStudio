@@ -1,4 +1,4 @@
-﻿<Window x:Class="AIStudio.Dialogs.AdaptiveActionsSelectionDialog"
+<Window x:Class="AIStudio.Dialogs.AdaptiveActionsSelectionDialog"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         Title="Выбор адаптивных действий" Height="500" Width="600"
@@ -13,7 +13,6 @@
     </Grid.RowDefinitions>
 
     <TextBlock Grid.Row="0" Text="Выберите адаптивные действия:" Margin="0,0,0,10" FontWeight="Bold"/>
-
     <ListView x:Name="AdaptiveActionsList" Grid.Row="1" SelectionMode="Multiple">
       <ListView.ItemTemplate>
         <DataTemplate>

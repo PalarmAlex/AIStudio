@@ -20,7 +20,6 @@
     <converters:IdListToNamesConverter x:Key="IdListToNamesConverter"/>
     <converters:ReflexChainDetailTooltipConverter x:Key="ReflexChainDetailTooltipConverter"/>
     <BooleanToVisibilityConverter x:Key="BoolToVis"/>
-
     <Style x:Key="BaseTextBlockStyle" TargetType="TextBlock">
       <Setter Property="Background" Value="White"/>
       <Style.Triggers>
@@ -208,7 +207,6 @@
         PreviewKeyDown="DataGrid_PreviewKeyDown"
         RowEditEnding="DataGrid_RowEditEnding"
         AddingNewItem="DataGrid_AddingNewItem">
-
         <DataGrid.Columns>
           <DataGridTextColumn Header="ID" Binding="{Binding Id}" Width="50" IsReadOnly="True"/>
 

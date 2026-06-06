@@ -21,7 +21,6 @@ namespace AIStudio.Converters
           else if (int.TryParse(System.Convert.ToString(v3, culture), NumberStyles.Integer, culture, out int parsed))
             usefulnessSnap = parsed;
         }
-
         var actionsImage = viewModel.GetActionsForAutomatizm(displayValue, usefulnessSnap);
         if (actionsImage != null)
         {

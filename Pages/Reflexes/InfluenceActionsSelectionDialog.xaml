@@ -1,4 +1,4 @@
-﻿<Window x:Class="AIStudio.Dialogs.InfluenceActionsSelectionDialog"
+<Window x:Class="AIStudio.Dialogs.InfluenceActionsSelectionDialog"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         Title="Выбор внешних воздействий" Height="500" Width="600"
@@ -14,7 +14,6 @@
     </Grid.RowDefinitions>
 
     <TextBlock Grid.Row="0" Text="Выберите внешние воздействия:" Margin="0,0,0,10" FontWeight="Bold"/>
-
     <ListView x:Name="InfluenceActionsList" Grid.Row="1" SelectionMode="Multiple">
       <ListView.ItemTemplate>
         <DataTemplate>

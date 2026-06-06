@@ -2,7 +2,7 @@
 
 **Версия контракта:** `1.0`  
 **Дата:** 2026-06-03  
-**Статус:** нормативный документ для AIStudio, авторов адаптеров и runtime host (Velum v1 — эталонный адаптер).
+**Статус:** нормативный документ для AIStudio, авторов адаптеров и runtime host (эталонная реализация v1 — ориентир для авторов).
 
 Связанные документы:
 
@@ -53,9 +53,9 @@
 |-------------------|--------|
 | **Зарегистрировать пакет…** | Скопировать папку/ZIP в `Adapters\{id}\`, проверить структуру |
 
-**«Зарегистрировать пакет» ≠ «подключиться к среде».** Студия использует **файлы пакета** (manifest, schema, образцы BootData). SolidWorks, Velum и прочие host **не вызываются** из процесса AIStudio при редактировании.
+**«Зарегистрировать пакет» ≠ «подключиться к среде».** Студия использует **файлы пакета** (manifest, schema, образцы BootData). Runtime host и целевое приложение **не вызываются** из процесса AIStudio при редактировании.
 
-Один зарегистрированный пакет (`velum`) может обслуживать **много** проектов симбионта.
+Один зарегистрированный пакет (`my-adapter`) может обслуживать **много** проектов симбионта.
 
 **Каркас для разработки** (шаблон, не регистрировать как адаптер):
 
@@ -67,12 +67,12 @@
 
 ### 0.3. Runtime host (исполнитель среды)
 
-**`runtime\*.dll`** — программа, которая **вне студии** читает YAML проекта и исполняет рецепты/триггеры (Velum v1 — эталон).
+**`runtime\*.dll`** — программа, которая **вне студии** читает YAML проекта и исполняет рецепты/триггеры (эталонная реализация v1 — ориентир).
 
 | Где нужен runtime | Когда |
 |-------------------|--------|
 | В пакете адаптера | Дистрибуция; проверка «Проверить» (наличие файлов) |
-| На машине пользователя | Работа в реальной среде (SolidWorks и т.д.) |
+| На машине пользователя | Работа в реальной среде (целевое приложение и т.д.) |
 | В студии (post-MVP) | Только **сборщик инсталлятора**; не редактор гомеостаза |
 
 ### 0.4. Связь проекта симбионта и пакета
@@ -110,7 +110,7 @@
 2. **`manifest.json`** — метаданные адаптера и ссылки на части пакета.
 3. **Runtime contract YAML** — формат файлов `EnvironmentRecipes.yaml` и `EnvironmentTriggers.yaml`, которые:
    - редактирует AIStudio;
-   - читает runtime host (например Velum);
+   - читает runtime host runtime host;
    - копируются из пакета адаптера в проект симбионта при создании проекта.
 4. **Нормализация** — канонические ключи при записи, допустимые алиасы при чтении, правила round-trip.
 5. **UI schema** (JSON в `schema\`) — **машиночитаемое описание capability адаптера** для подсказок в студии (combobox типов шагов, detect, **ключей `EnvironmentMetricProbeKey`** и т.д.) без загрузки `runtime\*.dll`; schema-driven редакторы — **post-MVP**, файлы schema рекомендуются авторам уже в MVP.
@@ -118,7 +118,7 @@
 ### 1.2. Что контракт не регулирует
 
 - Форматы ISIDA (`.dat`: G_AD, EA, GeneticReflexes, гомеостаз) — зона ответственности `isida.dll` и редакторов студии.
-- Реализацию COM/API конкретной среды (SolidWorks, Excel и т.д.) — только в runtime host.
+- Реализацию COM/API конкретной среды (CAD, офисные пакеты, IDE и т.д.) — только в runtime host.
 - Загрузку DLL адаптера в процесс AIStudio — **запрещена**; runtime исполняется вне студии.
 
 ### 1.3. Роли
@@ -186,7 +186,7 @@
 ### 3.3. Элемент Settings проекта (MVP)
 
 ```xml
-<AdapterId>velum</AdapterId>
+<AdapterId>my-adapter</AdapterId>
 ```
 
 - Записывается при создании проекта; в MVP — **только чтение** в UI настроек.
@@ -228,7 +228,7 @@
 | Рецепты | `BootData\Environment\EnvironmentRecipes.yaml` |
 | Триггеры | `BootData\Environment\EnvironmentTriggers.yaml` |
 
-Другие имена (`SwUserTriggers.yaml`, `Recipes\*.yaml`) — **legacy** вне контракта v1; миграция на усмотрение host.
+Другие имена (`UserTriggers.yaml`, `Recipes\*.yaml`) — **legacy** вне контракта v1; миграция на усмотрение host.
 
 ---
 
@@ -240,7 +240,7 @@
 - **При чтении** — допускаются алиасы; парсеры приводят к внутренней модели.
 - **Dual round-trip** (обязательный gate): эталонный файл → Read → Write → Read; результат эквивалентен канону для обоих стеков:
   - AIStudio: `EnvironmentYamlCodec`;
-  - Velum: `VelumRecipeYamlReader` / `VelumSwUserTriggersYamlReader` → `EnvironmentYamlWriter`.
+  - Runtime host: `HostRecipeYamlReader` / `HostTriggersYamlReader` → `EnvironmentYamlWriter`.
 
 ### 5.2. Таблица алиасов
 
@@ -251,12 +251,12 @@
 | Типы документа в preconditions | `document_kinds` | `document_types` |
 | Фильтр документа триггера | `document_kinds` | `document_filter` |
 | Тип шага set property | `set_property` | `set_custom_property` |
-| Detect: команда до выполнения | `command_before` | `sw_command_pre` |
+| Detect: команда до выполнения | `command_before` | `command_pre` |
 | Detect: сохранение документа | `document_saved` | `file_save_post` |
 
 ### 5.3. Внутренняя модель после чтения
 
-Оба парсера (AIStudio и Velum) нормализуют тип шага свойства:
+Оба парсера (AIStudio и runtime host) нормализуют тип шага свойства:
 
 ```
 set_property  →  set_custom_property   (в памяти)
@@ -265,11 +265,11 @@ set_custom_property  →  set_custom_property
 
 При записи на диск оба writer эмитируют **`set_property`**.
 
-Detect `kind` в памяти может оставаться как в файле; runtime Velum принимает канон и алиасы (см. `SwEventDetector`).
+Detect `kind` в памяти может оставаться как в файле; runtime host принимает канон и алиасы (см. `HostEventDetector`).
 
 ### 5.4. Пустые коллекции
 
-Writers студии и Velum для пустых списков эмитируют явно:
+Writers студии и runtime host для пустых списков эмитируют явно:
 
 ```yaml
 document_kinds: []
@@ -277,7 +277,7 @@ recommended_trigger_influence_ids: []
 command_ids: []
 ```
 
-Отсутствие ключа и `[]` при чтении трактуются как пустой список (для `document_kinds` — «без фильтра по типу» в runtime Velum).
+Отсутствие ключа и `[]` при чтении трактуются как пустой список (для `document_kinds` — «без фильтра по типу» в runtime host).
 
 ### 5.5. Устаревший формат файла рецептов
 
@@ -326,16 +326,16 @@ Runtime **не** проверяет существование ID в `.dat` пр
 
 ### 6.3. Блок `preconditions`
 
-Контракт v1 (Velum/SolidWorks) — фиксированный набор ключей:
+Контракт v1 — фиксированный набор ключей:
 
 | Ключ | Тип | Default | Описание |
 |------|-----|---------|----------|
-| `document_kinds` | `[part \| assembly \| drawing]` | `[]` | Допустимые типы активного документа |
-| `not_sketch_edit` | bool | `false` | Запрет исполнения в режиме редактирования эскиза |
+| `document_kinds` | `[document \| project \| view]` | `[]` | Допустимые типы активного документа |
+| `not_edit_mode` | bool | `false` | Запрет исполнения в режиме редактирования |
 | `not_read_only` | bool | `false` | Документ не read-only |
-| `pdm_checkout_required` | bool | `false` | Требуется checkout PDM |
+| `checkout_required` | bool | `false` | Требуется извлечение из хранилища |
 
-Другие ключи в `preconditions` runtime Velum v1 **игнорирует**. Адаптер другой среды может определять собственные ключи через schema (post-MVP); для contract 1.0 расширение preconditions — только через новую версию контракта или согласованный профиль адаптера в schema.
+Другие ключи в `preconditions` runtime host v1 **игнорирует**. Адаптер другой среды может определять собственные ключи через schema (post-MVP); для contract 1.0 расширение preconditions — только через новую версию контракта или согласованный профиль адаптера в schema.
 
 ### 6.4. Блок `steps`
 
@@ -348,13 +348,13 @@ Runtime **не** проверяет существование ID в `.dat` пр
 
 Все ключи кроме `type` — параметры шага (строковые scalars). Регистр ключей параметров **не** значим при чтении.
 
-#### 6.4.1. Типы шагов Velum v1 (эталонный адаптер `velum`)
+#### 6.4.1. Типы шагов contract v1 (эталонный набор)
 
 | `type` (в файле) | Внутренний type | Параметры | Примечание |
 |------------------|-----------------|-----------|------------|
-| `set_property` | `set_custom_property` | см. ниже | Запись пользовательского свойства документа SW |
-| `run_sw_command` | `run_sw_command` | `command_id` (int, обяз.) | RunCommand2 |
-| `rebuild` | `rebuild` | — | Rebuild активного документа |
+| `set_property` | `set_custom_property` | см. ниже | Запись пользовательского свойства документа |
+| `run_command` | `run_command` | `command_id` (int, обяз.) | Выполнение команды host по ID |
+| `refresh` | `refresh` | — | Обновление активного документа |
 | `log` | `log` | `message`, `level` (`info`\|`warn`\|`error`, default `info`) | Запись в лог host |
 
 **`set_property` / `set_custom_property` — параметры:**
@@ -363,14 +363,14 @@ Runtime **не** проверяет существование ID в `.dat` пр
 |----------|-------|----------|
 | `name` | да | Имя свойства |
 | `template` | нет | Шаблон значения (`{PROJECT}`, `{DESCRIPTION}`, …) |
-| `config` | нет | `document` / `active` — конфигурация SW |
+| `config` | нет | `document` / `active` — контекст документа |
 | `overwrite` | нет | `if_empty`, `never_if_filled`, … |
 
-Неизвестный `type` → runtime Velum: шаг с ошибкой `unknown_step_type`, рецепт прерывается (политика host).
+Неизвестный `type` → runtime host: шаг с ошибкой `unknown_step_type`, рецепт прерывается (политика host).
 
 #### 6.4.2. Расширение типов шагов
 
-Новые `type` добавляет **автор адаптера** в schema и runtime. Контракт 1.0 не фиксирует closed enum на уровне YAML — студия в MVP может показывать фиксированный список Velum; post-MVP — список из `schema/recipe-steps.json`.
+Новые `type` добавляет **автор адаптера** в schema и runtime. Контракт 1.0 не фиксирует closed enum на уровне YAML — студия в MVP может показывать фиксированный список эталонного набора; post-MVP — список из `schema/recipe-steps.json`.
 
 ### 6.5. `risk_tier`
 
@@ -396,10 +396,10 @@ recipes:
     recommended_trigger_influence_ids: [101]
 
     preconditions:
-      document_kinds: [part, assembly]
-      not_sketch_edit: true
+      document_kinds: [document, project]
+      not_edit_mode: true
       not_read_only: true
-      pdm_checkout_required: false
+      checkout_required: false
 
     steps:
       - type: set_property
@@ -414,7 +414,7 @@ recipes:
         overwrite: if_empty
 
     postcondition_log: properties_updated
-    test_notes: "Открыть деталь → сохранить → проверить свойства и лог"
+    test_notes: "Открыть документ → сохранить → проверить свойства и лог"
 ```
 
 ---
@@ -432,7 +432,7 @@ triggers:
     detect:
       - kind: <string>
         enabled: <bool>             # опционально, default true
-        environment: <string>       # опционально, напр. solidworks
+        environment: <string>       # опционально, напр. my-adapter
         command_ids: [<int>, ...]   # для command_before
 ```
 
@@ -444,14 +444,14 @@ triggers:
 |------|------------|------------|
 | `influence_action_id` | Influence Actions (EA) | При срабатывании detect → `ApplyMultipleInfluenceActions` |
 
-### 7.3. Правила `detect` (Velum v1)
+### 7.3. Правила `detect` (contract v1)
 
-| `kind` (канон) | Алиас | Параметры | Поведение runtime Velum |
+| `kind` (канон) | Алиас | Параметры | Поведение runtime host |
 |----------------|-------|-----------|-------------------------|
-| `command_before` | `sw_command_pre` | `command_ids`, `environment` | Перед RunCommand; match по ID |
+| `command_before` | `command_pre` | `command_ids`, `environment` | Перед выполнением команды; match по ID |
 | `document_saved` | `file_save_post` | `environment`, `enabled` | После сохранения документа |
 
-- `environment: solidworks` — фильтр host; опционален, но рекомендуется для мультисредовых файлов.
+- `environment: my-adapter` — фильтр host; опционален, но рекомендуется для мультисредовых файлов.
 - Пустой `command_ids` — правило зарегистрировано, ID заполняются калибровкой в среде.
 
 ### 7.4. Пример (эталон)
@@ -462,13 +462,13 @@ triggers:
   - id: save_active_document
     display_name: "Сохранение активного документа"
     influence_action_id: 101
-    document_kinds: [part, assembly]
+    document_kinds: [document, project]
     detect:
       - kind: command_before
-        environment: solidworks
+        environment: my-adapter
         command_ids: []
       - kind: document_saved
-        environment: solidworks
+        environment: my-adapter
         enabled: true
 ```
 
@@ -480,21 +480,21 @@ triggers:
 
 В `runtime\` должны находиться **все** сборки, без которых host не стартует на чистой машине пользователя, включая:
 
-- основную DLL host (например `velum.dll`);
+- основную DLL host (например `my-host.dll`);
 - `isida.dll` и транзитивные зависимости;
-- interop целевой среды (например SolidWorks);
-- зависимости XCad и прочие из `bin\Debug` / Release host-проекта.
+- interop/bindings целевой среды;
+- зависимости UI host и прочие из `bin\Debug` / Release host-проекта.
 
-### 8.2. Чеклист для адаптера `velum` (ориентир)
+### 8.2. Чеклист для адаптера (ориентир)
 
 | Категория | Примеры |
 |-----------|---------|
-| Host | `velum.dll` |
+| Host | `my-host.dll` |
 | ISIDA | `isida.dll` |
-| CAD | `SolidWorks.Interop.sldworks.dll`, … |
-| UI host | зависимости XCad, WinForms |
+| Interop | `*.Interop.*.dll`, bindings целевого API |
+| UI host | зависимости UI-фреймворка host |
 
-Точный список фиксируется в README эталонного пакета `docs\adapter-package-example\velum\` и проверяется вручную при «Проверить» (MVP: `runtime\` не пуст).
+Точный список фиксируется в README пакета адаптера и проверяется вручную при «Проверить» (MVP: `runtime\` не пуст).
 
 ### 8.3. Исключения
 
@@ -508,8 +508,8 @@ triggers:
 
 ```json
 {
-  "id": "velum",
-  "displayName": "Velum (SolidWorks)",
+  "id": "my-adapter",
+  "displayName": "Мой адаптер",
   "version": "1.0.0",
   "contractVersion": "1.0",
   "author": "Example Author",
@@ -536,20 +536,20 @@ triggers:
 | `description` | Краткое описание |
 | `supportedStudioVersions` | Ограничение версий AIStudio (post-MVP) |
 
-### 9.3. Пример (Velum)
+### 9.3. Пример (полный)
 
 ```json
 {
-  "id": "velum",
-  "displayName": "Velum — SolidWorks / Reactive Core",
+  "id": "my-adapter",
+  "displayName": "Мой адаптер — Reactive Core",
   "version": "1.0.0",
   "contractVersion": "1.0",
   "schemaVersion": "1.0",
-  "author": "VELUM",
+  "author": "Example Author",
   "bootDataRelativePath": "BootData",
   "installerTemplateRelativePath": "installer/symbiont.iss",
   "adapterSettingsRelativePath": "adapter-settings",
-  "description": "Эталонный адаптер SolidWorks для симбионта ISIDA"
+  "description": "Эталонный адаптер среды для симбионта ISIDA"
 }
 ```
 
@@ -583,13 +583,13 @@ triggers:
       "key": "document_kinds",
       "label": "Типы документа",
       "type": "stringList",
-      "enumValues": ["part", "assembly", "drawing"],
+      "enumValues": ["document", "project", "view"],
       "required": false,
       "default": []
     },
     {
-      "key": "not_sketch_edit",
-      "label": "Не в режиме эскиза",
+      "key": "not_edit_mode",
+      "label": "Не в режиме редактирования",
       "type": "bool",
       "required": false,
       "default": false
@@ -620,8 +620,8 @@ triggers:
       ]
     },
     {
-      "type": "run_sw_command",
-      "label": "Команда SolidWorks",
+      "type": "run_command",
+      "label": "Выполнить команду",
       "parameters": [
         { "key": "command_id", "label": "Command ID", "type": "int", "required": true }
       ]
@@ -639,9 +639,9 @@ triggers:
   "schemaVersion": "1.0",
   "probes": [
     {
-      "key": "sw.active_doc_modified",
+      "key": "host.active_doc_modified",
       "label": "Документ изменён",
-      "description": "Сэмплер host: активный документ SW имеет несохранённые изменения"
+      "description": "Сэмплер host: активный документ имеет несохранённые изменения"
     }
   ]
 }
@@ -651,20 +651,20 @@ triggers:
 
 ---
 
-## 11. Согласование парсеров (AIStudio ↔ Velum)
+## 11. Согласование парсеров (AIStudio ↔ runtime host)
 
 Общая библиотека codec **не входит** в contract 1.0. Согласование — **тестами**:
 
 | # | Тест |
 |---|------|
 | T1 | AIStudio: Read(fixture) → Write(temp) → Read(temp) ≡ канон |
-| T2 | Velum: Read(fixture) → Write(temp) → Read(temp) ≡ канон |
-| T3 | AIStudio Write после Velum Read — Velum Read без ошибок |
-| T4 | Velum Write после AIStudio Read — AIStudio Read без ошибок |
+| T2 | Runtime host: Read(fixture) → Write(temp) → Read(temp) ≡ канон |
+| T3 | AIStudio Write после host Read — host Read без ошибок |
+| T4 | Host Write после AIStudio Read — AIStudio Read без ошибок |
 
 **Расположение фикстур:** `AIStudio\tests\EnvironmentYaml\fixtures\` (3–5 файлов, включая пустые каталоги, полный рецепт, legacy `recipe_id` + `document_types`, алиасы detect).
 
-**CI:** job при изменении `AdapterContract.md`, `EnvironmentYamlCodec*`, `VelumRecipeYamlReader`, `EnvironmentYamlWriter`.
+**CI:** job при изменении `AdapterContract.md`, `AdapterContract.html`, `EnvironmentYamlCodec*`, `HostRecipeYamlReader`, `EnvironmentYamlWriter`.
 
 ---
 
@@ -693,7 +693,7 @@ triggers:
 | Гомеостаз, рефлексы, сценарии | ISIDA / AIStudio | `.dat`, сценарии |
 | Каркас рецепта/триггера (`id`, `adaptive_action_id`, `steps`, `detect`) | Contract 1.0 | YAML |
 | Семантика preconditions/detect/step params | Runtime адаптера | YAML + schema |
-| Исполнение | Host (`velum.dll`, …) | — |
+| Исполнение | Host (`my-host.dll`, …) | — |
 
 ---
 
@@ -701,7 +701,7 @@ triggers:
 
 Шаблон `adapter-settings\Settings.xml` — настройки **host на машине пользователя** после установки (не профиль проекта симбионта).
 
-Для Velum-like адаптеров типичные ключи (ориентир, не часть YAML contract):
+Для типичных адаптеров ориентир по ключам (не часть YAML contract):
 
 | Ключ | Назначение |
 |------|------------|
@@ -731,7 +731,7 @@ triggers:
 - [ ] Новый проект копирует BootData из `Adapters\{id}`
 - [ ] `AdapterId` в Settings; блок «Среда» без адаптера
 
-**Разработчик Velum (эталонный host):**
+**Разработчик runtime host (эталонная реализация):**
 
 - [ ] Reader принимает все алиасы § 5.2
 - [ ] Writer эмитирует канон § 5.2
@@ -744,8 +744,9 @@ triggers:
 
 | Версия | Дата | Изменения |
 |--------|------|-----------|
-| 1.0 | 2026-06-03 | Первый нормативный release: manifest, YAML v1 (Velum), нормализация, MVP vs post-MVP schema |
+| 1.0 | 2026-06-03 | Первый нормативный release: manifest, YAML v1, нормализация, MVP vs post-MVP schema |
+| 1.0.1 | 2026-06-06 | Нейтральные обозначения вместо привязки к конкретной среде; синхронизация с `schema\` |
 
 ---
 
-*Контракт 1.0 соответствует runtime Velum ReactiveCore v1 и codec AIStudio `EnvironmentYamlCodec`. Изменения runtime или codec без обновления этого документа и тестов § 11 не допускаются.*
+*Контракт 1.0 соответствует runtime host ReactiveCore v1 и codec AIStudio `EnvironmentYamlCodec`. Изменения runtime или codec без обновления этого документа и тестов § 11 не допускаются.*

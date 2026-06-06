@@ -42,10 +42,8 @@ namespace AIStudio.ViewModels
     public ObservableCollection<AdaptiveAction> GeneticReflexActions { get; } = new ObservableCollection<AdaptiveAction>();
     public ObservableCollection<AdaptiveAction> ConditionedReflexActions { get; } = new ObservableCollection<AdaptiveAction>();
     public ObservableCollection<AdaptiveAction> AutomatizmActions { get; } = new ObservableCollection<AdaptiveAction>();
-
     private readonly AdaptiveActionsSystem _adaptiveActionsSystem;
     private readonly SensorySystem _sensorySystem;
-
     public AgentAdaptiveActionsViewModel()
     {
       _adaptiveActionsSystem = AdaptiveActionsSystem.Instance;
@@ -60,20 +58,16 @@ namespace AIStudio.ViewModels
     }
 
     public ObservableCollection<ReflexPhraseBlock> ReflexPhraseBlocks { get; } = new ObservableCollection<ReflexPhraseBlock>();
-
     /// <summary>Количество блоков фраз (для привязки видимости в UI).</summary>
     public int ReflexPhraseBlocksCount => ReflexPhraseBlocks.Count;
-
     /// <summary>Фразы на предыдущем пульсе (для сравнения с текущими).</summary>
     private List<string> _lastPhraseList = new List<string>();
     /// <summary>Число пульсов подряд, когда текущая фраза совпадает с фразой на предыдущем пульсе.</summary>
     private int _pulseCount;
     /// <summary>Сейчас показываем выделение (зелёный, +2px): true = зелёный/18, false = синий/16.</summary>
     private bool _useHighlightStyle;
-
     private int _minSignificance = 1;
     private int _maxSignificance = 1;
-
     public int MinSignificance
     {
       get => _minSignificance;
@@ -103,9 +97,7 @@ namespace AIStudio.ViewModels
       GeneticReflexActions.Clear();
       ConditionedReflexActions.Clear();
       AutomatizmActions.Clear();
-
       int defaultActionId = _adaptiveActionsSystem.DefaultAdaptiveActionId;
-
       foreach (var action in CurrentActiveActions)
       {
         switch (action.ActivationSource)
@@ -137,17 +129,14 @@ namespace AIStudio.ViewModels
       {
         var textBlocks = new List<string>();
         var currentPhraseTexts = new List<string>();
-
         foreach (var action in CurrentActiveActions.Where(a => a.ActivationSource == ActionActivationSource.AutomatizmVerbalResponse))
         {
           int phraseId = _adaptiveActionsSystem.GetPhraseIdForAction(action.Id);
           string phraseText = GetPhraseText(phraseId);
           if (string.IsNullOrEmpty(phraseText))
             continue;
-
           currentPhraseTexts.Add(phraseText);
         }
-
         if (currentPhraseTexts.Count == 0)
         {
           _pulseCount = 0;
@@ -158,10 +147,8 @@ namespace AIStudio.ViewModels
           OnPropertyChanged(nameof(ReflexPhraseBlocksCount));
           return;
         }
-
         bool sameAsPrevious = _lastPhraseList.Count == currentPhraseTexts.Count
           && _lastPhraseList.Zip(currentPhraseTexts, (a, b) => a == b).All(x => x);
-
         if (sameAsPrevious)
         {
           _pulseCount++;
@@ -173,9 +160,7 @@ namespace AIStudio.ViewModels
         }
         else
           _pulseCount = 0;
-
         _lastPhraseList = new List<string>(currentPhraseTexts);
-
         double phraseFontSize = _useHighlightStyle ? 18 : 16;
         ReflexPhraseBlocks.Clear();
         foreach (var action in CurrentActiveActions.Where(a => a.ActivationSource == ActionActivationSource.AutomatizmVerbalResponse))
@@ -184,7 +169,6 @@ namespace AIStudio.ViewModels
           string phraseText = GetPhraseText(phraseId);
           if (string.IsNullOrEmpty(phraseText))
             continue;
-
           int displayImageId = _adaptiveActionsSystem.GetActionImageIdForPhraseDisplay(action.Id);
           if (displayImageId <= 0)
             displayImageId = action.Id;
@@ -199,7 +183,6 @@ namespace AIStudio.ViewModels
           });
           textBlocks.Add($"Тон: {toneText}\nНастроение: {moodText}\nФраза: {phraseText}");
         }
-
         ReflexPhrasesText = textBlocks.Any() ? string.Join("\n\n", textBlocks) : "";
         OnPropertyChanged(nameof(ReflexPhraseBlocksCount));
       }
@@ -217,11 +200,9 @@ namespace AIStudio.ViewModels
     {
       if (!ActionsImagesSystem.IsInitialized || actionImageId <= 0)
         return ("Нормальный", "Нормальное");
-
       var image = ActionsImagesSystem.Instance.GetActionsImage(actionImageId);
       if (image == null)
         return ("Нормальный", "Нормальное");
-
       string toneText = ActionsImagesSystem.GetToneText(image.ToneId);
       string moodText = ActionsImagesSystem.GetMoodText(image.MoodId);
       if (string.IsNullOrEmpty(toneText)) toneText = "Нормальный";
@@ -232,7 +213,6 @@ namespace AIStudio.ViewModels
     private string GetPhraseText(int phraseId)
     {
       if (phraseId <= 0) return string.Empty;
-
       try
       {
         return _sensorySystem.VerbalChannel.GetPhraseFromPhraseId(phraseId);
@@ -241,12 +221,10 @@ namespace AIStudio.ViewModels
       {
         Logger.Error(ex.Message);
       }
-
       return string.Empty;
     }
 
     public event PropertyChangedEventHandler PropertyChanged;
-
     protected virtual void OnPropertyChanged([CallerMemberName] string propertyName = null)
     {
       PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));

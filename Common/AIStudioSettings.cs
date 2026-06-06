@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.IO;
 using System.Xml.Serialization;
 
@@ -15,7 +15,6 @@ namespace AIStudio.Common
         {
           Directory.CreateDirectory(directory);
         }
-
         var serializer = new XmlSerializer(typeof(T));
         using (var writer = new StreamWriter(filePath))
         {
@@ -36,7 +35,6 @@ namespace AIStudio.Common
         {
           return new T();
         }
-
         var serializer = new XmlSerializer(typeof(T));
         using (var reader = new StreamReader(filePath))
         {

@@ -5,13 +5,13 @@
       "key": "document_kinds",
       "label": "Типы документа",
       "type": "stringList",
-      "enumValues": ["part", "assembly", "drawing"],
+      "enumValues": ["document", "project", "view"],
       "required": false,
       "default": []
     },
     {
-      "key": "not_sketch_edit",
-      "label": "Не в режиме эскиза",
+      "key": "not_edit_mode",
+      "label": "Не в режиме редактирования",
       "type": "bool",
       "required": false,
       "default": false
@@ -24,8 +24,8 @@
       "default": false
     },
     {
-      "key": "pdm_checkout_required",
-      "label": "Требуется checkout PDM",
+      "key": "checkout_required",
+      "label": "Требуется извлечение из хранилища",
       "type": "bool",
       "required": false,
       "default": false

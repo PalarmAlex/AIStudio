@@ -15,7 +15,6 @@ namespace AIStudio.Common
   {
     private const string RegistryFormatHeader = "# SCENARIO_REGISTRY_FORMAT|";
     private const string LinesFormatHeader = "# SCENARIO_LINES_FORMAT|";
-
     public static void EnsureFolder()
     {
       if (!Directory.Exists(ScenarioPaths.RootFolder))
@@ -28,7 +27,6 @@ namespace AIStudio.Common
       var path = ScenarioPaths.RegistryPath;
       if (!File.Exists(path))
         return new List<ScenarioHeader>();
-
       var list = new List<ScenarioHeader>();
       foreach (var line in File.ReadAllLines(path, Encoding.UTF8))
       {
@@ -51,7 +49,6 @@ namespace AIStudio.Common
           PreRunTargetStage = pst
         });
       }
-
       return list.OrderBy(h => h.Id).ToList();
     }
 
@@ -60,20 +57,16 @@ namespace AIStudio.Common
       var path = ScenarioPaths.LinesPath(scenarioId);
       if (!File.Exists(path))
         throw new FileNotFoundException("Файл строк сценария не найден", path);
-
       var doc = new ScenarioDocument();
       doc.Header.Id = scenarioId;
-
       bool expectationMode = false;
       foreach (var line in File.ReadAllLines(path, Encoding.UTF8))
       {
         var t = line?.Trim();
         if (string.IsNullOrEmpty(t))
           continue;
-
         if (t.StartsWith(LinesFormatHeader, StringComparison.Ordinal))
           continue;
-
         if (expectationMode)
         {
           if (t.StartsWith("# COL_SKIP|", StringComparison.Ordinal))
@@ -86,7 +79,6 @@ namespace AIStudio.Common
           TryParseLogExpectationRow(t, doc);
           continue;
         }
-
         if (t.StartsWith("# SCENARIO_LOG_EXPECTATIONS", StringComparison.Ordinal))
         {
           expectationMode = true;
@@ -94,7 +86,6 @@ namespace AIStudio.Common
           doc.LogExpectations = doc.LogExpectations ?? new List<ScenarioLogExpectationRow>();
           continue;
         }
-
         if (t.StartsWith("#"))
         {
           if (t.StartsWith("# SCENARIO_META|", StringComparison.Ordinal))
@@ -104,12 +95,10 @@ namespace AIStudio.Common
           }
           continue;
         }
-
         var row = ParseLineRow(t);
         if (row != null)
           doc.Lines.Add(row);
       }
-
       return doc;
     }
 
@@ -193,12 +182,10 @@ namespace AIStudio.Common
         var phrase = Unescape(p[6]);
         if (!int.TryParse(p[7], NumberStyles.Integer, CultureInfo.InvariantCulture, out int rw))
           return null;
-
         int visualColor = AgentVisualColor.White;
         if (p.Length > 8 && int.TryParse(p[8].Trim(), NumberStyles.Integer, CultureInfo.InvariantCulture, out int vc)
             && AgentVisualColor.IsValidCode(vc))
           visualColor = vc;
-
         return new ScenarioLineRow
         {
           StepIndex = step,
@@ -212,7 +199,6 @@ namespace AIStudio.Common
           ResetWaitingPeriod = rw != 0
         };
       }
-
       return null;
     }
 
@@ -226,7 +212,6 @@ namespace AIStudio.Common
         return;
       bool Skip(int i) =>
           int.TryParse(p[i].Trim(), NumberStyles.Integer, CultureInfo.InvariantCulture, out int v) && v != 0;
-
       sk.SkipState = Skip(0);
       sk.SkipStyle = Skip(1);
       sk.SkipTheme = Skip(2);
@@ -280,7 +265,6 @@ namespace AIStudio.Common
     {
       if (doc.LogExpectations == null)
         doc.LogExpectations = new List<ScenarioLogExpectationRow>();
-
       var p = SplitLogExpectationLine(line);
       if (p.Count < 15)
         return;
@@ -288,7 +272,6 @@ namespace AIStudio.Common
         return;
       if (!int.TryParse(p[1].Trim(), NumberStyles.Integer, CultureInfo.InvariantCulture, out int pulse))
         return;
-
       doc.LogExpectations.Add(new ScenarioLogExpectationRow
       {
         StepIndex = step,
@@ -328,7 +311,6 @@ namespace AIStudio.Common
             Escape(h.Description ?? ""),
             h.PreRunTargetStage.ToString(CultureInfo.InvariantCulture)));
       }
-
       return FileValidator.SafeSaveFile(
           ScenarioPaths.RegistryPath,
           lines,
@@ -361,7 +343,6 @@ namespace AIStudio.Common
         "# Step|Pulse|Kind(P|W)|ToneId|MoodId|ActionIds|Phrase|ResetWait|VisualColorId",
         "# Kind=W — только клик по плашке ожидания; P — воздействия с пульта. Пульс — по шагам и режиму приращения из метаданных (см. настройки проекта). VisualColorId — код зрительного канала (0…8), см. AgentVisualColor."
       };
-
       foreach (var row in doc.Lines.OrderBy(r => r.StepIndex))
       {
         var kind = row.Kind == ScenarioLineKind.WaitClick ? "W" : "P";
@@ -380,7 +361,6 @@ namespace AIStudio.Common
             row.ResetWaitingPeriod ? "1" : "0",
             visualSave.ToString(CultureInfo.InvariantCulture)));
       }
-
       var skc = doc.LogExpectationColumnSkips ?? new ScenarioLogExpectationColumnSkips();
       lines.Add("# SCENARIO_LOG_EXPECTATIONS|1");
       lines.Add("# COL_SKIP|" + string.Join("|",
@@ -421,7 +401,6 @@ namespace AIStudio.Common
             Escape(exp.AutomatizmUsefulnessText ?? ""),
             Escape(exp.BackgroundCyclesText ?? "")));
       }
-
       var path = ScenarioPaths.LinesPath(doc.Header.Id);
       return FileValidator.SafeSaveFile(
           path,

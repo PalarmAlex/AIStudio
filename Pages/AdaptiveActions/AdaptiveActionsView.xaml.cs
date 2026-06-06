@@ -1,4 +1,4 @@
-﻿using AIStudio.Common;
+using AIStudio.Common;
 using AIStudio.Dialogs;
 using AIStudio.ViewModels;
 using ISIDA.Actions;
@@ -43,7 +43,6 @@ namespace AIStudio.Pages
     private void DataGrid_AddingNewItem(object sender, AddingNewItemEventArgs e)
     {
       int nextId = GetNextId();
-
       e.NewItem = new AdaptiveActionsSystem.AdaptiveAction
       {
         Id = nextId,
@@ -59,13 +58,11 @@ namespace AIStudio.Pages
     {
       var viewModel = DataContext as AdaptiveActionsViewModel;
       if (viewModel == null) return 1;
-
       int maxId = 0;
       if (viewModel.AdaptiveActions != null && viewModel.AdaptiveActions.Any())
       {
         maxId = viewModel.AdaptiveActions.Max(a => a.Id);
       }
-
       var grid = ActionsGrid;
       if (grid?.ItemsSource != null)
       {
@@ -76,7 +73,6 @@ namespace AIStudio.Pages
           maxId = Math.Max(maxId, gridMaxId);
         }
       }
-
       return maxId + 1;
     }
 
@@ -89,12 +85,9 @@ namespace AIStudio.Pages
           e.Handled = true;
           return;
         }
-
         var grid = (DataGrid)sender;
-
         if (grid.IsEditing())
           return;
-
         if (grid.SelectedItems.Count > 0 && DataContext is AdaptiveActionsViewModel viewModel)
         {
           var actions = grid.SelectedItems
@@ -102,13 +95,11 @@ namespace AIStudio.Pages
           .Where(item => item is AdaptiveActionsSystem.AdaptiveAction)
           .Cast<AdaptiveActionsSystem.AdaptiveAction>()
           .ToList();
-
           var result = MessageBox.Show(
               $"Вы действительно хотите удалить {actions.Count} действий?",
               "Подтверждение удаления",
               MessageBoxButton.YesNo,
               MessageBoxImage.Question);
-
           if (result == MessageBoxResult.Yes)
           {
             foreach (var action in actions)
@@ -116,7 +107,6 @@ namespace AIStudio.Pages
               viewModel.RemoveSelectedAction(action);
             }
           }
-
           e.Handled = true;
         }
       }
@@ -140,7 +130,6 @@ namespace AIStudio.Pages
           e.Handled = true;
           return;
         }
-
         if (sender is FrameworkElement element &&
             element.DataContext is AdaptiveActionsSystem.AdaptiveAction action)
         {
@@ -148,7 +137,6 @@ namespace AIStudio.Pages
               $"Антагонисты действия: {action.Name} (ID: {action.Id})",
               vm.AdaptiveActions.Where(a => a.Id != action.Id),
               action.AntagonistActions ?? new List<int>());
-
           if (editor.ShowDialog() == true)
           {
             action.AntagonistActions = editor.SelectedActionIds.ToList();
@@ -171,7 +159,6 @@ namespace AIStudio.Pages
           Text = action.Description,
           Multiline = true
         };
-
         if (dialog.ShowDialog() == true)
         {
           action.Description = dialog.Text;
@@ -185,15 +172,11 @@ namespace AIStudio.Pages
     {
       if (e.EditAction != DataGridEditAction.Commit || !(e.EditingElement is TextBox textBox))
         return;
-
       if (e.Column.Header == null)
         return;
-
       string input = textBox.Text.Trim();
       if (input == "") return;
-
       string msgText = "";
-
       if (e.Column.Header.ToString() == "Энергичность")
       {
         if (!int.TryParse(input, out int value) || value < 1 || value > 10)
@@ -215,13 +198,10 @@ namespace AIStudio.Pages
         if (!string.IsNullOrWhiteSpace(input) && !int.TryParse(input, out int value))
           msgText = "Введите целое число или оставьте поле пустым";
       }
-
       if (msgText != "")
       {
         MessageBox.Show(msgText, "Ошибка ввода", MessageBoxButton.OK, MessageBoxImage.Warning);
-
         e.Cancel = true;
-
         var binding = textBox.GetBindingExpression(TextBox.TextProperty);
         binding?.UpdateTarget();
         return;
@@ -250,18 +230,15 @@ namespace AIStudio.Pages
           e.Handled = true;
           return;
         }
-
         if (sender is FrameworkElement element &&
             element.DataContext is AdaptiveActionsSystem.AdaptiveAction action)
         {
           // Получаем все доступные параметры гомеостаза
           var allParameters = vm.GetAllParameters();
-
           var editor = new TargetParametersEditor(
               $"Target параметры действия: {action.Name} (ID: {action.Id})",
               allParameters,
               action.TargetGomeoParamIdArr ?? new List<int>());
-
           if (editor.ShowDialog() == true)
           {
             action.TargetGomeoParamIdArr = editor.SelectedParameterIds.ToList();
@@ -272,22 +249,18 @@ namespace AIStudio.Pages
         e.Handled = true;
       }
     }
-
     #region Вспомогательные методы
-
     /// <summary>
     /// Парсит строку в float с поддержкой и точки, и запятой как разделителя
     /// </summary>
     private bool TryParseFloat(string input, out float result)
     {
       result = 0f;
-
       if (string.IsNullOrWhiteSpace(input))
         return false;
 
       // Заменяем запятую на точку для унификации
       string normalizedInput = input.Replace(',', '.');
-
       return float.TryParse(normalizedInput, NumberStyles.Float, CultureInfo.InvariantCulture, out result);
     }
 
@@ -307,7 +280,6 @@ namespace AIStudio.Pages
         return true;
       }
     }
-
     #endregion
   }
 }

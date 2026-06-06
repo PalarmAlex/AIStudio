@@ -1,4 +1,4 @@
-﻿using AIStudio.Common;
+using AIStudio.Common;
 using ISIDA.Common;
 using ISIDA.Gomeostas;
 using ISIDA.Sensors;
@@ -16,11 +16,9 @@ namespace AIStudio.ViewModels
   public class VerbalTreesViewModel : INotifyPropertyChanged
   {
     #region Поля и свойства
-
     private readonly VerbalSensorChannel _channel;
     private readonly SensorTreesPageLabels _labels;
     private readonly GomeostasSystem _gomeostas;
-
     private string _inputText;
     private string _wordSearchText;
     private string _phraseSearchText;
@@ -29,7 +27,6 @@ namespace AIStudio.ViewModels
     private int _recognitionThreshold;
     private int _currentAgentStage;
     public bool IsStageZero => _currentAgentStage == 0;
-
     private ObservableCollection<WordNode> _visibleWordNodes;
     private ObservableCollection<PhraseNode> _visiblePhraseNodes;
     private IEnumerable<WordNode> _wordTreeStructure;
@@ -38,21 +35,16 @@ namespace AIStudio.ViewModels
     private ObservableCollection<PhraseNode> _filteredPhraseNodes;
     private int? _wordDisplayLimit = 1000;
     private int? _phraseDisplayLimit = 1000;
-
     #region Блокировка страницы в зависимости от стажа
-
     public bool IsEditingEnabled => IsStageZero && !GlobalTimer.IsPulsationRunning;
     public string PulseWarningMessage =>
         !IsStageZero ? "[КРИТИЧНО] Очистка сенсоров доступна только в стадии 0" : string.Empty;
     public Brush WarningMessageColor =>
         !IsStageZero ? Brushes.Red :
         Brushes.Gray;
-
     #endregion
-
     public string TokenTreeHeader => _labels.TokenTreeHeader;
     public string PatternTreeHeader => _labels.PatternTreeHeader;
-
     public string InputText
     {
       get => _inputText;
@@ -176,12 +168,10 @@ namespace AIStudio.ViewModels
         {
           if (_channel?.PhraseTree?.Nodes == null)
             return result;
-
           foreach (var node in _channel.PhraseTree.Nodes.Values)
           {
             if (node.Id == 0)
               continue;
-
             string phraseText = _channel.GetPhraseFromPhraseId(node.Id);
             if (!string.IsNullOrEmpty(phraseText))
               result[node.Id] = phraseText;
@@ -204,9 +194,7 @@ namespace AIStudio.ViewModels
       new NodeLimitOption(10000),
       new NodeLimitOption(null)
     };
-
     public IReadOnlyList<NodeLimitOption> DisplayLimitOptions => DisplayLimitOptionsStatic;
-
     public NodeLimitOption WordDisplayLimit
     {
       get => DisplayLimitOptionsStatic.FirstOrDefault(o => o.Value == _wordDisplayLimit) ?? DisplayLimitOptionsStatic[DisplayLimitOptionsStatic.Count - 1];
@@ -234,10 +222,8 @@ namespace AIStudio.ViewModels
     }
 
     public int WordsCount => Words.Count;
-
     public string WordsCountSummary =>
         $"Всего {_labels.TokenCountWord}: {WordsCount}";
-
     public int PhrasesCount
     {
       get
@@ -255,24 +241,17 @@ namespace AIStudio.ViewModels
 
     public string PhrasesCountSummary =>
         $"Всего {_labels.PatternCountWord}: {PhrasesCount}";
-
     #endregion
-
     #region Команды
-
     public ICommand AddTextCommand { get; }
     public ICommand SearchWordCommand { get; }
     public ICommand SearchPhraseCommand { get; }
     public ICommand RemoveAllCommand { get; }
     public ICommand ResetWordSearchCommand { get; }
     public ICommand ResetPhraseSearchCommand { get; }
-
     #endregion
-
     #region События
-
     public event PropertyChangedEventHandler PropertyChanged;
-
     private void OnPulsationStateChanged()
     {
       Application.Current.Dispatcher.Invoke(() =>
@@ -282,11 +261,8 @@ namespace AIStudio.ViewModels
         OnPropertyChanged(nameof(WarningMessageColor));
       });
     }
-
     #endregion
-
     #region Конструктор и инициализация
-
     public VerbalTreesViewModel(
         GomeostasSystem gomeostas,
         VerbalSensorChannel channel,
@@ -295,32 +271,24 @@ namespace AIStudio.ViewModels
       _channel = channel ?? throw new ArgumentNullException(nameof(channel));
       _labels = labels ?? throw new ArgumentNullException(nameof(labels));
       _gomeostas = gomeostas ?? throw new ArgumentNullException(nameof(gomeostas));
-
       var agentInfo = _gomeostas.GetAgentState();
       _currentAgentStage = agentInfo?.EvolutionStage ?? 0;
-
       _authoritativeMode = _channel.AuthoritativeMode;
       _recognitionThreshold = _channel.RecognitionThreshold;
       _maxPhraseLength = _channel.MaxPhraseLength;
-
       _allWordNodes = new ObservableCollection<WordNode>(LoadInitialWordNodes(_wordDisplayLimit));
       _allPhraseNodes = new ObservableCollection<PhraseNode>(LoadInitialPhraseNodes(_phraseDisplayLimit));
       _filteredPhraseNodes = new ObservableCollection<PhraseNode>(_allPhraseNodes);
-
       VisibleWordNodes = _allWordNodes;
       VisiblePhraseNodes = _filteredPhraseNodes;
-
       AddTextCommand = new RelayCommand(AddText);
       SearchWordCommand = new RelayCommand(SearchWord);
       SearchPhraseCommand = new RelayCommand(SearchPhraseWrapper);
       RemoveAllCommand = new RelayCommand(RemoveAllTrees);
       ResetWordSearchCommand = new RelayCommand(ResetWordSearch);
       ResetPhraseSearchCommand = new RelayCommand(ResetPhraseSearch);
-
       GlobalTimer.PulsationStateChanged += OnPulsationStateChanged;
-
       InitializeTrees();
-
       CollapseAllWordNodes();
       CollapseAllPhraseNodes();
     }
@@ -329,7 +297,6 @@ namespace AIStudio.ViewModels
     {
       VisibleWordNodes = new ObservableCollection<WordNode>(LoadInitialWordNodes(_wordDisplayLimit));
       VisiblePhraseNodes = new ObservableCollection<PhraseNode>(LoadInitialPhraseNodes(_phraseDisplayLimit));
-
       WordTreeStructure = GetFullWordTreeStructure();
     }
 
@@ -360,11 +327,9 @@ namespace AIStudio.ViewModels
     {
       var agentInfo = _gomeostas.GetAgentState();
       var newStage = agentInfo?.EvolutionStage ?? 0;
-
       if (_currentAgentStage != newStage)
       {
         _currentAgentStage = newStage;
-
         Application.Current.Dispatcher.Invoke(() =>
         {
           OnPropertyChanged(nameof(IsStageZero));
@@ -374,11 +339,8 @@ namespace AIStudio.ViewModels
         });
       }
     }
-
     #endregion
-
     #region Методы работы с деревьями
-
     private IEnumerable<WordNode> LoadInitialWordNodes(int? maxNodes = null)
     {
       return BuildWordTreeRoots(_channel.GetAllWords(), maxNodes);
@@ -398,14 +360,12 @@ namespace AIStudio.ViewModels
     {
       var result = new List<WordNode>();
       int totalAdded = 0;
-
       foreach (var letterGroup in entries
           .GroupBy(w => char.ToUpper(GetFirstChar(w.Value)))
           .OrderBy(g => g.Key))
       {
         if (maxNodes.HasValue && totalAdded >= maxNodes.Value)
           break;
-
         var letterNode = new WordNode
         {
           Id = 0,
@@ -413,7 +373,6 @@ namespace AIStudio.ViewModels
           IsLetter = true,
           HasChildren = true
         };
-
         foreach (var word in letterGroup)
         {
           if (maxNodes.HasValue && totalAdded >= maxNodes.Value)
@@ -426,11 +385,9 @@ namespace AIStudio.ViewModels
           });
           totalAdded++;
         }
-
         if (letterNode.Children.Count > 0)
           result.Add(letterNode);
       }
-
       return result;
     }
 
@@ -440,14 +397,12 @@ namespace AIStudio.ViewModels
     {
       var result = new List<WordNode>();
       int totalAdded = 0;
-
       foreach (var prefixGroup in entries
           .GroupBy(w => GetCommandPrefix(w.Value))
           .OrderBy(g => g.Key))
       {
         if (maxNodes.HasValue && totalAdded >= maxNodes.Value)
           break;
-
         var prefixNode = new WordNode
         {
           Id = 0,
@@ -455,7 +410,6 @@ namespace AIStudio.ViewModels
           IsPrefixGroup = true,
           HasChildren = true
         };
-
         foreach (var word in prefixGroup.OrderBy(w => w.Value))
         {
           if (maxNodes.HasValue && totalAdded >= maxNodes.Value)
@@ -468,11 +422,9 @@ namespace AIStudio.ViewModels
           });
           totalAdded++;
         }
-
         if (prefixNode.Children.Count > 0)
           result.Add(prefixNode);
       }
-
       return result;
     }
 
@@ -501,17 +453,14 @@ namespace AIStudio.ViewModels
     private ObservableCollection<PhraseNode> BuildPhraseForest(int? maxNodes)
     {
       var rootNodes = new ObservableCollection<PhraseNode>();
-
       try
       {
         var phraseNodes = _channel.PhraseTree.Nodes;
         var nodeDict = new Dictionary<int, PhraseNode>();
-
         foreach (var node in phraseNodes.Values)
         {
           if (node.Id == 0)
             continue;
-
           string phraseText = _channel.GetPhraseFromPhraseId(node.Id);
           nodeDict[node.Id] = new PhraseNode
           {
@@ -521,7 +470,6 @@ namespace AIStudio.ViewModels
             HasChildren = node.Children.Any(c => c.Id != 0)
           };
         }
-
         var idsToInclude = (HashSet<int>)null;
         if (maxNodes.HasValue && nodeDict.Count > maxNodes.Value)
         {
@@ -538,16 +486,13 @@ namespace AIStudio.ViewModels
             CountAndAddIds(r, idsToInclude, maxNodes.Value, ref count);
           }
         }
-
         foreach (var node in phraseNodes.Values)
         {
           if (node.Id == 0)
             continue;
           if (idsToInclude != null && !idsToInclude.Contains(node.Id))
             continue;
-
           var phraseNode = nodeDict[node.Id];
-
           if (node.Parent != null && node.Parent.Id != 0)
           {
             if (nodeDict.TryGetValue(node.Parent.Id, out var parentNode) &&
@@ -561,7 +506,6 @@ namespace AIStudio.ViewModels
             rootNodes.Add(phraseNode);
           }
         }
-
         var sortedRoots = rootNodes.OrderBy(n => n.Text).ToList();
         rootNodes.Clear();
         foreach (var node in sortedRoots)
@@ -571,7 +515,6 @@ namespace AIStudio.ViewModels
       {
         Logger.Error($"Ошибка загрузки дерева паттернов: {ex.Message}");
       }
-
       return rootNodes;
     }
 
@@ -599,7 +542,6 @@ namespace AIStudio.ViewModels
     {
       if (string.IsNullOrEmpty(phrase))
         return string.Empty;
-
       var words = phrase.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
       return words.Length > 0 ? words[words.Length - 1] : phrase;
     }
@@ -609,7 +551,6 @@ namespace AIStudio.ViewModels
       var parent = FindWordNode(VisibleWordNodes, parentId);
       if (parent == null || (parent.Children?.Count ?? 0) > 0)
         return;
-
       if (parent.IsLetter)
       {
         var words = _channel.GetAllWords()
@@ -634,7 +575,6 @@ namespace AIStudio.ViewModels
             });
         parent.Children = new List<WordNode>(words);
       }
-
       OnPropertyChanged(nameof(VisibleWordNodes));
     }
 
@@ -655,18 +595,13 @@ namespace AIStudio.ViewModels
     {
       return BuildWordTreeRoots(_channel.GetAllWords(), null);
     }
-
     #endregion
-
     #region Методы работы с текстом
-
     private void AddText(object parameter)
     {
       if (string.IsNullOrWhiteSpace(InputText))
         return;
-
       _channel.ProcessText(InputText, MaxPhraseLength);
-
       try
       {
         if (_channel.UsesAtomicTokens)
@@ -684,7 +619,6 @@ namespace AIStudio.ViewModels
         MessageBox.Show("Не удалось сохранить изменения на диск", "Ошибка",
             MessageBoxButton.OK, MessageBoxImage.Warning);
       }
-
       InputText = string.Empty;
       RefreshAllCollections();
     }
@@ -698,15 +632,12 @@ namespace AIStudio.ViewModels
           MessageBoxButton.YesNo,
           MessageBoxImage.Warning,
           MessageBoxResult.No);
-
       if (result != MessageBoxResult.Yes)
         return;
-
       try
       {
         _channel.ClearAllTrees();
         RefreshAllCollections();
-
         MessageBox.Show("Сенсорные деревья успешно очищены.",
             "Очистка завершена",
             MessageBoxButton.OK,
@@ -725,26 +656,20 @@ namespace AIStudio.ViewModels
     private void RefreshAllCollections()
     {
       UpdateAgentStage();
-
       _allWordNodes = new ObservableCollection<WordNode>(LoadInitialWordNodes(_wordDisplayLimit));
       _allPhraseNodes = new ObservableCollection<PhraseNode>(LoadInitialPhraseNodes(_phraseDisplayLimit));
       _filteredPhraseNodes = new ObservableCollection<PhraseNode>(_allPhraseNodes);
-
       if (string.IsNullOrWhiteSpace(WordSearchText))
         VisibleWordNodes = _allWordNodes;
       else
         FilterWordNodes(WordSearchText);
-
       if (string.IsNullOrWhiteSpace(PhraseSearchText))
         VisiblePhraseNodes = _allPhraseNodes;
       else
         FilterPhraseNodes(PhraseSearchText);
-
       WordTreeStructure = GetFullWordTreeStructure();
-
       CollapseAllWordNodes();
       CollapseAllPhraseNodes();
-
       OnPropertyChanged(nameof(Words));
       OnPropertyChanged(nameof(Phrases));
       OnPropertyChanged(nameof(WordsCount));
@@ -754,11 +679,8 @@ namespace AIStudio.ViewModels
       OnPropertyChanged(nameof(VisibleWordNodes));
       OnPropertyChanged(nameof(VisiblePhraseNodes));
     }
-
     #endregion
-
     #region Методы поиска
-
     private void FilterWordNodes(string searchText)
     {
       if (string.IsNullOrWhiteSpace(searchText))
@@ -766,12 +688,10 @@ namespace AIStudio.ViewModels
         VisibleWordNodes = new ObservableCollection<WordNode>(_allWordNodes);
         return;
       }
-
       var searchLower = searchText.ToLower();
       var matchingWords = _channel.GetAllWords()
           .Where(w => w.Value.ToLower().Contains(searchLower))
           .ToDictionary(w => w.Key, w => w.Value);
-
       VisibleWordNodes = new ObservableCollection<WordNode>(
           BuildWordTreeRoots(matchingWords, null));
     }
@@ -783,19 +703,15 @@ namespace AIStudio.ViewModels
         VisiblePhraseNodes = new ObservableCollection<PhraseNode>(_allPhraseNodes);
         return;
       }
-
       var allPhraseNodesForSearch = LoadInitialPhraseNodes(null);
-
       var filtered = new ObservableCollection<PhraseNode>();
       var searchLower = searchText.ToLower();
-
       foreach (var rootNode in allPhraseNodesForSearch)
       {
         var filteredRoot = FilterPhraseNodeRecursive(rootNode, searchLower);
         if (filteredRoot != null)
           filtered.Add(filteredRoot);
       }
-
       VisiblePhraseNodes = filtered;
     }
 
@@ -804,11 +720,9 @@ namespace AIStudio.ViewModels
       string fullPhraseText = string.Empty;
       if (node.Id > 0)
         fullPhraseText = _channel.GetPhraseFromPhraseId(node.Id);
-
       bool matches = !string.IsNullOrEmpty(fullPhraseText) &&
                      fullPhraseText.ToLower().Contains(searchText);
       matches = matches || node.Text.ToLower().Contains(searchText);
-
       var filteredChildren = new ObservableCollection<PhraseNode>();
       foreach (var child in node.Children)
       {
@@ -819,7 +733,6 @@ namespace AIStudio.ViewModels
           matches = true;
         }
       }
-
       if (matches || filteredChildren.Count > 0)
       {
         return new PhraseNode
@@ -831,7 +744,6 @@ namespace AIStudio.ViewModels
           Children = filteredChildren
         };
       }
-
       return null;
     }
 
@@ -904,11 +816,8 @@ namespace AIStudio.ViewModels
         CollapsePhraseNodeRecursive(child);
       }
     }
-
     #endregion
-
     #region Вспомогательные методы
-
     protected virtual void OnPropertyChanged(string propertyName)
     {
       PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
@@ -951,11 +860,8 @@ namespace AIStudio.ViewModels
         ExpandPhraseNodeRecursive(child);
       }
     }
-
     #endregion
-
     #region Вложенные классы
-
     public class WordNode
     {
       public int Id { get; set; }
@@ -983,10 +889,8 @@ namespace AIStudio.ViewModels
     {
       public int? Value { get; }
       public string DisplayName => Value.HasValue ? Value.Value.ToString() : "Все";
-
       public NodeLimitOption(int? value) => Value = value;
     }
-
     #endregion
   }
 }

@@ -1,4 +1,4 @@
-﻿using ISIDA.Actions;
+using ISIDA.Actions;
 using System.Collections.Generic;
 using System.Linq;
 using System.Windows;
@@ -9,7 +9,6 @@ namespace AIStudio.Dialogs
   public partial class AntagonistActionsEditor : Window
   {
     public List<int> SelectedActionIds { get; private set; }
-
     public AntagonistActionsEditor(string title,
         IEnumerable<AdaptiveActionsSystem.AdaptiveAction> allActions,
         List<int> currentAntagonists)
@@ -17,14 +16,12 @@ namespace AIStudio.Dialogs
       InitializeComponent();
       Title = title;
       SelectedActionIds = new List<int>(currentAntagonists);
-
       var items = allActions.Select(a => new ActionSelection
       {
         Id = a.Id,
         Name = a.Name,
         IsSelected = currentAntagonists.Contains(a.Id)
       }).ToList();
-
       ActionsList.ItemsSource = items;
     }
     private void OK_Click(object sender, RoutedEventArgs e)
@@ -33,7 +30,6 @@ namespace AIStudio.Dialogs
           .Where(item => item.IsSelected)
           .Select(item => (int)item.Id)
           .ToList();
-
       DialogResult = true;
       Close();
     }

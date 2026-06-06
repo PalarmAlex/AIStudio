@@ -1,4 +1,4 @@
-﻿using AIStudio.Common;
+using AIStudio.Common;
 using AIStudio.Converters;
 using AIStudio.Dialogs;
 using AIStudio.ViewModels;
@@ -43,7 +43,6 @@ namespace AIStudio.Pages
     private void DataGrid_AddingNewItem(object sender, AddingNewItemEventArgs e)
     {
       int nextId = GetNextId();
-
       e.NewItem = new GomeostasSystem.BehaviorStyle
       {
         Id = nextId,
@@ -56,13 +55,11 @@ namespace AIStudio.Pages
     {
       var viewModel = DataContext as BehaviorStylesViewModel;
       if (viewModel == null) return 1;
-
       int maxId = 0;
       if (viewModel.BehaviorStyles != null && viewModel.BehaviorStyles.Any())
       {
         maxId = viewModel.BehaviorStyles.Max(a => a.Id);
       }
-
       var grid = BehaviorStylesGrid;
       if (grid?.ItemsSource != null)
       {
@@ -73,7 +70,6 @@ namespace AIStudio.Pages
           maxId = Math.Max(maxId, gridMaxId);
         }
       }
-
       return maxId + 1;
     }
 
@@ -86,12 +82,9 @@ namespace AIStudio.Pages
           e.Handled = true;
           return;
         }
-
         var grid = (DataGrid)sender;
-
         if (grid.IsEditing())
           return;
-
         if (grid.SelectedItems.Count > 0 && DataContext is BehaviorStylesViewModel viewModel)
         {
           var styles = grid.SelectedItems
@@ -106,7 +99,6 @@ namespace AIStudio.Pages
               "Подтверждение удаления",
               MessageBoxButton.YesNo,
               MessageBoxImage.Question);
-
           if (result == MessageBoxResult.Yes)
           {
             foreach (var style in styles)
@@ -114,7 +106,6 @@ namespace AIStudio.Pages
               viewModel.RemoveSelectedStyle(style);
             }
           }
-
           e.Handled = true;
         }
       }
@@ -138,7 +129,6 @@ namespace AIStudio.Pages
           e.Handled = true;
           return;
         }
-
         if (sender is FrameworkElement element &&
             element.DataContext is GomeostasSystem.BehaviorStyle behaviorStyle)
         {
@@ -146,7 +136,6 @@ namespace AIStudio.Pages
               "Выбор антагонистических стилей для: " + behaviorStyle.Name + " (ID: " + behaviorStyle.Id + ")",
               vm.BehaviorStyles.Where(s => s.Id != behaviorStyle.Id),
               behaviorStyle.AntagonistStyles ?? new List<int>());
-
           if (editor.ShowDialog() == true)
           {
             behaviorStyle.AntagonistStyles = editor.SelectedStyleIds.ToList();
@@ -169,7 +158,6 @@ namespace AIStudio.Pages
           Text = parameter.Description,
           Multiline = true
         };
-
         if (dialog.ShowDialog() == true)
         {
           parameter.Description = dialog.Text;
@@ -195,6 +183,5 @@ namespace AIStudio.Pages
         return true;
       }
     }
-
   }
 }

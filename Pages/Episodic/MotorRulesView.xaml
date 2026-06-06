@@ -226,7 +226,6 @@
                 Background="White">
         <DataGrid.Columns>
           <DataGridTextColumn Header="ID" Binding="{Binding Id}" Width="56"/>
-
           <DataGridTemplateColumn Header="Состояние" Width="Auto">
             <DataGridTemplateColumn.HeaderStyle>
               <Style TargetType="DataGridColumnHeader">

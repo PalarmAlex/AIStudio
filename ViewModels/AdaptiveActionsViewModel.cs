@@ -1,4 +1,4 @@
-﻿using AIStudio.Common;
+using AIStudio.Common;
 using ISIDA.Actions;
 using ISIDA.Common;
 using ISIDA.Gomeostas;
@@ -28,23 +28,19 @@ namespace AIStudio.ViewModels
     private string _currentAgentName;
     private int _currentAgentStage;
     public bool IsStageZero => _currentAgentStage == 0;
-
     public bool IsReadOnlyMode => !IsEditingEnabled;
     public string CurrentAgentTitle =>
         SymbiontPageTitleFormatter.Format("Адаптивные действия", _currentAgentName, _currentAgentStage);
     public ObservableCollection<AdaptiveActionsSystem.AdaptiveAction> AdaptiveActions { get; } = new ObservableCollection<AdaptiveActionsSystem.AdaptiveAction>();
-
     public ICommand SaveCommand { get; }
     public ICommand RemoveActionCommand { get; }
     public ICommand RemoveAllCommand { get; }
-
     public AdaptiveActionsViewModel(
         GomeostasSystem gomeostas,
         AdaptiveActionsSystem actionsSystem)
     {
       _gomeostas = gomeostas ?? throw new ArgumentNullException(nameof(gomeostas));
       _actionsSystem = actionsSystem ?? throw new ArgumentNullException(nameof(actionsSystem));
-
       SaveCommand = new RelayCommand(SaveData);
       RemoveActionCommand = new RelayCommand(RemoveSelectedAction);
       RemoveAllCommand = new RelayCommand(RemoveAlldAction);
@@ -73,9 +69,7 @@ namespace AIStudio.ViewModels
       var agentInfo = _gomeostas.GetAgentState();
       _currentAgentStage = _gomeostas?.GetAgentState()?.EvolutionStage ?? 0;
       _currentAgentName = agentInfo.Name;
-
       AdaptiveActions.Clear();
-
       foreach (var action in _actionsSystem.GetAllAdaptiveActions().OrderBy(a => a.Id))
       {
         AdaptiveActions.Add(new AdaptiveActionsSystem.AdaptiveAction
@@ -89,7 +83,6 @@ namespace AIStudio.ViewModels
           InfluenceActionId = action.InfluenceActionId
         });
       }
-
       OnPropertyChanged(nameof(IsStageZero));
       OnPropertyChanged(nameof(IsEditingEnabled));
       OnPropertyChanged(nameof(PulseWarningMessage));
@@ -104,9 +97,7 @@ namespace AIStudio.ViewModels
       var parameter = allParameters.FirstOrDefault(p => p.Id == parameterId);
       return parameter?.Name ?? $"Параметр {parameterId}";
     }
-
     #region Блокировка страницы в зависимости от стажа
-
     public bool IsEditingEnabled => IsStageZero && !GlobalTimer.IsPulsationRunning;
     public string PulseWarningMessage =>
         !IsStageZero
@@ -117,9 +108,7 @@ namespace AIStudio.ViewModels
     public Brush WarningMessageColor =>
         !IsStageZero ? Brushes.Red :
         Brushes.Gray;
-
     #endregion
-
     private void LoadAgentData()
     {
       try
@@ -139,7 +128,6 @@ namespace AIStudio.ViewModels
       {
         if (!UpdateActionsSystemFromTable())
           return;
-
         try
         {
           var (success, error) = _actionsSystem.SaveActions(false);
@@ -179,7 +167,6 @@ namespace AIStudio.ViewModels
     private bool UpdateActionsSystemFromTable()
     {
       bool needRevalidation = false;
-
       var (isValid, errors, validate_warnings) = _actionsSystem.ValidateAction(AdaptiveActions);
       if (!isValid)
       {
@@ -189,7 +176,6 @@ namespace AIStudio.ViewModels
           if (asymmetricActions.Any())
           {
             var asymmetricList = string.Join(", ", asymmetricActions.Select(s => $"{s.Name} (ID:{s.Id})"));
-
             var result = MessageBox.Show(
                 $"Обнаружены асимметричные антагонистические связи:\n{asymmetricList}\n\n" +
                 "Выберите действие:\n" +
@@ -199,7 +185,6 @@ namespace AIStudio.ViewModels
                 "Асимметричные антагонисты",
                 MessageBoxButton.YesNoCancel,
                 MessageBoxImage.Warning);
-
             switch (result)
             {
               case MessageBoxResult.Yes:
@@ -208,16 +193,12 @@ namespace AIStudio.ViewModels
                     "Автокоррекция завершена",
                     MessageBoxButton.OK,
                     MessageBoxImage.Information);
-
                 ApplyLocalActionsToSystem();
                 RefreshAllCollections();
-
                 needRevalidation = true;
                 break;
-
               case MessageBoxResult.No:
                 break;
-
               case MessageBoxResult.Cancel:
                 return false;
             }
@@ -232,7 +213,6 @@ namespace AIStudio.ViewModels
           return false;
         }
       }
-
       if (needRevalidation)
       {
         (isValid, errors, validate_warnings) = _actionsSystem.ValidateAction(AdaptiveActions);
@@ -245,7 +225,6 @@ namespace AIStudio.ViewModels
           return false;
         }
       }
-
       if (validate_warnings != "")
       {
         var resultMsg = MessageBox.Show(
@@ -253,14 +232,11 @@ namespace AIStudio.ViewModels
             "Предупреждения",
             MessageBoxButton.YesNo,
             MessageBoxImage.Warning);
-
         if (resultMsg == MessageBoxResult.No)
           return false;
       }
-
       if (!needRevalidation)
         ApplyLocalActionsToSystem();
-
       return true;
     }
 
@@ -275,7 +251,6 @@ namespace AIStudio.ViewModels
       {
         _actionsSystem.RemoveAction(actionId);
       }
-
       foreach (var action in AdaptiveActions)
       {
         if (currentActions.ContainsKey(action.Id))
@@ -312,16 +287,13 @@ namespace AIStudio.ViewModels
         {
           // Всегда удаляем из коллекции
           AdaptiveActions.Remove(action);
-
           var existingActions = _actionsSystem.GetAllAdaptiveActions().ToList();
           bool actionExistsInSystem = existingActions.Any(a => a.Id == action.Id);
-
           if (actionExistsInSystem)
           {
             if (_actionsSystem.RemoveAction(action.Id))
             {
               AdaptiveActions.Remove(action);
-
               var (success, error) = _actionsSystem.SaveActions();
               if (!success)
               {
@@ -353,23 +325,19 @@ namespace AIStudio.ViewModels
           "Подтверждение удаления",
           MessageBoxButton.YesNo,
           MessageBoxImage.Warning);
-
       if (result == MessageBoxResult.Yes)
       {
         try
         {
           var defaultAction = AdaptiveActions.FirstOrDefault(action => action.Id == AppConfig.DefaultAdaptiveActionId);
           var allActions = _actionsSystem.GetAllAdaptiveActions().ToList();
-
           foreach (var action in allActions.Where(action => action.Id != AppConfig.DefaultAdaptiveActionId))
           {
             _actionsSystem.RemoveAction(action.Id);
           }
-
           AdaptiveActions.Clear();
           if (defaultAction != null)
             AdaptiveActions.Add(defaultAction);
-
           var (success, error) = _actionsSystem.SaveActions(false); // все удалено - не надо валидаций 
           if (success)
           {
@@ -402,7 +370,6 @@ namespace AIStudio.ViewModels
       public string LinkText { get; set; } = "Подробнее...";
       public string Url { get; set; } = "https://scorcher.ru/isida/iadaptive_agents_guide.php#ref_6";
       public ICommand OpenLinkCommand { get; }
-
       public DescriptionWithLink()
       {
         OpenLinkCommand = new RelayCommand(_ =>
