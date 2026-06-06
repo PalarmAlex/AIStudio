@@ -1,0 +1,110 @@
+﻿<!DOCTYPE html>
+<html><head><meta charset="utf-8"/>
+<style>
+body{font-family:Segoe UI,Tahoma,sans-serif;margin:16px;color:#222;}
+h1{font-size:18px;color:#1565C0;}
+h2{font-size:15px;color:#37474F;margin-top:20px;border-bottom:1px solid #B0BEC5;padding-bottom:4px;}
+table{border-collapse:collapse;width:100%;margin:8px 0;font-size:12px;}
+th,td{border:1px solid #CFD8DC;padding:6px 8px;text-align:left;vertical-align:top;}
+th{background:#ECEFF1;font-weight:600;}
+table.steps-zebra tr:nth-child(even){background:#FAFAFA;}
+table.group-compose{table-layout:fixed;width:100%;}
+table.group-compose td:nth-child(1),table.group-compose th:nth-child(1){text-align:center;white-space:nowrap;}
+table.group-compose td:nth-child(2),table.group-compose th:nth-child(2){word-wrap:break-word;word-break:break-word;}
+table.group-compose:not(.group-compose-compact) td:nth-child(n+3),table.group-compose:not(.group-compose-compact) th:nth-child(n+3){text-align:center;white-space:nowrap;}
+table.group-compose.group-compose-compact td:nth-child(n+3):not(:last-child),table.group-compose.group-compose-compact th:nth-child(n+3):not(:last-child){text-align:center;white-space:nowrap;}
+table.group-compose.group-compose-compact td:last-child,table.group-compose.group-compose-compact th:last-child{white-space:nowrap;text-align:left;}
+.muted{color:#78909C;}
+table.meta-table{width:100%;table-layout:fixed;}
+table.meta-table th.meta-label{width:15%;min-width:100px;max-width:160px;font-size:11px;font-weight:600;padding:6px 8px;vertical-align:top;background:#ECEFF1;}
+table.meta-table td.meta-value{width:85%;font-size:13px;padding:8px 12px;line-height:1.45;word-wrap:break-word;}
+table.compare-table{font-size:11px;}
+table.compare-table th.col-exp-h{background:#E8F5E9;}
+table.compare-table td.col-exp{background:transparent;}
+table.compare-table th.col-fact-h,table.compare-table td.col-fact{background:#E3F2FD;}
+table.compare-table td.col-fact.fact-mismatch{background:#FFEBEE;color:#B71C1C;border-color:#FFCDD2;}
+table.compare-table td.col-fact span.um-ok{color:#2E7D32;font-weight:600;}
+table.compare-table td.col-fact span.um-bad{color:#C62828;font-weight:600;}
+table.compare-table td.col-fact.fact-mismatch span.um-ok{color:#2E7D32;}
+table.compare-table td.col-fact.fact-mismatch span.um-bad{color:#C62828;}
+table.compare-table td.col-fact span.mc-ns{color:#C62828;font-weight:600;}
+table.compare-table td.col-fact span.mc-await{color:#F9A825;font-weight:600;}
+table.compare-table td.col-fact span.mc-solved{color:#2E7D32;font-weight:600;}
+table.compare-table td.col-fact.fact-mismatch span.mc-ns{color:#C62828;}
+table.compare-table td.col-fact.fact-mismatch span.mc-await{color:#F9A825;}
+table.compare-table td.col-fact.fact-mismatch span.mc-solved{color:#2E7D32;}
+.summary-box{margin-top:20px;padding:14px 16px;border-radius:6px;border:1px solid #CFD8DC;background:#FAFAFA;}
+.summary-box h3{margin:0 0 10px 0;font-size:14px;color:#37474F;}
+.summary-ok{color:#2E7D32;font-size:13px;font-weight:600;margin:0;}
+.summary-bad{color:#C62828;font-size:13px;font-weight:600;margin:0 0 8px 0;}
+.summary-box ul{margin:6px 0 0 0;padding-left:20px;}
+.summary-box li{margin:8px 0;font-size:12px;line-height:1.45;}
+</style>
+</head><body>
+<h1>Отчёт по прогону сценария оператора</h1>
+<p>
+Сценарий завершён успешно. Последний выполненный № пульса: 14.</p>
+<h2>Данные сценария</h2>
+<table class="meta-table">
+<tr><th class="meta-label">
+ID</th><td class="meta-value">4</td></tr>
+<tr><th class="meta-label">
+Название</th><td class="meta-value">Клонирование безусловных рефлексов в автоматизмы с цепочками, создание Эхо-автоматизма на вербальный стимул с цепочкой и без в состоягнии Норма</td></tr>
+<tr><th class="meta-label">
+Описание</th><td class="meta-value">Тестируется клонирование безусловных рефлексов с цепочками в автоматизмы, а также формирование эхо-автоматизмов на вербальные стимулы (с цепочкой и без) на 2 стадии развития агента. Все стимулы с пульта подаются в состоянии Норма.<br/><br/>═══════════════════════════════════════════════════════════════<br/>I. Теоретические основания<br/>═══════════════════════════════════════════════════════════════<br/><br/>Клонирование рефлекса в автоматизм:<br/>Переход от генетически заложенного рефлекса к приобретённой моторной программе. На 2 стадии развития гомеостатический стимул, вместо прямой активации безусловного рефлекса, инициирует создание автоматизма — адаптивной копии рефлекса с теми же пусковыми условиями и действиями. Если исходный рефлекс имеет цепочку, она так же клонируется в цепочку автоматизма. Аналог перехода от врождённых рефлексов к приобретённым навыкам в онтогенезе.<br/><br/>Эхо-автоматизм на вербальный стимул:<br/>Воспроизведение предъявленного вербального стимула в качестве ответного действия. На 2 стадии вербальный стимул анализируется по структуре:<br/><br/>- Однословный стимул → эхо-автоматизм без цепочки: S → S.<br/>- Многословный стимул (фраза) → эхо-автоматизм с цепочкой: первое слово становится действием автоматизма, последующие слова — звеньями цепочки.<br/><br/>Ограничение стадии 2: длина цепочки ограничена двумя звеньями, избыточные элементы фразы отбрасываются.<br/><br/>═══════════════════════════════════════════════════════════════<br/>II. Механизм клонирования рефлекса<br/>═══════════════════════════════════════════════════════════════<br/><br/>При поступлении гомеостатического стимула:<br/><br/>1. Определяется безусловный рефлекс, соответствующий текущим условиям {Состояние, Стили, Триггер}.<br/>2. Создаётся автоматизм с идентичными пусковыми условиями и действием.<br/>3. Если рефлекс имеет цепочку из N звеньев, создаётся цепочка автоматизма (с учётом ограничения стадии на максимальную длину).<br/>4. Автоматизм регистрируется в дереве активации.<br/><br/>При повторном предъявлении того же стимула активируется уже созданный автоматизм, а не исходный безусловный рефлекс.<br/><br/>═══════════════════════════════════════════════════════════════<br/>III. Механизм эхо-автоматизма с разбором фразы<br/>═══════════════════════════════════════════════════════════════<br/><br/>При поступлении вербального стимула фраза сегментируется по пробелам на токены T₁, T₂, ..., T_m:<br/><br/>- Действие автоматизма: T₁ (первый токен).<br/>- Звено 1 цепочки: T₂ (второй токен).<br/>- Звено 2 цепочки: T_m (последний токен).<br/>- Токены T₃..T_m−1 отбрасываются (ограничение 2 стадии).<br/><br/>Пример:<br/>Стимул &#171;ка на рей ка&#187; → токены [ка, на, рей, ка].<br/>Автоматизм: действие &#171;ка&#187; + цепочка: звено 1 &#171;на&#187;, звено 2 &#171;ка&#187;.<br/>Токен &#171;рей&#187; отброшен. Результирующее воспроизведение: &#171;ка-на-ка&#187;.<br/><br/>Для однословного стимула цепочка не создаётся:<br/>Стимул &#171;ага&#187; → автоматизм: действие &#171;ага&#187;, без цепочки.<br/><br/>═══════════════════════════════════════════════════════════════<br/>IV. Протокол тестирования<br/>═══════════════════════════════════════════════════════════════<br/><br/>Блок A — клонирование безусловного рефлекса с цепочкой:<br/><br/>Шаг 1. Гомеостатический стимул [Обрадовать]. Состояние → Хорошо, стили изменяются. Вместо прямой активации безусловного рефлекса создаётся автоматизм-клон с цепочкой.<br/>Шаг 2. Пауза. Выполняется звено 1 цепочки автоматизма.<br/>Шаг 3. Пауза. Выполняется звено 2 цепочки автоматизма.<br/><br/>Блок B — эхо-автоматизм с цепочкой (многословная фраза):<br/><br/>Шаг 4. Вербальный стимул &#171;ку ку&#187;. Фраза сегментируется: [ку, ку]. Создаётся эхо-автоматизм: действие &#171;ку&#187; + цепочка: звено 1 &#171;ку&#187;. Агент отвечает.<br/>Шаг 5. Пауза. Выполняется звено цепочки.<br/><br/>Блок C — эхо-автоматизм без цепочки (одно слово):<br/><br/>Шаг 6. Вербальный стимул &#171;ага&#187;. Одно слово — цепочка не создаётся. Создаётся эхо-автоматизм: действие &#171;ага&#187;. Агент отвечает.<br/><br/>Критерии успеха:<br/>- Блок A: гомеостатический стимул создаёт автоматизм (не активирует безусловный рефлекс напрямую), цепочка клонируется и выполняется.<br/>- Блок B: многословная фраза порождает эхо-автоматизм с цепочкой, токены корректно распределены между действием и звеньями.<br/>- Блок C: однословная фраза порождает эхо-автоматизм без цепочки.<br/><br/>═══════════════════════════════════════════════════════════════<br/>Научные основания<br/>═══════════════════════════════════════════════════════════════<br/><br/>Переход от рефлексов к навыкам в онтогенезе:<br/>— Piaget J. (1952). The Origins of Intelligence in Children. International Universities Press. [Стадия сенсомоторного интеллекта: рефлекторные схемы → привычки]<br/>— Bernstein N.A. (1967). The Co-ordination and Regulation of Movements. Pergamon Press. [Уровни построения движений]<br/><br/>Эхолалия и вокальная имитация:<br/>— Fay W.H. (1969). On the basis of autistic echolalia. Journal of Communication Disorders, 2(1), 38–47.<br/>— Carr E.G., Schreibman L., Lovaas O.I. (1975). Control of echolalic speech in psychotic children. Journal of Abnormal Child Psychology, 3(4), 331–351.<br/>— Doupe A.J., Kuhl P.K. (1999). Birdsong and human speech: Common themes and mechanisms. Annual Review of Neuroscience, 22, 567–631. [Вокальная имитация как основа формирования речевых паттернов]<br/><br/>Клонирование поведенческих программ и моторные навыки:<br/>— Wolpert D.M., Ghahramani Z., Flanagan J.R. (2001). Perspectives and problems in motor learning. Trends in Cognitive Sciences, 5(11), 487–494.<br/>— Hikosaka O. et al. (1999). Parallel neural networks for learning sequential procedures. Trends in Neurosciences, 22(10), 464–471. [Переход от декларативных к процедурным моторным последовательностям]<br/><br/>Сегментация речевого потока:<br/>— Saffran J.R., Aslin R.N., Newport E.L. (1996). Statistical learning by 8-month-old infants. Science, 274(5294), 1926–1928.</td></tr>
+<tr><th class="meta-label">
+Переход перед запуском (стадия)</th><td class="meta-value">2</td></tr>
+<tr><th class="meta-label">
+Очистка данных при переходе</th><td class="meta-value">да</td></tr>
+<tr><th class="meta-label">
+Сброс параметров в &#171;норму&#187; перед запуском</th><td class="meta-value">да</td></tr>
+<tr><th class="meta-label">
+Режим наблюдения при прогоне</th><td class="meta-value">нет</td></tr>
+<tr><th class="meta-label">
+Авторитарная запись при прогоне</th><td class="meta-value">нет</td></tr>
+<tr><th class="meta-label">
+Коэфф. пульсации</th><td class="meta-value">20</td></tr>
+<tr><th class="meta-label">
+Фактическая скорость</th><td class="meta-value">22.2 пульсов/сек</td></tr>
+</table>
+<h2>Шаги</h2>
+<table class="steps-zebra"><tr><th>Шаг</th><th>№ пульса</th><th>Тип</th><th>Воздействия</th><th>Фраза</th><th>Тон</th><th>Настр.</th><th>Цвет</th><th>Сброс ожид.</th></tr>
+<tr>
+<td>1</td><td>1</td><td>Пульт</td><td>Обрадовать</td><td></td><td>Нормальный (0)</td><td>Нормальное (0)</td><td>Белый (0)</td><td>нет</td></tr>
+<tr>
+<td>2</td><td>3</td><td>Пульт</td><td></td><td></td><td>Нормальный (0)</td><td>Нормальное (0)</td><td>Белый (0)</td><td>нет</td></tr>
+<tr>
+<td>3</td><td>5</td><td>Пульт</td><td></td><td></td><td>Нормальный (0)</td><td>Нормальное (0)</td><td>Белый (0)</td><td>нет</td></tr>
+<tr>
+<td>4</td><td>9</td><td>Пульт</td><td></td><td>ку ку</td><td>Нормальный (0)</td><td>Учитель (4)</td><td>Белый (0)</td><td>нет</td></tr>
+<tr>
+<td>5</td><td>11</td><td>Пульт</td><td></td><td></td><td>Нормальный (0)</td><td>Нормальное (0)</td><td>Белый (0)</td><td>нет</td></tr>
+<tr>
+<td>6</td><td>14</td><td>Пульт</td><td></td><td>ага</td><td>Нормальный (0)</td><td>Учитель (4)</td><td>Белый (0)</td><td>нет</td></tr>
+</table>
+<h2>Сравнение ожидаемых реакций и факта по логам</h2>
+<p class="muted">Якорный глобальный пульс: 
+1088. Глобальный пульс шага = якорь + № пульса внутри сценария. <table class="compare-table"><tr><th>Шаг</th><th>№ пульса</th>
+<th class="col-fact-h">Состояние</th><th class="col-fact-h">Стиль</th><th class="col-fact-h">Триггер</th><th class="col-fact-h">ОР/УМ</th><th class="col-fact-h">Автоматизм</th><th class="col-exp-h">Успешность (ожид.)</th><th class="col-fact-h">Успешность (факт)</th><th class="col-fact-h">Цепочка АВ</th></tr>
+<tr>
+<td>1</td><td>1</td><td class="col-fact" title="ХОРОШО">Хорошо</td><td class="col-fact" title="Расслабление, Эмпатия">7,17</td><td class="col-fact" title="Воздействие: Обрадовать&#10;Фразы: нет&#10;Тон: —&#10;Настроение: —&#10;Цветовой фон: Белый">6</td><td class="col-fact" title="Нет автоматизма, нужно быстро создать его по гомеостатическим целям">ОР1</td><td class="col-fact" title="Действия (1): Радуется&#10;Фразы: нет&#10;Тон: Нормальный&#10;Настроение: Нормальное&#10;Полезность: 3">1</td><td class="col-exp">1</td><td class="col-fact fact-mismatch">3</td><td class="col-fact">-</td></tr>
+<tr>
+<td>2</td><td>3</td><td class="col-fact" title="ХОРОШО">Хорошо</td><td class="col-fact" title="Расслабление, Эмпатия">7,17</td><td class="col-fact">-</td><td class="col-fact">-</td><td class="col-fact">-</td><td class="col-exp">-</td><td class="col-fact">-</td><td class="col-fact" title="Играет">13:13</td></tr>
+<tr>
+<td>3</td><td>5</td><td class="col-fact" title="ХОРОШО">Хорошо</td><td class="col-fact" title="Расслабление, Эмпатия">7,17</td><td class="col-fact">-</td><td class="col-fact">-</td><td class="col-fact">-</td><td class="col-exp">-</td><td class="col-fact">-</td><td class="col-fact" title="Смеется">13:6</td></tr>
+<tr>
+<td>4</td><td>9</td><td class="col-fact" title="НОРМА">Норма</td><td class="col-fact" title="Расслабление, Игра">7,16</td><td class="col-fact" title="Воздействие: нет&#10;Фразы: куку&#10;Тон: Нормальный (0)&#10;Настроение: Нормальное (0)&#10;Цветовой фон: Белый">518</td><td class="col-fact" title="Нет автоматизма, нужно быстро создать его по гомеостатическим целям">ОР1</td><td class="col-fact" title="Действия: нет&#10;Фразы (1): &quot;ку&quot; (ID: 4)&#10;Тон: Нормальный&#10;Настроение: Учитель&#10;Полезность: 0">2</td><td class="col-exp">0</td><td class="col-fact">0</td><td class="col-fact">-</td></tr>
+<tr>
+<td>5</td><td>11</td><td class="col-fact" title="НОРМА">Норма</td><td class="col-fact" title="Расслабление, Игра">7,16</td><td class="col-fact">-</td><td class="col-fact">-</td><td class="col-fact">-</td><td class="col-exp">-</td><td class="col-fact">-</td><td class="col-fact" title="Ступор">14:1</td></tr>
+<tr>
+<td>6</td><td>14</td><td class="col-fact" title="НОРМА">Норма</td><td class="col-fact" title="Расслабление, Игра">7,16</td><td class="col-fact" title="Воздействие: нет&#10;Фразы: ага&#10;Тон: Нормальный (0)&#10;Настроение: Нормальное (0)&#10;Цветовой фон: Белый">507</td><td class="col-fact" title="Нет автоматизма, нужно быстро создать его по гомеостатическим целям">ОР1</td><td class="col-fact" title="Действия: нет&#10;Фразы (1): &quot;ага&quot; (ID: 6)&#10;Тон: Нормальный&#10;Настроение: Учитель&#10;Полезность: 0">3</td><td class="col-exp">0</td><td class="col-fact">0</td><td class="col-fact">-</td></tr>
+</table>
+<div class="summary-box">
+<h3>Итог сравнения ожиданий с логами</h3>
+<p class="summary-bad">Обнаружены расхождения в строках:</p>
+<ul>
+<li><strong>Шаг 1, № пульса 1.</strong> Успешность: ожид. &#171;1&#187;, факт &#171;3&#187;</li>
+</ul>
+</div>
+<p class="muted" style="margin-top:24px;font-size:11px;">Сформировано AIStudio.</p>
+</body></html>

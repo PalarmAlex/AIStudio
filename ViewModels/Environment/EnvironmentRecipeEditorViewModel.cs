@@ -1,7 +1,8 @@
 using AIStudio.Common;
+using AIStudio.Common.Adapters;
 using AIStudio.Common.SymbiontEnv;
-using ISIDA.SymbiontEnv.Contract;
 using AIStudio.Dialogs;
+using ISIDA.SymbiontEnv.Contract;
 using ISIDA.Actions;
 using ISIDA.Common;
 using ISIDA.Gomeostas;
@@ -23,6 +24,7 @@ namespace AIStudio.ViewModels.SymbiontEnv
     private readonly GomeostasSystem _gomeostas;
     private readonly Action<EnvironmentRecipeEditorModel, bool> _onSaveAll;
     private readonly bool _isNew;
+    private readonly AdapterEnvironmentSchema _schema;
     private string _currentAgentName;
     private int _currentAgentStage;
 
@@ -39,6 +41,7 @@ namespace AIStudio.ViewModels.SymbiontEnv
       Model = model ?? throw new ArgumentNullException(nameof(model));
       _isNew = isNew;
       _onSaveAll = onSaveAll ?? throw new ArgumentNullException(nameof(onSaveAll));
+      _schema = AdapterSchemaLoader.LoadForCurrentProject();
 
       SaveCommand = new RelayCommand(_ => Save(), _ => IsEditingEnabled);
       CancelCommand = new RelayCommand(_ => RequestClose?.Invoke(false));
@@ -67,13 +70,20 @@ namespace AIStudio.ViewModels.SymbiontEnv
     public bool IsEditingEnabled => HasAdapter && IsStageZero && !GlobalTimer.IsPulsationRunning;
     public string PulseWarningMessage =>
         !HasAdapter
-            ? "Укажите AdapterId в проекте (новый проект с выбором адаптера)"
+            ? "Укажите тип среды в свойствах симбионта"
             : !IsStageZero
                 ? "[КРИТИЧНО] Редактирование доступно только в стадии 0"
                 : GlobalTimer.IsPulsationRunning
                     ? "Редактирование доступно только при выключенной пульсации"
                     : string.Empty;
     public Brush WarningMessageColor => !HasAdapter || !IsStageZero ? Brushes.Red : Brushes.Gray;
+
+    public bool ShowDocumentKindPart => _schema.HasDocumentKind("part");
+    public bool ShowDocumentKindAssembly => _schema.HasDocumentKind("assembly");
+    public bool ShowDocumentKindDrawing => _schema.HasDocumentKind("drawing");
+    public bool ShowNotSketchEdit => _schema.HasRecipePrecondition("not_sketch_edit");
+    public bool ShowNotReadOnly => _schema.HasRecipePrecondition("not_read_only");
+    public bool ShowPdmCheckoutRequired => _schema.HasRecipePrecondition("pdm_checkout_required");
 
     public IReadOnlyList<EnvironmentRecipeRiskTier> RiskTierChoices { get; } = new[]
     {
@@ -82,13 +92,20 @@ namespace AIStudio.ViewModels.SymbiontEnv
       EnvironmentRecipeRiskTier.C
     };
 
-    public string[] StepTypeChoices { get; } =
+    public string[] StepTypeChoices
     {
-      "set_property",
-      "run_sw_command",
-      "rebuild",
-      "log"
-    };
+      get
+      {
+        if (_schema?.RecipeStepTypes == null || _schema.RecipeStepTypes.Count == 0)
+          return new[] { "set_property", "run_sw_command", "rebuild", "log" };
+
+        return _schema.RecipeStepTypes
+            .Select(s => s?.Type)
+            .Where(s => !string.IsNullOrWhiteSpace(s))
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .ToArray();
+      }
+    }
 
     /// <summary>
     /// Выбор рекомендуемых воздействий (мультивыбор).

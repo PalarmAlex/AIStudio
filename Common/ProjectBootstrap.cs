@@ -99,7 +99,7 @@ namespace AIStudio.Common
     }
 
     /// <summary>
-    /// Создаёт проект симбионта. При непустом <paramref name="adapterId"/> — BootData из пакета и элемент AdapterId в Settings.
+    /// Создаёт проект симбионта. При непустом <paramref name="adapterId"/> — BootData из пакета и AdapterId в AgentProperties.dat.
     /// </summary>
     public static bool TryCreateProject(string projectRoot, string adapterId, out string errorMessage)
     {
@@ -124,7 +124,7 @@ namespace AIStudio.Common
 
         EnsureProjectDirectoryStructure(rootFull);
         WriteMinimalSeedData(rootFull, trimmedAdapterId);
-        WriteProjectSettingsXml(rootFull, trimmedAdapterId);
+        WriteProjectSettingsXml(rootFull);
         return true;
       }
       catch (Exception ex)
@@ -220,6 +220,9 @@ namespace AIStudio.Common
       }
 
       EnvironmentCatalogStorage.EnsureCatalogAt(bootDataPath);
+
+      string agentPropertiesPath = Path.Combine(gomeostasPath, "AgentProperties.dat");
+      AgentPropertiesAdapterBinding.EnsureMinimalAgentProperties(agentPropertiesPath, adapterId);
     }
 
     private static void WriteFileIfMissing(string path, string content)
@@ -234,23 +237,16 @@ namespace AIStudio.Common
       File.WriteAllText(path, content, Encoding.UTF8);
     }
 
-    private static void WriteProjectSettingsXml(string projectRootFull, string adapterId)
+    private static void WriteProjectSettingsXml(string projectRootFull)
     {
       string settingsDir = SettingsValidator.GetExpectedFolderPathForSetting(projectRootFull, "SettingsPath");
       Directory.CreateDirectory(settingsDir);
 
       string settingsFile = Path.Combine(settingsDir, AppConfig.StudioSettingsFileName);
       if (File.Exists(settingsFile))
-      {
-        if (!string.IsNullOrWhiteSpace(adapterId))
-          SymbiontProjectAdapterSettings.WriteAdapterIdToProjectSettings(projectRootFull, adapterId);
         return;
-      }
 
       var appSettingsChildren = new List<XElement>();
-      if (!string.IsNullOrWhiteSpace(adapterId))
-        appSettingsChildren.Add(new XElement(SymbiontProjectAdapterSettings.AdapterIdElementName, adapterId.Trim()));
-
       appSettingsChildren.Add(new XElement("DataGomeostasFolderPath",
           SettingsValidator.GetExpectedFolderPathForSetting(projectRootFull, "DataGomeostasFolderPath")));
       appSettingsChildren.Add(new XElement("DataActionsFolderPath",

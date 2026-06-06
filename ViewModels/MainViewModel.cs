@@ -344,8 +344,6 @@ namespace AIStudio
       _isidaContext?.Dispose();
       _isidaContext = null;
 
-      // Лог в памяти не привязан к жизненному циклу движка; без очистки отчёты сценариев
-      // агрегируют записи от предыдущего проекта (другие пульсы/ID) — пустые или «сломанные» строки.
       MemoryLogManager.Instance.Clear();
 
       var config = BuildIsidaConfigFromAppConfig();
@@ -355,10 +353,21 @@ namespace AIStudio
 
       AssignSubsystemReferencesFromContext(_isidaContext);
 
-      // Dispose движка вызывает GlobalTimer.ClearSystems(), который обнуляет все делегаты событий таймера;
-      // MainViewModel не пересоздаётся — подписки из SetupPulseHandlers нужно восстановить.
       WireGlobalTimerHostHandlers();
       GlobalTimer.ClearPulseWallClockAcceleration();
+
+      string agentPropertiesPath = Path.Combine(
+          AppConfig.DataGomeostasFolderPath ?? string.Empty,
+          "AgentProperties.dat");
+      SymbiontProjectAdapterSettings.ValidateAndRepairBinding(
+          _gomeostas,
+          agentPropertiesPath,
+          Application.Current?.MainWindow,
+          out bool bindingWasCleared);
+      if (bindingWasCleared)
+        _gomeostas.SaveAgentProperties();
+      else
+        SymbiontProjectAdapterSettings.SyncAppConfigFromGomeostas(_gomeostas);
 
       RefreshUiAfterEngineReload();
       UpdateAgentState();

@@ -1,5 +1,8 @@
 ﻿using AIStudio.ViewModels;
 using AIStudio.Dialogs;
+using AIStudio.Common.Adapters;
+using AIStudio.Common.SymbiontEnv;
+using ISIDA.SymbiontEnv.Contract;
 using ISIDA.Actions;
 using ISIDA.Common;
 using ISIDA.Gomeostas;
@@ -22,6 +25,7 @@ namespace AIStudio.Pages
     private List<int> _threatResponseIds = new List<int>();
     private List<int> _rewardResponseIds = new List<int>();
     private List<int> _punishmentResponseIds = new List<int>();
+    private string _loadedAdapterId = string.Empty;
 
     private static readonly string[] DefaultBaseArchetype = { "Исследователь", "Социальный", "Агрессор", "Тревожный", "Игривый", "Ленивый", "Цикличный меланхолик" };
     private static readonly string[] DefaultKeyMotivation = { "Выживание", "Познание", "Безопасность", "Общение", "Доминирование", "Внутренний баланс" };
@@ -36,6 +40,7 @@ namespace AIStudio.Pages
       _onClose = onClose;
 
       LoadStages();
+      LoadAdapters();
       LoadData();
       ApplyStageEditMode();
 
@@ -95,6 +100,7 @@ namespace AIStudio.Pages
       TextBoxPromptSuffix.IsReadOnly = !canEdit;
 
       ComboStage.IsEnabled = !pulsationRunning;
+      ComboAdapter.IsEnabled = canEdit;
       ComboSpecialTriggers.IsEnabled = canEdit;
       ComboSpecialTaboos.IsEnabled = canEdit;
       ComboBaseArchetype.IsEnabled = canEdit;
@@ -123,6 +129,50 @@ namespace AIStudio.Pages
       }
       else
         StageWarningText.Visibility = Visibility.Collapsed;
+    }
+
+    private void LoadAdapters()
+    {
+      var items = new List<AdapterSelectionItem> { AdapterSelectionItem.None };
+      foreach (AdapterManifest manifest in AdapterRegistry.GetInstalledAdapters())
+      {
+        items.Add(new AdapterSelectionItem
+        {
+          Id = manifest.Id,
+          DisplayName = manifest.DisplayName + " (" + manifest.Id + ")"
+        });
+      }
+
+      ComboAdapter.ItemsSource = items;
+    }
+
+    private void SelectAdapterInCombo(string adapterId)
+    {
+      _loadedAdapterId = (adapterId ?? string.Empty).Trim();
+      if (string.IsNullOrEmpty(_loadedAdapterId))
+      {
+        ComboAdapter.SelectedItem = AdapterSelectionItem.None;
+        return;
+      }
+
+      if (ComboAdapter.ItemsSource is IEnumerable<AdapterSelectionItem> items)
+      {
+        AdapterSelectionItem match = items.FirstOrDefault(i =>
+            !string.IsNullOrEmpty(i?.Id) &&
+            string.Equals(i.Id, _loadedAdapterId, StringComparison.OrdinalIgnoreCase));
+        ComboAdapter.SelectedItem = match ?? AdapterSelectionItem.None;
+        return;
+      }
+
+      ComboAdapter.SelectedItem = AdapterSelectionItem.None;
+    }
+
+    private string GetSelectedAdapterId()
+    {
+      if (ComboAdapter.SelectedItem is AdapterSelectionItem item)
+        return string.IsNullOrWhiteSpace(item.Id) ? string.Empty : item.Id.Trim();
+
+      return string.Empty;
     }
 
     private void LoadStages()
@@ -280,6 +330,7 @@ namespace AIStudio.Pages
       LoadCombo(ComboSpecialTaboos, state.SpecialTaboos, state.SpecialTaboosValues, DefaultSpecialTriggersTaboos);
       TextBoxAdditionalWishes.Text = state.AdditionalWishes ?? string.Empty;
       TextBoxPromptSuffix.Text = state.PromptSuffix ?? string.Empty;
+      SelectAdapterInCombo(state.AdapterId);
     }
 
     private static void LoadCombo(ComboBox combo, string selected, IReadOnlyList<string> values, string[] defaults)
@@ -410,9 +461,48 @@ namespace AIStudio.Pages
           specialTaboos, GetComboValues(ComboSpecialTaboos),
           additionalWishes, promptSuffix);
 
+        string selectedAdapterId = GetSelectedAdapterId();
+        if (!string.IsNullOrEmpty(selectedAdapterId) && AdapterRegistry.TryGetById(selectedAdapterId) == null)
+        {
+          MessageBox.Show(
+              "Пакет «" + selectedAdapterId + "» не зарегистрирован. Выберите другой тип среды или «Без адаптера».",
+              "Тип среды",
+              MessageBoxButton.OK,
+              MessageBoxImage.Warning);
+          return;
+        }
+
+        bool adapterChanged = !string.Equals(
+            _loadedAdapterId ?? string.Empty,
+            selectedAdapterId ?? string.Empty,
+            StringComparison.OrdinalIgnoreCase);
+
+        _gomeostas.SetAdapterId(selectedAdapterId);
+
         var (success, error) = _gomeostas.SaveAgentProperties();
         if (success)
         {
+          SymbiontProjectAdapterSettings.SyncAppConfigFromGomeostas(_gomeostas);
+          _loadedAdapterId = selectedAdapterId;
+
+          if (adapterChanged && !string.IsNullOrEmpty(selectedAdapterId))
+          {
+            if (MessageBox.Show(
+                    "Дополнить BootData проекта образцами из пакета «" + selectedAdapterId + "»?\n\n"
+                    + "Существующие файлы не перезаписываются.",
+                    "Тип среды",
+                    MessageBoxButton.YesNo,
+                    MessageBoxImage.Question) == MessageBoxResult.Yes)
+            {
+              string bootDataPath = EnvironmentPaths.GetBootDataFolder();
+              AdapterBootDataSeeder.TrySeedFromInstalledAdapter(selectedAdapterId, bootDataPath, out string seedError);
+              if (!string.IsNullOrEmpty(seedError))
+              {
+                MessageBox.Show(seedError, "BootData", MessageBoxButton.OK, MessageBoxImage.Warning);
+              }
+            }
+          }
+
           _gomeostas.UpdateAgentPropertiesPromptContent();
           MessageBox.Show("Свойства симбионта сохранены.", "Сохранение", MessageBoxButton.OK, MessageBoxImage.Information);
         }
@@ -456,6 +546,8 @@ namespace AIStudio.Pages
           specialTaboos, GetComboValues(ComboSpecialTaboos),
           additionalWishes, promptSuffix);
 
+        _gomeostas.SetAdapterId(GetSelectedAdapterId());
+
         var (saveSuccess, error) = _gomeostas.SaveAgentProperties();
         if (!saveSuccess)
         {
@@ -463,6 +555,7 @@ namespace AIStudio.Pages
           return;
         }
 
+        SymbiontProjectAdapterSettings.SyncAppConfigFromGomeostas(_gomeostas);
         _gomeostas.UpdateAgentPropertiesPromptContent();
 
         var bootDataPath = System.IO.Path.Combine(

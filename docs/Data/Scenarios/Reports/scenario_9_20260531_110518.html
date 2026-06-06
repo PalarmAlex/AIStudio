@@ -1,0 +1,195 @@
+﻿<!DOCTYPE html>
+<html><head><meta charset="utf-8"/>
+<style>
+body{font-family:Segoe UI,Tahoma,sans-serif;margin:16px;color:#222;}
+h1{font-size:18px;color:#1565C0;}
+h2{font-size:15px;color:#37474F;margin-top:20px;border-bottom:1px solid #B0BEC5;padding-bottom:4px;}
+table{border-collapse:collapse;width:100%;margin:8px 0;font-size:12px;}
+th,td{border:1px solid #CFD8DC;padding:6px 8px;text-align:left;vertical-align:top;}
+th{background:#ECEFF1;font-weight:600;}
+table.steps-zebra tr:nth-child(even){background:#FAFAFA;}
+table.group-compose{table-layout:fixed;width:100%;}
+table.group-compose td:nth-child(1),table.group-compose th:nth-child(1){text-align:center;white-space:nowrap;}
+table.group-compose td:nth-child(2),table.group-compose th:nth-child(2){word-wrap:break-word;word-break:break-word;}
+table.group-compose:not(.group-compose-compact) td:nth-child(n+3),table.group-compose:not(.group-compose-compact) th:nth-child(n+3){text-align:center;white-space:nowrap;}
+table.group-compose.group-compose-compact td:nth-child(n+3):not(:last-child),table.group-compose.group-compose-compact th:nth-child(n+3):not(:last-child){text-align:center;white-space:nowrap;}
+table.group-compose.group-compose-compact td:last-child,table.group-compose.group-compose-compact th:last-child{white-space:nowrap;text-align:left;}
+.muted{color:#78909C;}
+table.meta-table{width:100%;table-layout:fixed;}
+table.meta-table th.meta-label{width:15%;min-width:100px;max-width:160px;font-size:11px;font-weight:600;padding:6px 8px;vertical-align:top;background:#ECEFF1;}
+table.meta-table td.meta-value{width:85%;font-size:13px;padding:8px 12px;line-height:1.45;word-wrap:break-word;}
+table.compare-table{font-size:11px;}
+table.compare-table th.col-exp-h{background:#E8F5E9;}
+table.compare-table td.col-exp{background:transparent;}
+table.compare-table th.col-fact-h,table.compare-table td.col-fact{background:#E3F2FD;}
+table.compare-table td.col-fact.fact-mismatch{background:#FFEBEE;color:#B71C1C;border-color:#FFCDD2;}
+table.compare-table td.col-fact span.um-ok{color:#2E7D32;font-weight:600;}
+table.compare-table td.col-fact span.um-bad{color:#C62828;font-weight:600;}
+table.compare-table td.col-fact.fact-mismatch span.um-ok{color:#2E7D32;}
+table.compare-table td.col-fact.fact-mismatch span.um-bad{color:#C62828;}
+table.compare-table td.col-fact span.mc-ns{color:#C62828;font-weight:600;}
+table.compare-table td.col-fact span.mc-await{color:#F9A825;font-weight:600;}
+table.compare-table td.col-fact span.mc-solved{color:#2E7D32;font-weight:600;}
+table.compare-table td.col-fact.fact-mismatch span.mc-ns{color:#C62828;}
+table.compare-table td.col-fact.fact-mismatch span.mc-await{color:#F9A825;}
+table.compare-table td.col-fact.fact-mismatch span.mc-solved{color:#2E7D32;}
+.summary-box{margin-top:20px;padding:14px 16px;border-radius:6px;border:1px solid #CFD8DC;background:#FAFAFA;}
+.summary-box h3{margin:0 0 10px 0;font-size:14px;color:#37474F;}
+.summary-ok{color:#2E7D32;font-size:13px;font-weight:600;margin:0;}
+.summary-bad{color:#C62828;font-size:13px;font-weight:600;margin:0 0 8px 0;}
+.summary-box ul{margin:6px 0 0 0;padding-left:20px;}
+.summary-box li{margin:8px 0;font-size:12px;line-height:1.45;}
+</style>
+</head><body>
+<h1>Отчёт по прогону сценария оператора</h1>
+<p>
+Сценарий завершён успешно. Последний выполненный № пульса: 84.</p>
+<h2>Данные сценария</h2>
+<table class="meta-table">
+<tr><th class="meta-label">
+ID</th><td class="meta-value">9</td></tr>
+<tr><th class="meta-label">
+Название</th><td class="meta-value">Блокировка автоматизмов в состоянии Норма и Хорошо оценкой оператора, назначение нового штатного автоматизма</td></tr>
+<tr><th class="meta-label">
+Описание</th><td class="meta-value">Сценарий проверяет механизм оценки автоматизмов оператором с пульта в состояниях Норма и Хорошо. Все автоматизмы формируются непосредственно в ходе сценария через отзеркаливание одной и той же пары &#171;привет → хай&#187;. Поскольку отзеркаливание происходит в разных состояниях агента и с разными комбинациями стилей, один и тот же вербальный триггер &#171;привет&#187; порождает разные автоматизмы — хотя внешне стимул и ответ выглядят идентично. Это сделано специально, чтобы продемонстрировать: контекст автоматизма определяется не только триггером, но и состоянием агента (State) и активными стилями (Style) в момент формирования. Сценарий является самодостаточным и не требует предварительного прогона других сценариев.<br/><br/>═══════════════════════════════════════════════════════════════<br/>I. Теоретические основания<br/>═══════════════════════════════════════════════════════════════<br/><br/>Оценка со стороны &#171;наставника&#187; и корректирующая обратная связь:<br/>В биологическом и педагогическом поведении исход действия часто задаётся не только стимулом среды, но и положительным/отрицательным подкреплением со стороны среды (или сигналом другого субъекта) о приемлемости результата: поощрение усиливает связь, наказание или отказ подкрепления её ослабляет или перенаправляет. Формально это близко к оперантному обусловливанию с человеческой обратной связью: внешний сигнал не создаёт нового стимула в реплике, а меняет доступность уже сформированных правил.<br/><br/>Конкуренция ответов и смена &#171;доминирующего&#187; варианта:<br/>У одного и того же дискриминативного стимула часто сосуществует несколько ассоциативных следов разной силы. Подавление доминирующего ответа (отрицательное подкрепление) открывает доступ альтернативе, ранее бывшей &#171;запасной&#187;. В иерархиях привычек описывают переключение между фрагментами при изменении сигнала валидности.<br/><br/>Роль ориентировочного рефлекса в формировании автоматизмов:<br/>Ориентировочный рефлекс (ОР) определяет реакцию агента на стимул в зависимости от его новизны. ОР1 возникает при отсутствии автоматизма на стимул — запускается механизм отзеркаливания с созданием эхо-пары и сдвиг-пары. ОР2 возникает при наличии автоматизма — он просто запускается. Таким образом, один и тот же стимул &#171;привет&#187; может вызывать ОР1 (создание нового автоматизма) или ОР2 (активация существующего) в зависимости от предыстории.<br/><br/>Контекст автоматизма: состояние, стили и триггер:<br/>Автоматизм определяется не только вербальным триггером, но и состоянием агента (Плохо/Норма/Хорошо) и комбинацией активных стилей в момент формирования. При отзеркаливании триггер один (&#171;привет&#187;), но состояние и стили разные — поэтому создаются разные автоматизмы, привязанные к разным веткам дерева активации. Внешне неразличимые пары &#171;привет → хай&#187; внутренне являются разными автоматизмами с разными идентификаторами, что позволяет тестировать их независимую оценку и блокировку.<br/><br/>Связь с ISIDA (уровень сценария):<br/>• &#171;Пульт&#187; — канал дискретных действий оператора (ActionIds), сопоставимых с положительной (ActionIds = 6) и отрицательной (ActionIds = 1) оценкой ответа агента.<br/>• &#171;Штатный&#187; автоматизм — активный на ветке (аналог Belief 2); &#171;запасные&#187; — альтернативы на той же ветке, не выбираемые при стандартном обходе.<br/>• Негативная оценка переводит текущий штатный в заблокированное состояние; следующий кандидат с той же ветки становится штатным.<br/>• Контекст автоматизма задаётся тройкой: состояние (State), стили (Style), триггер. Автоматизмы с разным контекстом изолированы друг от друга.<br/><br/>═══════════════════════════════════════════════════════════════<br/>II. Механизм в терминах сценария<br/>═══════════════════════════════════════════════════════════════<br/><br/>1) Формирование автоматизмов через отзеркаливание:<br/>   При предъявлении нового стимула (ОР1) агент создаёт эхо-автоматизм (S → S) и, при наличии активного окна ожидания, сдвиг-автоматизм (S_n−1 → S_n). Автоматизм привязывается к контексту, определяемому текущим состоянием (State) и стилями (Style) агента. При повторном предъявлении того же стимула в том же контексте (ОР2) существующий автоматизм активируется без создания нового.<br/><br/>2) Оценка с пульта:<br/>   После ответа агента оператор посылает действие пульта с ActionIds. Система интерпретирует это как оценку последнего сработавшего автоматизма и фиксирует её в журнале (State, стили, ссылки на автоматизмы).<br/><br/>3) Блокировка штатного и повышение запасного:<br/>   При негативной оценке (ActionIds = 1) штатный автоматизм блокируется. При следующем предъявлении того же стимула в том же контексте срабатывает другой автоматизм из множества, привязанного к той же ветке. Положительная оценка (ActionIds = 6) закрепляет текущий штатный автоматизм.<br/><br/>═══════════════════════════════════════════════════════════════<br/>III. Протокол тестирования<br/>═══════════════════════════════════════════════════════════════<br/><br/>Фаза 1 — Формирование базы автоматизмов (шаги 1–6):<br/><br/>  Шаг 1. Оператор: &#171;привет&#187;. Стимул новый → ОР1. Формируется эхо-автоматизм &#171;привет → привет&#187; (Aut 1). Состояние: Норма (State = 0), стили 7,16. Открывается окно ожидания для сдвига.<br/>  Шаг 2. Оператор: &#171;хай&#187;. Стимул новый → ОР1. Формируется сдвиг-автоматизм &#171;привет → хай&#187; (Aut 2) в контексте: Норма, стили 7,16. Также формируется эхо &#171;хай → хай&#187;.<br/>  Шаг 3. Принудительный сброс времени ожидания (ResetWait = 1). Первая диалоговая цепочка разорвана.<br/><br/>  Шаг 4. Оператор: действие пульта с ActionIds = 6. Положительная оценка. Агент переходит в состояние Хорошо (State = 1), стили 7,17. Оценивается последний контекст. GenRef = 909 фиксирует оценку.<br/>  Шаг 5. Оператор: &#171;привет&#187;. Теперь стимул предъявляется в состоянии Хорошо (State = 1, стили 7,17). Поскольку в этом контексте автоматизма ещё нет → ОР1. Формируется новый автоматизм &#171;привет → хай&#187; (Aut 4) в контексте: Хорошо, стили 7,17. Это другой автоматизм, нежели Aut 2, хотя пара та же.<br/>  Шаг 6. Оператор: &#171;хай&#187;. Стимул новый в данном контексте → ОР1. Формируется сдвиг-автоматизм &#171;хай → ...&#187; (Aut 5) в контексте: Хорошо, стили 7,17.<br/><br/>Фаза 2 — Тестирование оценки автоматизмов в разных контекстах (шаги 7–24):<br/><br/>  Шаг 7. Оператор: &#171;привет&#187;. Агент в состоянии Норма (State = 0), стили 7,16. Стимул уже имеет автоматизм в этом контексте → ОР2. Активируется Aut 2 (&#171;привет → хай&#187;).<br/>  Шаг 8. Оператор: действие пульта с ActionIds = 1. Негативная оценка. State = -1, стили 1,8,9. Автоматизм 2 в контексте (Норма, 7,16) блокируется. Штатным становится Aut 8.<br/>  Шаг 9. Оператор: &#171;привет&#187;. Агент в состоянии Норма (State = 0), стили 7,16 → ОР2. После блокировки активируется следующий доступный автоматизм в этом контексте — Aut 2 (другой путь обхода).<br/>  Шаг 10. Оператор: действие пульта с ActionIds = 1. Вторая негативная оценка. State = -1, стили 1,8,9. Блокировка текущего штатного. Штатным становится Aut 9.<br/>  Шаг 11. Оператор: &#171;привет&#187; (Норма, 7,16). Активируется следующий вариант — Aut 2 (ещё один путь обхода).<br/>  Шаг 12. Оператор: действие пульта с ActionIds = 1. Третья негативная оценка. State = -1, стили 1,8,9. Штатным становится Aut 9.<br/>  Шаг 13. Оператор: &#171;привет&#187; (Норма, 7,16). Итог серии негативных оценок: активируется Aut 1. Система перебрала доступные варианты на ветке данного контекста.<br/><br/>  Шаг 14. Оператор: действие пульта с ActionIds = 6. Положительная оценка. Агент переходит в состояние Хорошо (State = 1), стили 7,17. Оценка применяется к автоматизму в этом контексте — Aut 11.<br/>  Шаг 15. Принудительный сброс времени ожидания (ResetWait = 1).<br/><br/>  Шаг 16. Оператор: &#171;привет&#187;. Агент в состоянии Норма (State = 0), стили 7,16 → ОР2. Активируется Aut 5. Проверка, что блокировки в контексте (Норма, 7,16) сохранились.<br/>  Шаг 17. Оператор: действие пульта с ActionIds = 1. Негативная оценка. State = -1, стили 1,8,9. Блокировка автоматизма в текущем контексте. Штатным становится Aut 12.<br/>  Шаг 18. Оператор: действие пульта с ActionIds = 6. Положительная оценка сразу после негативной. Агент переходит в состояние Хорошо (State = 1), стили 7,17. Закрепляется Aut 13.<br/>  Шаг 19. Принудительный сброс времени ожидания (ResetWait = 1).<br/><br/>  Шаг 20. Оператор: &#171;привет&#187; (Норма, 7,16). Активируется Aut 5. Контроль изоляции контекстов: блокировки в одном контексте не влияют на другой.<br/>  Шаг 21. Оператор: действие пульта с ActionIds = 1. Негативная оценка в контексте (Норма, 7,16). State = -1, стили 1,8,9. Штатным становится Aut 13.<br/>  Шаг 22. Оператор: действие пульта с ActionIds = 6. Положительная оценка. Переход в Хорошо (State = 1, стили 7,17). Закрепляется Aut 13.<br/>  Шаг 23. Принудительный сброс времени ожидания (ResetWait = 1).<br/><br/>  Шаг 24. Оператор: &#171;привет&#187; (Норма, 7,16). Финальная активация: Aut 4. Итоговое согласованное состояние после всех оценок.<br/><br/>═══════════════════════════════════════════════════════════════<br/>IV. Ожидаемый вывод<br/>═══════════════════════════════════════════════════════════════<br/><br/>Если механизмы реализованы корректно, по журналу шагов видно:<br/>(а) на шагах 1–6 формируются разные автоматизмы с одинаковой парой &#171;привет → хай&#187;, но в разных контекстах (разные State и стили), имеющие разные идентификаторы;<br/>(б) ОР1 возникает при отсутствии автоматизма в текущем контексте — создаётся новый; ОР2 возникает при наличии — активируется существующий;<br/>(в) действия оценки с пульта корректно отражаются: негативная (ActionIds = 1) → State = -1, стили 1,8,9; положительная (ActionIds = 6) → State = 1, стили 7,17;<br/>(г) серия негативных оценок в одном контексте приводит к последовательной смене штатного автоматизма, не затрагивая автоматизмы в другом контексте;<br/>(д) положительные оценки в одном контексте закрепляют штатные автоматизмы, не влияя на процесс блокировки в другом;<br/>(е) изоляция контекстов подтверждается: автоматизмы с разным State и стилями существуют независимо;<br/>(ж) итоговый шаг 24 показывает штатный автоматизм 4, что соответствует ожидаемому результату. Нарушение указывает на ошибку в канале оценки, политике блокировки, либо в различении контекстов автоматизмов.<br/><br/>═══════════════════════════════════════════════════════════════<br/>Научные основания (наличие механизмов в природной реализации)<br/>═══════════════════════════════════════════════════════════════<br/><br/>Оценка и корректирующая обратная связь:<br/><br/>— Thorndike E.L. (1911). Animal Intelligence: Experimental Studies. Macmillan. (закон эффекта)<br/>— Skinner B.F. (1953). Science and Human Behavior. Macmillan. (оперантное поведение, социальное одобрение)<br/>— Kluger A.N., DeNisi A. (1996). The effects of feedback interventions on performance. Psychological Bulletin, 119(1), 67–95.<br/>— Hattie J., Timperley H. (2007). The power of feedback. Review of Educational Research, 77(1), 81–112.<br/><br/>Подавление доминирующего ответа и переключение на альтернативу:<br/><br/>— Pavlov I.P. (1927). Conditioned Reflexes. Oxford University Press. (внутреннее торможение)<br/>— Bouton M.E. (1993). Context, time, and memory retrieval in the interference paradigms of Pavlovian learning. Psychological Bulletin, 114(1), 80–99.<br/>— Graybiel A.M. (1998). The basal ganglia and chunking of action sequences. Neurobiology of Learning and Memory, 70(1–2), 119–136.<br/>— Yin H.H., Knowlton B.J. (2006). The role of the basal ganglia in habit formation. Nature Reviews Neuroscience, 7(6), 464–476.<br/><br/>Ориентировочный рефлекс и различение новизны/привычности:<br/><br/>— Соколов Е.Н. (1958). Восприятие и условный рефлекс. Изд-во МГУ. (ориентировочный рефлекс как механизм различения новых и привычных стимулов)<br/>— Sokolov E.N. (1963). Higher nervous functions: The orienting reflex. Annual Review of Physiology, 25, 545–580.<br/><br/>Контекстно-зависимое обусловливание:<br/><br/>— Nadel L., Willner J., Kurz E.M. (1985). Context and learning. In P.D. Balsam, A. Tomie (Eds.), Context and Learning. Erlbaum.<br/>— Bouton M.E. (2004). Context and behavioral processes in extinction. Learning &amp; Memory, 11(5), 485–494.<br/><br/>Инженерный параллель:<br/><br/>— Christiano P.F. et al. (2017). Deep reinforcement learning from human preferences. Advances in Neural Information Processing Systems 30.</td></tr>
+<tr><th class="meta-label">
+Переход перед запуском (стадия)</th><td class="meta-value">3</td></tr>
+<tr><th class="meta-label">
+Очистка данных при переходе</th><td class="meta-value">да</td></tr>
+<tr><th class="meta-label">
+Сброс параметров в &#171;норму&#187; перед запуском</th><td class="meta-value">да</td></tr>
+<tr><th class="meta-label">
+Режим наблюдения при прогоне</th><td class="meta-value">нет</td></tr>
+<tr><th class="meta-label">
+Авторитарная запись при прогоне</th><td class="meta-value">да</td></tr>
+<tr><th class="meta-label">
+Коэфф. пульсации</th><td class="meta-value">20</td></tr>
+<tr><th class="meta-label">
+Фактическая скорость</th><td class="meta-value">21.6 пульсов/сек</td></tr>
+</table>
+<h2>Шаги</h2>
+<table class="steps-zebra"><tr><th>Шаг</th><th>№ пульса</th><th>Тип</th><th>Воздействия</th><th>Фраза</th><th>Тон</th><th>Настр.</th><th>Цвет</th><th>Сброс ожид.</th></tr>
+<tr>
+<td>1</td><td>1</td><td>Пульт</td><td></td><td>привет</td><td>Нормальный (0)</td><td>Нормальное (0)</td><td>Белый (0)</td><td>нет</td></tr>
+<tr>
+<td>2</td><td>2</td><td>Пульт</td><td></td><td>хай</td><td>Нормальный (0)</td><td>Нормальное (0)</td><td>Белый (0)</td><td>нет</td></tr>
+<tr>
+<td>3</td><td>3</td><td>Пульт</td><td></td><td></td><td>Нормальный (0)</td><td>Нормальное (0)</td><td>Белый (0)</td><td>да</td></tr>
+<tr>
+<td>4</td><td>11</td><td>Пульт</td><td>Обрадовать</td><td></td><td>Нормальный (0)</td><td>Нормальное (0)</td><td>Белый (0)</td><td>нет</td></tr>
+<tr>
+<td>5</td><td>12</td><td>Пульт</td><td></td><td>привет</td><td>Нормальный (0)</td><td>Нормальное (0)</td><td>Белый (0)</td><td>нет</td></tr>
+<tr>
+<td>6</td><td>13</td><td>Пульт</td><td></td><td>хай</td><td>Нормальный (0)</td><td>Нормальное (0)</td><td>Белый (0)</td><td>нет</td></tr>
+<tr>
+<td>7</td><td>21</td><td>Пульт</td><td></td><td>привет</td><td>Нормальный (0)</td><td>Нормальное (0)</td><td>Белый (0)</td><td>нет</td></tr>
+<tr>
+<td>8</td><td>22</td><td>Пульт</td><td>Наказать</td><td></td><td>Нормальный (0)</td><td>Нормальное (0)</td><td>Белый (0)</td><td>нет</td></tr>
+<tr>
+<td>9</td><td>30</td><td>Пульт</td><td></td><td>привет</td><td>Нормальный (0)</td><td>Нормальное (0)</td><td>Белый (0)</td><td>нет</td></tr>
+<tr>
+<td>10</td><td>31</td><td>Пульт</td><td>Наказать</td><td></td><td>Нормальный (0)</td><td>Нормальное (0)</td><td>Белый (0)</td><td>нет</td></tr>
+<tr>
+<td>11</td><td>39</td><td>Пульт</td><td></td><td>привет</td><td>Нормальный (0)</td><td>Нормальное (0)</td><td>Белый (0)</td><td>нет</td></tr>
+<tr>
+<td>12</td><td>40</td><td>Пульт</td><td>Наказать</td><td></td><td>Нормальный (0)</td><td>Нормальное (0)</td><td>Белый (0)</td><td>нет</td></tr>
+<tr>
+<td>13</td><td>48</td><td>Пульт</td><td></td><td>привет</td><td>Нормальный (0)</td><td>Нормальное (0)</td><td>Белый (0)</td><td>нет</td></tr>
+<tr>
+<td>14</td><td>49</td><td>Пульт</td><td>Обрадовать</td><td></td><td>Нормальный (0)</td><td>Нормальное (0)</td><td>Белый (0)</td><td>нет</td></tr>
+<tr>
+<td>15</td><td>50</td><td>Пульт</td><td></td><td></td><td>Нормальный (0)</td><td>Нормальное (0)</td><td>Белый (0)</td><td>да</td></tr>
+<tr>
+<td>16</td><td>51</td><td>Пульт</td><td></td><td>привет</td><td>Нормальный (0)</td><td>Нормальное (0)</td><td>Белый (0)</td><td>нет</td></tr>
+<tr>
+<td>17</td><td>52</td><td>Пульт</td><td>Наказать</td><td></td><td>Нормальный (0)</td><td>Нормальное (0)</td><td>Белый (0)</td><td>нет</td></tr>
+<tr>
+<td>18</td><td>60</td><td>Пульт</td><td>Обрадовать</td><td></td><td>Нормальный (0)</td><td>Нормальное (0)</td><td>Белый (0)</td><td>нет</td></tr>
+<tr>
+<td>19</td><td>61</td><td>Пульт</td><td></td><td></td><td>Нормальный (0)</td><td>Нормальное (0)</td><td>Белый (0)</td><td>да</td></tr>
+<tr>
+<td>20</td><td>62</td><td>Пульт</td><td></td><td>привет</td><td>Нормальный (0)</td><td>Нормальное (0)</td><td>Белый (0)</td><td>нет</td></tr>
+<tr>
+<td>21</td><td>63</td><td>Пульт</td><td>Наказать</td><td></td><td>Нормальный (0)</td><td>Нормальное (0)</td><td>Белый (0)</td><td>нет</td></tr>
+<tr>
+<td>22</td><td>71</td><td>Пульт</td><td>Обрадовать</td><td></td><td>Нормальный (0)</td><td>Нормальное (0)</td><td>Белый (0)</td><td>нет</td></tr>
+<tr>
+<td>23</td><td>72</td><td>Пульт</td><td></td><td></td><td>Нормальный (0)</td><td>Нормальное (0)</td><td>Белый (0)</td><td>да</td></tr>
+<tr>
+<td>24</td><td>73</td><td>Пульт</td><td></td><td>привет</td><td>Нормальный (0)</td><td>Нормальное (0)</td><td>Белый (0)</td><td>нет</td></tr>
+<tr>
+<td>25</td><td>74</td><td>Пульт</td><td>Наказать</td><td></td><td>Нормальный (0)</td><td>Нормальное (0)</td><td>Белый (0)</td><td>нет</td></tr>
+<tr>
+<td>26</td><td>82</td><td>Пульт</td><td>Обрадовать</td><td></td><td>Нормальный (0)</td><td>Нормальное (0)</td><td>Белый (0)</td><td>нет</td></tr>
+<tr>
+<td>27</td><td>83</td><td>Пульт</td><td></td><td></td><td>Нормальный (0)</td><td>Нормальное (0)</td><td>Белый (0)</td><td>да</td></tr>
+<tr>
+<td>28</td><td>84</td><td>Пульт</td><td></td><td>привет</td><td>Нормальный (0)</td><td>Нормальное (0)</td><td>Белый (0)</td><td>нет</td></tr>
+</table>
+<h2>Сравнение ожидаемых реакций и факта по логам</h2>
+<p class="muted">Якорный глобальный пульс: 
+1391. Глобальный пульс шага = якорь + № пульса внутри сценария. <table class="compare-table"><tr><th>Шаг</th><th>№ пульса</th>
+<th class="col-fact-h">Состояние</th><th class="col-fact-h">Стиль</th><th class="col-fact-h">Триггер</th><th class="col-fact-h">ОР/УМ</th><th class="col-fact-h">Актуально</th><th class="col-fact-h">Б/у рефлекс</th><th class="col-fact-h">Автоматизм</th><th class="col-fact-h">Успешность</th></tr>
+<tr>
+<td>1</td><td>1</td><td class="col-fact" title="НОРМА">Норма</td><td class="col-fact" title="Расслабление, Игра">7,16</td><td class="col-fact" title="Воздействие: нет&#10;Фразы: привет&#10;Тон: Нормальный (0)&#10;Настроение: Нормальное (0)&#10;Цветовой фон: Белый">508</td><td class="col-fact" title="Нет автоматизма, нужно быстро создать его по гомеостатическим целям">ОР1</td><td class="col-fact">-</td><td class="col-fact">-</td><td class="col-fact" title="Действия: нет&#10;Фразы (1): &quot;привет&quot; (ID: 7)&#10;Тон: Нормальный&#10;Настроение: Нормальное&#10;Полезность: 0">1</td><td class="col-fact">0</td></tr>
+<tr>
+<td>2</td><td>2</td><td class="col-fact" title="НОРМА">Норма</td><td class="col-fact" title="Расслабление, Игра">7,16</td><td class="col-fact" title="Воздействие: нет&#10;Фразы: хай&#10;Тон: Нормальный (0)&#10;Настроение: Нормальное (0)&#10;Цветовой фон: Белый">509</td><td class="col-fact" title="Нет автоматизма, нужно быстро создать его по гомеостатическим целям">ОР1</td><td class="col-fact">-</td><td class="col-fact">-</td><td class="col-fact" title="Полезность: 2">2</td><td class="col-fact">2</td></tr>
+<tr>
+<td>3</td><td>3</td><td class="col-fact" title="НОРМА">Норма</td><td class="col-fact" title="Расслабление, Игра">7,16</td><td class="col-fact">-</td><td class="col-fact">-</td><td class="col-fact">-</td><td class="col-fact">-</td><td class="col-fact">-</td><td class="col-fact">-</td></tr>
+<tr>
+<td>4</td><td>11</td><td class="col-fact" title="ХОРОШО">Хорошо</td><td class="col-fact" title="Расслабление, Эмпатия">7,17</td><td class="col-fact" title="Воздействие: Обрадовать&#10;Фразы: нет&#10;Тон: —&#10;Настроение: —&#10;Цветовой фон: Белый">6</td><td class="col-fact" title="Нет автоматизма, нужно быстро создать его по гомеостатическим целям">ОР1</td><td class="col-fact">-</td><td class="col-fact" title="Действия: Радуется">909</td><td class="col-fact">-</td><td class="col-fact">-</td></tr>
+<tr>
+<td>5</td><td>12</td><td class="col-fact" title="ХОРОШО">Хорошо</td><td class="col-fact" title="Расслабление, Эмпатия">7,17</td><td class="col-fact" title="Воздействие: нет&#10;Фразы: привет&#10;Тон: Нормальный (0)&#10;Настроение: Нормальное (0)&#10;Цветовой фон: Белый">508</td><td class="col-fact" title="Нет автоматизма, нужно быстро создать его по гомеостатическим целям">ОР1</td><td class="col-fact">-</td><td class="col-fact">-</td><td class="col-fact" title="Действия: нет&#10;Фразы (1): &quot;привет&quot; (ID: 7)&#10;Тон: Нормальный&#10;Настроение: Нормальное&#10;Полезность: 0">4</td><td class="col-fact">0</td></tr>
+<tr>
+<td>6</td><td>13</td><td class="col-fact" title="ХОРОШО">Хорошо</td><td class="col-fact" title="Расслабление, Эмпатия">7,17</td><td class="col-fact" title="Воздействие: нет&#10;Фразы: хай&#10;Тон: Нормальный (0)&#10;Настроение: Нормальное (0)&#10;Цветовой фон: Белый">509</td><td class="col-fact" title="Нет автоматизма, нужно быстро создать его по гомеостатическим целям">ОР1</td><td class="col-fact">-</td><td class="col-fact">-</td><td class="col-fact" title="Полезность: 2">5</td><td class="col-fact">2</td></tr>
+<tr>
+<td>7</td><td>21</td><td class="col-fact" title="НОРМА">Норма</td><td class="col-fact" title="Расслабление, Игра">7,16</td><td class="col-fact" title="Воздействие: нет&#10;Фразы: привет&#10;Тон: Нормальный (0)&#10;Настроение: Нормальное (0)&#10;Цветовой фон: Белый">508</td><td class="col-fact" title="Автоматизм есть, надо его проверить в текущих условиях">ОР2</td><td class="col-fact">-</td><td class="col-fact">-</td><td class="col-fact" title="Полезность: 2">2</td><td class="col-fact">2</td></tr>
+<tr>
+<td>8</td><td>22</td><td class="col-fact" title="ПЛОХО">Плохо</td><td class="col-fact" title="Поиск, Напряжение, Исследование">1,8,9</td><td class="col-fact" title="Воздействие: Наказать&#10;Фразы: нет&#10;Тон: —&#10;Настроение: —&#10;Цветовой фон: Белый">1</td><td class="col-fact" title="Нет автоматизма, нужно быстро создать его по гомеостатическим целям">ОР1</td><td class="col-fact" title="Актуальная ситуация">1</td><td class="col-fact">-</td><td class="col-fact" title="Действия (1): Наказывает&#10;Фразы: нет&#10;Тон: Нормальный&#10;Настроение: Нормальное&#10;Полезность: 2">8</td><td class="col-fact">2</td></tr>
+<tr>
+<td>9</td><td>30</td><td class="col-fact" title="НОРМА">Норма</td><td class="col-fact" title="Расслабление, Игра">7,16</td><td class="col-fact" title="Воздействие: нет&#10;Фразы: привет&#10;Тон: Нормальный (0)&#10;Настроение: Нормальное (0)&#10;Цветовой фон: Белый">508</td><td class="col-fact" title="Автоматизм есть, надо его проверить в текущих условиях">ОР2</td><td class="col-fact">-</td><td class="col-fact">-</td><td class="col-fact" title="Полезность: 1">2</td><td class="col-fact">1</td></tr>
+<tr>
+<td>10</td><td>31</td><td class="col-fact" title="ПЛОХО">Плохо</td><td class="col-fact" title="Поиск, Напряжение, Исследование">1,8,9</td><td class="col-fact" title="Воздействие: Наказать&#10;Фразы: нет&#10;Тон: —&#10;Настроение: —&#10;Цветовой фон: Белый">1</td><td class="col-fact" title="Автоматизм есть, надо его проверить в текущих условиях">ОР2</td><td class="col-fact" title="Актуальная ситуация">1</td><td class="col-fact">-</td><td class="col-fact" title="Действия: нет&#10;Фразы (1): &quot;привет&quot; (ID: 7)&#10;Тон: Нормальный&#10;Настроение: Нормальное&#10;Полезность: 2">9</td><td class="col-fact">2</td></tr>
+<tr>
+<td>11</td><td>39</td><td class="col-fact" title="НОРМА">Норма</td><td class="col-fact" title="Расслабление, Игра">7,16</td><td class="col-fact" title="Воздействие: нет&#10;Фразы: привет&#10;Тон: Нормальный (0)&#10;Настроение: Нормальное (0)&#10;Цветовой фон: Белый">508</td><td class="col-fact" title="Автоматизм есть, надо его проверить в текущих условиях">ОР2</td><td class="col-fact">-</td><td class="col-fact">-</td><td class="col-fact" title="Полезность: 0">2</td><td class="col-fact">0</td></tr>
+<tr>
+<td>12</td><td>40</td><td class="col-fact" title="ПЛОХО">Плохо</td><td class="col-fact" title="Поиск, Напряжение, Исследование">1,8,9</td><td class="col-fact" title="Воздействие: Наказать&#10;Фразы: нет&#10;Тон: —&#10;Настроение: —&#10;Цветовой фон: Белый">1</td><td class="col-fact" title="Автоматизм есть, надо его проверить в текущих условиях">ОР2</td><td class="col-fact" title="Актуальная ситуация">1</td><td class="col-fact">-</td><td class="col-fact" title="Действия: нет&#10;Фразы (1): &quot;привет&quot; (ID: 7)&#10;Тон: Нормальный&#10;Настроение: Нормальное&#10;Полезность: 2">9</td><td class="col-fact">2</td></tr>
+<tr>
+<td>13</td><td>48</td><td class="col-fact" title="НОРМА">Норма</td><td class="col-fact" title="Расслабление, Игра">7,16</td><td class="col-fact" title="Воздействие: нет&#10;Фразы: привет&#10;Тон: Нормальный (0)&#10;Настроение: Нормальное (0)&#10;Цветовой фон: Белый">508</td><td class="col-fact" title="Автоматизм есть, надо его проверить в текущих условиях">ОР2</td><td class="col-fact">-</td><td class="col-fact">-</td><td class="col-fact" title="Действия: нет&#10;Фразы (1): &quot;привет&quot; (ID: 7)&#10;Тон: Нормальный&#10;Настроение: Нормальное&#10;Полезность: 0">1</td><td class="col-fact">0</td></tr>
+<tr>
+<td>14</td><td>49</td><td class="col-fact" title="ХОРОШО">Хорошо</td><td class="col-fact" title="Расслабление, Эмпатия">7,17</td><td class="col-fact" title="Воздействие: Обрадовать&#10;Фразы: нет&#10;Тон: —&#10;Настроение: —&#10;Цветовой фон: Белый">6</td><td class="col-fact" title="Нет автоматизма, нужно быстро создать его по гомеостатическим целям">ОР1</td><td class="col-fact">-</td><td class="col-fact">-</td><td class="col-fact" title="Действия (1): Радует&#10;Фразы: нет&#10;Тон: Нормальный&#10;Настроение: Нормальное&#10;Полезность: 2">11</td><td class="col-fact">2</td></tr>
+<tr>
+<td>15</td><td>50</td><td class="col-fact" title="ХОРОШО">Хорошо</td><td class="col-fact" title="Расслабление, Эмпатия">7,17</td><td class="col-fact">-</td><td class="col-fact">-</td><td class="col-fact">-</td><td class="col-fact" title="Действия: Отдыхает">101</td><td class="col-fact">-</td><td class="col-fact">-</td></tr>
+<tr>
+<td>16</td><td>51</td><td class="col-fact" title="ХОРОШО">Хорошо</td><td class="col-fact" title="Расслабление, Эмпатия">7,17</td><td class="col-fact" title="Воздействие: нет&#10;Фразы: привет&#10;Тон: Нормальный (0)&#10;Настроение: Нормальное (0)&#10;Цветовой фон: Белый">508</td><td class="col-fact" title="Автоматизм есть, надо его проверить в текущих условиях">ОР2</td><td class="col-fact">-</td><td class="col-fact">-</td><td class="col-fact" title="Полезность: 2">5</td><td class="col-fact">2</td></tr>
+<tr>
+<td>17</td><td>52</td><td class="col-fact" title="ПЛОХО">Плохо</td><td class="col-fact" title="Поиск, Напряжение, Исследование">1,8,9</td><td class="col-fact" title="Воздействие: Наказать&#10;Фразы: нет&#10;Тон: —&#10;Настроение: —&#10;Цветовой фон: Белый">1</td><td class="col-fact" title="Нет автоматизма, нужно быстро создать его по гомеостатическим целям">ОР1</td><td class="col-fact" title="Актуальная ситуация">1</td><td class="col-fact">-</td><td class="col-fact" title="Действия (1): Наказывает&#10;Фразы: нет&#10;Тон: Нормальный&#10;Настроение: Нормальное&#10;Полезность: 2">12</td><td class="col-fact">2</td></tr>
+<tr>
+<td>18</td><td>60</td><td class="col-fact" title="ХОРОШО">Хорошо</td><td class="col-fact" title="Расслабление, Эмпатия">7,17</td><td class="col-fact" title="Воздействие: Обрадовать&#10;Фразы: нет&#10;Тон: —&#10;Настроение: —&#10;Цветовой фон: Белый">6</td><td class="col-fact" title="Нет автоматизма, нужно быстро создать его по гомеостатическим целям">ОР1</td><td class="col-fact">-</td><td class="col-fact">-</td><td class="col-fact" title="Действия (1): Радует&#10;Фразы: нет&#10;Тон: Нормальный&#10;Настроение: Нормальное&#10;Полезность: 2">13</td><td class="col-fact">2</td></tr>
+<tr>
+<td>19</td><td>61</td><td class="col-fact" title="ХОРОШО">Хорошо</td><td class="col-fact" title="Расслабление, Эмпатия">7,17</td><td class="col-fact">-</td><td class="col-fact">-</td><td class="col-fact">-</td><td class="col-fact" title="Действия: Отдыхает">101</td><td class="col-fact">-</td><td class="col-fact">-</td></tr>
+<tr>
+<td>20</td><td>62</td><td class="col-fact" title="ХОРОШО">Хорошо</td><td class="col-fact" title="Расслабление, Эмпатия">7,17</td><td class="col-fact" title="Воздействие: нет&#10;Фразы: привет&#10;Тон: Нормальный (0)&#10;Настроение: Нормальное (0)&#10;Цветовой фон: Белый">508</td><td class="col-fact" title="Автоматизм есть, надо его проверить в текущих условиях">ОР2</td><td class="col-fact">-</td><td class="col-fact">-</td><td class="col-fact" title="Полезность: 1">5</td><td class="col-fact">1</td></tr>
+<tr>
+<td>21</td><td>63</td><td class="col-fact" title="ПЛОХО">Плохо</td><td class="col-fact" title="Поиск, Напряжение, Исследование">1,8,9</td><td class="col-fact" title="Воздействие: Наказать&#10;Фразы: нет&#10;Тон: —&#10;Настроение: —&#10;Цветовой фон: Белый">1</td><td class="col-fact" title="Автоматизм есть, надо его проверить в текущих условиях">ОР2</td><td class="col-fact" title="Актуальная ситуация">1</td><td class="col-fact">-</td><td class="col-fact" title="Действия (1): Радует&#10;Фразы: нет&#10;Тон: Нормальный&#10;Настроение: Нормальное&#10;Полезность: 2">13</td><td class="col-fact">2</td></tr>
+<tr>
+<td>22</td><td>71</td><td class="col-fact" title="ХОРОШО">Хорошо</td><td class="col-fact" title="Расслабление, Эмпатия">7,17</td><td class="col-fact" title="Воздействие: Обрадовать&#10;Фразы: нет&#10;Тон: —&#10;Настроение: —&#10;Цветовой фон: Белый">6</td><td class="col-fact" title="Нет автоматизма, нужно быстро создать его по гомеостатическим целям">ОР1</td><td class="col-fact">-</td><td class="col-fact">-</td><td class="col-fact" title="Действия (1): Радует&#10;Фразы: нет&#10;Тон: Нормальный&#10;Настроение: Нормальное&#10;Полезность: 3">13</td><td class="col-fact">3</td></tr>
+<tr>
+<td>23</td><td>72</td><td class="col-fact" title="ХОРОШО">Хорошо</td><td class="col-fact" title="Расслабление, Эмпатия">7,17</td><td class="col-fact">-</td><td class="col-fact">-</td><td class="col-fact">-</td><td class="col-fact" title="Действия: Отдыхает">101</td><td class="col-fact">-</td><td class="col-fact">-</td></tr>
+<tr>
+<td>24</td><td>73</td><td class="col-fact" title="ХОРОШО">Хорошо</td><td class="col-fact" title="Расслабление, Эмпатия">7,17</td><td class="col-fact" title="Воздействие: нет&#10;Фразы: привет&#10;Тон: Нормальный (0)&#10;Настроение: Нормальное (0)&#10;Цветовой фон: Белый">508</td><td class="col-fact" title="Автоматизм есть, надо его проверить в текущих условиях">ОР2</td><td class="col-fact">-</td><td class="col-fact">-</td><td class="col-fact" title="Полезность: 0">5</td><td class="col-fact">0</td></tr>
+<tr>
+<td>25</td><td>74</td><td class="col-fact" title="ПЛОХО">Плохо</td><td class="col-fact" title="Поиск, Напряжение, Исследование">1,8,9</td><td class="col-fact" title="Воздействие: Наказать&#10;Фразы: нет&#10;Тон: —&#10;Настроение: —&#10;Цветовой фон: Белый">1</td><td class="col-fact" title="Автоматизм есть, надо его проверить в текущих условиях">ОР2</td><td class="col-fact" title="Актуальная ситуация">1</td><td class="col-fact">-</td><td class="col-fact" title="Действия (1): Радует&#10;Фразы: нет&#10;Тон: Нормальный&#10;Настроение: Нормальное&#10;Полезность: 3">13</td><td class="col-fact">3</td></tr>
+<tr>
+<td>26</td><td>82</td><td class="col-fact" title="ХОРОШО">Хорошо</td><td class="col-fact" title="Расслабление, Эмпатия">7,17</td><td class="col-fact" title="Воздействие: Обрадовать&#10;Фразы: нет&#10;Тон: —&#10;Настроение: —&#10;Цветовой фон: Белый">6</td><td class="col-fact" title="Нет автоматизма, нужно быстро создать его по гомеостатическим целям">ОР1</td><td class="col-fact">-</td><td class="col-fact">-</td><td class="col-fact" title="Действия (1): Радует&#10;Фразы: нет&#10;Тон: Нормальный&#10;Настроение: Нормальное&#10;Полезность: 4">13</td><td class="col-fact">4</td></tr>
+<tr>
+<td>27</td><td>83</td><td class="col-fact" title="ХОРОШО">Хорошо</td><td class="col-fact" title="Расслабление, Эмпатия">7,17</td><td class="col-fact">-</td><td class="col-fact">-</td><td class="col-fact">-</td><td class="col-fact" title="Действия: Отдыхает">101</td><td class="col-fact">-</td><td class="col-fact">-</td></tr>
+<tr>
+<td>28</td><td>84</td><td class="col-fact" title="ХОРОШО">Хорошо</td><td class="col-fact" title="Расслабление, Эмпатия">7,17</td><td class="col-fact" title="Воздействие: нет&#10;Фразы: привет&#10;Тон: Нормальный (0)&#10;Настроение: Нормальное (0)&#10;Цветовой фон: Белый">508</td><td class="col-fact" title="Автоматизм есть, надо его проверить в текущих условиях">ОР2</td><td class="col-fact">-</td><td class="col-fact">-</td><td class="col-fact" title="Действия: нет&#10;Фразы (1): &quot;привет&quot; (ID: 7)&#10;Тон: Нормальный&#10;Настроение: Нормальное&#10;Полезность: 0">4</td><td class="col-fact">0</td></tr>
+</table>
+<div class="summary-box">
+<h3>Итог сравнения ожиданий с логами</h3>
+<p class="summary-ok">Расхождений не обнаружено.</p>
+</div>
+<p class="muted" style="margin-top:24px;font-size:11px;">Сформировано AIStudio.</p>
+</body></html>

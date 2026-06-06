@@ -23,7 +23,8 @@
 
 ```
 {projectRoot}\
-  Settings\Settings.xml     — профиль проекта (пути Data, BootData, опционально AdapterId)
+  Settings\Settings.xml     — профиль проекта (пути Data, BootData)
+  Data\Gomeostas\AgentProperties.dat — свойства симбионта, в т.ч. AdapterId
   Data\                     — ISIDA (.dat): гомеостаз, рефлексы, действия…
   BootData\                 — boot-данные, в т.ч. Environment\*.yaml при работе со средой
 ```
@@ -77,7 +78,7 @@
 
 ### 0.4. Связь проекта симбионта и пакета
 
-Элемент **`AdapterId`** в `Settings.xml` проекта — **не подключение к DLL**, а метка:
+Поле **`AdapterId`** в `Data\Gomeostas\AgentProperties.dat` (свойства симбионта) — **не подключение к DLL**, а метка:
 
 > «Для этого симбионта используем описание среды из зарегистрированного пакета `{id}`».
 
@@ -91,7 +92,7 @@
 
 | Роль | Типичный поток |
 |------|----------------|
-| **Настройщик симбионта** | Создать проект (можно без среды) → гомеостаз → пульт; при необходимости зарегистрировать готовый пакет и указать `AdapterId` |
+| **Настройщик симбионта** | Создать проект (можно без среды) → гомеостаз → пульт; при необходимости зарегистрировать пакет и выбрать тип среды в свойствах симбионта |
 | **Автор адаптера** | Host в своём репозитории → собрать пакет → **зарегистрировать** в студии → тестовый проект симбионта с этим `AdapterId` → рецепты/schema |
 
 ### 0.6. Запрещённые формулировки в UI
@@ -113,7 +114,7 @@
    - читает runtime host (например Velum);
    - копируются из пакета адаптера в проект симбионта при создании проекта.
 4. **Нормализация** — канонические ключи при записи, допустимые алиасы при чтении, правила round-trip.
-5. **UI schema** (JSON в `schema\`) — **машиночитаемое описание capability адаптера** для подсказок в студии (combobox типов шагов, detect, **ключей `EnvironmentMetricProbeKey`** и т.д.) без загрузки `runtime\*.dll`; schema-driven редакторы — **post-MVP**, файлы schema рекомендуются авторам уже в MVP.
+5. **UI schema** (JSON в `schema\`) — описание полей редакторов «Среда» (combobox типов шагов, preconditions, detect); загрузка через `AdapterSchemaLoader` в AIStudio.
 
 ### 1.2. Что контракт не регулирует
 
@@ -128,7 +129,7 @@
 | **AIStudio** | Редактирование данных симбионта; регистрация пакетов; валидация «Проверить»; запись YAML по runtime contract |
 | **Пакет адаптера** | Manifest, BootData-образцы, schema (опционально в MVP), runtime DLL, шаблон установщика (опционально) |
 | **Runtime host** | Чтение YAML проекта; исполнение шагов рецептов; детекция триггеров |
-| **Проект симбионта** | `Settings.xml` с `AdapterId`; рабочие `BootData\Environment\*.yaml` и `Data\` |
+| **Проект симбионта** | `AgentProperties.dat` с `AdapterId`; рабочие `BootData\Environment\*.yaml` и `Data\` |
 
 ---
 
@@ -174,7 +175,8 @@
 
 ```
 {projectRoot}\
-  Settings\Settings.xml       — профиль проекта, в т.ч. AdapterId
+  Settings\Settings.xml       — профиль проекта (пути)
+  Data\Gomeostas\AgentProperties.dat — свойства симбионта, в т.ч. AdapterId
   BootData\Environment\
     EnvironmentRecipes.yaml
     EnvironmentTriggers.yaml
@@ -183,15 +185,19 @@
 
 При **новом проекте** студия копирует `{Adapters\{adapterId}\BootData\}` → `{projectRoot}\BootData\` (файлы не перезаписываются, если уже существуют — политика seed).
 
-### 3.3. Элемент Settings проекта (MVP)
+### 3.3. AdapterId в свойствах симбионта (MVP)
 
-```xml
-<AdapterId>velum</AdapterId>
+```
+AdapterId|velum
 ```
 
-- Записывается при создании проекта; в MVP — **только чтение** в UI настроек.
+(строка в `Data\Gomeostas\AgentProperties.dat`, формат `Ключ|Значение`)
+
+- Задаётся при создании проекта или в UI «Свойства симбионта»; должен совпадать с зарегистрированным пакетом в `Adapters\{id}\`.
 - Пустой или отсутствующий `AdapterId` → редакторы меню «Среда» заблокированы; **гомеостаз и пульт оператора доступны**.
 - `AdapterId` **не обязателен** при создании проекта симбионта (проект «только гомеостаз»).
+- Legacy `<AdapterId>` в `Settings.xml` при открытии проекта переносится в `AgentProperties.dat` и удаляется из Settings.
+- Для сборки установщика (ISS, post-MVP): `/DAdapterId=...` читается из `AgentProperties.dat`, не из Settings.
 
 ---
 
@@ -729,7 +735,7 @@ triggers:
 - [ ] Dual round-trip T1–T4 зелёный на фикстурах
 - [ ] «Проверить» реализует § 12
 - [ ] Новый проект копирует BootData из `Adapters\{id}`
-- [ ] `AdapterId` в Settings; блок «Среда» без адаптера
+- [ ] `AdapterId` в AgentProperties.dat; блок «Среда» без адаптера
 
 **Разработчик Velum (эталонный host):**
 

@@ -68,7 +68,7 @@ namespace AIStudio.ViewModels.SymbiontEnv
     public bool IsReadOnlyMode => !IsEditingEnabled;
     public string PulseWarningMessage =>
         !HasAdapter
-            ? "Укажите AdapterId в проекте (новый проект с выбором адаптера)"
+            ? "Укажите тип среды в свойствах симбионта"
             : !IsStageZero
                 ? "[КРИТИЧНО] Редактирование доступно только в стадии 0"
                 : GlobalTimer.IsPulsationRunning

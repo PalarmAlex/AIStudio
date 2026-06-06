@@ -11,6 +11,8 @@
       <RowDefinition Height="Auto"/>
       <RowDefinition Height="Auto"/>
       <RowDefinition Height="Auto"/>
+      <RowDefinition Height="Auto"/>
+      <RowDefinition Height="Auto"/>
       <RowDefinition Height="*"/>
       <RowDefinition Height="Auto"/>
     </Grid.RowDefinitions>
@@ -21,7 +23,7 @@
     </Grid.ColumnDefinitions>
 
     <Grid x:Name="ClearingOverlay"
-          Grid.RowSpan="9"
+          Grid.RowSpan="11"
           Background="#80FFFFFF"
           Visibility="Collapsed"
           Panel.ZIndex="1000">
@@ -46,26 +48,33 @@
                 SelectionChanged="ComboStage_SelectionChanged"/>
     </StackPanel>
     <StackPanel Grid.Row="2" Grid.Column="0" Margin="0,0,6,8">
+      <TextBlock Text="Тип среды:" Margin="0,4,0,2"/>
+      <ComboBox x:Name="ComboAdapter" Padding="4,3" MinWidth="120"
+                DisplayMemberPath="DisplayName" SelectedValuePath="Id"
+                ToolTip="Зарегистрированный пакет описания среды. Пусто — только гомеостаз и пульт; меню «Среда» недоступно."/>
+    </StackPanel>
+
+    <StackPanel Grid.Row="3" Grid.Column="0" Margin="0,0,6,8">
       <TextBlock Text="Особые триггеры:" Margin="0,4,0,2"/>
       <ComboBox x:Name="ComboSpecialTriggers" Padding="4,3" IsEditable="True"
                 ToolTip="Факторы, которые могут вызвать нестабильность или неадекватную реакцию. Важно для ИИ при моделировании поведения."
                 LostFocus="ComboEditable_LostFocus"/>
     </StackPanel>
-    <StackPanel Grid.Row="3" Grid.Column="0" Margin="0,0,6,8">
+    <StackPanel Grid.Row="4" Grid.Column="0" Margin="0,0,6,8">
       <TextBlock Text="Особые табу:" Margin="0,4,0,2"/>
       <ComboBox x:Name="ComboSpecialTaboos" Padding="4,3" IsEditable="True"
                 ToolTip="Действия или ситуации, которых симбионт избегает даже в хорошем состоянии. Критически важно для избегания неконсистентного поведения."
                 LostFocus="ComboEditable_LostFocus"/>
     </StackPanel>
 
-    <DockPanel Grid.Row="0" Grid.RowSpan="4" Grid.Column="1" Margin="6,0,6,8">
+    <DockPanel Grid.Row="0" Grid.RowSpan="5" Grid.Column="1" Margin="6,0,6,8">
       <TextBlock Text="Описание симбионта:" DockPanel.Dock="Top" Margin="0,4,0,2"/>
       <TextBox x:Name="TextBoxDescription" Padding="4,3" MinHeight="60"
                AcceptsReturn="True" TextWrapping="Wrap"
                VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto"
                ToolTip="Развернутое описание характера, предыстории и особенностей симбионта. Будет использовано ИИ для понимания контекста."/>
     </DockPanel>
-    <DockPanel Grid.Row="0" Grid.RowSpan="4" Grid.Column="2" Margin="6,0,0,8">
+    <DockPanel Grid.Row="0" Grid.RowSpan="5" Grid.Column="2" Margin="6,0,0,8">
       <TextBlock Text="Дополнительные пожелания:" DockPanel.Dock="Top" Margin="0,4,0,2"/>
       <TextBox x:Name="TextBoxAdditionalWishes" Padding="4,3" MinHeight="60"
                AcceptsReturn="True" TextWrapping="Wrap"
@@ -74,19 +83,19 @@
     </DockPanel>
 
     <!-- Строка 4: Базовый архетип, Ключевая мотивация, Социальность -->
-    <StackPanel Grid.Row="4" Grid.Column="0" Margin="0,0,6,8">
+    <StackPanel Grid.Row="5" Grid.Column="0" Margin="0,0,6,8">
       <TextBlock Text="Базовый архетип:" Margin="0,4,0,2"/>
       <ComboBox x:Name="ComboBaseArchetype" Padding="4,3" IsEditable="True"
                 ToolTip="Базовый психологический архетип, определяющий фундаментальные паттерны поведения."
                 LostFocus="ComboEditable_LostFocus"/>
     </StackPanel>
-    <StackPanel Grid.Row="4" Grid.Column="1" Margin="6,0,6,8">
+    <StackPanel Grid.Row="5" Grid.Column="1" Margin="6,0,6,8">
       <TextBlock Text="Ключевая мотивация:" Margin="0,4,0,2"/>
       <ComboBox x:Name="ComboKeyMotivation" Padding="4,3" IsEditable="True"
                 ToolTip="Главный движущий мотив симбионта, определяет приоритеты в принятии решений."
                 LostFocus="ComboEditable_LostFocus"/>
     </StackPanel>
-    <StackPanel Grid.Row="4" Grid.Column="2" Margin="6,0,0,8">
+    <StackPanel Grid.Row="5" Grid.Column="2" Margin="6,0,0,8">
       <TextBlock Text="Социальность:" Margin="0,4,0,2"/>
       <ComboBox x:Name="ComboSociality" Padding="4,3" IsEditable="True"
                 ToolTip="Стиль социального взаимодействия: Одиночка - избегает контактов; Избирательный - выбирает узкий круг; Стайный - комфортно в группе; Зависимый - нуждается в постоянном общении."
@@ -94,17 +103,17 @@
     </StackPanel>
 
     <!-- Строка 5: Темперамент активность, Темперамент реактивность, Поведение в стрессе (с кнопкой) -->
-    <StackPanel Grid.Row="5" Grid.Column="0" Margin="0,0,6,8">
+    <StackPanel Grid.Row="6" Grid.Column="0" Margin="0,0,6,8">
       <TextBlock Text="Темперамент активность:" Margin="0,4,0,2"/>
       <ComboBox x:Name="ComboTemperamentActivity" Padding="4,3" IsEditable="False"
                 ToolTip="Уровень общей активности: Низкая - флегматичность, экономия энергии; Средняя - сбалансированность; Высокая - гиперактивность, постоянное движение."/>
     </StackPanel>
-    <StackPanel Grid.Row="5" Grid.Column="1" Margin="6,0,6,8">
+    <StackPanel Grid.Row="6" Grid.Column="1" Margin="6,0,6,8">
       <TextBlock Text="Темперамент реактивность:" Margin="0,4,0,2"/>
       <ComboBox x:Name="ComboTemperamentReactivity" Padding="4,3" IsEditable="False"
                 ToolTip="Скорость и интенсивность реакции на внешние стимулы: Низкая - замедленные реакции; Средняя - адекватные; Высокая - мгновенные, импульсивные."/>
     </StackPanel>
-    <StackPanel Grid.Row="5" Grid.Column="2" Margin="6,0,0,8">
+    <StackPanel Grid.Row="6" Grid.Column="2" Margin="6,0,0,8">
       <TextBlock Text="Поведение в стрессе:" Margin="0,4,0,2"/>
       <Grid>
         <Grid.ColumnDefinitions>
@@ -119,7 +128,7 @@
     </StackPanel>
 
     <!-- Строка 6: Реакции на угрозу, Реакции на поощрение, Реакции на наказание (с кнопками) -->
-    <StackPanel Grid.Row="6" Grid.Column="0" Margin="0,0,6,8">
+    <StackPanel Grid.Row="7" Grid.Column="0" Margin="0,0,6,8">
       <TextBlock Text="Реакции на угрозу:" Margin="0,4,0,2"/>
       <Grid>
         <Grid.ColumnDefinitions>
@@ -145,7 +154,7 @@
         <Button x:Name="SetThreatResponseButton" Grid.Column="1" Content="Выбрать..." Margin="8,0,0,0" Padding="8,4" Click="ButtonSelectThreatResponse_Click"/>
       </Grid>
     </StackPanel>
-    <StackPanel Grid.Row="6" Grid.Column="1" Margin="6,0,6,8">
+    <StackPanel Grid.Row="7" Grid.Column="1" Margin="6,0,6,8">
       <TextBlock Text="Реакции на поощрение:" Margin="0,4,0,2"/>
       <Grid>
         <Grid.ColumnDefinitions>
@@ -158,7 +167,7 @@
         <Button x:Name="SetRewardResponseButton" Grid.Column="1" Content="Выбрать..." Margin="8,0,0,0" Padding="8,4" Click="ButtonSelectRewardResponse_Click"/>
       </Grid>
     </StackPanel>
-    <StackPanel Grid.Row="6" Grid.Column="2" Margin="6,0,0,8">
+    <StackPanel Grid.Row="7" Grid.Column="2" Margin="6,0,0,8">
       <TextBlock Text="Реакции на наказание:" Margin="0,4,0,2"/>
       <Grid>
         <Grid.ColumnDefinitions>
@@ -173,7 +182,7 @@
     </StackPanel>
 
     <!-- Текст вставки для промпта + блок описания параметров -->
-    <Grid Grid.Row="7" Grid.Column="0" Grid.ColumnSpan="3" Margin="0,0,0,8">
+    <Grid Grid.Row="8" Grid.Column="0" Grid.ColumnSpan="3" Margin="0,0,0,8">
       <Grid.ColumnDefinitions>
         <ColumnDefinition Width="Auto" MinWidth="220"/>
         <ColumnDefinition Width="*"/>
@@ -206,7 +215,7 @@
     </Grid>
 
     <!-- Кнопки и предупреждение -->
-    <Grid Grid.Row="8" Grid.ColumnSpan="3" Margin="0,12,0,0">
+    <Grid Grid.Row="9" Grid.ColumnSpan="3" Margin="0,12,0,0">
       <!-- Предупреждение в первой колонке -->
       <TextBlock x:Name="StageWarningText"
                Grid.Column="0"

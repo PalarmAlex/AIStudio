@@ -96,6 +96,11 @@
     <Compile Include="Common\Adapters\AdapterValidationMessage.cs" />
     <Compile Include="Common\Adapters\AdapterAuthorGuideLocator.cs" />
     <Compile Include="Common\Adapters\AdapterBootDataSeeder.cs" />
+    <Compile Include="Common\Adapters\AgentPropertiesAdapterBinding.cs" />
+    <Compile Include="Common\Adapters\AdapterPackageBuilder.cs" />
+    <Compile Include="Common\Adapters\AdapterSchemaLoader.cs" />
+    <Compile Include="Common\Adapters\AdapterSchemaModels.cs" />
+    <Compile Include="Common\Adapters\AdapterSelectionItem.cs" />
     <Compile Include="Common\Adapters\SymbiontProjectAdapterSettings.cs" />
     <Compile Include="Common\SymbiontEnv\SymbiontEnvironmentGate.cs" />
     <Compile Include="Common\SymbiontProjectCreateWizard.cs" />
@@ -777,7 +782,6 @@
   <ItemGroup>
     <Content Include="docs\AdapterAuthorGuide.html">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-      <Link>docs\AdapterAuthorGuide.html</Link>
     </Content>
     <None Include="App.config" />
   </ItemGroup>

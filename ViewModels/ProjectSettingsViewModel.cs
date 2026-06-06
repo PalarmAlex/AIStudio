@@ -76,8 +76,6 @@ namespace AIStudio.ViewModels
     private bool _logsNotMatchingTemplate;
     private bool _bootDataNotMatchingTemplate;
     private bool _scenarioReportsNotMatchingTemplate;
-    private string _adapterIdDisplay = string.Empty;
-
     /// <summary>Видимость предупреждения рядом с путём «Каталог настроек».</summary>
     public bool SettingsPathNotMatchingTemplate
     {
@@ -151,16 +149,6 @@ namespace AIStudio.ViewModels
       }
     }
 
-    /// <summary>Идентификатор адаптера среды (только чтение, задаётся при создании проекта).</summary>
-    public string AdapterIdDisplay
-    {
-      get => _adapterIdDisplay;
-      private set
-      {
-        _adapterIdDisplay = value ?? string.Empty;
-        OnPropertyChanged(nameof(AdapterIdDisplay));
-      }
-    }
     public string DataGomeostasFolderPath
     {
       get => _dataGomeostasFolderPath;
@@ -956,17 +944,7 @@ namespace AIStudio.ViewModels
           ApplyPathSetting(kv.Key, kv.Value);
 
         if (appSettings != null)
-        {
           ApplyScalarSettingsFromAppSettings(appSettings, errors);
-          string adapterFromProject = appSettings.Element(SymbiontProjectAdapterSettings.AdapterIdElementName)?.Value?.Trim() ?? string.Empty;
-          AdapterIdDisplay = string.IsNullOrEmpty(adapterFromProject) ? "(не задан)" : adapterFromProject;
-          if (!string.IsNullOrEmpty(adapterFromProject))
-            AppConfig.SetSetting(SymbiontProjectAdapterSettings.AdapterIdElementName, adapterFromProject);
-        }
-        else
-        {
-          AdapterIdDisplay = "(не задан)";
-        }
       }
       finally
       {
@@ -974,13 +952,20 @@ namespace AIStudio.ViewModels
         _isInitialized = wasInit;
       }
 
-      if (File.Exists(projectSettingsXml)
-          && !SymbiontProjectAdapterSettings.TryReadFromSettingsFile(projectSettingsXml, out _))
+      AgentPropertiesAdapterBinding.TryMigrateFromSettingsXml(projectRoot, out _);
+      string agentPropertiesPath = AgentPropertiesAdapterBinding.GetAgentPropertiesPath(projectRoot);
+      SymbiontProjectAdapterSettings.SyncAppConfigFromAgentPropertiesFile(agentPropertiesPath);
+
+      string adapterInAgent = string.Empty;
+      if (File.Exists(agentPropertiesPath))
+        AgentPropertiesAdapterBinding.TryReadAdapterId(agentPropertiesPath, out adapterInAgent);
+
+      if (string.IsNullOrWhiteSpace(adapterInAgent))
       {
         MessageBox.Show(
-            "В Settings.xml проекта не указан тип среды (AdapterId).\n\n" +
+            "В свойствах симбионта не указан тип среды.\n\n" +
             "Доступны гомеостаз, пульт оператора и виртуальные тесты. Редакторы меню «Среда» — после регистрации пакета " +
-            "и указания AdapterId (или при создании проекта с типом среды).",
+            "и выбора типа среды в свойствах симбионта (или при создании проекта с типом среды).",
             "Тип среды не задан",
             MessageBoxButton.OK,
             MessageBoxImage.Information);
@@ -1424,8 +1409,6 @@ namespace AIStudio.ViewModels
       AppConfig.SetSetting(nameof(LogsFolderPath), LogsFolderPath);
       AppConfig.SetSetting(nameof(BootDataFolderPath), BootDataFolderPath);
       AppConfig.SetSetting(nameof(ScenarioReportsFolderPath), ScenarioReportsFolderPath);
-      if (!string.IsNullOrWhiteSpace(_adapterIdDisplay) && _adapterIdDisplay != "(не задан)")
-        AppConfig.SetSetting(SymbiontProjectAdapterSettings.AdapterIdElementName, _adapterIdDisplay);
       AppConfig.SetIntSetting(nameof(DefaultStileId), DefaultStileId);
       AppConfig.SetIntSetting(nameof(WaitingPeriodForActionsVal), WaitingPeriodForActionsVal);
       AppConfig.SetIntSetting(nameof(ThinkingCycleDecayAgeDivisor), ThinkingCycleDecayAgeDivisor);

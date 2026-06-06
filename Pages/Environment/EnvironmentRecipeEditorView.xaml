@@ -2,6 +2,9 @@
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              MinHeight="400">
+  <UserControl.Resources>
+    <converters:BoolToVisibilityConverter xmlns:converters="clr-namespace:AIStudio.Converters" x:Key="BoolToVisibilityConverter"/>
+  </UserControl.Resources>
   <Grid Margin="8">
     <Grid.RowDefinitions>
       <RowDefinition Height="Auto"/>
@@ -51,12 +54,18 @@
       </TabItem>
       <TabItem Header="Предусловия">
         <StackPanel Margin="12">
-          <CheckBox Content="Деталь (part)" IsChecked="{Binding DocumentKindPart}" Margin="0,4"/>
-          <CheckBox Content="Сборка (assembly)" IsChecked="{Binding DocumentKindAssembly}" Margin="0,4"/>
-          <CheckBox Content="Чертёж (drawing)" IsChecked="{Binding DocumentKindDrawing}" Margin="0,4"/>
-          <CheckBox Content="Не в режиме эскиза" IsChecked="{Binding NotSketchEdit}" Margin="0,8,0,4"/>
-          <CheckBox Content="Не read-only" IsChecked="{Binding NotReadOnly}" Margin="0,4"/>
-          <CheckBox Content="Требуется checkout PDM" IsChecked="{Binding PdmCheckoutRequired}" Margin="0,4"/>
+          <CheckBox Content="Деталь (part)" IsChecked="{Binding DocumentKindPart}" Margin="0,4"
+                    Visibility="{Binding DataContext.ShowDocumentKindPart, RelativeSource={RelativeSource AncestorType=UserControl}, Converter={StaticResource BoolToVisibilityConverter}}"/>
+          <CheckBox Content="Сборка (assembly)" IsChecked="{Binding DocumentKindAssembly}" Margin="0,4"
+                    Visibility="{Binding DataContext.ShowDocumentKindAssembly, RelativeSource={RelativeSource AncestorType=UserControl}, Converter={StaticResource BoolToVisibilityConverter}}"/>
+          <CheckBox Content="Чертёж (drawing)" IsChecked="{Binding DocumentKindDrawing}" Margin="0,4"
+                    Visibility="{Binding DataContext.ShowDocumentKindDrawing, RelativeSource={RelativeSource AncestorType=UserControl}, Converter={StaticResource BoolToVisibilityConverter}}"/>
+          <CheckBox Content="Не в режиме эскиза" IsChecked="{Binding NotSketchEdit}" Margin="0,8,0,4"
+                    Visibility="{Binding DataContext.ShowNotSketchEdit, RelativeSource={RelativeSource AncestorType=UserControl}, Converter={StaticResource BoolToVisibilityConverter}}"/>
+          <CheckBox Content="Не read-only" IsChecked="{Binding NotReadOnly}" Margin="0,4"
+                    Visibility="{Binding DataContext.ShowNotReadOnly, RelativeSource={RelativeSource AncestorType=UserControl}, Converter={StaticResource BoolToVisibilityConverter}}"/>
+          <CheckBox Content="Требуется checkout PDM" IsChecked="{Binding PdmCheckoutRequired}" Margin="0,4"
+                    Visibility="{Binding DataContext.ShowPdmCheckoutRequired, RelativeSource={RelativeSource AncestorType=UserControl}, Converter={StaticResource BoolToVisibilityConverter}}"/>
         </StackPanel>
       </TabItem>
       <TabItem Header="Шаги">
