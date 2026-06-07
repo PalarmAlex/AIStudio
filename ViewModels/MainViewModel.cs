@@ -331,8 +331,6 @@ namespace AIStudio
           out bool bindingWasCleared);
       if (bindingWasCleared)
         _gomeostas.SaveAgentProperties();
-      else
-        SymbiontProjectAdapterSettings.SyncAppConfigFromGomeostas(_gomeostas);
       RefreshUiAfterEngineReload();
       UpdateAgentState();
       OnPropertyChanged(nameof(LifeTimeStatus));

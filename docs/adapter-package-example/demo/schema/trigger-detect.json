@@ -1,7 +1,0 @@
-{
-  "schemaVersion": "1.0",
-  "detectKinds": [
-    { "kind": "command_before", "label": "Перед командой" },
-    { "kind": "document_saved", "label": "Документ сохранён" }
-  ]
-}

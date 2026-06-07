@@ -450,7 +450,6 @@ namespace AIStudio.Pages
         var (success, error) = _gomeostas.SaveAgentProperties();
         if (success)
         {
-          SymbiontProjectAdapterSettings.SyncAppConfigFromGomeostas(_gomeostas);
           _loadedAdapterId = selectedAdapterId;
           if (adapterChanged && !string.IsNullOrEmpty(selectedAdapterId))
           {
@@ -516,7 +515,6 @@ namespace AIStudio.Pages
           MessageBox.Show($"Ошибка сохранения: {error}", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
           return;
         }
-        SymbiontProjectAdapterSettings.SyncAppConfigFromGomeostas(_gomeostas);
         _gomeostas.UpdateAgentPropertiesPromptContent();
         var bootDataPath = System.IO.Path.Combine(
           Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData),

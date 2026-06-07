@@ -16,6 +16,17 @@ namespace AIStudio.Common.Adapters
     /// <summary>Ключ строки в AgentProperties.dat.</summary>
     public const string AdapterIdKey = "AdapterId";
     /// <summary>
+    /// Путь к <c>AgentProperties.dat</c> активного проекта (из <see cref="AppConfig.DataGomeostasFolderPath"/>).
+    /// </summary>
+    public static string GetActiveAgentPropertiesPath()
+    {
+      string gomeostasFolder = (AppConfig.DataGomeostasFolderPath ?? string.Empty).Trim();
+      if (gomeostasFolder.Length == 0)
+        return string.Empty;
+      return Path.Combine(gomeostasFolder, "AgentProperties.dat");
+    }
+
+    /// <summary>
     /// Путь к <c>AgentProperties.dat</c> в корне проекта.
     /// </summary>
     public static string GetAgentPropertiesPath(string projectRoot)

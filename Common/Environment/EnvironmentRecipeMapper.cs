@@ -11,6 +11,10 @@ namespace AIStudio.Common.SymbiontEnv
   /// </summary>
   public static class EnvironmentRecipeMapper
   {
+    private const string KindPart = "part";
+    private const string KindAssembly = "assembly";
+    private const string KindDrawing = "drawing";
+
     /// <summary>Строка реестра.</summary>
     public static EnvironmentRecipeListItem ToListItem(EnvironmentRecipeData recipe)
     {
@@ -43,12 +47,12 @@ namespace AIStudio.Common.SymbiontEnv
         PostconditionLog = recipe.PostconditionLog,
         TestNotes = recipe.TestNotes,
         RecommendedTriggerInfluenceIds = new List<int>(recipe.RecommendedTriggerInfluenceIds),
-        DocumentKindPart = HasKind(recipe, EnvironmentDocumentKind.Part),
-        DocumentKindAssembly = HasKind(recipe, EnvironmentDocumentKind.Assembly),
-        DocumentKindDrawing = HasKind(recipe, EnvironmentDocumentKind.Drawing),
-        NotSketchEdit = recipe.NotSketchEdit,
-        NotReadOnly = recipe.NotReadOnly,
-        PdmCheckoutRequired = recipe.PdmCheckoutRequired
+        DocumentKindPart = HasKind(recipe, KindPart),
+        DocumentKindAssembly = HasKind(recipe, KindAssembly),
+        DocumentKindDrawing = HasKind(recipe, KindDrawing),
+        NotSketchEdit = GetPreconditionBool(recipe.Preconditions, "not_sketch_edit"),
+        NotReadOnly = GetPreconditionBool(recipe.Preconditions, "not_read_only"),
+        PdmCheckoutRequired = GetPreconditionBool(recipe.Preconditions, "pdm_checkout_required")
       };
       foreach (EnvironmentRecipeStepData step in recipe.Steps)
       {
@@ -74,19 +78,22 @@ namespace AIStudio.Common.SymbiontEnv
         Description = model.Description ?? string.Empty,
         RiskTier = model.RiskTier,
         ReactiveEligible = model.ReactiveEligible,
-        NotSketchEdit = model.NotSketchEdit,
-        NotReadOnly = model.NotReadOnly,
-        PdmCheckoutRequired = model.PdmCheckoutRequired,
         PostconditionLog = model.PostconditionLog ?? string.Empty,
         TestNotes = model.TestNotes ?? string.Empty,
         RecommendedTriggerInfluenceIds = model.RecommendedTriggerInfluenceIds?.ToList() ?? new List<int>()
       };
+      if (model.NotSketchEdit)
+        data.Preconditions["not_sketch_edit"] = true;
+      if (model.NotReadOnly)
+        data.Preconditions["not_read_only"] = true;
+      if (model.PdmCheckoutRequired)
+        data.Preconditions["pdm_checkout_required"] = true;
       if (model.DocumentKindPart)
-        data.DocumentKinds.Add(EnvironmentDocumentKind.Part);
+        data.DocumentKinds.Add(KindPart);
       if (model.DocumentKindAssembly)
-        data.DocumentKinds.Add(EnvironmentDocumentKind.Assembly);
+        data.DocumentKinds.Add(KindAssembly);
       if (model.DocumentKindDrawing)
-        data.DocumentKinds.Add(EnvironmentDocumentKind.Drawing);
+        data.DocumentKinds.Add(KindDrawing);
       foreach (EnvironmentRecipeStepRow row in model.Steps)
       {
         data.Steps.Add(new EnvironmentRecipeStepData
@@ -98,11 +105,20 @@ namespace AIStudio.Common.SymbiontEnv
       return data;
     }
 
-    private static bool HasKind(EnvironmentRecipeData recipe, EnvironmentDocumentKind kind)
+    private static bool HasKind(EnvironmentRecipeData recipe, string kind)
     {
       if (recipe.DocumentKinds == null || recipe.DocumentKinds.Count == 0)
-        return kind == EnvironmentDocumentKind.Part || kind == EnvironmentDocumentKind.Assembly;
-      return recipe.DocumentKinds.Contains(kind);
+        return string.Equals(kind, KindPart, StringComparison.OrdinalIgnoreCase) ||
+               string.Equals(kind, KindAssembly, StringComparison.OrdinalIgnoreCase);
+      return recipe.DocumentKinds.Any(
+          x => string.Equals(x, kind, StringComparison.OrdinalIgnoreCase));
+    }
+
+    private static bool GetPreconditionBool(IDictionary<string, bool> preconditions, string key)
+    {
+      if (preconditions == null)
+        return false;
+      return preconditions.TryGetValue(key, out bool value) && value;
     }
 
     private static string FormatParameters(Dictionary<string, string> parameters)

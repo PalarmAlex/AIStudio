@@ -1,4 +1,5 @@
 using AIStudio.Common;
+using AIStudio.Common.Adapters;
 using ISIDA.Actions;
 using ISIDA.Common;
 using ISIDA.Gomeostas;
@@ -31,6 +32,7 @@ namespace AIStudio.ViewModels
     private int _currentAgentStage;
     public bool IsStageZero => _currentAgentStage == 0;
     public ObservableCollection<InfluenceActionSystem.GomeostasisInfluenceAction> InfluenceActions { get; } = new ObservableCollection<InfluenceActionSystem.GomeostasisInfluenceAction>();
+    public ObservableCollection<AdapterSchemaMetricProbe> MetricProbeKeyOptions { get; } = new ObservableCollection<AdapterSchemaMetricProbe>();
     public string CurrentAgentTitle =>
         SymbiontPageTitleFormatter.Format("Воздействия оператора и среды на", _currentAgentName, _currentAgentStage);
     public ICommand SaveCommand { get; }
@@ -101,6 +103,29 @@ namespace AIStudio.ViewModels
       OnPropertyChanged(nameof(WarningMessageColor));
       OnPropertyChanged(nameof(CurrentAgentTitle));
       OnPropertyChanged(nameof(IsReadOnlyMode));
+      RefreshMetricProbeKeyOptions();
+    }
+
+    private void RefreshMetricProbeKeyOptions()
+    {
+      MetricProbeKeyOptions.Clear();
+      MetricProbeKeyOptions.Add(AdapterSchemaMetricProbe.OperatorOnly);
+      var knownKeys = new HashSet<string>(StringComparer.Ordinal);
+      IReadOnlyList<AdapterSchemaMetricProbe> schemaProbes = AdapterSchemaLoader.LoadMetricProbesForCurrentProject();
+      for (int i = 0; i < schemaProbes.Count; i++)
+      {
+        AdapterSchemaMetricProbe probe = schemaProbes[i];
+        if (probe == null || string.IsNullOrWhiteSpace(probe.Key) || !knownKeys.Add(probe.Key))
+          continue;
+        MetricProbeKeyOptions.Add(probe);
+      }
+      foreach (var action in InfluenceActions)
+      {
+        string key = (action.EnvironmentMetricProbeKey ?? string.Empty).Trim();
+        if (key.Length == 0 || !knownKeys.Add(key))
+          continue;
+        MetricProbeKeyOptions.Add(new AdapterSchemaMetricProbe { Key = key, Label = key });
+      }
     }
 
     private void LoadAgentData()

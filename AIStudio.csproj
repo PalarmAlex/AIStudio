@@ -102,6 +102,7 @@
     <Compile Include="Common\Adapters\AdapterSchemaLoader.cs" />
     <Compile Include="Common\Adapters\AdapterSchemaModels.cs" />
     <Compile Include="Common\Adapters\AdapterSelectionItem.cs" />
+    <Compile Include="Common\Adapters\EnvironmentPackageSelectionItem.cs" />
     <Compile Include="Common\Adapters\SymbiontProjectAdapterSettings.cs" />
     <Compile Include="Common\SymbiontEnv\SymbiontEnvironmentGate.cs" />
     <Compile Include="Common\SymbiontProjectCreateWizard.cs" />

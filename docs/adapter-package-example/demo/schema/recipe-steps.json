@@ -1,9 +1,0 @@
-{
-  "schemaVersion": "1.0",
-  "stepTypes": [
-    { "type": "set_property", "label": "Установить свойство" },
-    { "type": "run_command", "label": "Выполнить команду" },
-    { "type": "refresh", "label": "Обновить" },
-    { "type": "log", "label": "Запись в лог" }
-  ]
-}

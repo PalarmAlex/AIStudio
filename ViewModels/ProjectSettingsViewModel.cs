@@ -910,7 +910,6 @@ namespace AIStudio.ViewModels
       }
       AgentPropertiesAdapterBinding.TryMigrateFromSettingsXml(projectRoot, out _);
       string agentPropertiesPath = AgentPropertiesAdapterBinding.GetAgentPropertiesPath(projectRoot);
-      SymbiontProjectAdapterSettings.SyncAppConfigFromAgentPropertiesFile(agentPropertiesPath);
       string adapterInAgent = string.Empty;
       if (File.Exists(agentPropertiesPath))
         AgentPropertiesAdapterBinding.TryReadAdapterId(agentPropertiesPath, out adapterInAgent);

@@ -41,6 +41,7 @@ namespace AIStudio.Common.Adapters
       LoadStepTypes(Path.Combine(schemaDir, "recipe-steps.json"), schema.RecipeStepTypes);
       LoadFields(Path.Combine(schemaDir, "trigger-filter.json"), "fields", schema.TriggerFilterFields);
       LoadDetectKinds(Path.Combine(schemaDir, "trigger-detect.json"), schema.TriggerDetectKinds);
+      LoadMetricProbes(Path.Combine(schemaDir, "metric-probes.json"), schema.MetricProbes);
       if (schema.RecipeStepTypes.Count == 0)
         FillDefaultStepTypes(schema.RecipeStepTypes);
       if (schema.RecipePreconditions.Count == 0)
@@ -52,12 +53,39 @@ namespace AIStudio.Common.Adapters
       return schema;
     }
 
-    /// <summary>Schema для текущего AdapterId в AppConfig.</summary>
+    /// <summary>Schema для текущего AdapterId в AgentProperties.dat.</summary>
     public static AdapterEnvironmentSchema LoadForCurrentProject()
     {
       if (!SymbiontProjectAdapterSettings.TryGetValidatedCurrentAdapterId(out string adapterId))
         return CreateVelumLikeFallback();
       return LoadForAdapter(adapterId);
+    }
+
+    /// <summary>
+    /// Ключи проб метрик среды для текущего проекта.
+    /// Без подключённого адаптера — пустой список (без fallback).
+    /// </summary>
+    public static IReadOnlyList<AdapterSchemaMetricProbe> LoadMetricProbesForCurrentProject()
+    {
+      if (!SymbiontProjectAdapterSettings.TryGetValidatedCurrentAdapterId(out string adapterId))
+        return new AdapterSchemaMetricProbe[0];
+      return LoadMetricProbesForAdapter(adapterId);
+    }
+
+    /// <summary>
+    /// Ключи проб из <c>schema\metric-probes.json</c> зарегистрированного пакета.
+    /// </summary>
+    public static IReadOnlyList<AdapterSchemaMetricProbe> LoadMetricProbesForAdapter(string adapterId)
+    {
+      if (string.IsNullOrWhiteSpace(adapterId))
+        return new AdapterSchemaMetricProbe[0];
+      AdapterManifest manifest = AdapterRegistry.TryGetById(adapterId);
+      if (manifest == null || string.IsNullOrWhiteSpace(manifest.PackageRootPath))
+        return new AdapterSchemaMetricProbe[0];
+      string path = Path.Combine(manifest.PackageRootPath, "schema", "metric-probes.json");
+      var probes = new List<AdapterSchemaMetricProbe>();
+      LoadMetricProbes(path, probes);
+      return probes;
     }
 
     private static void LoadFields(string path, string arrayName, IList<AdapterSchemaField> target)
@@ -129,6 +157,37 @@ namespace AIStudio.Common.Adapters
       catch
       {
         // ignore
+      }
+    }
+
+    private static void LoadMetricProbes(string path, IList<AdapterSchemaMetricProbe> target)
+    {
+      if (!File.Exists(path))
+        return;
+      try
+      {
+        JObject jo = JObject.Parse(File.ReadAllText(path));
+        JArray arr = jo["probes"] as JArray;
+        if (arr == null)
+          return;
+        foreach (JToken token in arr)
+        {
+          if (!(token is JObject item))
+            continue;
+          string key = item["key"]?.ToString();
+          if (string.IsNullOrWhiteSpace(key))
+            continue;
+          target.Add(new AdapterSchemaMetricProbe
+          {
+            Key = key.Trim(),
+            Label = item["label"]?.ToString(),
+            Description = item["description"]?.ToString()
+          });
+        }
+      }
+      catch
+      {
+        // ignore broken schema
       }
     }
 

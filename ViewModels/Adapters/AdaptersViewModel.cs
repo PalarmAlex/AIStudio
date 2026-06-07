@@ -79,7 +79,8 @@ namespace AIStudio.ViewModels.Adapters
               dialog.EditedManifest,
               hostBin,
               out string installedPath,
-              out string error))
+              out string error,
+              out string warning))
       {
         MessageBox.Show(error, "Создать пакет", MessageBoxButton.OK, MessageBoxImage.Warning);
         return;
@@ -87,11 +88,16 @@ namespace AIStudio.ViewModels.Adapters
       Reload();
       SelectById(dialog.EditedManifest.Id);
       ReportText = "Зарегистрирован пакет:\n" + installedPath;
+      if (!string.IsNullOrWhiteSpace(warning))
+        ReportText += "\n\n" + warning;
+      string successText = "Пакет «" + dialog.EditedManifest.DisplayName + "» зарегистрирован:\n" + installedPath;
+      if (!string.IsNullOrWhiteSpace(warning))
+        successText += "\n\n" + warning;
       MessageBox.Show(
-          "Пакет «" + dialog.EditedManifest.DisplayName + "» зарегистрирован:\n" + installedPath,
+          successText,
           "Создать пакет",
           MessageBoxButton.OK,
-          MessageBoxImage.Information);
+          string.IsNullOrWhiteSpace(warning) ? MessageBoxImage.Information : MessageBoxImage.Warning);
     }
 
     /// <summary>Открывает редактор manifest выбранного пакета.</summary>

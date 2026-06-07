@@ -26,6 +26,34 @@ namespace AIStudio.Common.Adapters
     public string Label { get; set; }
   }
 
+  /// <summary>Ключ пробы метрики среды из metric-probes.json.</summary>
+  public sealed class AdapterSchemaMetricProbe
+  {
+    public string Key { get; set; }
+    public string Label { get; set; }
+    public string Description { get; set; }
+
+    /// <summary>Текст для combobox в редакторе воздействий.</summary>
+    public string DisplayText
+    {
+      get
+      {
+        if (string.IsNullOrWhiteSpace(Key))
+          return Label ?? string.Empty;
+        if (string.IsNullOrWhiteSpace(Label))
+          return Key;
+        return Label + " (" + Key + ")";
+      }
+    }
+
+    /// <summary>Пустое значение — воздействие оператора (пульт), не среды.</summary>
+    public static AdapterSchemaMetricProbe OperatorOnly { get; } = new AdapterSchemaMetricProbe
+    {
+      Key = string.Empty,
+      Label = "(оператор, не среда)"
+    };
+  }
+
   /// <summary>Schema пакета адаптера для редакторов среды.</summary>
   public sealed class AdapterEnvironmentSchema
   {
@@ -33,6 +61,7 @@ namespace AIStudio.Common.Adapters
     public IList<AdapterSchemaStepType> RecipeStepTypes { get; set; } = new List<AdapterSchemaStepType>();
     public IList<AdapterSchemaField> TriggerFilterFields { get; set; } = new List<AdapterSchemaField>();
     public IList<AdapterSchemaDetectKind> TriggerDetectKinds { get; set; } = new List<AdapterSchemaDetectKind>();
+    public IList<AdapterSchemaMetricProbe> MetricProbes { get; set; } = new List<AdapterSchemaMetricProbe>();
     public bool HasRecipePrecondition(string key)
     {
       if (string.IsNullOrWhiteSpace(key) || RecipePreconditions == null)

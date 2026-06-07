@@ -1,11 +1,12 @@
 #define MyAppName "AIStudio"
-#define MyAppVersion "3.2"
+#define MyAppVersion "4.0"
 #define MyAppPublisher "МВАП"
 #define MyAppURL "https://p-mvap.ru/"
 #define MyAppExeName "AIStudio.exe"
 #define BinDir "D:\ISIDA\Programms\app\AIStudio\bin\Debug"
 #define DocsDir "D:\ISIDA\Programms\app\AIStudio\docs"
 #define SymbiontEnvContractDll "D:\ISIDA\Programms\app\SymbiontEnv.Contract\bin\Debug\SymbiontEnv.Contract.dll"
+#define SymbiontEnvContractXml "D:\ISIDA\Programms\app\SymbiontEnv.Contract\bin\Debug\SymbiontEnv.Contract.xml"
 
 [Setup]
 AppName={#MyAppName}
@@ -43,6 +44,7 @@ Source: "{#BinDir}\isida.xml"; DestDir: "{app}"; Flags: ignoreversion
 Source: "{#BinDir}\Ookii.Dialogs.Wpf.dll"; DestDir: "{app}"; Flags: ignoreversion
 Source: "{#BinDir}\Newtonsoft.Json.dll"; DestDir: "{app}"; Flags: ignoreversion
 Source: "{#SymbiontEnvContractDll}"; DestDir: "{app}"; Flags: ignoreversion
+Source: "{#DocsDir}\AdapterAuthorGuide.html"; DestDir: "{app}\docs"; Flags: ignoreversion
 
 ; Настройки (файл Settings.xml; ранее использовалось имя AIStudio.Settings.xml)
 Source: "{#DocsDir}\Settings\Settings.xml"; DestDir: "{commonappdata}\ISIDA\Settings"; Flags: ignoreversion onlyifdoesntexist uninsneveruninstall
@@ -65,7 +67,9 @@ Source: "{#DocsDir}\AdapterPackageTemplates\*"; DestDir: "{commonappdata}\ISIDA\
 ; Стартовый SDK в каркасе demo (для «Создать пакет…» без готового host)
 Source: "{#BinDir}\isida.dll"; DestDir: "{commonappdata}\ISIDA\AdapterPackageTemplates\demo\runtime"; Flags: ignoreversion onlyifdoesntexist uninsneveruninstall
 Source: "{#BinDir}\isida.dll.config"; DestDir: "{commonappdata}\ISIDA\AdapterPackageTemplates\demo\runtime"; Flags: ignoreversion onlyifdoesntexist uninsneveruninstall
+Source: "{#BinDir}\isida.xml"; DestDir: "{commonappdata}\ISIDA\AdapterPackageTemplates\demo\runtime"; Flags: ignoreversion onlyifdoesntexist uninsneveruninstall
 Source: "{#SymbiontEnvContractDll}"; DestDir: "{commonappdata}\ISIDA\AdapterPackageTemplates\demo\runtime"; Flags: ignoreversion onlyifdoesntexist uninsneveruninstall
+Source: "{#SymbiontEnvContractXml}"; DestDir: "{commonappdata}\ISIDA\AdapterPackageTemplates\demo\runtime"; Flags: ignoreversion onlyifdoesntexist uninsneveruninstall
 Source: "{#BinDir}\Newtonsoft.Json.dll"; DestDir: "{commonappdata}\ISIDA\AdapterPackageTemplates\demo\runtime"; Flags: ignoreversion onlyifdoesntexist uninsneveruninstall
 
 [Icons]

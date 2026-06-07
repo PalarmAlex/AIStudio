@@ -1,8 +1,6 @@
 using ISIDA.SymbiontEnv.Contract;
 using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 
 namespace AIStudio.Common.Adapters
 {
@@ -12,17 +10,19 @@ namespace AIStudio.Common.Adapters
   public static class AdapterPackageBuilder
   {
     /// <summary>
-    /// Копирует demo, подставляет стартовый SDK и опционально DLL host, проверяет пакет и регистрирует в Adapters.
+    /// Копирует demo, подставляет стартовый SDK и опционально DLL host, регистрирует в Adapters.
     /// </summary>
     /// <param name="hostBinDirectoryOptional">Каталог bin\Debug host; <c>null</c> — только стартовый SDK из <c>AdapterPackageTemplates\demo\runtime</c>.</param>
     public static bool TryCreateAndRegisterFromDemo(
         AdapterManifest manifest,
         string hostBinDirectoryOptional,
         out string installedPath,
-        out string errorMessage)
+        out string errorMessage,
+        out string warningMessage)
     {
       installedPath = null;
       errorMessage = null;
+      warningMessage = null;
       if (!AdapterPackageManager.TryValidateManifest(manifest, isCreate: true, originalId: null, out errorMessage))
         return false;
       string demoPath = AdapterPaths.GetDemoTemplatePath();
@@ -37,19 +37,11 @@ namespace AIStudio.Common.Adapters
       {
         CopyDirectoryRecursive(demoPath, tempRoot);
         string runtimeTarget = Path.Combine(tempRoot, "runtime");
-        Directory.CreateDirectory(runtimeTarget);
-        if (!AdapterSdkRuntime.TryEnsureSdk(runtimeTarget, out errorMessage))
-          return false;
+        AdapterSdkRuntime.EnsureSdk(runtimeTarget, out string sdkWarning);
         AdapterSdkRuntime.MergeHostBin(hostBinDirectoryOptional, runtimeTarget);
         if (!AdapterPackageManager.TryWriteManifest(tempRoot, manifest, out errorMessage))
           return false;
-        IReadOnlyList<AdapterValidationMessage> validation = AdapterValidator.Validate(tempRoot);
-        if (AdapterValidator.HasErrors(validation))
-        {
-          errorMessage = "Пакет не прошёл проверку. Исправьте ошибки и повторите.\n\n"
-              + FormatValidation(validation);
-          return false;
-        }
+        warningMessage = sdkWarning;
         AdapterPaths.EnsureAdaptersRoot();
         string targetDir = AdapterPaths.GetAdapterDirectory(manifest.Id);
         if (Directory.Exists(targetDir))
@@ -72,15 +64,6 @@ namespace AIStudio.Common.Adapters
       {
         TryDeleteDirectory(tempRoot);
       }
-    }
-
-    private static string FormatValidation(IReadOnlyList<AdapterValidationMessage> messages)
-    {
-      if (messages == null || messages.Count == 0)
-        return string.Empty;
-      return string.Join(
-          Environment.NewLine,
-          messages.Select(m => "[" + m.Severity + "] " + m.Text));
     }
 
     private static void CopyDirectoryRecursive(string sourceDir, string targetDir)

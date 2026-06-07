@@ -5,7 +5,7 @@ using ISIDA.SymbiontEnv.Contract;
 namespace AIStudio.Common.Adapters
 {
   /// <summary>
-  /// Проверка пакета адаптера в UI студии (делегирует <see cref="AdapterPackageValidator"/>).
+  /// Проверка пакета адаптера в UI студии (manifest + schema; делегирует <see cref="AdapterPackageValidator"/>).
   /// </summary>
   public static class AdapterValidator
   {

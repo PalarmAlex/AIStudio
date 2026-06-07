@@ -1,34 +1,33 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Configuration>
   <AppSettings>
-    <DataGomeostasFolderPath>C:\ProgramData\VELUM\Data\Gomeostas</DataGomeostasFolderPath>
-    <SettingsPath>C:\ProgramData\VELUM\Settings</SettingsPath>
-    <DataActionsFolderPath>C:\ProgramData\VELUM\Data\Actions</DataActionsFolderPath>
+    <DataGomeostasFolderPath>C:\ProgramData\ISIDA\Data\Gomeostas</DataGomeostasFolderPath>
+    <SettingsPath>C:\ProgramData\ISIDA\Settings</SettingsPath>
+    <DataActionsFolderPath>C:\ProgramData\ISIDA\Data\Actions</DataActionsFolderPath>
     <DefaultStileId>6</DefaultStileId>
     <DefaultAdaptiveActionId>1</DefaultAdaptiveActionId>
-    <SensorsFolderPath>C:\ProgramData\VELUM\Data\Sensors</SensorsFolderPath>
+    <SensorsFolderPath>C:\ProgramData\ISIDA\Data\Sensors</SensorsFolderPath>
     <RecognitionThreshold>3</RecognitionThreshold>
     <CompareLevel>30</CompareLevel>
     <DifSensorPar>0.02</DifSensorPar>
     <DynamicTime>7</DynamicTime>
-    <ReflexesFolderPath>C:\ProgramData\VELUM\Data\Reflexes</ReflexesFolderPath>
-    <PsychicDataFolderPath>C:\ProgramData\VELUM\Data\Psychic</PsychicDataFolderPath>
+    <ReflexesFolderPath>C:\ProgramData\ISIDA\Data\Reflexes</ReflexesFolderPath>
+    <PsychicDataFolderPath>C:\ProgramData\ISIDA\Data\Psychic</PsychicDataFolderPath>
     <DefaultGeneticReflexId>0</DefaultGeneticReflexId>
     <FirstRun>1</FirstRun>
     <LogEnabled>true</LogEnabled>
     <DefaultFormatLog>All</DefaultFormatLog>
-    <LogsFolderPath>C:\ProgramData\VELUM\Logs</LogsFolderPath>
-    <BootDataFolderPath>C:\ProgramData\VELUM\BootData</BootDataFolderPath>
-    <ReflexActionDisplayDuration>3</ReflexActionDisplayDuration>
+    <LogsFolderPath>C:\ProgramData\ISIDA\Logs</LogsFolderPath>
+    <BootDataFolderPath>C:\ProgramData\ISIDA\BootData</BootDataFolderPath>
+    <ReflexActionDisplayDuration>2</ReflexActionDisplayDuration>
     <WaitingPeriodForActionsVal>30</WaitingPeriodForActionsVal>
-    <DefaultThemeTypeId>4</DefaultThemeTypeId>
+    <DefaultThemeTypeId>17</DefaultThemeTypeId>
     <ThinkingCycleDecayAgeDivisor>100</ThinkingCycleDecayAgeDivisor>
     <ThinkingCycleDecayBase>1</ThinkingCycleDecayBase>
     <ThinkingCycleMainMaxAgePulses>1000</ThinkingCycleMainMaxAgePulses>
     <NoOperatorStimulusSilencePulses>30</NoOperatorStimulusSilencePulses>
-    <ScenarioReportsFolderPath>C:\ProgramData\VELUM\Data\Scenarios\Reports</ScenarioReportsFolderPath>
+    <ScenarioReportsFolderPath>C:\ProgramData\ISIDA\Data\Scenarios\Reports</ScenarioReportsFolderPath>
     <ResearchHarnessOutputFolderPath>C:\ProgramData\ISIDA\Data\ResearchHarness</ResearchHarnessOutputFolderPath>
-    <HomeostasisPulseSpeedDriftEnabled>false</HomeostasisPulseSpeedDriftEnabled>
-    <AdapterId>my-adapter</AdapterId>
+    <HomeostasisPulseSpeedDriftEnabled>true</HomeostasisPulseSpeedDriftEnabled>
   </AppSettings>
 </Configuration>

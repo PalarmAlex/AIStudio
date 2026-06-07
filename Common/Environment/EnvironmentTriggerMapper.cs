@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using AIStudio.ViewModels.SymbiontEnv;
 using ISIDA.SymbiontEnv.Contract;
@@ -11,6 +12,10 @@ namespace AIStudio.Common.SymbiontEnv
   /// </summary>
   public static class EnvironmentTriggerMapper
   {
+    private const string KindPart = "part";
+    private const string KindAssembly = "assembly";
+    private const string KindDrawing = "drawing";
+
     /// <summary>Строка таблицы.</summary>
     public static EnvironmentTriggerRow ToRow(EnvironmentTriggerData trigger)
     {
@@ -21,16 +26,16 @@ namespace AIStudio.Common.SymbiontEnv
         Id = trigger.Id,
         DisplayName = trigger.DisplayName,
         InfluenceActionId = trigger.InfluenceActionId,
-        DocumentKindPart = HasKind(trigger, EnvironmentDocumentKind.Part),
-        DocumentKindAssembly = HasKind(trigger, EnvironmentDocumentKind.Assembly),
-        DocumentKindDrawing = HasKind(trigger, EnvironmentDocumentKind.Drawing),
+        DocumentKindPart = HasKind(trigger, KindPart),
+        DocumentKindAssembly = HasKind(trigger, KindAssembly),
+        DocumentKindDrawing = HasKind(trigger, KindDrawing),
         DetectRules = trigger.DetectRules?
             .Select(r => new EnvironmentTriggerDetectRow
             {
               Kind = r?.Kind ?? string.Empty,
               Environment = r?.Environment ?? string.Empty,
               Enabled = r != null && r.Enabled,
-              CommandIdsText = FormatCommandIds(r?.CommandIds)
+              CommandIdsText = FormatCommandIds(r?.Parameters)
             })
             .ToList() ?? new List<EnvironmentTriggerDetectRow>()
       };
@@ -48,39 +53,45 @@ namespace AIStudio.Common.SymbiontEnv
         InfluenceActionId = row.InfluenceActionId
       };
       if (row.DocumentKindPart)
-        data.DocumentKinds.Add(EnvironmentDocumentKind.Part);
+        data.DocumentKinds.Add(KindPart);
       if (row.DocumentKindAssembly)
-        data.DocumentKinds.Add(EnvironmentDocumentKind.Assembly);
+        data.DocumentKinds.Add(KindAssembly);
       if (row.DocumentKindDrawing)
-        data.DocumentKinds.Add(EnvironmentDocumentKind.Drawing);
+        data.DocumentKinds.Add(KindDrawing);
       if (row.DetectRules != null)
       {
         foreach (EnvironmentTriggerDetectRow rule in row.DetectRules)
         {
+          var parameters = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+          SetCommandIds(parameters, ParseCommandIds(rule?.CommandIdsText));
           data.DetectRules.Add(new EnvironmentTriggerDetectData
           {
             Kind = rule?.Kind ?? string.Empty,
             Environment = rule?.Environment ?? string.Empty,
             Enabled = rule != null && rule.Enabled,
-            CommandIds = ParseCommandIds(rule?.CommandIdsText)
+            Parameters = parameters
           });
         }
       }
       return data;
     }
 
-    private static bool HasKind(EnvironmentTriggerData trigger, EnvironmentDocumentKind kind)
+    private static bool HasKind(EnvironmentTriggerData trigger, string kind)
     {
       if (trigger.DocumentKinds == null || trigger.DocumentKinds.Count == 0)
-        return kind == EnvironmentDocumentKind.Part || kind == EnvironmentDocumentKind.Assembly;
-      return trigger.DocumentKinds.Contains(kind);
+        return string.Equals(kind, KindPart, StringComparison.OrdinalIgnoreCase) ||
+               string.Equals(kind, KindAssembly, StringComparison.OrdinalIgnoreCase);
+      return trigger.DocumentKinds.Any(
+          x => string.Equals(x, kind, StringComparison.OrdinalIgnoreCase));
     }
 
-    private static string FormatCommandIds(IList<int> ids)
+    private static string FormatCommandIds(IDictionary<string, string> parameters)
     {
-      if (ids == null || ids.Count == 0)
+      if (parameters == null ||
+          !parameters.TryGetValue("command_ids", out string text) ||
+          string.IsNullOrWhiteSpace(text))
         return string.Empty;
-      return string.Join(", ", ids);
+      return text.Replace(",", ", ");
     }
 
     private static List<int> ParseCommandIds(string text)
@@ -90,10 +101,19 @@ namespace AIStudio.Common.SymbiontEnv
         return list;
       foreach (string part in text.Split(new[] { ',', ';', ' ' }, StringSplitOptions.RemoveEmptyEntries))
       {
-        if (int.TryParse(part.Trim(), out int id))
+        if (int.TryParse(part.Trim(), NumberStyles.Integer, CultureInfo.InvariantCulture, out int id))
           list.Add(id);
       }
       return list;
+    }
+
+    private static void SetCommandIds(IDictionary<string, string> parameters, IList<int> ids)
+    {
+      if (parameters == null || ids == null || ids.Count == 0)
+        return;
+      parameters["command_ids"] = string.Join(
+          ",",
+          ids.Select(id => id.ToString(CultureInfo.InvariantCulture)));
     }
   }
 }
