@@ -529,6 +529,10 @@ namespace AIStudio
             if (TryShowEnvironmentPage(ShowEnvironmentTriggers))
               break;
             break;
+          case "48": // Давление среды на виталы
+            if (TryShowEnvironmentPage(ShowEnvironmentPressureRules))
+              break;
+            break;
           case "47": // Адаптеры среды
             ShowAdapters();
             break;
@@ -669,6 +673,12 @@ namespace AIStudio
     {
       var vm = new EnvironmentTriggersViewModel(_gomeostas);
       CurrentContent = new Pages.SymbiontEnv.EnvironmentTriggersView { DataContext = vm };
+    }
+
+    private void ShowEnvironmentPressureRules()
+    {
+      var vm = new EnvironmentPressureRulesViewModel(_gomeostas);
+      CurrentContent = new Pages.SymbiontEnv.EnvironmentPressureRulesView { DataContext = vm };
     }
 
     private void ShowAdapters()

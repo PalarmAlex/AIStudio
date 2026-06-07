@@ -1,4 +1,5 @@
 using AIStudio.Common;
+using AIStudio.Common.SymbiontEnv;
 using ISIDA.Actions;
 using ISIDA.Common;
 using ISIDA.Gomeostas;
@@ -592,6 +593,16 @@ namespace AIStudio.ViewModels
         var currentReflexes = _geneticReflexesSystem.GetAllGeneticReflexes().ToDictionary(a => a.Id);
         foreach (var reflex in _allGeneticReflexes)
         {
+          var pressureRuleCheck = EnvironmentPressureRulesValidation.ValidateLevel3NotPressureRuleIds(reflex.Level3);
+          if (!pressureRuleCheck.IsValid)
+          {
+            MessageBox.Show($"Ошибка валидации рефлекса '{reflex.Id}':\n{pressureRuleCheck.ErrorMessage}",
+                "Ошибка сохранения",
+                MessageBoxButton.OK,
+                MessageBoxImage.Error);
+            return false;
+          }
+
           var validationResult = _geneticReflexesSystem.ValidateGeneticReflex(reflex);
           if (!validationResult.IsValid)
           {

@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using ISIDA.SymbiontEnv.Contract;
 
 namespace AIStudio.Common.SymbiontEnv
@@ -51,6 +52,22 @@ namespace AIStudio.Common.SymbiontEnv
     {
       EnsureCatalog();
       EnvironmentYamlCodec.WriteTriggers(EnvironmentPaths.TriggersFilePath, triggers);
+    }
+
+    /// <summary>
+    /// Возвращает множество ID стимулов (<see cref="EnvironmentTriggerData.InfluenceActionId"/>), на которые ссылаются триггеры YAML.
+    /// </summary>
+    public static HashSet<int> GetReferencedInfluenceActionIds()
+    {
+      var errors = new List<string>();
+      List<EnvironmentTriggerData> triggers = LoadTriggers(errors);
+      var ids = new HashSet<int>();
+      foreach (EnvironmentTriggerData trigger in triggers)
+      {
+        if (trigger != null && trigger.InfluenceActionId > 0)
+          ids.Add(trigger.InfluenceActionId);
+      }
+      return ids;
     }
   }
 }

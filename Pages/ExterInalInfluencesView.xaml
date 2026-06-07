@@ -158,35 +158,6 @@
 
           </DataGridTextColumn>
 
-          <DataGridTemplateColumn Header="Ключ метрики среды" Width="280">
-            <DataGridTemplateColumn.HeaderStyle>
-              <Style TargetType="DataGridColumnHeader">
-                <Setter Property="ToolTip"
-                    Value="Ключ пробы метрики среды из schema пакета адаптера (metric-probes.json). Пусто — воздействие оператора (пульт), не среды."/>
-              </Style>
-            </DataGridTemplateColumn.HeaderStyle>
-            <DataGridTemplateColumn.CellTemplate>
-              <DataTemplate>
-                <ComboBox ItemsSource="{Binding DataContext.MetricProbeKeyOptions, RelativeSource={RelativeSource AncestorType=UserControl}}"
-                          SelectedValue="{Binding EnvironmentMetricProbeKey, Mode=OneWay}"
-                          SelectedValuePath="Key"
-                          DisplayMemberPath="DisplayText"
-                          IsHitTestVisible="False"
-                          Focusable="False"
-                          BorderThickness="0"
-                          Background="Transparent"/>
-              </DataTemplate>
-            </DataGridTemplateColumn.CellTemplate>
-            <DataGridTemplateColumn.CellEditingTemplate>
-              <DataTemplate>
-                <ComboBox ItemsSource="{Binding DataContext.MetricProbeKeyOptions, RelativeSource={RelativeSource AncestorType=UserControl}}"
-                          SelectedValue="{Binding EnvironmentMetricProbeKey, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                          SelectedValuePath="Key"
-                          DisplayMemberPath="DisplayText"/>
-              </DataTemplate>
-            </DataGridTemplateColumn.CellEditingTemplate>
-          </DataGridTemplateColumn>
-
         </DataGrid.Columns>
       </DataGrid>
     </Border>

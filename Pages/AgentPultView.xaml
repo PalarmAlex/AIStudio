@@ -63,8 +63,8 @@
     <!-- Заголовки -->
     <TextBlock Grid.Column="0" Grid.Row="0" Text="Речь / команды" HorizontalAlignment="Left" Margin="0,0,0,5" FontSize="14" FontWeight="Bold"/>
     <TextBlock Grid.Column="1" Grid.Row="0" Text="Распознанные токены:" Style="{StaticResource PropertyNameStyle}" Margin="10,0,0,5" Width="218" Grid.ColumnSpan="2"/>
-    <TextBlock Grid.Column="3" Grid.Row="0" Text="Воздействие от оператора:" Style="{StaticResource PropertyNameStyle}" Margin="10,0,0,5" Width="200" Grid.ColumnSpan="2"/>
-    <TextBlock Grid.Column="4" Grid.Row="0" Text="Воздействие от среды:" Style="{StaticResource PropertyNameStyle}" Margin="10,0,0,5" Width="200"/>
+    <TextBlock Grid.Column="3" Grid.Row="0" Text="Прямое воздействие" Style="{StaticResource PropertyNameStyle}" Margin="10,0,0,5" Width="200"/>
+    <TextBlock Grid.Column="4" Grid.Row="0" Text="Через среду (и вручную)" Style="{StaticResource PropertyNameStyle}" Margin="10,0,0,5" Width="200"/>
 
     <!-- Окно речевого сообщения -->
     <TextBox x:Name="MessageToAgentTextBox" Grid.Row="1"

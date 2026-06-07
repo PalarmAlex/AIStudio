@@ -187,6 +187,7 @@ namespace AIStudio.Common
       WriteFileIfMissing(Path.Combine(gomeostasPath, "BehaviorStyles.dat"), MinimalBehaviorStylesContent);
       WriteFileIfMissing(Path.Combine(actionsPath, "AdaptiveActions.dat"), MinimalAdaptiveActionsContent);
       WriteFileIfMissing(Path.Combine(actionsPath, "InfluenceActions.dat"), MinimalInfluenceActionsContent);
+      WriteFileIfMissing(Path.Combine(actionsPath, "EnvironmentPressureRules.dat"), EnvironmentPressureRulesStorage.GetMinimalSeedContent());
       WriteFileIfMissing(Path.Combine(sensorsPath, "DefaultVerbalPrimaries.tmp"), MinimalDefaultVerbalPrimariesContent);
       string bootDataPath = SettingsValidator.GetExpectedFolderPathForSetting(projectRootFull, "BootDataFolderPath");
       if (!string.IsNullOrWhiteSpace(adapterId))
@@ -221,6 +222,10 @@ namespace AIStudio.Common
           SettingsValidator.GetExpectedFolderPathForSetting(projectRootFull, "DataGomeostasFolderPath")));
       appSettingsChildren.Add(new XElement("DataActionsFolderPath",
           SettingsValidator.GetExpectedFolderPathForSetting(projectRootFull, "DataActionsFolderPath")));
+      appSettingsChildren.Add(new XElement("EnvironmentPressureRulesFilePath",
+          Path.Combine(
+              SettingsValidator.GetExpectedFolderPathForSetting(projectRootFull, "DataActionsFolderPath"),
+              "EnvironmentPressureRules.dat")));
       appSettingsChildren.Add(new XElement("SensorsFolderPath",
           SettingsValidator.GetExpectedFolderPathForSetting(projectRootFull, "SensorsFolderPath")));
       appSettingsChildren.Add(new XElement("ReflexesFolderPath",
@@ -280,12 +285,13 @@ namespace AIStudio.Common
 3|Спит|Пассивный отдых|5|1,2|2|0
 ";
     private const string MinimalInfluenceActionsContent =
-@"# Формат: ID|Имя|Описание|Воздействие|Антагонисты|EnvironmentMetricProbeKey
+@"# Формат: ID|Имя|Описание|Воздействие|Антагонисты
 # Воздействие: paramId1:effect1;paramId2:effect2
 # Антагонисты: id1,id2,id3
-1|Наказать|Отрицательное подкрепление|1:3;2:2|2,3|
-2|Поощрить|Положительное подкрепление|1:-3;2:-2|1,3|
-3|Напугать|Повышение стресса|2:3|1,2|
+# Только дискретные стимулы (оператор и/или YAML-триггеры). Метрики среды — в EnvironmentPressureRules.dat
+1|Наказать|Отрицательное подкрепление|1:3;2:2|2,3
+2|Поощрить|Положительное подкрепление|1:-3;2:-2|1,3
+3|Напугать|Повышение стресса|2:3|1,2
 ";
     private const string MinimalDefaultVerbalPrimariesContent =
 @"# Формат: Символ|#|ID

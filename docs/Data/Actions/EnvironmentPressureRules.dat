@@ -1,0 +1,6 @@
+# Формат: RuleId|ProbeKey|Имя|Описание|Influences|Antagonists
+# ProbeKey: ключ из schema/metric-probes.json пакета адаптера
+# Influences: paramId1:effect1;paramId2:effect2  (шаблон при ухудшении метрики)
+# Antagonists: id1,id2  (только между правилами давления)
+13|Velum.Solid.Material|Материал в модели|Пример: ухудшение метрики материала в модели.|1:-1;2:1;3:2;6:1;7:2|14
+14|Velum.Solid.Sketch.NoBadIntersections|Эскиз: пересечения|Пример: пересечения и стыки в эскизе.|1:-1;3:1|13

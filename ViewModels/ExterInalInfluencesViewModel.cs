@@ -1,5 +1,5 @@
 using AIStudio.Common;
-using AIStudio.Common.Adapters;
+using AIStudio.Common.SymbiontEnv;
 using ISIDA.Actions;
 using ISIDA.Common;
 using ISIDA.Gomeostas;
@@ -32,9 +32,8 @@ namespace AIStudio.ViewModels
     private int _currentAgentStage;
     public bool IsStageZero => _currentAgentStage == 0;
     public ObservableCollection<InfluenceActionSystem.GomeostasisInfluenceAction> InfluenceActions { get; } = new ObservableCollection<InfluenceActionSystem.GomeostasisInfluenceAction>();
-    public ObservableCollection<AdapterSchemaMetricProbe> MetricProbeKeyOptions { get; } = new ObservableCollection<AdapterSchemaMetricProbe>();
     public string CurrentAgentTitle =>
-        SymbiontPageTitleFormatter.Format("Воздействия оператора и среды на", _currentAgentName, _currentAgentStage);
+        SymbiontPageTitleFormatter.Format("Стимулы (воздействия на агента)", _currentAgentName, _currentAgentStage);
     public ICommand SaveCommand { get; }
     public ICommand RemoveActionCommand { get; }
     public ICommand RemoveAllCommand { get; }
@@ -93,8 +92,7 @@ namespace AIStudio.ViewModels
           Name = action.Name,
           Description = action.Description,
           Influences = new Dictionary<int, int>(action.Influences),
-          AntagonistInfluences = new List<int>(action.AntagonistInfluences),
-          EnvironmentMetricProbeKey = action.EnvironmentMetricProbeKey ?? string.Empty
+          AntagonistInfluences = new List<int>(action.AntagonistInfluences)
         });
       }
       OnPropertyChanged(nameof(IsStageZero));
@@ -103,29 +101,6 @@ namespace AIStudio.ViewModels
       OnPropertyChanged(nameof(WarningMessageColor));
       OnPropertyChanged(nameof(CurrentAgentTitle));
       OnPropertyChanged(nameof(IsReadOnlyMode));
-      RefreshMetricProbeKeyOptions();
-    }
-
-    private void RefreshMetricProbeKeyOptions()
-    {
-      MetricProbeKeyOptions.Clear();
-      MetricProbeKeyOptions.Add(AdapterSchemaMetricProbe.OperatorOnly);
-      var knownKeys = new HashSet<string>(StringComparer.Ordinal);
-      IReadOnlyList<AdapterSchemaMetricProbe> schemaProbes = AdapterSchemaLoader.LoadMetricProbesForCurrentProject();
-      for (int i = 0; i < schemaProbes.Count; i++)
-      {
-        AdapterSchemaMetricProbe probe = schemaProbes[i];
-        if (probe == null || string.IsNullOrWhiteSpace(probe.Key) || !knownKeys.Add(probe.Key))
-          continue;
-        MetricProbeKeyOptions.Add(probe);
-      }
-      foreach (var action in InfluenceActions)
-      {
-        string key = (action.EnvironmentMetricProbeKey ?? string.Empty).Trim();
-        if (key.Length == 0 || !knownKeys.Add(key))
-          continue;
-        MetricProbeKeyOptions.Add(new AdapterSchemaMetricProbe { Key = key, Label = key });
-      }
     }
 
     private void LoadAgentData()
@@ -260,6 +235,9 @@ namespace AIStudio.ViewModels
 
     private bool UpdateInfluenceActionsSystemFromTable()
     {
+      if (!ValidateStimulusIdRangesBeforeSave())
+        return false;
+
       bool needRevalidation = false;
       if (!_influenceActionSystem.ValidateAllInfluenceActions(InfluenceActions, out string errorMsg))
       {
@@ -344,7 +322,6 @@ namespace AIStudio.ViewModels
           existingAction.Description = action.Description;
           existingAction.Influences = new Dictionary<int, int>(action.Influences);
           existingAction.AntagonistInfluences = new List<int>(action.AntagonistInfluences);
-          existingAction.EnvironmentMetricProbeKey = action.EnvironmentMetricProbeKey ?? string.Empty;
         }
         else
         {
@@ -352,12 +329,42 @@ namespace AIStudio.ViewModels
               action.Name,
               action.Description,
               new Dictionary<int, int>(action.Influences),
-              new List<int>(action.AntagonistInfluences),
-              action.EnvironmentMetricProbeKey
+              new List<int>(action.AntagonistInfluences)
           );
           action.Id = newId;
         }
       }
+    }
+
+    private bool ValidateStimulusIdRangesBeforeSave()
+    {
+      HashSet<int> yamlReferencedIds = EnvironmentCatalogStorage.GetReferencedInfluenceActionIds();
+      var warnings = new List<string>();
+      foreach (var action in InfluenceActions)
+      {
+        if (action == null)
+          continue;
+        if (yamlReferencedIds.Contains(action.Id))
+        {
+          if (action.Id < 101 || action.Id > 1000)
+            warnings.Add($"ID {action.Id} («{action.Name}»): прокси для YAML-триггеров рекомендуется в диапазоне 101–1000.");
+        }
+        else if (action.Id < 1 || action.Id > 100)
+        {
+          warnings.Add($"ID {action.Id} («{action.Name}»): операторский стимул рекомендуется в диапазоне 1–100.");
+        }
+      }
+
+      if (warnings.Count == 0)
+        return true;
+
+      string message = string.Join(Environment.NewLine, warnings) + Environment.NewLine + Environment.NewLine +
+                       "Продолжить сохранение?";
+      return MessageBox.Show(
+          message,
+          "Диапазоны ID стимулов",
+          MessageBoxButton.YesNo,
+          MessageBoxImage.Warning) == MessageBoxResult.Yes;
     }
 
     public class DescriptionWithLink
@@ -385,7 +392,7 @@ namespace AIStudio.ViewModels
       {
         return new DescriptionWithLink
         {
-          Text = "Редактор воздействий оператора на гомеостаз симбионта, имитирующих внешнее взаимодействие."
+          Text = "Справочник дискретных стимулов: воздействия оператора с пульта и прокси для событий среды (YAML-триггеры). Давление метрик на виталы — в «Давление среды на виталы»."
         };
       }
     }

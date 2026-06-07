@@ -34,6 +34,18 @@ public static class AppConfig
 
   public static string DataGomeostasFolderPath => GetSetting("DataGomeostasFolderPath");
   public static string DataActionsFolderPath => GetSetting("DataActionsFolderPath");
+  /// <summary>Путь к файлу правил давления среды (ProbeKey → виталы).</summary>
+  public static string EnvironmentPressureRulesFilePath
+  {
+    get
+    {
+      var path = GetSetting("EnvironmentPressureRulesFilePath");
+      if (string.IsNullOrWhiteSpace(path))
+        path = Path.Combine(DataActionsFolderPath ?? string.Empty, "EnvironmentPressureRules.dat");
+      return path;
+    }
+  }
+
   public static string SensorsFolderPath => GetSetting("SensorsFolderPath");
   public static string ReflexesFolderPath => GetSetting("ReflexesFolderPath");
   public static string PsychicDataFolderPath => GetSetting("PsychicDataFolderPath");
@@ -240,6 +252,7 @@ public static class AppConfig
         new XElement("AppSettings",
           new XElement("DataGomeostasFolderPath", Path.Combine(appDataPath, "Data", "Gomeostas")),
           new XElement("DataActionsFolderPath", Path.Combine(appDataPath, "Data", "Actions")),
+          new XElement("EnvironmentPressureRulesFilePath", Path.Combine(appDataPath, "Data", "Actions", "EnvironmentPressureRules.dat")),
           new XElement("SensorsFolderPath", Path.Combine(appDataPath, "Data", "Sensors")),
           new XElement("ReflexesFolderPath", Path.Combine(appDataPath, "Data", "Reflexes")),
           new XElement("PsychicDataFolderPath", Path.Combine(appDataPath, "Data", "Psychic")),

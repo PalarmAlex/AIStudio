@@ -126,6 +126,10 @@
               Style="{StaticResource MenuButtonStyle}"
               Command="{Binding VerticalMenuItemClickedCommand}"
               CommandParameter="46"/>
+            <Button Content="Давление среды на виталы" Margin="20,2,5,2"
+              Style="{StaticResource MenuButtonStyle}"
+              Command="{Binding VerticalMenuItemClickedCommand}"
+              CommandParameter="48"/>
           </StackPanel>
         </Expander>
 

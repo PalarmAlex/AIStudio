@@ -113,7 +113,7 @@
 <ul>
 <li>доступность редакторов меню «Среда»;</li>
 <li>seed BootData при <strong>создании</strong> проекта (если тип среды выбран);</li>
-<li>(post-MVP) combobox и подсказки из <code>schema\</code> — в т.ч. <strong><code>EnvironmentMetricProbeKey</code></strong> в таблице воздействий EA.</li>
+<li>(post-MVP) combobox и подсказки из <code>schema\</code> — в т.ч. <strong>ProbeKey</strong> в редакторе «Давление среды на виталы» (<code>EnvironmentPressureRules.dat</code>).</li>
 </ul>
 <h3 id="05-когда-нужен-пакет-для-студии">0.5. Когда нужен пакет для студии</h3>
 <p>Ядро платформы для host — <strong><code>isida.dll</code></strong> и runtime contract YAML (§ 5–7). Формат <strong>пакета</strong> (<code>manifest.json</code>, <code>Adapters\{id}\</code>, BootData, schema) обязателен <strong>только</strong> если используется AIStudio.</p>
@@ -469,7 +469,7 @@ triggers:
 <thead>
 <tr><th>Поле</th><th>Справочник</th><th>Назначение</th></tr></thead><tbody>
 
-<tr><td><code>influence_action_id</code></td><td>Influence Actions (EA)</td><td>При срабатывании detect → <code>ApplyMultipleInfluenceActions</code></td></tr>
+<tr><td><code>influence_action_id</code></td><td>Influence Actions (EA)</td><td>При срабатывании detect → <code>ApplyMultipleInfluenceActions</code>. <strong>Только ID из <code>InfluenceActions.dat</code></strong>, не RuleId из <code>EnvironmentPressureRules.dat</code>.</td></tr>
 </tbody></table>
 <h3 id="73-правила-detect-contract-v1">7.3. Правила <code>detect</code> (contract v1)</h3>
 <table>
@@ -603,7 +603,7 @@ triggers:
 
 <tr><td><code>trigger-detect.json</code></td><td>Правила <code>detect</code></td></tr>
 
-<tr><td><code>metric-probes.json</code></td><td>Допустимые ключи <strong><code>EnvironmentMetricProbeKey</code></strong> в таблице воздействий EA (combobox в студии, post-MVP)</td></tr>
+<tr><td><code>metric-probes.json</code></td><td>Допустимые ключи <strong>ProbeKey</strong> в <code>EnvironmentPressureRules.dat</code> (combobox в редакторе «Давление среды на виталы», post-MVP)</td></tr>
 </tbody></table>
 <h3 id="102-формат-дескriptor-поля-фрагмент">10.2. Формат дескriptor поля (фрагмент)</h3>
 <pre><code>
@@ -672,7 +672,7 @@ triggers:
   ]
 }
 </code></pre>
-<p>Студия (post-MVP) заполняет combobox колонки <code>EnvironmentMetricProbeKey</code> в <code>InfluenceActions.dat</code> из <code>probes[].key</code>; пустое значение — воздействие <strong>оператора</strong> (пульт), не среды.</p>
+<p>Студия (post-MVP) заполняет combobox <strong>ProbeKey</strong> в <code>EnvironmentPressureRules.dat</code> из <code>probes[].key</code>. Дискретные стимулы оператора и YAML — в <code>InfluenceActions.dat</code> (5 столбцов, без ProbeKey).</p>
 <hr>
 <h2 id="11-согласование-парсеров-aistudio-runtime-host">11. Согласование парсеров (AIStudio ↔ runtime host)</h2>
 <p>Общая библиотека codec <strong>не входит</strong> в contract 1.0. Согласование — <strong>тестами</strong>:</p>

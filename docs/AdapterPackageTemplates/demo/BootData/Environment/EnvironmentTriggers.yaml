@@ -1,2 +1,10 @@
-# Образец BootData: триггеры среды (см. AdapterContract.md).
-triggers: []
+# Триггеры среды: событие → influence_action_id (строка InfluenceActions.dat, не RuleId pressure rules).
+triggers:
+  - id: save_active_document
+    display_name: "Сохранение активного документа"
+    influence_action_id: 101
+    filter:
+      document_kinds: [document]
+    detect:
+      - kind: document_saved
+        enabled: true

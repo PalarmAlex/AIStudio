@@ -1,4 +1,5 @@
 using AIStudio.Common;
+using AIStudio.Common.SymbiontEnv;
 using ISIDA.Actions;
 using ISIDA.Gomeostas;
 using ISIDA.Reflexes;
@@ -701,11 +702,12 @@ namespace AIStudio.ViewModels
       try
       {
         var allActions = _influenceActionSystem.GetAllInfluenceActions().ToList();
+        var yamlReferencedIds = EnvironmentCatalogStorage.GetReferencedInfluenceActionIds();
         var operatorSource = allActions
-            .Where(a => string.IsNullOrWhiteSpace(a.EnvironmentMetricProbeKey))
+            .Where(a => !yamlReferencedIds.Contains(a.Id))
             .ToList();
         var environmentSource = allActions
-            .Where(a => !string.IsNullOrWhiteSpace(a.EnvironmentMetricProbeKey))
+            .Where(a => yamlReferencedIds.Contains(a.Id))
             .ToList();
         AddInfluenceActionItems(operatorSource, operatorActions);
         AddInfluenceActionItems(environmentSource, environmentActions);

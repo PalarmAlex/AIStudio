@@ -1,12 +1,21 @@
-Каталог BootData\Environment\ — образцы YAML каталогов среды для нового проекта симбионта.При создании проекта или «дополнить BootData из пакета» студия копирует файлы в BootData проекта(без перезаписи уже существующих). Дальше редакторы «Среда» работают с YAML проекта, не с пакетом.
+Каталог BootData\Environment\ — образцы YAML каталогов среды для нового проекта симбионта.
+При создании проекта или «дополнить BootData из пакета» студия копирует файлы в BootData проекта
+(без перезаписи уже существующих). Дальше редакторы «Среда» работают с YAML проекта, не с пакетом.
+
 Файлы
------
-EnvironmentRecipes.yaml
+-----
+
+EnvironmentRecipes.yaml
+
   Каталог рецептов среды: исполняемая моторика, привязка к адаптивным действиям (adaptive_action_id).
-  Корневой ключ recipes: — массив рецептов.
-  Минимальный каркас:
-    recipes: []
-  Пример одного рецепта (сокращённо):
+  Корневой ключ recipes: — массив рецептов.
+
+  Минимальный каркас:
+
+    recipes: []
+
+  Пример одного рецепта (сокращённо):
+
     recipes:
       - id: demo.set_property
         display_name: Установить свойство
@@ -19,13 +28,19 @@ EnvironmentRecipes.yaml
         steps:
           - type: set_property
             name: "ISIDA_Demo"
-            template: "ok"
-EnvironmentTriggers.yaml
+            template: "ok"
+
+EnvironmentTriggers.yaml
+
   Каталог триггеров: событие среды → influence_action_id (воздействие на гомеостаз).
-  Корневой ключ triggers: — массив триггеров.
-  Минимальный каркас:
-    triggers: []
-  Пример одного триггера (сокращённо):
+  Корневой ключ triggers: — массив триггеров.
+
+  Минимальный каркас:
+
+    triggers: []
+
+  Пример одного триггера (сокращённо):
+
     triggers:
       - id: demo.on_save
         display_name: После сохранения
@@ -33,8 +48,10 @@ EnvironmentTriggers.yaml
         document_kinds: [part, assembly]
         detect:
           - kind: document_saved
-            enabled: true
-Формат
+            enabled: true
+
+Формат
+
 ------
 Совместим с SymbiontEnv.Contract (EnvironmentYamlCodec) и contractVersion в manifest.json.
 Подробная норма полей — AdapterContract.md / AdapterAuthorGuide.md.

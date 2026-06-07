@@ -85,7 +85,7 @@
 
 - доступность редакторов меню «Среда»;
 - seed BootData при **создании** проекта (если тип среды выбран);
-- (post-MVP) combobox и подсказки из `schema\` — в т.ч. **`EnvironmentMetricProbeKey`** в таблице воздействий EA.
+- (post-MVP) combobox и подсказки из `schema\` — в т.ч. **ProbeKey** в редакторе «Давление среды на виталы» (`EnvironmentPressureRules.dat`).
 
 ### 0.5. Роли пользователей
 
@@ -113,7 +113,7 @@
    - читает runtime host runtime host;
    - копируются из пакета адаптера в проект симбионта при создании проекта.
 4. **Нормализация** — канонические ключи при записи, допустимые алиасы при чтении, правила round-trip.
-5. **UI schema** (JSON в `schema\`) — **машиночитаемое описание capability адаптера** для подсказок в студии (combobox типов шагов, detect, **ключей `EnvironmentMetricProbeKey`** и т.д.) без загрузки `runtime\*.dll`; schema-driven редакторы — **post-MVP**, файлы schema рекомендуются авторам уже в MVP.
+5. **UI schema** (JSON в `schema\`) — **машиночитаемое описание capability адаптера** для подсказок в студии (combobox типов шагов, detect, **ключей ProbeKey** в `EnvironmentPressureRules.dat` и т.д.) без загрузки `runtime\*.dll`; schema-driven редакторы — **post-MVP**, файлы schema рекомендуются авторам уже в MVP.
 
 ### 1.2. Что контракт не регулирует
 
@@ -442,7 +442,7 @@ triggers:
 
 | Поле | Справочник | Назначение |
 |------|------------|------------|
-| `influence_action_id` | Influence Actions (EA) | При срабатывании detect → `ApplyMultipleInfluenceActions` |
+| `influence_action_id` | Influence Actions (EA) | При срабатывании detect → `ApplyMultipleInfluenceActions`. **Только ID из `InfluenceActions.dat`**, не RuleId из `EnvironmentPressureRules.dat`. |
 
 ### 7.3. Правила `detect` (contract v1)
 
@@ -571,7 +571,7 @@ triggers:
 | `recipe-steps.json` | Допустимые `type` шагов и параметры |
 | `trigger-filter.json` | Фильтр контекста триггера (`document_kinds`, …) |
 | `trigger-detect.json` | Правила `detect` |
-| `metric-probes.json` | Допустимые ключи **`EnvironmentMetricProbeKey`** в таблице воздействий EA (combobox в студии, post-MVP) |
+| `metric-probes.json` | Допустимые ключи **ProbeKey** в `EnvironmentPressureRules.dat` (combobox в редакторе «Давление среды на виталы», post-MVP) |
 
 ### 10.2. Формат дескriptor поля (фрагмент)
 
@@ -647,7 +647,7 @@ triggers:
 }
 ```
 
-Студия (post-MVP) заполняет combobox колонки `EnvironmentMetricProbeKey` в `InfluenceActions.dat` из `probes[].key`; пустое значение — воздействие **оператора** (пульт), не среды.
+Студия (post-MVP) заполняет combobox **ProbeKey** в `EnvironmentPressureRules.dat` из `probes[].key`. Дискретные стимулы оператора и YAML — в `InfluenceActions.dat` (5 столбцов, без ProbeKey).
 
 ---
 
