@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 
 namespace AIStudio.ViewModels.SymbiontEnv
 {
@@ -13,8 +14,7 @@ namespace AIStudio.ViewModels.SymbiontEnv
     public EnvironmentTriggerRow()
     {
       DetectRules = new List<EnvironmentTriggerDetectRow>();
-      DocumentKindPart = true;
-      DocumentKindAssembly = true;
+      FilterFields = new ObservableCollection<EnvironmentRecipePreconditionField>();
     }
 
     /// <summary>Идентификатор триггера.</summary>
@@ -23,14 +23,12 @@ namespace AIStudio.ViewModels.SymbiontEnv
     public string DisplayName { get; set; }
     /// <summary>ID воздействия на гомеостаз.</summary>
     public int InfluenceActionId { get; set; }
-    /// <summary>Деталь.</summary>
-    public bool DocumentKindPart { get; set; }
-    /// <summary>Сборка.</summary>
-    public bool DocumentKindAssembly { get; set; }
-    /// <summary>Чертёж.</summary>
-    public bool DocumentKindDrawing { get; set; }
+    /// <summary>Поля фильтра (из schema/trigger-filter.json).</summary>
+    public ObservableCollection<EnvironmentRecipePreconditionField> FilterFields { get; }
     /// <summary>Правила детекции.</summary>
     public List<EnvironmentTriggerDetectRow> DetectRules { get; set; }
+    /// <summary>Краткое описание фильтра для таблицы.</summary>
+    public string FilterSummary { get; set; }
     /// <summary>Краткое описание detect для таблицы.</summary>
     public string DetectSummary { get; set; }
   }

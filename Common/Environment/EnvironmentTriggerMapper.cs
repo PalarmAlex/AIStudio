@@ -12,10 +12,6 @@ namespace AIStudio.Common.SymbiontEnv
   /// </summary>
   public static class EnvironmentTriggerMapper
   {
-    private const string KindPart = "part";
-    private const string KindAssembly = "assembly";
-    private const string KindDrawing = "drawing";
-
     /// <summary>Строка таблицы.</summary>
     public static EnvironmentTriggerRow ToRow(EnvironmentTriggerData trigger)
     {
@@ -26,9 +22,6 @@ namespace AIStudio.Common.SymbiontEnv
         Id = trigger.Id,
         DisplayName = trigger.DisplayName,
         InfluenceActionId = trigger.InfluenceActionId,
-        DocumentKindPart = HasKind(trigger, KindPart),
-        DocumentKindAssembly = HasKind(trigger, KindAssembly),
-        DocumentKindDrawing = HasKind(trigger, KindDrawing),
         DetectRules = trigger.DetectRules?
             .Select(r => new EnvironmentTriggerDetectRow
             {
@@ -52,12 +45,7 @@ namespace AIStudio.Common.SymbiontEnv
         DisplayName = row.DisplayName ?? string.Empty,
         InfluenceActionId = row.InfluenceActionId
       };
-      if (row.DocumentKindPart)
-        data.DocumentKinds.Add(KindPart);
-      if (row.DocumentKindAssembly)
-        data.DocumentKinds.Add(KindAssembly);
-      if (row.DocumentKindDrawing)
-        data.DocumentKinds.Add(KindDrawing);
+      EnvironmentTriggerFilterSchemaHelper.ApplyToData(row, data);
       if (row.DetectRules != null)
       {
         foreach (EnvironmentTriggerDetectRow rule in row.DetectRules)
@@ -74,15 +62,6 @@ namespace AIStudio.Common.SymbiontEnv
         }
       }
       return data;
-    }
-
-    private static bool HasKind(EnvironmentTriggerData trigger, string kind)
-    {
-      if (trigger.DocumentKinds == null || trigger.DocumentKinds.Count == 0)
-        return string.Equals(kind, KindPart, StringComparison.OrdinalIgnoreCase) ||
-               string.Equals(kind, KindAssembly, StringComparison.OrdinalIgnoreCase);
-      return trigger.DocumentKinds.Any(
-          x => string.Equals(x, kind, StringComparison.OrdinalIgnoreCase));
     }
 
     private static string FormatCommandIds(IDictionary<string, string> parameters)

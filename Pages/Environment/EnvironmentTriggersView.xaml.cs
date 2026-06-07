@@ -3,8 +3,8 @@ using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
-using AIStudio.Dialogs;
 using AIStudio.ViewModels.SymbiontEnv;
+
 namespace AIStudio.Pages.SymbiontEnv
 {
   /// <summary>
@@ -21,6 +21,7 @@ namespace AIStudio.Pages.SymbiontEnv
     }
 
     private EnvironmentTriggersViewModel Vm => DataContext as EnvironmentTriggersViewModel;
+
     private void TriggersGrid_AddingNewItem(object sender, AddingNewItemEventArgs e)
     {
       if (Vm == null)
@@ -46,20 +47,60 @@ namespace AIStudio.Pages.SymbiontEnv
         e.Handled = true;
     }
 
-    private void InfluenceActionCell_MouseDown(object sender, MouseButtonEventArgs e)
+    private void IdCell_MouseDown(object sender, MouseButtonEventArgs e)
     {
-      if (e.ClickCount != 2 || Vm == null || !Vm.IsEditingEnabled)
+      if (e.ClickCount != 2 || Vm == null)
         return;
+      if (!TryEnsureEditingEnabled())
+      {
+        e.Handled = true;
+        return;
+      }
       if (!(sender is FrameworkElement element) || !(element.DataContext is EnvironmentTriggerRow row))
         return;
-      var dialog = new InfluenceActionsSelectionDialog(
-          row.InfluenceActionId > 0 ? new List<int> { row.InfluenceActionId } : new List<int>(),
-          maxSelectionCount: 1);
-      dialog.Owner = Window.GetWindow(this);
-      if (dialog.ShowDialog() == true && dialog.SelectedInfluenceActions != null &&
-          dialog.SelectedInfluenceActions.Count > 0)
+
+      if (Vm.TryPickTriggerId(Window.GetWindow(this), row))
       {
-        row.InfluenceActionId = dialog.SelectedInfluenceActions[0];
+        TriggersGrid.CommitEdit(DataGridEditingUnit.Row, true);
+        TriggersGrid.Items.Refresh();
+      }
+      e.Handled = true;
+    }
+
+    private void InfluenceActionCell_MouseDown(object sender, MouseButtonEventArgs e)
+    {
+      if (e.ClickCount != 2 || Vm == null)
+        return;
+      if (!TryEnsureEditingEnabled())
+      {
+        e.Handled = true;
+        return;
+      }
+      if (!(sender is FrameworkElement element) || !(element.DataContext is EnvironmentTriggerRow row))
+        return;
+
+      if (Vm.TryPickInfluenceAction(Window.GetWindow(this), row))
+      {
+        TriggersGrid.CommitEdit(DataGridEditingUnit.Row, true);
+        TriggersGrid.Items.Refresh();
+      }
+      e.Handled = true;
+    }
+
+    private void FilterCell_MouseDown(object sender, MouseButtonEventArgs e)
+    {
+      if (e.ClickCount != 2 || Vm == null)
+        return;
+      if (!TryEnsureEditingEnabled())
+      {
+        e.Handled = true;
+        return;
+      }
+      if (!(sender is FrameworkElement element) || !(element.DataContext is EnvironmentTriggerRow row))
+        return;
+
+      if (Vm.TryEditFilterFields(Window.GetWindow(this), row))
+      {
         TriggersGrid.CommitEdit(DataGridEditingUnit.Row, true);
         TriggersGrid.Items.Refresh();
       }
@@ -68,20 +109,35 @@ namespace AIStudio.Pages.SymbiontEnv
 
     private void DetectCell_MouseDown(object sender, MouseButtonEventArgs e)
     {
-      if (e.ClickCount != 2 || Vm == null || !Vm.IsEditingEnabled)
+      if (e.ClickCount != 2 || Vm == null)
         return;
+      if (!TryEnsureEditingEnabled())
+      {
+        e.Handled = true;
+        return;
+      }
       if (!(sender is FrameworkElement element) || !(element.DataContext is EnvironmentTriggerRow row))
         return;
-      var editor = new EnvironmentTriggerDetectEditorDialog(row.DetectRules);
-      editor.Owner = Window.GetWindow(this);
-      if (editor.ShowDialog() == true)
+
+      if (Vm.TryEditDetectRules(Window.GetWindow(this), row))
       {
-        row.DetectRules = editor.ResultRules;
-        Vm.RefreshDetectSummary(row);
         TriggersGrid.CommitEdit(DataGridEditingUnit.Row, true);
         TriggersGrid.Items.Refresh();
       }
       e.Handled = true;
+    }
+
+    private bool TryEnsureEditingEnabled()
+    {
+      if (Vm == null || Vm.IsEditingEnabled)
+        return true;
+
+      MessageBox.Show(
+          Vm.PulseWarningMessage,
+          "Редактирование недоступно",
+          MessageBoxButton.OK,
+          MessageBoxImage.Warning);
+      return false;
     }
   }
 }

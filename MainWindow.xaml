@@ -145,7 +145,7 @@
               Command="{Binding VerticalMenuItemClickedCommand}"
               CommandParameter="2"/>            
 
-            <Button Content="Жизненные параметры" Margin="20,2,5,2" 
+            <Button Content="Виталы" Margin="20,2,5,2" 
               Style="{StaticResource MenuButtonStyle}"
               Command="{Binding VerticalMenuItemClickedCommand}"
               CommandParameter="1"/>

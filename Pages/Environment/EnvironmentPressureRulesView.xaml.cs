@@ -6,7 +6,6 @@ using System.Windows.Input;
 using AIStudio.Common.SymbiontEnv;
 using AIStudio.Dialogs;
 using AIStudio.ViewModels.SymbiontEnv;
-using ISIDA.Actions;
 using ISIDA.Gomeostas;
 
 namespace AIStudio.Pages.SymbiontEnv
@@ -48,6 +47,37 @@ namespace AIStudio.Pages.SymbiontEnv
         e.Handled = true;
     }
 
+    private void ProbeKeyCell_MouseDown(object sender, MouseButtonEventArgs e)
+    {
+      if (e.ClickCount != 2 || Vm == null)
+        return;
+      if (!Vm.IsEditingEnabled)
+      {
+        MessageBox.Show(
+            Vm.PulseWarningMessage,
+            "Редактирование недоступно",
+            MessageBoxButton.OK,
+            MessageBoxImage.Warning);
+        e.Handled = true;
+        return;
+      }
+      if (!(sender is FrameworkElement element) || !(element.DataContext is EnvironmentPressureRuleRow row))
+        return;
+
+      var editor = new MetricProbeKeySelectionDialog(row.ProbeKey, Vm.ProbeKeyOptions)
+      {
+        Owner = Window.GetWindow(this),
+        Title = $"ProbeKey: {row.Name} (RuleId {row.RuleId})"
+      };
+      if (editor.ShowDialog() == true)
+      {
+        row.ProbeKey = editor.SelectedProbeKey ?? string.Empty;
+        RulesGrid.CommitEdit(DataGridEditingUnit.Row, true);
+        RulesGrid.Items.Refresh();
+      }
+      e.Handled = true;
+    }
+
     private void InfluencesCell_MouseDown(object sender, MouseButtonEventArgs e)
     {
       if (e.ClickCount != 2 || Vm == null || !Vm.IsEditingEnabled)
@@ -64,33 +94,6 @@ namespace AIStudio.Pages.SymbiontEnv
         row.Influences = editor.SelectedInfluences.ToDictionary(
             kvp => kvp.Key,
             kvp => GomeostasSystem.ClampInt(kvp.Value, -10, 10));
-        RulesGrid.CommitEdit(DataGridEditingUnit.Row, true);
-        RulesGrid.Items.Refresh();
-      }
-      e.Handled = true;
-    }
-
-    private void AntagonistsCell_MouseDown(object sender, MouseButtonEventArgs e)
-    {
-      if (e.ClickCount != 2 || Vm == null || !Vm.IsEditingEnabled)
-        return;
-      if (!(sender is FrameworkElement element) || !(element.DataContext is EnvironmentPressureRuleRow row))
-        return;
-      var availableRules = Vm.Rules
-          .Where(r => r.RuleId != row.RuleId)
-          .Select(r => new InfluenceActionSystem.GomeostasisInfluenceAction
-          {
-            Id = r.RuleId,
-            Name = r.Name
-          });
-      var editor = new AntagonistInfluenceEditor(
-          $"Antagonists: {row.Name} (RuleId {row.RuleId})",
-          availableRules,
-          row.Antagonists ?? new List<int>());
-      editor.Owner = Window.GetWindow(this);
-      if (editor.ShowDialog() == true)
-      {
-        row.Antagonists = editor.SelectedInfluenceIds.ToList();
         RulesGrid.CommitEdit(DataGridEditingUnit.Row, true);
         RulesGrid.Items.Refresh();
       }

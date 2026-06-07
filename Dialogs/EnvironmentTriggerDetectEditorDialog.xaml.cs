@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Windows;
+using AIStudio.Common.Adapters;
 using AIStudio.ViewModels.SymbiontEnv;
 
 namespace AIStudio.Dialogs
@@ -11,11 +12,19 @@ namespace AIStudio.Dialogs
   public partial class EnvironmentTriggerDetectEditorDialog : Window
   {
     /// <summary>
+    /// Справочник типов detect из schema адаптера.
+    /// </summary>
+    public IReadOnlyList<AdapterSchemaDetectKind> DetectKindChoices { get; }
+
+    /// <summary>
     /// Создаёт диалог.
     /// </summary>
-    public EnvironmentTriggerDetectEditorDialog(IEnumerable<EnvironmentTriggerDetectRow> rules)
+    public EnvironmentTriggerDetectEditorDialog(
+        IEnumerable<EnvironmentTriggerDetectRow> rules,
+        IReadOnlyList<AdapterSchemaDetectKind> detectKinds)
     {
       InitializeComponent();
+      DetectKindChoices = detectKinds ?? new AdapterSchemaDetectKind[0];
       DetectGrid.ItemsSource = rules?.Select(Clone).ToList() ?? new List<EnvironmentTriggerDetectRow>();
     }
 
@@ -25,6 +34,7 @@ namespace AIStudio.Dialogs
     public List<EnvironmentTriggerDetectRow> ResultRules =>
         (DetectGrid.ItemsSource as IEnumerable<EnvironmentTriggerDetectRow>)?.ToList()
         ?? new List<EnvironmentTriggerDetectRow>();
+
     private void Ok_Click(object sender, RoutedEventArgs e)
     {
       DialogResult = true;

@@ -18,7 +18,6 @@ namespace AIStudio.Common.SymbiontEnv
     public string Name { get; set; } = string.Empty;
     public string Description { get; set; } = string.Empty;
     public Dictionary<int, int> Influences { get; set; } = new Dictionary<int, int>();
-    public List<int> Antagonists { get; set; } = new List<int>();
   }
 
   /// <summary>
@@ -60,8 +59,9 @@ namespace AIStudio.Common.SymbiontEnv
           continue;
 
         string[] parts = trimmed.Split('|');
-        if (parts.Length < 6 || !int.TryParse(parts[0], out int ruleId))
-          continue;
+        if (parts.Length != 5 || !int.TryParse(parts[0], out int ruleId))
+          throw new InvalidDataException(
+              $"Неверный формат строки в EnvironmentPressureRules.dat (ожидается 5 полей): {trimmed}");
 
         rows.Add(new EnvironmentPressureRuleRow
         {
@@ -69,8 +69,7 @@ namespace AIStudio.Common.SymbiontEnv
           ProbeKey = parts[1].Trim(),
           Name = parts[2].Trim(),
           Description = parts[3].Trim(),
-          Influences = ParseInfluences(parts[4]),
-          Antagonists = ParseAntagonists(parts[5])
+          Influences = ParseInfluences(parts[4])
         });
       }
 
@@ -94,8 +93,7 @@ namespace AIStudio.Common.SymbiontEnv
       {
         FileValidator.FileHeaders.EnvironmentPressureRulesFormat,
         FileValidator.FileHeaders.EnvironmentPressureRulesProbeKey,
-        FileValidator.FileHeaders.EnvironmentPressureRulesInfluences,
-        FileValidator.FileHeaders.EnvironmentPressureRulesAntagonists
+        FileValidator.FileHeaders.EnvironmentPressureRulesInfluences
       };
 
       foreach (EnvironmentPressureRuleRow rule in rules.OrderBy(r => r.RuleId))
@@ -107,15 +105,14 @@ namespace AIStudio.Common.SymbiontEnv
             rule.ProbeKey ?? string.Empty,
             rule.Name ?? string.Empty,
             rule.Description ?? string.Empty,
-            InfluencesToString(rule.Influences),
-            string.Join(",", rule.Antagonists ?? new List<int>())));
+            InfluencesToString(rule.Influences)));
       }
 
       var result = FileValidator.SafeSaveFile(
           path,
           lines,
           tempPath => FileValidator.IsValidEnvironmentPressureRulesFile(tempPath),
-          minLinesCount: 4,
+          minLinesCount: 3,
           fileDescription: "правила давления среды");
       if (!result.Success)
         throw new IOException(result.ErrorMessage ?? "Не удалось сохранить правила давления среды.");
@@ -128,7 +125,6 @@ namespace AIStudio.Common.SymbiontEnv
       sb.AppendLine(FileValidator.FileHeaders.EnvironmentPressureRulesFormat);
       sb.AppendLine(FileValidator.FileHeaders.EnvironmentPressureRulesProbeKey);
       sb.AppendLine(FileValidator.FileHeaders.EnvironmentPressureRulesInfluences);
-      sb.AppendLine(FileValidator.FileHeaders.EnvironmentPressureRulesAntagonists);
       return sb.ToString();
     }
 
@@ -158,18 +154,6 @@ namespace AIStudio.Common.SymbiontEnv
       }
 
       return influences;
-    }
-
-    private static List<int> ParseAntagonists(string antagonistsStr)
-    {
-      if (string.IsNullOrWhiteSpace(antagonistsStr))
-        return new List<int>();
-
-      return antagonistsStr
-          .Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries)
-          .Select(s => int.TryParse(s.Trim(), out int aid) ? aid : 0)
-          .Where(aid => aid != 0)
-          .ToList();
     }
 
     private static string InfluencesToString(Dictionary<int, int> influences)

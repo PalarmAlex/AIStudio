@@ -4,6 +4,8 @@
              MinHeight="400">
   <UserControl.Resources>
     <converters:BoolToVisibilityConverter xmlns:converters="clr-namespace:AIStudio.Converters" x:Key="BoolToVisibilityConverter"/>
+    <converters:InverseBooleanConverter xmlns:converters="clr-namespace:AIStudio.Converters" x:Key="InverseBooleanConverter"/>
+    <converters:InverseBooleanToVisibilityConverter xmlns:converters="clr-namespace:AIStudio.Converters" x:Key="InverseBooleanToVisibilityConverter"/>
   </UserControl.Resources>
   <Grid Margin="8">
     <Grid.RowDefinitions>
@@ -22,61 +24,195 @@
         <ScrollViewer VerticalScrollBarVisibility="Auto" Margin="8">
           <StackPanel>
             <TextBlock Text="ID" FontWeight="SemiBold"/>
-            <TextBox Text="{Binding Id, UpdateSourceTrigger=PropertyChanged}" Margin="0,4,0,8"/>
+            <Grid Margin="0,4,0,8">
+              <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="280"/>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="*"/>
+              </Grid.ColumnDefinitions>
+              <TextBox Grid.Column="0"
+                       Text="{Binding DataContext.RecipeId, RelativeSource={RelativeSource AncestorType=UserControl}, UpdateSourceTrigger=PropertyChanged}"
+                       IsReadOnly="{Binding DataContext.IsEditingEnabled, RelativeSource={RelativeSource AncestorType=UserControl}, Converter={StaticResource InverseBooleanConverter}}"/>
+              <Button Grid.Column="1" Content="Выбрать…" Margin="8,0,8,0" Padding="10,4"
+                      Click="PickRecipeId_Click"
+                      IsEnabled="{Binding DataContext.IsEditingEnabled, RelativeSource={RelativeSource AncestorType=UserControl}}"/>
+            </Grid>
+
             <TextBlock Text="Название" FontWeight="SemiBold"/>
             <TextBox Text="{Binding DisplayName, UpdateSourceTrigger=PropertyChanged}" Margin="0,4,0,8"/>
             <TextBlock Text="Описание" FontWeight="SemiBold"/>
             <TextBox Text="{Binding Description, UpdateSourceTrigger=PropertyChanged}" AcceptsReturn="True" Height="60" Margin="0,4,0,8"/>
+
             <TextBlock Text="Адаптивное действие (G_AD)" FontWeight="SemiBold"/>
             <Grid Margin="0,4,0,8">
               <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="120"/>
                 <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="*"/>
               </Grid.ColumnDefinitions>
-              <TextBox Grid.Column="0" Text="{Binding AdaptiveActionId}" IsReadOnly="True"/>
-              <Button Grid.Column="1" Content="Выбрать…" Margin="8,0,0,0" Click="PickAdaptiveAction_Click"/>
+              <TextBox Grid.Column="0"
+                       Text="{Binding DataContext.AdaptiveActionDisplay, RelativeSource={RelativeSource AncestorType=UserControl}, Mode=OneWay}"
+                       IsReadOnly="True"/>
+              <Button Grid.Column="1" Content="Выбрать…" Margin="8,0,8,0" Padding="10,4"
+                      Click="PickAdaptiveAction_Click"
+                      IsEnabled="{Binding DataContext.IsEditingEnabled, RelativeSource={RelativeSource AncestorType=UserControl}}"/>
+              <TextBlock Grid.Column="2"
+                         Text="{Binding DataContext.AdaptiveActionDescription, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                         VerticalAlignment="Center"
+                         TextWrapping="Wrap"
+                         Foreground="#FF555555"/>
             </Grid>
+
             <TextBlock Text="Уровень риска" FontWeight="SemiBold"/>
             <ComboBox ItemsSource="{Binding DataContext.RiskTierChoices, RelativeSource={RelativeSource AncestorType=UserControl}}"
-                      SelectedItem="{Binding RiskTier}" Margin="0,4,0,8"/>
+                      SelectedItem="{Binding RiskTier}" Margin="0,4,0,8" Width="120" HorizontalAlignment="Left"/>
             <CheckBox Content="Реактивное исполнение (reactive_eligible)" IsChecked="{Binding ReactiveEligible}" Margin="0,0,0,8"/>
+
             <TextBlock Text="Рекомендуемые воздействия (триггеры)" FontWeight="SemiBold"/>
             <Grid Margin="0,4,0,8">
               <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="120"/>
                 <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="*"/>
               </Grid.ColumnDefinitions>
-              <TextBox Grid.Column="0" Text="{Binding RecommendedTriggersDisplay}" IsReadOnly="True"/>
-              <Button Grid.Column="1" Content="Выбрать…" Margin="8,0,0,0" Click="PickRecommendedTriggers_Click"/>
+              <TextBox Grid.Column="0"
+                       Text="{Binding DataContext.RecommendedTriggerDisplay, RelativeSource={RelativeSource AncestorType=UserControl}, Mode=OneWay}"
+                       IsReadOnly="True"/>
+              <Button Grid.Column="1" Content="Выбрать…" Margin="8,0,8,0" Padding="10,4"
+                      Click="PickRecommendedTriggers_Click"
+                      IsEnabled="{Binding DataContext.IsEditingEnabled, RelativeSource={RelativeSource AncestorType=UserControl}}"/>
+              <TextBlock Grid.Column="2"
+                         Text="{Binding DataContext.RecommendedTriggerDescription, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                         VerticalAlignment="Center"
+                         TextWrapping="Wrap"
+                         Foreground="#FF555555"/>
             </Grid>
           </StackPanel>
         </ScrollViewer>
       </TabItem>
       <TabItem Header="Предусловия">
-        <StackPanel Margin="12">
-          <CheckBox Content="Деталь (part)" IsChecked="{Binding DocumentKindPart}" Margin="0,4"
-                    Visibility="{Binding DataContext.ShowDocumentKindPart, RelativeSource={RelativeSource AncestorType=UserControl}, Converter={StaticResource BoolToVisibilityConverter}}"/>
-          <CheckBox Content="Сборка (assembly)" IsChecked="{Binding DocumentKindAssembly}" Margin="0,4"
-                    Visibility="{Binding DataContext.ShowDocumentKindAssembly, RelativeSource={RelativeSource AncestorType=UserControl}, Converter={StaticResource BoolToVisibilityConverter}}"/>
-          <CheckBox Content="Чертёж (drawing)" IsChecked="{Binding DocumentKindDrawing}" Margin="0,4"
-                    Visibility="{Binding DataContext.ShowDocumentKindDrawing, RelativeSource={RelativeSource AncestorType=UserControl}, Converter={StaticResource BoolToVisibilityConverter}}"/>
-          <CheckBox Content="Не в режиме эскиза" IsChecked="{Binding NotSketchEdit}" Margin="0,8,0,4"
-                    Visibility="{Binding DataContext.ShowNotSketchEdit, RelativeSource={RelativeSource AncestorType=UserControl}, Converter={StaticResource BoolToVisibilityConverter}}"/>
-          <CheckBox Content="Не read-only" IsChecked="{Binding NotReadOnly}" Margin="0,4"
-                    Visibility="{Binding DataContext.ShowNotReadOnly, RelativeSource={RelativeSource AncestorType=UserControl}, Converter={StaticResource BoolToVisibilityConverter}}"/>
-          <CheckBox Content="Требуется checkout PDM" IsChecked="{Binding PdmCheckoutRequired}" Margin="0,4"
-                    Visibility="{Binding DataContext.ShowPdmCheckoutRequired, RelativeSource={RelativeSource AncestorType=UserControl}, Converter={StaticResource BoolToVisibilityConverter}}"/>
-        </StackPanel>
+        <ScrollViewer VerticalScrollBarVisibility="Auto" Margin="8">
+          <StackPanel IsEnabled="{Binding DataContext.IsEditingEnabled, RelativeSource={RelativeSource AncestorType=UserControl}}">
+            <ItemsControl ItemsSource="{Binding PreconditionFields}">
+              <ItemsControl.ItemTemplate>
+                <DataTemplate>
+                  <StackPanel Margin="0,0,0,4">
+                    <CheckBox Content="{Binding Label}"
+                              IsChecked="{Binding IsChecked, UpdateSourceTrigger=PropertyChanged}"
+                              Margin="0,4"
+                              Visibility="{Binding IsBoolType, Converter={StaticResource BoolToVisibilityConverter}}"/>
+                    <StackPanel Visibility="{Binding IsStringListType, Converter={StaticResource BoolToVisibilityConverter}}">
+                      <TextBlock Text="{Binding Label}" FontWeight="SemiBold" Margin="0,8,0,4"/>
+                      <ItemsControl ItemsSource="{Binding ListItems}">
+                        <ItemsControl.ItemTemplate>
+                          <DataTemplate>
+                            <CheckBox Content="{Binding Label}"
+                                      IsChecked="{Binding IsSelected, UpdateSourceTrigger=PropertyChanged}"
+                                      Margin="0,4"/>
+                          </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                      </ItemsControl>
+                    </StackPanel>
+                  </StackPanel>
+                </DataTemplate>
+              </ItemsControl.ItemTemplate>
+            </ItemsControl>
+            <TextBlock Text="Поля и допустимые значения задаются в schema/recipe-preconditions.json пакета адаптера."
+                       Foreground="#FF777777"
+                       FontStyle="Italic"
+                       TextWrapping="Wrap"
+                       Margin="0,8,0,0"/>
+          </StackPanel>
+        </ScrollViewer>
       </TabItem>
       <TabItem Header="Шаги">
         <Grid Margin="4">
-          <DataGrid x:Name="StepsGrid" ItemsSource="{Binding Steps}" AutoGenerateColumns="False"
-                    CanUserAddRows="True" CanUserDeleteRows="True">
+          <Grid.RowDefinitions>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="5"/>
+            <RowDefinition Height="2*"/>
+          </Grid.RowDefinitions>
+
+          <DataGrid x:Name="StepsGrid" Grid.Row="0"
+                    ItemsSource="{Binding Steps}"
+                    SelectedItem="{Binding DataContext.SelectedStep, RelativeSource={RelativeSource AncestorType=UserControl}, Mode=TwoWay}"
+                    AutoGenerateColumns="False"
+                    CanUserAddRows="True"
+                    CanUserDeleteRows="True"
+                    SelectionMode="Single"
+                    BorderBrush="#FFE0E0E0"
+                    BorderThickness="1"
+                    RowBackground="#FFF9F9F9"
+                    AlternatingRowBackground="White"
+                    GridLinesVisibility="Horizontal"
+                    AddingNewItem="StepsGrid_AddingNewItem">
             <DataGrid.Columns>
-              <DataGridTextColumn Header="Тип" Binding="{Binding StepType, UpdateSourceTrigger=PropertyChanged}" Width="140"/>
-              <DataGridTextColumn Header="Параметры (key=value)" Binding="{Binding ParametersText, UpdateSourceTrigger=PropertyChanged}" Width="*"/>
+              <DataGridTextColumn Header="Тип" Binding="{Binding StepType}" Width="160" IsReadOnly="True"/>
+              <DataGridTextColumn Header="Параметры" Binding="{Binding Summary}" Width="*" IsReadOnly="True"/>
             </DataGrid.Columns>
           </DataGrid>
+
+          <GridSplitter Grid.Row="1" Height="5" HorizontalAlignment="Stretch" Background="#FFE8E8E8"/>
+
+          <Border Grid.Row="2" BorderBrush="#FFE0E0E0" BorderThickness="1" Padding="10"
+                  Visibility="{Binding DataContext.HasSelectedStep, RelativeSource={RelativeSource AncestorType=UserControl}, Converter={StaticResource BoolToVisibilityConverter}}">
+            <ScrollViewer VerticalScrollBarVisibility="Auto">
+              <StackPanel DataContext="{Binding DataContext.SelectedStep, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                          IsEnabled="{Binding DataContext.IsEditingEnabled, RelativeSource={RelativeSource AncestorType=UserControl}}">
+                <TextBlock Text="Тип шага" FontWeight="SemiBold" Margin="0,0,0,4"/>
+                <ComboBox x:Name="StepTypeComboBox"
+                          Width="320"
+                          HorizontalAlignment="Left"
+                          Margin="0,0,0,12"
+                          ItemsSource="{Binding DataContext.StepTypeOptions, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                          DisplayMemberPath="Label"
+                          SelectedValuePath="Type"
+                          SelectedValue="{Binding StepType, UpdateSourceTrigger=PropertyChanged}"
+                          SelectionChanged="StepTypeComboBox_SelectionChanged"
+                          IsEnabled="{Binding DataContext.IsEditingEnabled, RelativeSource={RelativeSource AncestorType=UserControl}}"/>
+
+                <TextBlock Text="Параметры шага" FontWeight="SemiBold" Margin="0,0,0,6"/>
+                <ItemsControl ItemsSource="{Binding ParameterFields}">
+                  <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+                      <Grid Margin="0,0,0,8">
+                        <Grid.ColumnDefinitions>
+                          <ColumnDefinition Width="180"/>
+                          <ColumnDefinition Width="*"/>
+                          <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Grid.Column="0" Text="{Binding Label}" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                        <ComboBox Grid.Column="1"
+                                  ItemsSource="{Binding EnumValues}"
+                                  SelectedItem="{Binding Value, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                  Visibility="{Binding HasEnumValues, Converter={StaticResource BoolToVisibilityConverter}}"/>
+                        <TextBox Grid.Column="1"
+                                 Text="{Binding Value, UpdateSourceTrigger=PropertyChanged}"
+                                 Visibility="{Binding HasEnumValues, Converter={StaticResource InverseBooleanToVisibilityConverter}}"/>
+                        <StackPanel Grid.Column="2" Orientation="Horizontal" Margin="8,0,0,0">
+                          <Button Content="Вставить…" Padding="8,3" Margin="0,0,6,0"
+                                  Visibility="{Binding IsTemplateField, Converter={StaticResource BoolToVisibilityConverter}}"
+                                  Click="InsertPlaceholder_Click" Tag="{Binding}"/>
+                          <Button Content="Справочник…" Padding="8,3"
+                                  Visibility="{Binding IsPropertyNameField, Converter={StaticResource BoolToVisibilityConverter}}"
+                                  Click="PickPropertyName_Click" Tag="{Binding}"/>
+                        </StackPanel>
+                      </Grid>
+                    </DataTemplate>
+                  </ItemsControl.ItemTemplate>
+                </ItemsControl>
+                <TextBlock Text="Поля и допустимые значения задаются в schema/recipe-steps.json пакета адаптера."
+                           Foreground="#FF777777" FontStyle="Italic" TextWrapping="Wrap" Margin="0,8,0,0"/>
+              </StackPanel>
+            </ScrollViewer>
+          </Border>
+
+          <TextBlock Grid.Row="2"
+                     Text="Выберите шаг в таблице для редактирования параметров."
+                     VerticalAlignment="Center"
+                     HorizontalAlignment="Center"
+                     Foreground="#FF888888"
+                     Visibility="{Binding DataContext.HasSelectedStep, RelativeSource={RelativeSource AncestorType=UserControl}, Converter={StaticResource InverseBooleanToVisibilityConverter}}"/>
         </Grid>
       </TabItem>
       <TabItem Header="Прочее">
@@ -92,8 +228,18 @@
     <Grid Grid.Row="2" Margin="0,8,0,0">
       <TextBlock Text="{Binding PulseWarningMessage}" Foreground="{Binding WarningMessageColor}" VerticalAlignment="Center"/>
       <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
-        <Button Content="Сохранить" Padding="12,6" Margin="0,0,8,0" Command="{Binding SaveCommand}"/>
-        <Button Content="Отмена" Padding="12,6" Command="{Binding CancelCommand}"/>
+        <Button Content="Сохранить"
+                Command="{Binding SaveCommand}"
+                IsEnabled="{Binding IsEditingEnabled}"
+                Style="{StaticResource ActionButtonStyle}"
+                Margin="0,0,0,0"
+                Cursor="Hand"
+                ToolTip="Сохранить рецепт"/>
+        <Button Content="Отмена"
+                Command="{Binding CancelCommand}"
+                Style="{StaticResource RedButtonStyle}"
+                Cursor="Hand"
+                ToolTip="Закрыть без сохранения"/>
       </StackPanel>
     </Grid>
   </Grid>

@@ -3,7 +3,7 @@
   "displayName": "Мой адаптер (замените id и название)",
   "version": "0.1.0",
   "contractVersion": "2.0",
-  "schemaVersion": "1.0",
+  "schemaVersion": "2.0",
   "author": "",
   "bootDataRelativePath": "BootData",
   "description": "Каркас пакета. Скопируйте каталог, задайте уникальный id, заполните schema и runtime, затем «Зарегистрировать пакет»."

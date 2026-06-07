@@ -128,6 +128,10 @@
     <Compile Include="Common\ScenarioLogComparisonSession.cs" />
     <Compile Include="Common\NumericListValidationRule.cs" />
     <Compile Include="Converters\ActionDisplayTextConverter.cs" />
+    <Compile Include="Converters\ProbeKeyDescriptionConverter.cs" />
+    <Compile Include="Converters\DetectKindLabelConverter.cs" />
+    <Compile Include="Converters\InfluenceActionIdDisplayConverter.cs" />
+    <Compile Include="Converters\InfluenceActionIdDescriptionConverter.cs" />
     <Compile Include="Converters\ActionImageLineToFontWeightConverter.cs" />
     <Compile Include="Converters\BoolToFontWeightConverter.cs" />
     <Compile Include="Converters\BoolToThicknessConverter.cs" />
@@ -394,6 +398,13 @@
     <Compile Include="Common\ScenarioReportLogDisplay.cs" />
     <Compile Include="ViewModels\Environment\EnvironmentRecipeListItem.cs" />
     <Compile Include="ViewModels\Environment\EnvironmentRecipeStepRow.cs" />
+    <Compile Include="ViewModels\Environment\EnvironmentRecipeStepParameterField.cs" />
+    <Compile Include="ViewModels\Environment\EnvironmentRecipePreconditionField.cs" />
+    <Compile Include="ViewModels\Environment\EnvironmentRecipePreconditionListItem.cs" />
+    <Compile Include="ViewModels\Environment\EnvironmentRecipePreconditionSchemaHelper.cs" />
+    <Compile Include="ViewModels\Environment\EnvironmentSchemaFieldsHelper.cs" />
+    <Compile Include="ViewModels\Environment\EnvironmentTriggerFilterSchemaHelper.cs" />
+    <Compile Include="ViewModels\Environment\EnvironmentRecipeStepSchemaHelper.cs" />
     <Compile Include="ViewModels\Environment\EnvironmentRecipeEditorModel.cs" />
     <Compile Include="ViewModels\Environment\EnvironmentTriggerRow.cs" />
     <Compile Include="ViewModels\Environment\EnvironmentTriggerDetectRow.cs" />
@@ -405,6 +416,27 @@
     <Compile Include="ViewModels\Environment\EnvironmentPressureRulesViewModel.cs" />
     <Compile Include="Dialogs\EnvironmentTriggerDetectEditorDialog.xaml.cs">
       <DependentUpon>EnvironmentTriggerDetectEditorDialog.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Dialogs\EnvironmentTriggerFilterEditorDialog.xaml.cs">
+      <DependentUpon>EnvironmentTriggerFilterEditorDialog.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Dialogs\MetricProbeKeySelectionDialog.xaml.cs">
+      <DependentUpon>MetricProbeKeySelectionDialog.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Dialogs\RecipeIdSelectionDialog.xaml.cs">
+      <DependentUpon>RecipeIdSelectionDialog.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Dialogs\TriggerIdSelectionDialog.xaml.cs">
+      <DependentUpon>TriggerIdSelectionDialog.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Dialogs\AdaptiveActionRadioSelectionDialog.xaml.cs">
+      <DependentUpon>AdaptiveActionRadioSelectionDialog.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Dialogs\InfluenceActionRadioSelectionDialog.xaml.cs">
+      <DependentUpon>InfluenceActionRadioSelectionDialog.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Dialogs\RecipeStepValueSelectionDialog.xaml.cs">
+      <DependentUpon>RecipeStepValueSelectionDialog.xaml</DependentUpon>
     </Compile>
     <Compile Include="Pages\Adapters\AdaptersView.xaml.cs">
       <DependentUpon>AdaptersView.xaml</DependentUpon>
@@ -696,6 +728,34 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="Dialogs\EnvironmentTriggerDetectEditorDialog.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Dialogs\EnvironmentTriggerFilterEditorDialog.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Dialogs\MetricProbeKeySelectionDialog.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Dialogs\RecipeIdSelectionDialog.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Dialogs\TriggerIdSelectionDialog.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Dialogs\AdaptiveActionRadioSelectionDialog.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Dialogs\InfluenceActionRadioSelectionDialog.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Dialogs\RecipeStepValueSelectionDialog.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

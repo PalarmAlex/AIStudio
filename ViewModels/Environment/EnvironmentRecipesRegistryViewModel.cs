@@ -42,6 +42,7 @@ namespace AIStudio.ViewModels.SymbiontEnv
       EditCommand = new RelayCommand(_ => EditSelected(), _ => Selected != null);
       DuplicateCommand = new RelayCommand(_ => DuplicateSelected(), _ => Selected != null);
       NewCommand = new RelayCommand(_ => CreateNew(), _ => IsEditingEnabled);
+      RemoveAllCommand = new RelayCommand(RemoveAllRecipes, _ => IsEditingEnabled);
       GlobalTimer.PulsationStateChanged += OnPulsationStateChanged;
       ReloadFromDisk();
     }
@@ -71,6 +72,7 @@ namespace AIStudio.ViewModels.SymbiontEnv
     public ICommand EditCommand { get; }
     public ICommand DuplicateCommand { get; }
     public ICommand NewCommand { get; }
+    public ICommand RemoveAllCommand { get; }
     public bool IsStageZero => _currentAgentStage == 0;
     public bool HasAdapter => SymbiontEnvironmentGate.IsEnvironmentEditingAllowed();
     public bool IsEditingEnabled => HasAdapter && IsStageZero && !GlobalTimer.IsPulsationRunning;
@@ -166,7 +168,8 @@ namespace AIStudio.ViewModels.SymbiontEnv
           _gomeostas,
           EnvironmentRecipeMapper.ToEditorModel(recipe),
           isNew: false,
-          onSaveAll: SaveAllFromEditor);
+          onSaveAll: SaveAllFromEditor,
+          sourceRecipe: recipe);
       _openEditor(editorVm);
     }
 
@@ -176,9 +179,7 @@ namespace AIStudio.ViewModels.SymbiontEnv
       var model = new EnvironmentRecipeEditorModel
       {
         Id = newId,
-        DisplayName = "Новый рецепт",
-        DocumentKindPart = true,
-        DocumentKindAssembly = true
+        DisplayName = "Новый рецепт"
       };
       var editorVm = new EnvironmentRecipeEditorViewModel(
           _gomeostas,
@@ -203,7 +204,8 @@ namespace AIStudio.ViewModels.SymbiontEnv
           _gomeostas,
           model,
           isNew: true,
-          onSaveAll: SaveAllFromEditor);
+          onSaveAll: SaveAllFromEditor,
+          sourceRecipe: recipe);
       _openEditor(editorVm);
     }
 
@@ -227,6 +229,43 @@ namespace AIStudio.ViewModels.SymbiontEnv
         _allRecipes.Add(def);
       SaveAllToDisk();
       ReloadFromDisk();
+    }
+
+    public void RemoveAllRecipes(object parameter)
+    {
+      if (!IsEditingEnabled)
+        return;
+
+      MessageBoxResult result = MessageBox.Show(
+          "Вы действительно хотите удалить ВСЕ рецепты среды? Это действие нельзя будет отменить.",
+          "Подтверждение удаления",
+          MessageBoxButton.YesNo,
+          MessageBoxImage.Warning);
+      if (result != MessageBoxResult.Yes)
+        return;
+
+      try
+      {
+        _allRecipes.Clear();
+        _allItems.Clear();
+        Items.Clear();
+        EnvironmentCatalogStorage.SaveRecipes(new List<EnvironmentRecipeData>());
+        MessageBox.Show(
+            "Все рецепты среды успешно удалены",
+            "Удаление завершено",
+            MessageBoxButton.OK,
+            MessageBoxImage.Information);
+        ReloadFromDisk();
+      }
+      catch (Exception ex)
+      {
+        MessageBox.Show(
+            "Ошибка удаления рецептов среды: " + ex.Message,
+            "Ошибка",
+            MessageBoxButton.OK,
+            MessageBoxImage.Error);
+        ReloadFromDisk();
+      }
     }
 
     private void SaveAllToDisk()

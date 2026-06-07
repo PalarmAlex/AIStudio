@@ -3,18 +3,43 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:converters="clr-namespace:AIStudio.Converters"
              mc:Ignorable="d"
-             d:DesignHeight="450" d:DesignWidth="800">
+             d:DesignHeight="450" d:DesignWidth="900">
+  <UserControl.Resources>
+    <converters:InverseBooleanToVisibilityConverter x:Key="InverseBooleanToVisibilityConverter"/>
+    <converters:InfluenceActionIdDisplayConverter x:Key="InfluenceActionIdDisplayConverter"/>
+    <converters:InfluenceActionIdDescriptionConverter x:Key="InfluenceActionIdDescriptionConverter"/>
+    <Style TargetType="DataGridCell">
+      <Setter Property="Padding" Value="5"/>
+    </Style>
+  </UserControl.Resources>
+
   <Grid Margin="12">
     <Grid.RowDefinitions>
+      <RowDefinition Height="Auto"/>
       <RowDefinition Height="Auto"/>
       <RowDefinition Height="Auto"/>
       <RowDefinition Height="*"/>
       <RowDefinition Height="Auto"/>
     </Grid.RowDefinitions>
 
-    <TextBlock Grid.Row="0" Text="{Binding CurrentAgentTitle}" FontSize="18" FontWeight="SemiBold" HorizontalAlignment="Center" Margin="0,0,0,8"/>
-    <Border Grid.Row="1" BorderBrush="#FFE0E0E0" BorderThickness="1" CornerRadius="4" Padding="8" Margin="0,0,0,8" Background="#FFF9FBE7">
+    <TextBlock Grid.Row="0"
+               Text="{Binding CurrentAgentTitle}"
+               FontSize="18"
+               FontWeight="SemiBold"
+               HorizontalAlignment="Center"
+               Margin="0,0,0,5"
+               Foreground="#FF333333"/>
+
+    <TextBlock Grid.Row="1"
+               HorizontalAlignment="Left"
+               Margin="0,0,0,5"
+               Foreground="#FF333333"
+               TextWrapping="Wrap"
+               Text="Триггеры среды: событие среды → воздействие (InfluenceAction). Двойной щелчок по ячейкам «ID», «Воздействие», «Фильтр» и «Детекция» открывает окно выбора."/>
+
+    <Border Grid.Row="2" BorderBrush="#FFE0E0E0" BorderThickness="1" CornerRadius="4" Padding="8" Margin="0,0,0,5" Background="#FFF9F9F9">
       <Grid>
         <Grid.ColumnDefinitions>
           <ColumnDefinition Width="Auto"/>
@@ -25,48 +50,140 @@
           <ColumnDefinition Width="Auto"/>
         </Grid.ColumnDefinitions>
         <TextBlock Grid.Column="0" Text="ID" VerticalAlignment="Center" Margin="0,0,8,0" FontWeight="SemiBold"/>
-        <TextBox Grid.Column="1" Text="{Binding FilterIdText, UpdateSourceTrigger=PropertyChanged}" Padding="4,3"/>
-        <TextBlock Grid.Column="2" Text="Название" VerticalAlignment="Center" Margin="16,0,8,0" FontWeight="SemiBold"/>
-        <TextBox Grid.Column="3" Text="{Binding FilterTitleText, UpdateSourceTrigger=PropertyChanged}" Padding="4,3"/>
-        <Button Grid.Column="4" Content="Применить" Padding="12,6" Margin="16,0,8,0" Command="{Binding ApplyFiltersCommand}"/>
+        <TextBox Grid.Column="1" Text="{Binding FilterIdText, UpdateSourceTrigger=PropertyChanged}" Padding="4,3" Margin="0,0,16,0"/>
+        <TextBlock Grid.Column="2" Text="Название" VerticalAlignment="Center" Margin="0,0,8,0" FontWeight="SemiBold"/>
+        <TextBox Grid.Column="3" Text="{Binding FilterTitleText, UpdateSourceTrigger=PropertyChanged}" Padding="4,3" Margin="0,0,16,0"/>
+        <Button Grid.Column="4" Content="Применить" Padding="12,6" Margin="0,0,8,0" Command="{Binding ApplyFiltersCommand}"/>
         <Button Grid.Column="5" Content="Сброс" Padding="12,6" Command="{Binding ResetFiltersCommand}"/>
       </Grid>
     </Border>
 
-    <DataGrid x:Name="TriggersGrid" Grid.Row="2" ItemsSource="{Binding Triggers}"
-              AutoGenerateColumns="False"
-              IsReadOnly="{Binding IsReadOnlyMode}"
-              CanUserAddRows="{Binding IsEditingEnabled}"
-              CanUserDeleteRows="{Binding IsEditingEnabled}"
-              SelectionMode="Extended"
-              AddingNewItem="TriggersGrid_AddingNewItem"
-              PreviewKeyDown="TriggersGrid_PreviewKeyDown">
-      <DataGrid.Columns>
-        <DataGridTextColumn Header="ID" Binding="{Binding Id, UpdateSourceTrigger=PropertyChanged}" Width="160"/>
-        <DataGridTextColumn Header="Название" Binding="{Binding DisplayName, UpdateSourceTrigger=PropertyChanged}" Width="*"/>
-        <DataGridTemplateColumn Header="Воздействие" Width="100">
-          <DataGridTemplateColumn.CellTemplate>
-            <DataTemplate>
-              <TextBlock Text="{Binding InfluenceActionId}" Padding="6,4"
-                         MouseDown="InfluenceActionCell_MouseDown"/>
-            </DataTemplate>
-          </DataGridTemplateColumn.CellTemplate>
-        </DataGridTemplateColumn>
-        <DataGridTemplateColumn Header="Detect" Width="*">
-          <DataGridTemplateColumn.CellTemplate>
-            <DataTemplate>
-              <TextBlock Text="{Binding DetectSummary}" Padding="6,4" ToolTip="Двойной щелчок — правила detect"
-                         MouseDown="DetectCell_MouseDown"/>
-            </DataTemplate>
-          </DataGridTemplateColumn.CellTemplate>
-        </DataGridTemplateColumn>
-      </DataGrid.Columns>
-    </DataGrid>
+    <Border Grid.Row="3"
+            BorderBrush="#FFE0E0E0"
+            BorderThickness="1"
+            CornerRadius="4"
+            Margin="0,0,0,5">
+      <DataGrid x:Name="TriggersGrid"
+                ItemsSource="{Binding Triggers}"
+                IsEnabled="True"
+                IsReadOnly="{Binding IsReadOnlyMode}"
+                AutoGenerateColumns="False"
+                CanUserAddRows="{Binding IsEditingEnabled}"
+                CanUserDeleteRows="{Binding IsEditingEnabled}"
+                SelectionMode="Extended"
+                BorderThickness="0"
+                Background="White"
+                RowBackground="#FFF9F9F9"
+                AlternatingRowBackground="White"
+                GridLinesVisibility="None"
+                VerticalScrollBarVisibility="Auto"
+                HorizontalScrollBarVisibility="Auto"
+                AddingNewItem="TriggersGrid_AddingNewItem"
+                PreviewKeyDown="TriggersGrid_PreviewKeyDown">
+        <DataGrid.Columns>
+          <DataGridTextColumn Header="ID" Binding="{Binding Id, UpdateSourceTrigger=PropertyChanged}" Width="160">
+            <DataGridTextColumn.ElementStyle>
+              <Style TargetType="TextBlock">
+                <EventSetter Event="MouseDown" Handler="IdCell_MouseDown"/>
+              </Style>
+            </DataGridTextColumn.ElementStyle>
+            <DataGridTextColumn.HeaderStyle>
+              <Style TargetType="DataGridColumnHeader">
+                <Setter Property="ToolTip"
+                        Value="Уникальный идентификатор триггера.&#x0a;Двойной щелчок — выбор из уже заданных в проекте.&#x0a;Новый ID можно ввести вручную в ячейке."/>
+              </Style>
+            </DataGridTextColumn.HeaderStyle>
+          </DataGridTextColumn>
+          <DataGridTextColumn Header="Название" Binding="{Binding DisplayName, UpdateSourceTrigger=PropertyChanged}" Width="*"/>
+          <DataGridTextColumn Header="Воздействие"
+                              Binding="{Binding InfluenceActionId}"
+                              IsReadOnly="True"
+                              Width="220">
+            <DataGridTextColumn.ElementStyle>
+              <Style TargetType="TextBlock">
+                <Setter Property="Text"
+                        Value="{Binding InfluenceActionId, Converter={StaticResource InfluenceActionIdDisplayConverter}}"/>
+                <Setter Property="ToolTip"
+                        Value="{Binding InfluenceActionId, Converter={StaticResource InfluenceActionIdDescriptionConverter}}"/>
+                <EventSetter Event="MouseDown" Handler="InfluenceActionCell_MouseDown"/>
+              </Style>
+            </DataGridTextColumn.ElementStyle>
+            <DataGridTextColumn.HeaderStyle>
+              <Style TargetType="DataGridColumnHeader">
+                <Setter Property="ToolTip"
+                        Value="ID воздействия на гомеостаз (InfluenceActions.dat).&#x0a;Двойной щелчок открывает список-переключатель."/>
+              </Style>
+            </DataGridTextColumn.HeaderStyle>
+          </DataGridTextColumn>
+          <DataGridTextColumn Header="Фильтр"
+                              Binding="{Binding FilterSummary}"
+                              IsReadOnly="True"
+                              Width="200">
+            <DataGridTextColumn.ElementStyle>
+              <Style TargetType="TextBlock">
+                <Setter Property="ToolTip"
+                        Value="Фильтр контекста триггера (типы документа и др.) — schema/trigger-filter.json. Двойной щелчок открывает редактор."/>
+                <EventSetter Event="MouseDown" Handler="FilterCell_MouseDown"/>
+              </Style>
+            </DataGridTextColumn.ElementStyle>
+            <DataGridTextColumn.HeaderStyle>
+              <Style TargetType="DataGridColumnHeader">
+                <Setter Property="ToolTip"
+                        Value="Ограничения контекста срабатывания.&#x0a;Поля — schema/trigger-filter.json.&#x0a;Двойной щелчок — редактор фильтра."/>
+              </Style>
+            </DataGridTextColumn.HeaderStyle>
+          </DataGridTextColumn>
+          <DataGridTextColumn Header="Детекция"
+                              Binding="{Binding DetectSummary}"
+                              IsReadOnly="True"
+                              Width="*">
+            <DataGridTextColumn.ElementStyle>
+              <Style TargetType="TextBlock">
+                <Setter Property="ToolTip"
+                        Value="Правила распознавания события среды (detect). Типы — из schema/trigger-detect.json пакета адаптера. Двойной щелчок открывает редактор."/>
+                <EventSetter Event="MouseDown" Handler="DetectCell_MouseDown"/>
+              </Style>
+            </DataGridTextColumn.ElementStyle>
+            <DataGridTextColumn.HeaderStyle>
+              <Style TargetType="DataGridColumnHeader">
+                <Setter Property="ToolTip"
+                        Value="Правила детекции события среды (detect).&#x0a;Типы правил — schema/trigger-detect.json.&#x0a;Двойной щелчок — редактор правил."/>
+              </Style>
+            </DataGridTextColumn.HeaderStyle>
+          </DataGridTextColumn>
+        </DataGrid.Columns>
+      </DataGrid>
+    </Border>
 
-    <Grid Grid.Row="3" Margin="0,8,0,0">
-      <TextBlock Text="{Binding PulseWarningMessage}" Foreground="{Binding WarningMessageColor}" VerticalAlignment="Center"/>
-      <Button Content="Сохранить" HorizontalAlignment="Right" Padding="12,6"
-              Command="{Binding SaveCommand}" IsEnabled="{Binding IsEditingEnabled}"/>
+    <Grid Grid.Row="4" Margin="0,0,0,0">
+      <Grid.ColumnDefinitions>
+        <ColumnDefinition Width="*"/>
+        <ColumnDefinition Width="Auto"/>
+      </Grid.ColumnDefinitions>
+
+      <TextBlock Grid.Column="0"
+                 Text="{Binding PulseWarningMessage}"
+                 Foreground="{Binding WarningMessageColor}"
+                 FontStyle="Italic"
+                 VerticalAlignment="Center"
+                 Margin="8,0,0,0"
+                 TextWrapping="Wrap"
+                 Visibility="{Binding IsEditingEnabled, Converter={StaticResource InverseBooleanToVisibilityConverter}}"/>
+
+      <StackPanel Grid.Column="1"
+                  Orientation="Horizontal"
+                  HorizontalAlignment="Right">
+        <Button Content="Очистить"
+                Command="{Binding RemoveAllCommand}"
+                IsEnabled="{Binding IsEditingEnabled}"
+                Style="{StaticResource RedButtonStyle}"
+                ToolTip="Удалить все данные из таблицы"/>
+        <Button Content="Сохранить"
+                Command="{Binding SaveCommand}"
+                IsEnabled="{Binding IsEditingEnabled}"
+                Style="{StaticResource ActionButtonStyle}"
+                ToolTip="Сохранить данные"/>
+      </StackPanel>
     </Grid>
   </Grid>
 </UserControl>

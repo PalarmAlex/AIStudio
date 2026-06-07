@@ -30,5 +30,30 @@ namespace AIStudio.Common.SymbiontEnv
           string.Join(", ", invalid) +
           ". Используйте ID стимулов из InfluenceActions.dat.");
     }
+
+    /// <summary>
+    /// Валидация правил давления: дубликаты RuleId.
+    /// </summary>
+    public static bool ValidateAllPressureRules(
+        IReadOnlyList<EnvironmentPressureRuleRow> rules,
+        out string errorMessage)
+    {
+      errorMessage = string.Empty;
+      List<EnvironmentPressureRuleRow> ruleList = rules?
+          .Where(r => r != null)
+          .ToList() ?? new List<EnvironmentPressureRuleRow>();
+
+      if (ruleList.Count == 0)
+        return true;
+
+      HashSet<int> existingIds = ruleList.Select(r => r.RuleId).ToHashSet();
+      if (existingIds.Count != ruleList.Count)
+      {
+        errorMessage = "Обнаружены дубликаты RuleId правил давления среды.";
+        return false;
+      }
+
+      return true;
+    }
   }
 }

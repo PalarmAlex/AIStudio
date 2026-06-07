@@ -45,6 +45,7 @@ Source: "{#BinDir}\Ookii.Dialogs.Wpf.dll"; DestDir: "{app}"; Flags: ignoreversio
 Source: "{#BinDir}\Newtonsoft.Json.dll"; DestDir: "{app}"; Flags: ignoreversion
 Source: "{#SymbiontEnvContractDll}"; DestDir: "{app}"; Flags: ignoreversion
 Source: "{#DocsDir}\AdapterAuthorGuide.html"; DestDir: "{app}\docs"; Flags: ignoreversion
+Source: "{#DocsDir}\AdapterContract.html"; DestDir: "{app}\docs"; Flags: ignoreversion
 
 ; Настройки (файл Settings.xml; ранее использовалось имя AIStudio.Settings.xml)
 Source: "{#DocsDir}\Settings\Settings.xml"; DestDir: "{commonappdata}\ISIDA\Settings"; Flags: ignoreversion onlyifdoesntexist uninsneveruninstall
@@ -61,12 +62,12 @@ Source: "{#DocsDir}\Data\Scenarios\*"; DestDir: "{commonappdata}\ISIDA\Data\Scen
 Source: "{#DocsDir}\BootData\*"; DestDir: "{commonappdata}\ISIDA\BootData"; Flags: recursesubdirs createallsubdirs onlyifdoesntexist uninsneveruninstall
 
 ; Каркасы пакетов адаптеров («Создать пакет…» читает %ProgramData%\ISIDA\AdapterPackageTemplates\demo\)
-; Исходник в репозитории: docs\AdapterPackageTemplates\ (содержимое demo синхронизировано с docs\adapter-package-example\demo\)
+; Исходник: docs\AdapterPackageTemplates\ (manifest, schema 2.0, BootData, README; runtime\ — только README до установки SDK)
 Source: "{#DocsDir}\AdapterPackageTemplates\*"; DestDir: "{commonappdata}\ISIDA\AdapterPackageTemplates"; Flags: recursesubdirs createallsubdirs onlyifdoesntexist uninsneveruninstall
 
-; Стартовый SDK в каркасе demo (для «Создать пакет…» без готового host)
+; Стартовый SDK в demo\runtime (для «Создать пакет…» и разработки host)
 Source: "{#BinDir}\isida.dll"; DestDir: "{commonappdata}\ISIDA\AdapterPackageTemplates\demo\runtime"; Flags: ignoreversion onlyifdoesntexist uninsneveruninstall
-Source: "{#BinDir}\isida.dll.config"; DestDir: "{commonappdata}\ISIDA\AdapterPackageTemplates\demo\runtime"; Flags: ignoreversion onlyifdoesntexist uninsneveruninstall
+Source: "{#BinDir}\isida.dll.config"; DestDir: "{commonappdata}\ISIDA\AdapterPackageTemplates\demo\runtime"; Flags: ignoreversion skipifsourcedoesntexist onlyifdoesntexist uninsneveruninstall
 Source: "{#BinDir}\isida.xml"; DestDir: "{commonappdata}\ISIDA\AdapterPackageTemplates\demo\runtime"; Flags: ignoreversion onlyifdoesntexist uninsneveruninstall
 Source: "{#SymbiontEnvContractDll}"; DestDir: "{commonappdata}\ISIDA\AdapterPackageTemplates\demo\runtime"; Flags: ignoreversion onlyifdoesntexist uninsneveruninstall
 Source: "{#SymbiontEnvContractXml}"; DestDir: "{commonappdata}\ISIDA\AdapterPackageTemplates\demo\runtime"; Flags: ignoreversion onlyifdoesntexist uninsneveruninstall

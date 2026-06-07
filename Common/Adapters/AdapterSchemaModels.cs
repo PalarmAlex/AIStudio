@@ -12,11 +12,43 @@ namespace AIStudio.Common.Adapters
     public bool Required { get; set; }
   }
 
+  /// <summary>Параметр шага рецепта из recipe-steps.json.</summary>
+  public sealed class AdapterSchemaStepParameter
+  {
+    public string Key { get; set; }
+    public string Label { get; set; }
+    public string Type { get; set; }
+    public bool Required { get; set; }
+    public IList<string> Values { get; set; }
+  }
+
   /// <summary>Тип шага рецепта из recipe-steps.json.</summary>
   public sealed class AdapterSchemaStepType
   {
     public string Type { get; set; }
     public string Label { get; set; }
+    public string RuntimeType { get; set; }
+    public IList<AdapterSchemaStepParameter> Parameters { get; set; } = new List<AdapterSchemaStepParameter>();
+  }
+
+  /// <summary>Запись каталога рецептов из recipe-catalog.json.</summary>
+  public sealed class AdapterSchemaRecipeCatalogEntry
+  {
+    public string Id { get; set; }
+    public string Label { get; set; }
+    public string Description { get; set; }
+
+    public string DisplayText
+    {
+      get
+      {
+        if (string.IsNullOrWhiteSpace(Id))
+          return Label ?? string.Empty;
+        if (string.IsNullOrWhiteSpace(Label))
+          return Id;
+        return Label + " (" + Id + ")";
+      }
+    }
   }
 
   /// <summary>Kind detect из trigger-detect.json.</summary>
@@ -62,6 +94,7 @@ namespace AIStudio.Common.Adapters
     public IList<AdapterSchemaField> TriggerFilterFields { get; set; } = new List<AdapterSchemaField>();
     public IList<AdapterSchemaDetectKind> TriggerDetectKinds { get; set; } = new List<AdapterSchemaDetectKind>();
     public IList<AdapterSchemaMetricProbe> MetricProbes { get; set; } = new List<AdapterSchemaMetricProbe>();
+    public IList<AdapterSchemaRecipeCatalogEntry> RecipeCatalog { get; set; } = new List<AdapterSchemaRecipeCatalogEntry>();
     public bool HasRecipePrecondition(string key)
     {
       if (string.IsNullOrWhiteSpace(key) || RecipePreconditions == null)

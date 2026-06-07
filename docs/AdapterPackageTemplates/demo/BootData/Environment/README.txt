@@ -17,13 +17,13 @@ EnvironmentRecipes.yaml
   Пример одного рецепта (сокращённо):
 
     recipes:
-      - id: demo.set_property
-        display_name: Установить свойство
+      - id: doc_props_on_save
+        display_name: Свойства при сохранении
         adaptive_action_id: 1
-        risk_tier: A
+        risk_tier: B
         reactive_eligible: true
         preconditions:
-          document_kinds: [part]
+          document_kinds: [document, project]
           not_read_only: true
         steps:
           - type: set_property
@@ -34,6 +34,7 @@ EnvironmentTriggers.yaml
 
   Каталог триггеров: событие среды → influence_action_id (воздействие на гомеостаз).
   Корневой ключ triggers: — массив триггеров.
+  document_kinds — на уровне триггера (не вложенный filter).
 
   Минимальный каркас:
 
@@ -42,17 +43,17 @@ EnvironmentTriggers.yaml
   Пример одного триггера (сокращённо):
 
     triggers:
-      - id: demo.on_save
+      - id: on_document_saved
         display_name: После сохранения
         influence_action_id: 2
-        document_kinds: [part, assembly]
+        document_kinds: [document, project]
         detect:
           - kind: document_saved
+            environment: my-adapter
             enabled: true
 
 Формат
-
 ------
-Совместим с SymbiontEnv.Contract (EnvironmentYamlCodec) и contractVersion в manifest.json.
-Подробная норма полей — AdapterContract.md / AdapterAuthorGuide.md.
-Проверка «Проверить» в студии: при наличии файлов проверяется разбор YAML (предупреждения, не блокирует регистрацию).
+Совместим с SymbiontEnv.Contract (EnvironmentYamlCodec), contractVersion 2.0 в manifest.json.
+Подробная норма полей — docs/AdapterContract.md / docs/AdapterAuthorGuide.md.
+«Проверить»: при наличии файлов проверяется разбор YAML (предупреждения, не блокирует регистрацию).

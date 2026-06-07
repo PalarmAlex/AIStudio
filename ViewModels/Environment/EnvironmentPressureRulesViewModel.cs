@@ -30,6 +30,7 @@ namespace AIStudio.ViewModels.SymbiontEnv
       Rules = new ObservableCollection<EnvironmentPressureRuleRow>();
       ProbeKeyOptions = new ObservableCollection<AdapterSchemaMetricProbe>();
       SaveCommand = new RelayCommand(_ => SaveToDisk(), _ => IsEditingEnabled);
+      RemoveAllCommand = new RelayCommand(RemoveAllRules, _ => IsEditingEnabled);
       GlobalTimer.PulsationStateChanged += OnPulsationStateChanged;
       ReloadFromDisk();
     }
@@ -41,6 +42,7 @@ namespace AIStudio.ViewModels.SymbiontEnv
         SymbiontPageTitleFormatter.Format("Давление среды на виталы", _currentAgentName, _currentAgentStage);
 
     public ICommand SaveCommand { get; }
+    public ICommand RemoveAllCommand { get; }
 
     public bool IsStageZero => _currentAgentStage == 0;
     public bool HasAdapter => SymbiontEnvironmentGate.IsEnvironmentEditingAllowed();
@@ -88,8 +90,7 @@ namespace AIStudio.ViewModels.SymbiontEnv
         Name = "Новое правило",
         Description = string.Empty,
         ProbeKey = ProbeKeyOptions.FirstOrDefault(p => !string.IsNullOrWhiteSpace(p?.Key))?.Key ?? string.Empty,
-        Influences = new Dictionary<int, int>(),
-        Antagonists = new List<int>()
+        Influences = new Dictionary<int, int>()
       };
     }
 
@@ -110,6 +111,40 @@ namespace AIStudio.ViewModels.SymbiontEnv
       return true;
     }
 
+    public void RemoveAllRules(object parameter)
+    {
+      if (!IsEditingEnabled)
+        return;
+
+      MessageBoxResult result = MessageBox.Show(
+          "Вы действительно хотите удалить ВСЕ правила давления среды? Это действие нельзя будет отменить.",
+          "Подтверждение удаления",
+          MessageBoxButton.YesNo,
+          MessageBoxImage.Warning);
+      if (result != MessageBoxResult.Yes)
+        return;
+
+      try
+      {
+        _allRows.Clear();
+        Rules.Clear();
+        EnvironmentPressureRulesStorage.Save(_allRows);
+        RefreshProbeKeyOptions();
+        MessageBox.Show("Все правила давления среды успешно удалены",
+            "Удаление завершено",
+            MessageBoxButton.OK,
+            MessageBoxImage.Information);
+      }
+      catch (Exception ex)
+      {
+        MessageBox.Show($"Ошибка удаления правил давления среды: {ex.Message}",
+            "Ошибка",
+            MessageBoxButton.OK,
+            MessageBoxImage.Error);
+        ReloadFromDisk();
+      }
+    }
+
     private void SaveToDisk()
     {
       try
@@ -123,6 +158,15 @@ namespace AIStudio.ViewModels.SymbiontEnv
             throw new InvalidOperationException($"RuleId {row.RuleId}: {probeCheck.errorMessage}");
           if (string.IsNullOrWhiteSpace(row.ProbeKey))
             throw new InvalidOperationException($"RuleId {row.RuleId}: ProbeKey не может быть пустым.");
+        }
+
+        if (!EnvironmentPressureRulesValidation.ValidateAllPressureRules(_allRows, out string errorMsg))
+        {
+          MessageBox.Show($"Ошибка валидации правил давления среды:\n{errorMsg}",
+              "Ошибка сохранения",
+              MessageBoxButton.OK,
+              MessageBoxImage.Error);
+          return;
         }
 
         EnvironmentPressureRulesStorage.Save(_allRows);

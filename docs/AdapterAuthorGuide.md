@@ -4,7 +4,7 @@
 
 Технические форматы — в [`AdapterContract.md`](AdapterContract.md). План функций студии — [`AdapterPlatform_ImplementationPlan.md`](AdapterPlatform_ImplementationPlan.md).
 
-**Версия гайда:** 0.7 (2026-06-06), `contractVersion` платформы: **1.0**.
+**Версия гайда:** 0.8 (2026-06-07), `contractVersion` платформы: **2.0**.
 
 ---
 
@@ -79,7 +79,7 @@
 
 | Где | Путь |
 |-----|------|
-| Исходник в репозитории | `docs/adapter-package-example/demo/` |
+| Исходник в репозитории | `docs/AdapterPackageTemplates/demo/` |
 | На машине пользователя | `%ProgramData%\ISIDA\AdapterPackageTemplates\demo\` |
 
 **Не регистрируйте** каталог demo напрямую. Используйте один из путей:
@@ -87,7 +87,7 @@
 1. **Рекомендуется:** **Проект → Зарегистрированные пакеты… → Создать пакет…** — студия копирует demo (включая SDK), **опционально** дополняет `runtime\` DLL из `bin\Debug` host, проверяет пакет и регистрирует в Adapters.
 2. **Вручную:** скопируйте demo, добавьте DLL host в `runtime\` поверх SDK, отредактируйте `schema\` при необходимости, затем **Зарегистрировать из папки…**.
 
-Эталон с образцами Velum — `docs/adapter-package-example/velum/`.
+Образцы schema и BootData — в `docs/AdapterPackageTemplates/demo/`.
 
 ---
 
@@ -119,7 +119,7 @@
 | **Создать пакет…** | **Реализовано (MVP)** | Manifest → SDK из demo + опционально `bin\Debug` host → валидация → `Adapters\{id}\` |
 | **Зарегистрировать из папки…** | Реализовано | Готовый пакет; валидация **до** копирования |
 | **Зарегистрировать из ZIP…** | Реализовано | То же из архива |
-| **Проверить** | Реализовано | Manifest, BootData YAML, schema JSON, runtime DLL |
+| **Проверить** | Реализовано | Manifest, schema JSON (обязательно); BootData YAML — предупреждения |
 | **Обновить список** | Реализовано | Перечитать каталог Adapters |
 | **Открыть каталог Adapters** | Реализовано | Проводник Windows |
 | Руководство автора | Реализовано | Этот документ из студии |
@@ -134,10 +134,10 @@
 
 **Проект → Зарегистрированные пакеты… → Создать пакет…**
 
-1. Форма **manifest**: `id`, `displayName`, `version`, `author`, `contractVersion` (должен быть `1.0`).
+1. Форма **manifest**: `id`, `displayName`, `version`, `author`, `contractVersion` (должен быть `2.0`).
 2. Диалог **каталога сборки host** (`bin\Debug`) — **опционален**. **Отмена** — в пакет попадёт только стартовый SDK из demo (удобно в начале разработки host).
 3. Если host указан — все `*.dll` из его каталога копируются в `runtime\` **поверх** SDK.
-4. Сборка из каркаса demo + runtime, **«Проверить»** (SDK + `isida.dll`), при успехе — копия в `%ProgramData%\ISIDA\Adapters\{id}\`.
+4. Сборка из каркаса demo + runtime, **«Проверить»** (manifest + schema), при успехе — копия в `%ProgramData%\ISIDA\Adapters\{id}\`.
 
 Если host ещё не собран, зарегистрируйте пакет с SDK, разработайте host и **допишите** DLL в `Adapters\{id}\runtime\` вручную или пересоберите пакет.
 
@@ -166,7 +166,7 @@ MyAdapter\
     Environment\
       EnvironmentRecipes.yaml       ← для студии: ОБЯЗАТЕЛЬНО (допускается recipes: [])
       EnvironmentTriggers.yaml      ← для студии: ОБЯЗАТЕЛЬНО (допускается triggers: [])
-  schema\                           ← для студии: РЕКОМЕНДУЕТСЯ (редакторы «Среда»)
+  schema\                           ← для студии: ОБЯЗАТЕЛЬНО (редакторы «Среда»)
   adapter-settings\                 ← опционально (дефолты host)
 ```
 
@@ -177,7 +177,7 @@ MyAdapter\
 | `manifest.json` | Нет | Да | `id`, версия, `contractVersion` |
 | `runtime\` | Свой деплой | Да | SDK + DLL host |
 | `BootData\Environment\` | Нет | Да | Seed YAML в проект |
-| `schema\` | Нет | Рекомендуется | UI редакторов «Среда» |
+| `schema\` | Нет | **Обязательно** | UI редакторов «Среда»; без schema пакет не регистрируется |
 | `adapter-settings\` | По желанию | Опционально | Дефолты **host-среды** (не проекта симбионта) |
 
 ---
@@ -188,11 +188,11 @@ MyAdapter\
 
 ### 7.1. Соберите host-адаптер
 
-Пример (SolidWorks / Velum): каталог сборки `D:\MyRepo\bin\Debug\`.
+Пример: каталог сборки host-проекта `D:\MyRepo\MyHost\bin\Debug\`.
 
 ### 7.2. Создайте папку пакета
 
-Например `D:\sld_Adapter\`.
+Например `D:\my_adapter_package\`.
 
 ### 7.3. Скопируйте DLL в `runtime\`
 
@@ -224,32 +224,34 @@ triggers: []
 
 ### 7.5. Заполните `schema\`
 
-Студия читает JSON из `Adapters\{id}\schema\` и строит UI редакторов «Среда» (типы шагов, preconditions, detect kinds). Имена файлов для `contractVersion` 1.0:
+Студия читает JSON из `Adapters\{id}\schema\` через `AdapterSchemaLoader` и строит UI редакторов «Среда». Имена файлов для `schemaVersion` 2.0:
 
 | Файл | Содержание |
 |------|------------|
 | `recipe-preconditions.json` | Поля блока `preconditions:` рецепта |
 | `recipe-steps.json` | Допустимые `type` шагов (`stepTypes`) |
+| `recipe-catalog.json` | Каталог допустимых `id` рецептов |
 | `trigger-filter.json` | Фильтр документа/контекста триггера |
 | `trigger-detect.json` | Допустимые `detect.kind` (`detectKinds`) |
+| `metric-probes.json` | Ключи ProbeKey для «Давление среды на виталы» |
 
 Пример preconditions:
 
 ```json
 {
-  "schemaVersion": "1.0",
+  "schemaVersion": "2.0",
   "fields": [
     {
       "key": "document_kinds",
       "label": "Типы документа",
       "type": "stringList",
-      "enumValues": ["part", "assembly", "drawing"],
+      "enumValues": ["document", "project", "view"],
       "required": false,
       "default": []
     },
     {
-      "key": "not_sketch_edit",
-      "label": "Не в режиме эскиза",
+      "key": "not_edit_mode",
+      "label": "Не в режиме редактирования",
       "type": "bool",
       "required": false,
       "default": false
@@ -262,36 +264,36 @@ triggers: []
 
 ```json
 {
-  "schemaVersion": "1.0",
+  "schemaVersion": "2.0",
   "stepTypes": [
     { "type": "set_property", "label": "Установить свойство" },
-    { "type": "run_sw_command", "label": "Команда SolidWorks" }
+    { "type": "run_command", "label": "Выполнить команду host" }
   ]
 }
 ```
 
-**Правило:** каждый `key` / `type` в schema должен поддерживаться **вашим runtime** при чтении YAML. Образцы для demo — в `docs/adapter-package-example/demo/schema/`.
+**Правило:** каждый `key` / `type` в schema должен поддерживаться **вашим runtime** при чтении YAML. Образцы для demo — в `docs/AdapterPackageTemplates/demo/schema/`.
 
-Если schema отсутствует или пуста, студия использует Velum-like defaults (fallback).
+Если schema отсутствует или пуста, соответствующие списки в редакторах «Среда» **пустые** — пакет без schema не проходит «Проверить».
 
 ### 7.6. Создайте `manifest.json`
 
 ```json
 {
-  "id": "sld_adapter",
-  "displayName": "SolidWorks Adapter (пример)",
+  "id": "my-cad-host",
+  "displayName": "Адаптер CAD-среды (пример)",
   "version": "1.0.0",
-  "contractVersion": "1.0",
+  "contractVersion": "2.0",
   "author": "Your Company",
   "bootDataRelativePath": "BootData",
-  "schemaVersion": "1.0"
+  "schemaVersion": "2.0"
 }
 ```
 
 | Поле | Описание |
 |------|----------|
 | `id` | Каталог в `Adapters\{id}\`; только `[a-z0-9_-]` |
-| `contractVersion` | Версия контракта платформы; студия 1.x → `1.0` |
+| `contractVersion` | Версия контракта платформы; текущая → `2.0` |
 | `bootDataRelativePath` | Обычно `BootData` |
 ### 7.7. `adapter-settings\Settings.xml` (если нужен host)
 
@@ -313,7 +315,7 @@ triggers: []
 1. **Создать проект симбионта** без типа среды.
 2. Работа через пульт оператора и сценарии; меню «Среда» не используется.
 
-На целевой машине с внешней средой (SolidWorks / Office…) нужен runtime из пакета адаптера в `Adapters\{id}\runtime\`.
+На целевой машине с внешней средой (CAD, Office, IDE…) нужен runtime из пакета адаптера в `Adapters\{id}\runtime\`.
 
 ---
 
@@ -335,7 +337,7 @@ triggers: []
 3. **`AdapterId`** записывается в `{project}\Data\Gomeostas\AgentProperties.dat`:
 
    ```
-   AdapterId|velum
+   AdapterId|my-cad-host
    ```
 
 4. Редактирование гомеостаза и меню **«Среда»** (рецепты/триггеры) доступно, если:
@@ -361,7 +363,7 @@ triggers: []
 
 Студия **не** подменяет `adapter-settings` при редактировании симбионта.
 
-**Терминология в UI:** «зарегистрировать пакет», «тип среды» — не «установить адаптер» и не «подключить к SolidWorks».
+**Терминология в UI:** «зарегистрировать пакет», «тип среды» — не «установить адаптер» и не «подключиться к среде».
 
 ---
 
@@ -371,7 +373,7 @@ triggers: []
 
 - читают и пишут YAML в `{project}\BootData\Environment\` (runtime contract);
 - загружают **schema** из `Adapters\{AdapterId}\schema\` через `AdapterSchemaLoader`;
-- показывают только поля и типы шагов, описанные в schema (если schema пуста — Velum-like defaults).
+- показывают только поля и типы шагов из schema пакета (пустой schema → пустые списки в UI).
 
 При смене `AdapterId` в свойствах симбионта перезагрузите редактор «Среда», чтобы подтянулась новая schema.
 
@@ -379,13 +381,16 @@ triggers: []
 
 ## 11. Что делает «Проверить»
 
-| Проверка | Ошибка, если |
-|----------|----------------|
-| `manifest.json` читается, `contractVersion` поддерживается | Нет файла, неверный JSON, неизвестная версия |
-| `id` валиден | Пустой id, недопустимые символы |
-| Файлы `schema\` парсятся как JSON | Отсутствует файл, битый JSON |
-| `BootData\Environment\*.yaml` читаются кодеком | Синтаксис YAML, нет секций `recipes` / `triggers` |
-| `runtime\` содержит DLL: **`isida.dll`**, **`SymbiontEnv.Contract.dll`** | Пустой каталог или нет SDK |
+| Проверка | Severity | Ошибка, если |
+|----------|----------|----------------|
+| `manifest.json` читается | Error | Нет файла, неверный JSON |
+| `contractVersion` = `2.0` | Error | Устаревшая или неизвестная версия |
+| `id` валиден | Error | Пустой id, недопустимые символы |
+| Каталог `schema\` с JSON | Error | Нет каталога, нет `*.json`, битый JSON, нет обязательных массивов |
+| `BootData\Environment\*.yaml` | Warning | Файл отсутствует или не парсится codec |
+| `displayName`, `version`, `author` | Warning | Пустые поля |
+
+`runtime\` **не проверяется** при регистрации — ответственность автора при дистрибуции host.
 
 При **«Зарегистрировать из папки/ZIP»** и **«Создать пакет…»** проверка выполняется **до** копирования в Adapters.
 
@@ -395,9 +400,9 @@ triggers: []
 
 | Симптом | Вероятная причина | Что сделать |
 |---------|-------------------|-------------|
-| «Неподдерживаемый contractVersion» | В manifest версия новее студии | Поставить `1.0` или обновить студию |
+| «Неподдерживаемый contractVersion» | В manifest не `2.0` | Поставить `2.0` или обновить студию |
 | «Нет секции recipes/triggers» | Неверные имена YAML | `EnvironmentRecipes.yaml`, `EnvironmentTriggers.yaml` |
-| «Пустой runtime» / нет `isida.dll` | DLL не скопированы | «Создать пакет…» (дополняет `isida.dll`) или положить в `runtime\` вручную |
+| Host не стартует у конечника | Неполный `runtime\` | Дополнить DLL в `runtime\` вручную; «Создать пакет…» копирует SDK из demo |
 | Пакет не зарегистрировался | Ошибка валидации до копирования | Исправить по отчёту «Проверить» |
 | Меню «Среда» недоступно | Нет типа среды в свойствах симбионта | Выбрать пакет в «Свойства симбионта» |
 | «Среда» была, пропала | Пакет удалён из Adapters | Зарегистрировать снова или сбросить тип среды |
@@ -408,7 +413,7 @@ triggers: []
 
 ## 13. Версионирование
 
-- **`contractVersion` в manifest** — согласование с AIStudio (`1.0` для текущего релиза).
+- **`contractVersion` в manifest** — согласование с AIStudio (`2.0` для текущего релиза).
 - **`version` в manifest** — версия вашего пакета (`1.0.0`, …).
 - Новые поля в YAML или schema → новая **`contractVersion`** или согласованное расширение (см. Contract).
 
@@ -417,9 +422,10 @@ triggers: []
 ## 14. Чеклист перед регистрацией / публикацией
 
 - [ ] `manifest.json` с уникальным `id`
-- [ ] `contractVersion`: `1.0`
-- [ ] `schema\` — четыре JSON-файла с осмысленным содержимым
-- [ ] `runtime\` — SDK + host DLL (проверено «Проверить» или «Создать пакет…»)
+- [ ] `contractVersion`: `2.0`
+- [ ] `schema\` — шесть JSON-файлов (§ 7.5) с осмысленным содержимым
+- [ ] «Проверить» — без Error
+- [ ] `runtime\` — SDK + host DLL (для дистрибуции, не для «Проверить»)
 - [ ] `BootData\Environment\` — оба YAML (если пакет для студии)
 - [ ] `adapter-settings\Settings.xml` (если host использует)
 - [ ] Пример YAML проходит runtime на тестовой машине
@@ -434,19 +440,18 @@ triggers: []
 |----------|------------|
 | [`AdapterContract.md`](AdapterContract.md) | Норматив: YAML, manifest, AdapterId в AgentProperties.dat |
 | [`AdapterPlatform_ImplementationPlan.md`](AdapterPlatform_ImplementationPlan.md) | План разработки платформы |
-| `docs/adapter-package-example/demo/` | Исходник каркаса + schema |
-| `docs/adapter-package-example/velum/` | Эталон BootData Velum |
+| `docs/AdapterPackageTemplates/demo/` | Исходник каркаса + schema |
 
 ---
 
-## Приложение A. Пример: пакет Velum-like
+## Приложение A. Пример: пакет host CAD-среды
 
-1. Сборка → `Velum\bin\Debug\`.
-2. **Создать пакет…** → manifest `id`: `velum` → каталог Debug.
-3. **Проверить** → `Adapters\velum\`.
-4. **Новый проект симбионта** с типом `velum` или выбор в **Свойства симбионта**.
-5. Редактирование рецептов с полями из `Adapters\velum\schema\`.
+1. Сборка host → `MyCadHost\bin\Debug\`.
+2. **Создать пакет…** → manifest `id`: `my-cad-host` → каталог Debug.
+3. **Проверить** → `Adapters\my-cad-host\`.
+4. **Новый проект симбионта** с типом `my-cad-host` или выбор в **Свойства симбионта**.
+5. Редактирование рецептов/триггеров с полями из `Adapters\my-cad-host\schema\`.
 
 ---
 
-*Версия 0.7: стартовый SDK в demo/runtime; настройщик работает с данными в студии; режим без адаптера.*
+*Версия 0.8: contract 2.0, schema-driven редакторы, `recipe-catalog.json`, валидация без проверки runtime.*

@@ -1,10 +1,12 @@
 Каталог schema\ — машиночитаемое описание возможностей адаптера для AIStudio.
 
 Студия читает эти JSON при редактировании проекта симбионта (редакторы «Среда», combobox ProbeKey
-в справочнике «Давление среды на виталы» — `EnvironmentPressureRules.dat`). Runtime host DLL для этого не нужен.
+в справочнике «Давление среды на виталы» — EnvironmentPressureRules.dat). Runtime host DLL для этого не нужен.
 
-Файлы (schemaVersion 1.0)
--------------------------
+Версия формата: schemaVersion 2.0 (совпадает с contractVersion 2.0 в manifest.json).
+-------------------------------------------------------------------------------------
+
+Обязательные файлы (все шесть должны быть в пакете для «Проверить» без Error):
 
 recipe-preconditions.json
 
@@ -17,16 +19,19 @@ recipe-preconditions.json
 
 recipe-steps.json
 
-  Допустимые type шагов рецепта (combobox типа шага).
-  Массив stepTypes[]: type, label.
+  Допустимые type шагов рецепта и параметры для редактора вкладки «Шаги».
+  Массив stepTypes[]: type, label, runtimeType (опционально), parameters[].
 
-  Пример:
+  Для enum-полей укажите values: ["active", "document", "default"].
 
-    { "type": "set_property", "label": "Установить свойство" }
+recipe-catalog.json
+
+  Каталог допустимых ID рецептов для редактора рецептов среды.
+  Массив recipes[]: id (обязателен), label, description.
 
 trigger-filter.json
 
-  Поля фильтра контекста триггера (какие типы документа и т.п.).
+  Поля фильтра контекста триггера (типы документа и т.п.).
   Формат как у recipe-preconditions.json — массив fields[].
 
 trigger-detect.json
@@ -40,9 +45,8 @@ trigger-detect.json
 
 metric-probes.json
 
-  Ключи ProbeKey для `EnvironmentPressureRules.dat` (давление метрик на виталы на пульсе).
+  Ключи ProbeKey для EnvironmentPressureRules.dat (давление метрик на виталы на пульсе).
   Массив probes[]: key (обязателен), label, description.
-  Дискретные стимулы оператора и YAML-триггеров — в `InfluenceActions.dat` (без ProbeKey).
 
   Пример:
 
@@ -56,5 +60,5 @@ metric-probes.json
 -------
 
 Каждый key / type / kind в schema должен поддерживаться вашим runtime host.
-Если файл отсутствует или пуст, студия для соответствующего редактора использует fallback или пустой список.
-Проверка «Проверить» в студии: наличие schema\, валидный JSON и обязательные поля в массивах.
+Если файл отсутствует или пуст, студия для соответствующего редактора использует пустой список.
+«Проверить»: наличие schema\, валидный JSON, обязательные массивы (fields, stepTypes, detectKinds, probes, recipes).

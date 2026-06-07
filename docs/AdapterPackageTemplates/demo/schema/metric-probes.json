@@ -1,50 +1,30 @@
 {
-  "schemaVersion": "1.0",
+  "schemaVersion": "2.0",
   "probes": [
     {
-      "key": "Velum.Solid.Material",
-      "label": "Материал",
-      "description": "Деталь: материал активной конфигурации. Сборка: доля деталей с заданным материалом (шкала 50…100)."
+      "key": "host.active_doc_modified",
+      "label": "Документ изменён",
+      "description": "Активный документ имеет несохранённые изменения"
     },
     {
-      "key": "Velum.Solid.Sketch.NoBadIntersections",
-      "label": "Эскиз: пересечение и стыки сущностей",
-      "description": "Среднее по эскизам детали: нет плохих пересечений и стыков сущностей (CheckSketchFeatureStatus)."
+      "key": "host.document.read_only",
+      "label": "Документ read-only",
+      "description": "Активный документ открыт только для чтения"
     },
     {
-      "key": "Velum.Solid.Sketch.NoDisjointContours",
-      "label": "Эскиз: разрозненные контуры",
-      "description": "Среднее по эскизам детали: нет разрозненных контуров."
+      "key": "host.model.consistency",
+      "label": "Согласованность модели",
+      "description": "Модель требует перестроения или обновления представления"
     },
     {
-      "key": "Velum.Solid.Sketch.ContourProfile",
-      "label": "Эскиз: замыкание и профиль контура",
-      "description": "Среднее по эскизам детали: контур замкнут, профиль корректен."
+      "key": "host.assembly.validation.critical",
+      "label": "Сборка: критические замечания",
+      "description": "Активная сборка: критические проблемы валидации host"
     },
     {
-      "key": "Velum.Solid.Sketch.FullyDefined",
-      "label": "Эскиз: полная фиксация (ограничения)",
-      "description": "Среднее по эскизам детали: эскиз полностью определён (Fully Defined)."
-    },
-    {
-      "key": "Velum.Solid.Sketch.NoZeroLength",
-      "label": "Эскиз: сегменты без нулевой длины",
-      "description": "Среднее по эскизам детали: нет сегментов нулевой длины."
-    },
-    {
-      "key": "Velum.Solid.Assembly.WhatsWrong.Critical",
-      "label": "Сборка: критические «Что не так»",
-      "description": "Активная сборка: штраф по критическим строкам списка GetWhatsWrong SolidWorks."
-    },
-    {
-      "key": "Velum.Solid.Assembly.WhatsWrong.Warnings",
-      "label": "Сборка: предупреждения «Что не так»",
-      "description": "Активная сборка: штраф по строкам-предупреждениям GetWhatsWrong SolidWorks."
-    },
-    {
-      "key": "Velum.Solid.Assembly.Resolve",
-      "label": "Сборка: разрешение компонентов",
-      "description": "Активная сборка: статус разрешения компонентов (GetResolveStatus)."
+      "key": "host.assembly.validation.warnings",
+      "label": "Сборка: предупреждения",
+      "description": "Активная сборка: предупреждения валидации host"
     }
   ]
 }

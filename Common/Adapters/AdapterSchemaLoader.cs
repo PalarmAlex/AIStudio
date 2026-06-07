@@ -1,6 +1,5 @@
 using ISIDA.SymbiontEnv.Contract;
 using Newtonsoft.Json.Linq;
-using System;
 using System.Collections.Generic;
 using System.IO;
 
@@ -11,45 +10,29 @@ namespace AIStudio.Common.Adapters
   /// </summary>
   public static class AdapterSchemaLoader
   {
-    private static readonly string[] DefaultStepTypes =
-    {
-      "set_property",
-      "run_sw_command",
-      "rebuild",
-      "log"
-    };
-    private static readonly string[] DefaultDetectKinds =
-    {
-      "command_before",
-      "document_saved"
-    };
     /// <summary>
-    /// Загружает schema для адаптера; при отсутствии файлов — fallback Velum-like defaults.
+    /// Загружает schema для адаптера. Отсутствующие или пустые файлы — пустые списки в schema.
     /// </summary>
     public static AdapterEnvironmentSchema LoadForAdapter(string adapterId)
     {
+      var schema = new AdapterEnvironmentSchema();
       if (string.IsNullOrWhiteSpace(adapterId))
-        return CreateVelumLikeFallback();
+        return schema;
+
       AdapterManifest manifest = AdapterRegistry.TryGetById(adapterId);
       if (manifest == null || string.IsNullOrWhiteSpace(manifest.PackageRootPath))
-        return CreateVelumLikeFallback();
+        return schema;
+
       string schemaDir = Path.Combine(manifest.PackageRootPath, "schema");
       if (!Directory.Exists(schemaDir))
-        return CreateVelumLikeFallback();
-      var schema = new AdapterEnvironmentSchema();
+        return schema;
+
       LoadFields(Path.Combine(schemaDir, "recipe-preconditions.json"), "fields", schema.RecipePreconditions);
       LoadStepTypes(Path.Combine(schemaDir, "recipe-steps.json"), schema.RecipeStepTypes);
       LoadFields(Path.Combine(schemaDir, "trigger-filter.json"), "fields", schema.TriggerFilterFields);
       LoadDetectKinds(Path.Combine(schemaDir, "trigger-detect.json"), schema.TriggerDetectKinds);
       LoadMetricProbes(Path.Combine(schemaDir, "metric-probes.json"), schema.MetricProbes);
-      if (schema.RecipeStepTypes.Count == 0)
-        FillDefaultStepTypes(schema.RecipeStepTypes);
-      if (schema.RecipePreconditions.Count == 0)
-        FillDefaultRecipePreconditions(schema.RecipePreconditions);
-      if (schema.TriggerFilterFields.Count == 0)
-        FillDefaultTriggerFilter(schema.TriggerFilterFields);
-      if (schema.TriggerDetectKinds.Count == 0)
-        FillDefaultDetectKinds(schema.TriggerDetectKinds);
+      LoadRecipeCatalog(Path.Combine(schemaDir, "recipe-catalog.json"), schema.RecipeCatalog);
       return schema;
     }
 
@@ -57,19 +40,45 @@ namespace AIStudio.Common.Adapters
     public static AdapterEnvironmentSchema LoadForCurrentProject()
     {
       if (!SymbiontProjectAdapterSettings.TryGetValidatedCurrentAdapterId(out string adapterId))
-        return CreateVelumLikeFallback();
+        return new AdapterEnvironmentSchema();
       return LoadForAdapter(adapterId);
     }
 
     /// <summary>
     /// Ключи проб метрик среды для текущего проекта.
-    /// Без подключённого адаптера — пустой список (без fallback).
+    /// Без подключённого адаптера — пустой список.
     /// </summary>
     public static IReadOnlyList<AdapterSchemaMetricProbe> LoadMetricProbesForCurrentProject()
     {
       if (!SymbiontProjectAdapterSettings.TryGetValidatedCurrentAdapterId(out string adapterId))
         return new AdapterSchemaMetricProbe[0];
       return LoadMetricProbesForAdapter(adapterId);
+    }
+
+    /// <summary>
+    /// Каталог рецептов из <c>schema\recipe-catalog.json</c> для текущего проекта.
+    /// </summary>
+    public static IReadOnlyList<AdapterSchemaRecipeCatalogEntry> LoadRecipeCatalogForCurrentProject()
+    {
+      if (!SymbiontProjectAdapterSettings.TryGetValidatedCurrentAdapterId(out string adapterId))
+        return new AdapterSchemaRecipeCatalogEntry[0];
+      return LoadRecipeCatalogForAdapter(adapterId);
+    }
+
+    /// <summary>
+    /// Каталог рецептов из <c>schema\recipe-catalog.json</c> зарегистрированного пакета.
+    /// </summary>
+    public static IReadOnlyList<AdapterSchemaRecipeCatalogEntry> LoadRecipeCatalogForAdapter(string adapterId)
+    {
+      if (string.IsNullOrWhiteSpace(adapterId))
+        return new AdapterSchemaRecipeCatalogEntry[0];
+      AdapterManifest manifest = AdapterRegistry.TryGetById(adapterId);
+      if (manifest == null || string.IsNullOrWhiteSpace(manifest.PackageRootPath))
+        return new AdapterSchemaRecipeCatalogEntry[0];
+      string path = Path.Combine(manifest.PackageRootPath, "schema", "recipe-catalog.json");
+      var entries = new List<AdapterSchemaRecipeCatalogEntry>();
+      LoadRecipeCatalog(path, entries);
+      return entries;
     }
 
     /// <summary>
@@ -126,7 +135,7 @@ namespace AIStudio.Common.Adapters
       }
       catch
       {
-        // ignore broken schema — fallback applied by caller
+        // ignore broken schema
       }
     }
 
@@ -147,11 +156,43 @@ namespace AIStudio.Common.Adapters
           string type = item["type"]?.ToString();
           if (string.IsNullOrWhiteSpace(type))
             continue;
-          target.Add(new AdapterSchemaStepType
+          var stepType = new AdapterSchemaStepType
           {
             Type = type,
-            Label = item["label"]?.ToString() ?? type
-          });
+            Label = item["label"]?.ToString() ?? type,
+            RuntimeType = item["runtimeType"]?.ToString()
+          };
+          if (item["parameters"] is JArray paramArr)
+          {
+            foreach (JToken paramToken in paramArr)
+            {
+              if (!(paramToken is JObject paramItem))
+                continue;
+              string paramKey = paramItem["key"]?.ToString();
+              if (string.IsNullOrWhiteSpace(paramKey))
+                continue;
+              var parameter = new AdapterSchemaStepParameter
+              {
+                Key = paramKey,
+                Label = paramItem["label"]?.ToString(),
+                Type = paramItem["type"]?.ToString(),
+                Required = paramItem["required"]?.Value<bool>() ?? false
+              };
+              if (paramItem["values"] is JArray valuesArr)
+              {
+                var values = new List<string>();
+                foreach (JToken valueToken in valuesArr)
+                {
+                  string value = valueToken?.ToString();
+                  if (!string.IsNullOrWhiteSpace(value))
+                    values.Add(value);
+                }
+                parameter.Values = values;
+              }
+              stepType.Parameters.Add(parameter);
+            }
+          }
+          target.Add(stepType);
         }
       }
       catch
@@ -191,6 +232,37 @@ namespace AIStudio.Common.Adapters
       }
     }
 
+    private static void LoadRecipeCatalog(string path, IList<AdapterSchemaRecipeCatalogEntry> target)
+    {
+      if (!File.Exists(path))
+        return;
+      try
+      {
+        JObject jo = JObject.Parse(File.ReadAllText(path));
+        JArray arr = jo["recipes"] as JArray;
+        if (arr == null)
+          return;
+        foreach (JToken token in arr)
+        {
+          if (!(token is JObject item))
+            continue;
+          string id = item["id"]?.ToString();
+          if (string.IsNullOrWhiteSpace(id))
+            continue;
+          target.Add(new AdapterSchemaRecipeCatalogEntry
+          {
+            Id = id.Trim(),
+            Label = item["label"]?.ToString(),
+            Description = item["description"]?.ToString()
+          });
+        }
+      }
+      catch
+      {
+        // ignore broken schema
+      }
+    }
+
     private static void LoadDetectKinds(string path, IList<AdapterSchemaDetectKind> target)
     {
       if (!File.Exists(path))
@@ -218,65 +290,6 @@ namespace AIStudio.Common.Adapters
       catch
       {
         // ignore
-      }
-    }
-
-    private static AdapterEnvironmentSchema CreateVelumLikeFallback()
-    {
-      var schema = new AdapterEnvironmentSchema();
-      FillDefaultRecipePreconditions(schema.RecipePreconditions);
-      FillDefaultStepTypes(schema.RecipeStepTypes);
-      FillDefaultTriggerFilter(schema.TriggerFilterFields);
-      FillDefaultDetectKinds(schema.TriggerDetectKinds);
-      return schema;
-    }
-
-    private static void FillDefaultRecipePreconditions(IList<AdapterSchemaField> target)
-    {
-      target.Add(new AdapterSchemaField
-      {
-        Key = "document_kinds",
-        Label = "Типы документа",
-        Type = "stringList",
-        EnumValues = new List<string> { "part", "assembly", "drawing" }
-      });
-      target.Add(new AdapterSchemaField { Key = "not_sketch_edit", Label = "Не в режиме эскиза", Type = "bool" });
-      target.Add(new AdapterSchemaField { Key = "not_read_only", Label = "Не read-only", Type = "bool" });
-      target.Add(new AdapterSchemaField { Key = "pdm_checkout_required", Label = "Требуется checkout PDM", Type = "bool" });
-    }
-
-    private static void FillDefaultStepTypes(IList<AdapterSchemaStepType> target)
-    {
-      for (int i = 0; i < DefaultStepTypes.Length; i++)
-      {
-        target.Add(new AdapterSchemaStepType
-        {
-          Type = DefaultStepTypes[i],
-          Label = DefaultStepTypes[i]
-        });
-      }
-    }
-
-    private static void FillDefaultTriggerFilter(IList<AdapterSchemaField> target)
-    {
-      target.Add(new AdapterSchemaField
-      {
-        Key = "document_kinds",
-        Label = "Типы документа",
-        Type = "stringList",
-        EnumValues = new List<string> { "part", "assembly", "drawing" }
-      });
-    }
-
-    private static void FillDefaultDetectKinds(IList<AdapterSchemaDetectKind> target)
-    {
-      for (int i = 0; i < DefaultDetectKinds.Length; i++)
-      {
-        target.Add(new AdapterSchemaDetectKind
-        {
-          Kind = DefaultDetectKinds[i],
-          Label = DefaultDetectKinds[i]
-        });
       }
     }
   }

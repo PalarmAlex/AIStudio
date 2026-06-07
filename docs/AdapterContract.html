@@ -38,9 +38,9 @@
 <body>
 <main class="help-content">
 <h1 id="контракт-платформы-адаптеров-среды-aistudio">Контракт платформы адаптеров среды (AIStudio)</h1>
-<p><strong>Версия контракта:</strong> <code>1.0</code>  </p>
-<p><strong>Дата:</strong> 2026-06-06  </p>
-<p><strong>Статус:</strong> нормативный документ для AIStudio, авторов адаптеров и runtime host (эталонная реализация v1 — ориентир для авторов). AIStudio <strong>не обязательна</strong> для разработки host; пакет с <code>manifest.json</code> нужен только при интеграции со студией (§ 0.5).</p>
+<p><strong>Версия контракта:</strong> <code>2.0</code>  </p>
+<p><strong>Дата:</strong> 2026-06-07  </p>
+<p><strong>Статус:</strong> нормативный документ для AIStudio, авторов адаптеров и runtime host. AIStudio <strong>не обязательна</strong> для разработки host; пакет с <code>manifest.json</code> нужен только при интеграции со студией (§ 0.5). Кодек YAML и проверка пакета — <code>SymbiontEnv.Contract.dll</code>.</p>
 <p>Связанные документы:</p>
 <table>
 <thead>
@@ -77,7 +77,7 @@
 <pre><code>
 %ProgramData%\ISIDA\Adapters\{adapterId}\
   manifest.json
-  schema\                   — описание capability (post-MVP: подсказки в редакторах)
+  schema\                   — описание capability (редакторы «Среда», ProbeKey)
   BootData\                 — образцы YAML для seed новых проектов
   runtime\                  — DLL host + isida.dll (дистрибуция среды; не для редактора)
 </code></pre>
@@ -93,7 +93,7 @@
 <pre><code>
 %ProgramData%\ISIDA\AdapterPackageTemplates\demo\
 </code></pre>
-<p>Студия <strong>не копирует</strong> каркас при работе: каталог появляется <strong>при установке AIStudio</strong>. Исходник каркаса — <code>docs/adapter-package-example/demo/</code>. Автор копирует каталог, меняет <code>id</code>, заполняет schema и runtime.</p>
+<p>Студия <strong>не копирует</strong> каркас при работе: каталог появляется <strong>при установке AIStudio</strong>. Исходник каркаса — <code>docs/AdapterPackageTemplates/demo/</code>. Автор копирует каталог, меняет <code>id</code>, заполняет schema и runtime.</p>
 <h3 id="03-runtime-host-исполнитель-среды">0.3. Runtime host (исполнитель среды)</h3>
 <p><strong><code>runtime\*.dll</code></strong> — программа, которая <strong>вне студии</strong> читает YAML проекта и исполняет рецепты/триггеры (эталонная реализация v1 — ориентир).</p>
 <table>
@@ -113,7 +113,7 @@
 <ul>
 <li>доступность редакторов меню «Среда»;</li>
 <li>seed BootData при <strong>создании</strong> проекта (если тип среды выбран);</li>
-<li>(post-MVP) combobox и подсказки из <code>schema\</code> — в т.ч. <strong>ProbeKey</strong> в редакторе «Давление среды на виталы» (<code>EnvironmentPressureRules.dat</code>).</li>
+<li>combobox и подсказки из <code>schema\</code> — в т.ч. <strong>ProbeKey</strong> в редакторе «Давление среды на виталы» (<code>EnvironmentPressureRules.dat</code>) и каталог ID рецептов из <code>recipe-catalog.json</code>.</li>
 </ul>
 <h3 id="05-когда-нужен-пакет-для-студии">0.5. Когда нужен пакет для студии</h3>
 <p>Ядро платформы для host — <strong><code>isida.dll</code></strong> и runtime contract YAML (§ 5–7). Формат <strong>пакета</strong> (<code>manifest.json</code>, <code>Adapters\{id}\</code>, BootData, schema) обязателен <strong>только</strong> если используется AIStudio.</p>
@@ -127,7 +127,7 @@
 
 <tr><td><code>BootData\Environment\*.yaml</code> в пакете</td><td>Не нужны</td><td>Нужны (seed проекта)</td></tr>
 
-<tr><td><code>schema\</code></td><td>Не нужна</td><td>Рекомендуется (редакторы «Среда»)</td></tr>
+<tr><td><code>schema\</code></td><td>Не нужна</td><td><strong>Обязательна</strong> для регистрации в студии</td></tr>
 </tbody></table>
 <p>Автор host может использовать любой редактор данных симбионта; контракт YAML и <code>SymbiontEnv.Contract.dll</code> доступны без установки AIStudio.</p>
 <h3 id="06-роли-пользователей">0.6. Роли пользователей</h3>
@@ -182,7 +182,8 @@
 <thead>
 <tr><th>Значение</th><th>Поддержка AIStudio 1.x</th></tr></thead><tbody>
 
-<tr><td><code>1.0</code></td><td>Да (текущая)</td></tr>
+<tr><td><code>2.0</code></td><td>Да (текущая)</td></tr>
+<tr><td><code>1.0</code></td><td>Нет (устарела)</td></tr>
 </tbody></table>
 <ul>
 <li>Студия <strong>отклоняет</strong> пакет с неизвестной major-версией контракта.</li>
@@ -274,11 +275,9 @@ AdapterId|my-adapter
 <ul>
 <li><strong>На диске (канон записи)</strong> — ключи и значения из столбца «Канон».</li>
 <li><strong>При чтении</strong> — допускаются алиасы; парсеры приводят к внутренней модели.</li>
-<li><strong>Dual round-trip</strong> (обязательный gate): эталонный файл → Read → Write → Read; результат эквивалентен канону для обоих стеков:</li>
+<li><strong>Dual round-trip</strong> (рекомендуемый gate): эталонный файл → Read → Write → Read — для <strong>AIStudio</strong> и <strong>runtime host</strong>, если оба используют <code>EnvironmentYamlCodec</code> из <code>SymbiontEnv.Contract.dll</code>.</li>
 </ul>
-<p>  - AIStudio: <code>EnvironmentYamlCodec</code>;</p>
-<p>  - Runtime host: <code>HostRecipeYamlReader</code> / <code>HostTriggersYamlReader</code> → <code>EnvironmentYamlWriter</code>.</p>
-<h3 id="52-таблица-алиасов">5.2. Таблица алиасов</h3>
+<h3 id="52-таблица-алиасов">5.2. Таблица алиасов (поддерживает <code>EnvironmentYamlCodec</code>)</h3>
 <table>
 <thead>
 <tr><th>Область</th><th>Канон (запись)</th><th>Алиасы (только чтение)</th></tr></thead><tbody>
@@ -290,21 +289,14 @@ AdapterId|my-adapter
 <tr><td>Типы документа в preconditions</td><td><code>document_kinds</code></td><td><code>document_types</code></td></tr>
 
 <tr><td>Фильтр документа триггера</td><td><code>document_kinds</code></td><td><code>document_filter</code></td></tr>
-
-<tr><td>Тип шага set property</td><td><code>set_property</code></td><td><code>set_custom_property</code></td></tr>
-
-<tr><td>Detect: команда до выполнения</td><td><code>command_before</code></td><td><code>command_pre</code></td></tr>
-
-<tr><td>Detect: сохранение документа</td><td><code>document_saved</code></td><td><code>file_save_post</code></td></tr>
 </tbody></table>
+<p>Дополнительные алиасы — на усмотрение конкретного host; кодек их не нормализует.</p>
 <h3 id="53-внутренняя-модель-после-чтения">5.3. Внутренняя модель после чтения</h3>
-<p>Оба парсера (AIStudio и runtime host) нормализуют тип шага свойства:</p>
-<pre><code>
-set_property  →  set_custom_property   (в памяти)
-set_custom_property  →  set_custom_property
-</code></pre>
-<p>При записи на диск оба writer эмитируют <strong><code>set_property</code></strong>.</p>
-<p>Detect <code>kind</code> в памяти может оставаться как в файле; runtime host принимает канон и алиасы (см. <code>HostEventDetector</code>).</p>
+<ul>
+<li><code>document_kinds</code> выделяется в отдельное поле; остальные bool-ключи <code>preconditions</code> — в словарь (семантика из <code>schema\</code>).</li>
+<li><code>type</code> шага и <code>kind</code> detect сохраняются как в файле.</li>
+<li>Параметры шага и detect — словари строк; <code>command_ids</code> в detect — список целых.</li>
+</ul>
 <h3 id="54-пустые-коллекции">5.4. Пустые коллекции</h3>
 <p>Writers студии и runtime host для пустых списков эмитируют явно:</p>
 <pre><code>
@@ -353,20 +345,16 @@ recipes:
 </tbody></table>
 <p>Runtime <strong>не</strong> проверяет существование ID в <code>.dat</code> при чтении YAML; валидация — задача студии и сценариев тестирования.</p>
 <h3 id="63-блок-preconditions">6.3. Блок <code>preconditions</code></h3>
-<p>Контракт v1 — фиксированный набор ключей:</p>
+<p>Структура YAML фиксирована; <strong>набор ключей</strong> задаётся адаптером в <code>schema/recipe-preconditions.json</code>:</p>
 <table>
 <thead>
-<tr><th>Ключ</th><th>Тип</th><th>Default</th><th>Описание</th></tr></thead><tbody>
+<tr><th>Ключ в YAML</th><th>Тип в schema</th><th>Описание</th></tr></thead><tbody>
 
-<tr><td><code>document_kinds</code></td><td>`[document \</td><td>project \</td><td>view]`</td><td><code>[]</code></td><td>Допустимые типы активного документа</td></tr>
+<tr><td><code>document_kinds</code></td><td><code>stringList</code></td><td>Типы активного документа (значения из <code>enumValues</code>)</td></tr>
 
-<tr><td><code>not_edit_mode</code></td><td>bool</td><td><code>false</code></td><td>Запрет исполнения в режиме редактирования</td></tr>
-
-<tr><td><code>not_read_only</code></td><td>bool</td><td><code>false</code></td><td>Документ не read-only</td></tr>
-
-<tr><td><code>checkout_required</code></td><td>bool</td><td><code>false</code></td><td>Требуется извлечение из хранилища</td></tr>
+<tr><td><code>&lt;bool_key&gt;</code></td><td><code>bool</code></td><td>Логические предусловия из <code>fields[].key</code></td></tr>
 </tbody></table>
-<p>Другие ключи в <code>preconditions</code> runtime host v1 <strong>игнорирует</strong>. Адаптер другой среды может определять собственные ключи через schema (post-MVP); для contract 1.0 расширение preconditions — только через новую версию контракта или согласованный профиль адаптера в schema.</p>
+<p>Студия показывает только поля из schema. Типовой пример bool-ключей: <code>not_edit_mode</code>, <code>not_read_only</code>, <code>checkout_required</code>.</p>
 <h3 id="64-блок-steps">6.4. Блок <code>steps</code></h3>
 <p>Каждый элемент:</p>
 <pre><code>
@@ -374,35 +362,23 @@ recipes:
   &lt;param_key&gt;: &lt;scalar&gt;
 </code></pre>
 <p>Все ключи кроме <code>type</code> — параметры шага (строковые scalars). Регистр ключей параметров <strong>не</strong> значим при чтении.</p>
-<h4 id="641-типы-шагов-contract-v1-эталонный-набор">6.4.1. Типы шагов contract v1 (эталонный набор)</h4>
+<h4 id="641-типы-шагов">6.4.1. Типы шагов</h4>
+<p>Допустимые <code>type</code> описываются в <code>schema/recipe-steps.json</code>. Типовой набор для документных/CAD-сред:</p>
 <table>
 <thead>
-<tr><th><code>type</code> (в файле)</th><th>Внутренний type</th><th>Параметры</th><th>Примечание</th></tr></thead><tbody>
+<tr><th><code>type</code></th><th>Назначение</th></tr></thead><tbody>
 
-<tr><td><code>set_property</code></td><td><code>set_custom_property</code></td><td>см. ниже</td><td>Запись пользовательского свойства документа</td></tr>
+<tr><td><code>set_property</code></td><td>Запись свойства документа</td></tr>
 
-<tr><td><code>run_command</code></td><td><code>run_command</code></td><td><code>command_id</code> (int, обяз.)</td><td>Выполнение команды host по ID</td></tr>
+<tr><td><code>run_command</code></td><td>Выполнение команды host по <code>command_id</code></td></tr>
 
-<tr><td><code>refresh</code></td><td><code>refresh</code></td><td>—</td><td>Обновление активного документа</td></tr>
+<tr><td><code>refresh</code> / <code>rebuild</code></td><td>Обновление представления или перестроение модели</td></tr>
 
-<tr><td><code>log</code></td><td><code>log</code></td><td><code>message</code>, <code>level</code> (<code>info</code>\</td><td><code>warn</code>\</td><td><code>error</code>, default <code>info</code>)</td><td>Запись в лог host</td></tr>
+<tr><td><code>log</code></td><td>Запись в лог host</td></tr>
 </tbody></table>
-<p><strong><code>set_property</code> / <code>set_custom_property</code> — параметры:</strong></p>
-<table>
-<thead>
-<tr><th>Параметр</th><th>Обяз.</th><th>Описание</th></tr></thead><tbody>
-
-<tr><td><code>name</code></td><td>да</td><td>Имя свойства</td></tr>
-
-<tr><td><code>template</code></td><td>нет</td><td>Шаблон значения (<code>{PROJECT}</code>, <code>{DESCRIPTION}</code>, …)</td></tr>
-
-<tr><td><code>config</code></td><td>нет</td><td><code>document</code> / <code>active</code> — контекст документа</td></tr>
-
-<tr><td><code>overwrite</code></td><td>нет</td><td><code>if_empty</code>, <code>never_if_filled</code>, …</td></tr>
-</tbody></table>
-<p>Неизвестный <code>type</code> → runtime host: шаг с ошибкой <code>unknown_step_type</code>, рецепт прерывается (политика host).</p>
+<p>Неизвестный <code>type</code> при исполнении — ошибка host.</p>
 <h4 id="642-расширение-типов-шагов">6.4.2. Расширение типов шагов</h4>
-<p>Новые <code>type</code> добавляет <strong>автор адаптера</strong> в schema и runtime. Контракт 1.0 не фиксирует closed enum на уровне YAML — студия в MVP может показывать фиксированный список эталонного набора; post-MVP — список из <code>schema/recipe-steps.json</code>.</p>
+<p>Новые <code>type</code> добавляет автор адаптера в <code>recipe-steps.json</code> и реализует в runtime. Контракт YAML не фиксирует closed enum.</p>
 <h3 id="65-risk_tier">6.5. <code>risk_tier</code></h3>
 <table>
 <thead>
@@ -523,18 +499,18 @@ triggers:
 
 <tr><td>UI host</td><td>зависимости UI-фреймворка host</td></tr>
 </tbody></table>
-<p>Точный список фиксируется в README пакета адаптера. Пример среды — <code>docs\adapter-package-example\velum\</code> (конкретная реализация, не часть contract). «Проверить» в студии: <code>runtime\</code> не пуст и содержит <strong><code>isida.dll</code></strong> (Error). «Создать пакет…» дополняет <code>isida.dll</code> из каталога AIStudio, если host не положил его в <code>bin\Debug</code>.</p>
+<p>Точный список фиксируется в README пакета адаптера. «Создать пакет…» копирует стартовый SDK из <code>%ProgramData%\ISIDA\AdapterPackageTemplates\demo\runtime\</code> и дополняет DLL host. «Проверить» <strong>не</strong> валидирует <code>runtime\</code> (§ 12).</p>
 <h3 id="83-исключения">8.3. Исключения</h3>
 <p><strong>Не</strong> включать в пакет: <code>.cs</code>, <code>.csproj</code>, <code>.pdb</code> (опционально), исходники, <code>.git</code>, артефакты AIStudio.</p>
 <hr>
 <h2 id="9-manifestjson">9. <code>manifest.json</code></h2>
-<h3 id="91-обязательные-поля-contract-10">9.1. Обязательные поля (contract 1.0)</h3>
+<h3 id="91-обязательные-поля-contract-20">9.1. Обязательные поля (contract 2.0)</h3>
 <pre><code>
 {
   &quot;id&quot;: &quot;my-adapter&quot;,
   &quot;displayName&quot;: &quot;Мой адаптер&quot;,
   &quot;version&quot;: &quot;1.0.0&quot;,
-  &quot;contractVersion&quot;: &quot;1.0&quot;,
+  &quot;contractVersion&quot;: &quot;2.0&quot;,
   &quot;author&quot;: &quot;Example Author&quot;,
   &quot;bootDataRelativePath&quot;: &quot;BootData&quot;
 }
@@ -549,7 +525,7 @@ triggers:
 
 <tr><td><code>version</code></td><td>string</td><td>Версия пакета</td></tr>
 
-<tr><td><code>contractVersion</code></td><td>string</td><td><code>&quot;1.0&quot;</code> для этого документа</td></tr>
+<tr><td><code>contractVersion</code></td><td>string</td><td><code>&quot;2.0&quot;</code> для этого документа</td></tr>
 
 <tr><td><code>author</code></td><td>string</td><td></td></tr>
 
@@ -560,7 +536,7 @@ triggers:
 <thead>
 <tr><th>Поле</th><th>Назначение</th></tr></thead><tbody>
 
-<tr><td><code>schemaVersion</code></td><td>Версия набора JSON в <code>schema\</code> (напр. <code>&quot;1.0&quot;</code>)</td></tr>
+<tr><td><code>schemaVersion</code></td><td>Версия набора JSON в <code>schema\</code> (напр. <code>&quot;2.0&quot;</code>)</td></tr>
 
 <tr><td><code>adapterSettingsRelativePath</code></td><td><code>&quot;adapter-settings&quot;</code></td></tr>
 
@@ -574,8 +550,8 @@ triggers:
   &quot;id&quot;: &quot;my-adapter&quot;,
   &quot;displayName&quot;: &quot;Мой адаптер — Reactive Core&quot;,
   &quot;version&quot;: &quot;1.0.0&quot;,
-  &quot;contractVersion&quot;: &quot;1.0&quot;,
-  &quot;schemaVersion&quot;: &quot;1.0&quot;,
+  &quot;contractVersion&quot;: &quot;2.0&quot;,
+  &quot;schemaVersion&quot;: &quot;2.0&quot;,
   &quot;author&quot;: &quot;Example Author&quot;,
   &quot;bootDataRelativePath&quot;: &quot;BootData&quot;,
   &quot;adapterSettingsRelativePath&quot;: &quot;adapter-settings&quot;,
@@ -583,14 +559,9 @@ triggers:
 }
 </code></pre>
 <hr>
-<h2 id="10-ui-schema-schema-post-mvp">10. UI schema (<code>schema\</code>, post-MVP)</h2>
-<p>В MVP студия <strong>не обязана</strong> читать schema для редактирования. Файлы schema используются для:</p>
-<ul>
-<li>расширенной «Проверить» (валидный JSON);</li>
-<li>schema-driven редакторов (фаза 3 платформы);</li>
-<li>документирования полей адаптера для автора.</li>
-</ul>
-<h3 id="101-имена-файлов-schemaversion-10">10.1. Имена файлов (schemaVersion 1.0)</h3>
+<h2 id="10-ui-schema-schema">10. UI schema (<code>schema\</code>)</h2>
+<p>Студия загружает schema через <code>AdapterSchemaLoader</code> при редактировании проекта с выбранным <code>AdapterId</code>. Каталог <code>schema\</code> <strong>обязателен</strong> для регистрации пакета (§ 12). Без schema редакторы «Среда» показывают пустые списки.</p>
+<h3 id="101-имена-файлов-schemaversion-20">10.1. Имена файлов (schemaVersion 2.0)</h3>
 <table>
 <thead>
 <tr><th>Файл</th><th>Содержание</th></tr></thead><tbody>
@@ -603,12 +574,13 @@ triggers:
 
 <tr><td><code>trigger-detect.json</code></td><td>Правила <code>detect</code></td></tr>
 
-<tr><td><code>metric-probes.json</code></td><td>Допустимые ключи <strong>ProbeKey</strong> в <code>EnvironmentPressureRules.dat</code> (combobox в редакторе «Давление среды на виталы», post-MVP)</td></tr>
+<tr><td><code>recipe-catalog.json</code></td><td>Каталог допустимых <code>id</code> рецептов</td></tr>
+<tr><td><code>metric-probes.json</code></td><td>Ключи <strong>ProbeKey</strong> в <code>EnvironmentPressureRules.dat</code></td></tr>
 </tbody></table>
 <h3 id="102-формат-дескriptor-поля-фрагмент">10.2. Формат дескriptor поля (фрагмент)</h3>
 <pre><code>
 {
-  &quot;schemaVersion&quot;: &quot;1.0&quot;,
+  &quot;schemaVersion&quot;: &quot;2.0&quot;,
   &quot;fields&quot;: [
     {
       &quot;key&quot;: &quot;document_kinds&quot;,
@@ -631,7 +603,7 @@ triggers:
 <h3 id="103-формат-дескriptor-шага-фрагмент">10.3. Формат дескriptor шага (фрагмент)</h3>
 <pre><code>
 {
-  &quot;schemaVersion&quot;: &quot;1.0&quot;,
+  &quot;schemaVersion&quot;: &quot;2.0&quot;,
   &quot;stepTypes&quot;: [
     {
       &quot;type&quot;: &quot;set_property&quot;,
@@ -658,11 +630,11 @@ triggers:
   ]
 }
 </code></pre>
-<p><strong>Правило:</strong> каждый <code>key</code> / <code>type</code> в schema должен поддерживаться runtime адаптера. Студия не добавляет поля, отсутствующие в schema (post-MVP).</p>
+<p><strong>Правило:</strong> каждый <code>key</code> / <code>type</code> / <code>kind</code> в schema должен поддерживаться runtime адаптера. Студия не добавляет поля и типы шагов, отсутствующие в schema.</p>
 <h3 id="104-формат-metric-probesjson-фрагмент">10.4. Формат <code>metric-probes.json</code> (фрагмент)</h3>
 <pre><code>
 {
-  &quot;schemaVersion&quot;: &quot;1.0&quot;,
+  &quot;schemaVersion&quot;: &quot;2.0&quot;,
   &quot;probes&quot;: [
     {
       &quot;key&quot;: &quot;host.active_doc_modified&quot;,
@@ -672,10 +644,10 @@ triggers:
   ]
 }
 </code></pre>
-<p>Студия (post-MVP) заполняет combobox <strong>ProbeKey</strong> в <code>EnvironmentPressureRules.dat</code> из <code>probes[].key</code>. Дискретные стимулы оператора и YAML — в <code>InfluenceActions.dat</code> (5 столбцов, без ProbeKey).</p>
+<p>Студия заполняет combobox <strong>ProbeKey</strong> в <code>EnvironmentPressureRules.dat</code> из <code>probes[].key</code> (плюс пункт «оператор, не среда»). Дискретные стимулы оператора и YAML-триггеры — в <code>InfluenceActions.dat</code> (без ProbeKey).</p>
 <hr>
 <h2 id="11-согласование-парсеров-aistudio-runtime-host">11. Согласование парсеров (AIStudio ↔ runtime host)</h2>
-<p>Общая библиотека codec <strong>не входит</strong> в contract 1.0. Согласование — <strong>тестами</strong>:</p>
+<p>С contract <strong>2.0</strong> AIStudio и host <strong>должны</strong> ссылаться на <code>SymbiontEnv.Contract.dll</code> (<code>EnvironmentYamlCodec</code>). Согласование — round-trip тестами:</p>
 <table>
 <thead>
 <tr><th>#</th><th>Тест</th></tr></thead><tbody>
@@ -689,30 +661,31 @@ triggers:
 <tr><td>T4</td><td>Host Write после AIStudio Read — AIStudio Read без ошибок</td></tr>
 </tbody></table>
 <p><strong>Расположение фикстур:</strong> <code>AIStudio\tests\EnvironmentYaml\fixtures\</code> (3–5 файлов, включая пустые каталоги, полный рецепт, legacy <code>recipe_id</code> + <code>document_types</code>, алиасы detect).</p>
-<p><strong>CI:</strong> job при изменении <code>AdapterContract.md</code>, <code>AdapterContract.html</code>, <code>EnvironmentYamlCodec*</code>, <code>HostRecipeYamlReader</code>, <code>EnvironmentYamlWriter</code>.</p>
+<p><strong>CI:</strong> пересборка при изменении <code>AdapterContract.md</code>, <code>SymbiontEnv.Contract</code>, редакторов среды в AIStudio.</p>
 <hr>
-<h2 id="12-валидация-проверить-aistudio-mvp">12. Валидация «Проверить» (AIStudio, MVP)</h2>
+<h2 id="12-валидация-проверить-aistudio">12. Валидация «Проверить» (AIStudio)</h2>
+<p>Реализация: <code>AdapterPackageValidator</code> в <code>SymbiontEnv.Contract.dll</code> (обёртка в студии — <code>AdapterValidator</code>).</p>
 <table>
 <thead>
 <tr><th>#</th><th>Проверка</th><th>Severity</th></tr></thead><tbody>
 
 <tr><td>V1</td><td><code>manifest.json</code> существует, JSON валиден</td><td>Error</td></tr>
 
-<tr><td>V2</td><td><code>contractVersion</code> поддерживается</td><td>Error</td></tr>
+<tr><td>V2</td><td><code>contractVersion</code> = <code>&quot;2.0&quot;</code></td><td>Error</td></tr>
 
-<tr><td>V3</td><td><code>id</code> валиден</td><td>Error</td></tr>
+<tr><td>V3</td><td><code>id</code> валиден (<code>[a-z0-9_-]+</code>)</td><td>Error</td></tr>
 
-<tr><td>V4</td><td><code>BootData\Environment\EnvironmentRecipes.yaml</code> парсится codec студии</td><td>Error</td></tr>
+<tr><td>V4</td><td>Каталог <code>schema\</code> существует и содержит <code>*.json</code></td><td>Error</td></tr>
 
-<tr><td>V5</td><td><code>BootData\Environment\EnvironmentTriggers.yaml</code> парсится codec студии</td><td>Error</td></tr>
+<tr><td>V5</td><td>Структура JSON в schema</td><td>Error</td></tr>
 
-<tr><td>V6</td><td><code>runtime\</code> содержит ≥1 <code>.dll</code>, в т.ч. <strong><code>isida.dll</code></strong></td><td>Error</td></tr>
+<tr><td>V6</td><td><code>displayName</code>, <code>version</code>, <code>author</code> заполнены</td><td>Warning</td></tr>
 
-<tr><td>V7</td><td>Файлы <code>schema\*.json</code> парсятся (если каталог есть)</td><td>Warning</td></tr>
+<tr><td>V7</td><td><code>BootData\Environment\*.yaml</code> парсятся codec (если есть)</td><td>Warning</td></tr>
 
-<tr><td>V8</td><td>Ключи sample YAML ⊆ schema (если schema есть)</td><td>Warning (post-MVP → Error)</td></tr>
+<tr><td>V8</td><td>Неизвестные имена файлов в <code>schema\</code></td><td>Info</td></tr>
 </tbody></table>
-<p>Студия <strong>не загружает</strong> DLL из <code>runtime\</code>.</p>
+<p><code>runtime\</code>, BootData и <code>adapter-settings\</code> <strong>не блокируют</strong> регистрацию. Студия <strong>не загружает</strong> DLL из <code>runtime\</code>.</p>
 <hr>
 <h2 id="13-разделение-уровней-данных">13. Разделение уровней данных</h2>
 <table>
@@ -721,7 +694,7 @@ triggers:
 
 <tr><td>Гомеостаз, рефлексы, сценарии</td><td>ISIDA / AIStudio</td><td><code>.dat</code>, сценарии</td></tr>
 
-<tr><td>Каркас рецепта/триггера (<code>id</code>, <code>adaptive_action_id</code>, <code>steps</code>, <code>detect</code>)</td><td>Contract 1.0</td><td>YAML</td></tr>
+<tr><td>Каркас рецепта/триггера (<code>id</code>, <code>adaptive_action_id</code>, <code>steps</code>, <code>detect</code>)</td><td>Contract 2.0</td><td>YAML</td></tr>
 
 <tr><td>Семантика preconditions/detect/step params</td><td>Runtime адаптера</td><td>YAML + schema</td></tr>
 
@@ -745,44 +718,37 @@ triggers:
 </tbody></table>
 <p>Пути часто задают через <code>%ProgramData%\...</code>.</p>
 <hr>
-<h2 id="15-чеклист-соответствия-contract-10">15. Чеклист соответствия contract 1.0</h2>
+<h2 id="15-чеклист-соответствия-contract-20">15. Чеклист соответствия contract 2.0</h2>
 <p><strong>Автор host (минимум, без студии):</strong></p>
-<p><input type="checkbox" disabled> Host ссылается на <code>isida.dll</code>; YAML по § 5–7</p>
-<p><input type="checkbox" disabled> Runtime host читает/пишет канонический YAML</p>
+<p><input type="checkbox" disabled> Host ссылается на <code>isida.dll</code> и <code>SymbiontEnv.Contract.dll</code></p>
+<p><input type="checkbox" disabled> YAML читается/пишется через <code>EnvironmentYamlCodec</code> (§ 5–7)</p>
 <p><strong>Автор пакета для AIStudio:</strong></p>
-<p><input type="checkbox" disabled> <code>manifest.json</code> с <code>contractVersion: &quot;1.0&quot;</code> и валидным <code>id</code></p>
-<p><input type="checkbox" disabled> BootData с обоими YAML; секции <code>recipes:</code> / <code>triggers:</code> присутствуют</p>
-<p><input type="checkbox" disabled> Sample YAML проходит runtime host</p>
-<p><input type="checkbox" disabled> <code>runtime\</code> — полный closure, <strong><code>isida.dll</code> обязателен</strong></p>
-<p><input type="checkbox" disabled> (Рекомендуется) <code>schema\</code> согласована с runtime</p>
+<p><input type="checkbox" disabled> <code>manifest.json</code> с <code>contractVersion: &quot;2.0&quot;</code> и валидным <code>id</code></p>
+<p><input type="checkbox" disabled> <code>schema\</code> — шесть JSON-файлов (§ 10.1) согласованы с runtime</p>
+<p><input type="checkbox" disabled> «Проверить» проходит без Error</p>
+<p><input type="checkbox" disabled> (Рекомендуется) BootData с <code>recipes:</code> / <code>triggers:</code> для seed проекта</p>
+<p><input type="checkbox" disabled> (Рекомендуется) <code>runtime\</code> — полный closure с <code>isida.dll</code> для дистрибуции</p>
 <p><strong>Разработчик AIStudio:</strong></p>
-<p><input type="checkbox" disabled> Dual round-trip T1–T4 зелёный на фикстурах</p>
+<p><input type="checkbox" disabled> Round-trip T1–T3 на фикстурах YAML</p>
 <p><input type="checkbox" disabled> «Проверить» реализует § 12</p>
-<p><input type="checkbox" disabled> Новый проект копирует BootData из <code>Adapters\{id}</code></p>
+<p><input type="checkbox" disabled> Редакторы «Среда» читают schema через <code>AdapterSchemaLoader</code></p>
 <p><input type="checkbox" disabled> <code>AdapterId</code> в AgentProperties.dat; блок «Среда» без адаптера</p>
-<p><strong>Разработчик runtime host (эталонная реализация):</strong></p>
-<p><input type="checkbox" disabled> Reader принимает все алиасы § 5.2</p>
-<p><input type="checkbox" disabled> Writer эмитирует канон § 5.2</p>
-<p><input type="checkbox" disabled> Executor поддерживает step types § 6.4.1</p>
-<p><input type="checkbox" disabled> Detector поддерживает detect kinds § 7.3</p>
+<p><strong>Разработчик runtime host:</strong></p>
+<p><input type="checkbox" disabled> Использует <code>EnvironmentYamlCodec</code> из <code>SymbiontEnv.Contract.dll</code></p>
+<p><input type="checkbox" disabled> Поддерживает <code>type</code> / <code>kind</code> / bool-ключи из schema пакета</p>
+<p><input type="checkbox" disabled> Исполняет шаги и detect по семантике своей среды</p>
 <hr>
 <h2 id="16-история-версий-документа">16. История версий документа</h2>
 <table>
 <thead>
 <tr><th>Версия</th><th>Дата</th><th>Изменения</th></tr></thead><tbody>
 
-<tr><td>1.0</td><td>2026-06-03</td><td>Первый нормативный release: manifest, YAML v1, нормализация, MVP vs post-MVP schema</td></tr>
+<tr><td>2.0</td><td>2026-06-07</td><td><code>contractVersion</code> 2.0; schema-driven редакторы; <code>recipe-catalog.json</code>; <code>SymbiontEnv.Contract.dll</code>; валидация без <code>runtime\</code></td></tr>
 
-<tr><td>1.0-rev.1</td><td>2026-06-06</td><td>§ 0.5 два пути (host / студия); установщик вне студии (§ 14); <code>isida.dll</code> обязателен в <code>runtime\</code> (V6)</td></tr>
-
-<tr><td>1.0-rev.4</td><td>2026-06-06</td><td>Убраны упоминания установщиков и ISS из контракта (§ 0.6, бывш. § 14)</td></tr>
-
-<tr><td>1.0-rev.3</td><td>2026-06-06</td><td>Настройщик симбионта не собирает установщик; студия не создаёт ISS в проекте</td></tr>
-
-<tr><td>1.0-rev.2</td><td>2026-06-06</td><td>Нейтральные обозначения вместо привязки к конкретной среде; синхронизация с <code>schema\</code></td></tr>
+<tr><td>1.0</td><td>2026-06-03</td><td>Первый нормативный release (устарел)</td></tr>
 </tbody></table>
 <hr>
-<p>*Контракт 1.0 соответствует эталонной реализации runtime host v1 и codec AIStudio <code>EnvironmentYamlCodec</code>. Изменения runtime или codec без обновления этого документа и тестов § 11 не допускаются.*</p>
+<p>*Контракт 2.0 соответствует <code>SymbiontEnv.Contract.dll</code> (<code>EnvironmentYamlCodec</code>, <code>AdapterPackageValidator</code>) и редакторам «Среда» в AIStudio. Изменения codec или schema без обновления этого документа не допускаются.*</p>
 </main>
 </body>
 </html>

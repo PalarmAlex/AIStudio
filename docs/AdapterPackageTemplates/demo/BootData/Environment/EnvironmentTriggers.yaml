@@ -1,10 +1,10 @@
-# Триггеры среды: событие → influence_action_id (строка InfluenceActions.dat, не RuleId pressure rules).
+# Триггеры среды: событие → influence_action_id (InfluenceActions.dat, не RuleId pressure rules).
 triggers:
   - id: save_active_document
     display_name: "Сохранение активного документа"
     influence_action_id: 101
-    filter:
-      document_kinds: [document]
+    document_kinds: [document, project]
     detect:
       - kind: document_saved
+        environment: my-adapter
         enabled: true

@@ -15,6 +15,7 @@ namespace AIStudio.ViewModels.SymbiontEnv
     public EnvironmentRecipeEditorModel()
     {
       Steps = new ObservableCollection<EnvironmentRecipeStepRow>();
+      PreconditionFields = new ObservableCollection<EnvironmentRecipePreconditionField>();
       RecommendedTriggerInfluenceIds = new List<int>();
       RiskTier = EnvironmentRecipeRiskTier.B;
       ReactiveEligible = true;
@@ -34,18 +35,8 @@ namespace AIStudio.ViewModels.SymbiontEnv
     public bool ReactiveEligible { get; set; }
     /// <summary>Рекомендуемые ID воздействий (триггеры).</summary>
     public List<int> RecommendedTriggerInfluenceIds { get; set; }
-    /// <summary>Деталь.</summary>
-    public bool DocumentKindPart { get; set; }
-    /// <summary>Сборка.</summary>
-    public bool DocumentKindAssembly { get; set; }
-    /// <summary>Чертёж.</summary>
-    public bool DocumentKindDrawing { get; set; }
-    /// <summary>Не в режиме эскиза.</summary>
-    public bool NotSketchEdit { get; set; }
-    /// <summary>Не read-only.</summary>
-    public bool NotReadOnly { get; set; }
-    /// <summary>Требуется checkout PDM.</summary>
-    public bool PdmCheckoutRequired { get; set; }
+    /// <summary>Поля предусловий (из schema/recipe-preconditions.json).</summary>
+    public ObservableCollection<EnvironmentRecipePreconditionField> PreconditionFields { get; }
     /// <summary>Шаги рецепта.</summary>
     public ObservableCollection<EnvironmentRecipeStepRow> Steps { get; }
     /// <summary>Метка лога после успеха.</summary>
