@@ -1,6 +1,7 @@
 using AIStudio;
 using AIStudio.Common;
 using AIStudio.ViewModels;
+using ISIDA.Common;
 using ISIDA.Actions;
 using ISIDA.Psychic.Automatism;
 using ISIDA.Reflexes;
@@ -90,7 +91,7 @@ namespace AIStudio.ViewModels.Research
         });
       StateChoiceOptions = ScenarioExpectationChoiceLists.BuildStateChoices();
       OrUmChoiceOptions = ScenarioExpectationChoiceLists.BuildOrUmChoices();
-      var combPath = Path.Combine(AppConfig.DataGomeostasFolderPath, "StyleCombinations.comb");
+      var combPath = Path.Combine(IsidaDataPaths.ResolveGomeostasFolder(AppConfig.DataFolderPath), "StyleCombinations.comb");
       StyleChoiceOptions = ScenarioExpectationChoiceLists.LoadStyleChoices(combPath);
       Lines = new BindingList<ScenarioLineRow>();
       Lines.AllowNew = false;

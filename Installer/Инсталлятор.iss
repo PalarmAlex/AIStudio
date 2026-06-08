@@ -58,7 +58,7 @@ Source: "{#DocsDir}\Data\Gomeostas\*"; DestDir: "{commonappdata}\ISIDA\Data\Gome
 Source: "{#DocsDir}\Data\Reflexes\*"; DestDir: "{commonappdata}\ISIDA\Data\Reflexes"; Flags: recursesubdirs createallsubdirs onlyifdoesntexist uninsneveruninstall
 Source: "{#DocsDir}\Data\Sensors\*"; DestDir: "{commonappdata}\ISIDA\Data\Sensors"; Flags: recursesubdirs createallsubdirs onlyifdoesntexist uninsneveruninstall
 Source: "{#DocsDir}\Data\Psychic\*"; DestDir: "{commonappdata}\ISIDA\Data\Psychic"; Flags: recursesubdirs createallsubdirs onlyifdoesntexist uninsneveruninstall
-Source: "{#DocsDir}\Data\Scenarios\*"; DestDir: "{commonappdata}\ISIDA\Data\Scenarios"; Flags: recursesubdirs createallsubdirs onlyifdoesntexist uninsneveruninstall
+Source: "{#DocsDir}\Data\Scenarios\*"; DestDir: "{commonappdata}\ISIDA\Scenarios"; Flags: recursesubdirs createallsubdirs onlyifdoesntexist uninsneveruninstall
 Source: "{#DocsDir}\BootData\*"; DestDir: "{commonappdata}\ISIDA\BootData"; Flags: recursesubdirs createallsubdirs onlyifdoesntexist uninsneveruninstall
 
 ; Каркасы пакетов адаптеров («Создать пакет…» читает %ProgramData%\ISIDA\AdapterPackageTemplates\demo\)
@@ -89,8 +89,9 @@ Name: "{commonappdata}\ISIDA\Data\Gomeostas"; Permissions: users-modify
 Name: "{commonappdata}\ISIDA\Data\Reflexes"; Permissions: users-modify
 Name: "{commonappdata}\ISIDA\Data\Sensors"; Permissions: users-modify
 Name: "{commonappdata}\ISIDA\Data\Psychic\Automatism"; Permissions: users-modify
-Name: "{commonappdata}\ISIDA\Data\Scenarios"; Permissions: users-modify
-Name: "{commonappdata}\ISIDA\Data\Scenarios\Reports"; Permissions: users-modify
+Name: "{commonappdata}\ISIDA\Projects"; Permissions: users-modify
+Name: "{commonappdata}\ISIDA\Scenarios"; Permissions: users-modify
+Name: "{commonappdata}\ISIDA\Scenarios\Reports"; Permissions: users-modify
 Name: "{commonappdata}\ISIDA\AdapterPackageTemplates"; Permissions: users-modify
 Name: "{commonappdata}\ISIDA\Adapters"; Permissions: users-modify
 

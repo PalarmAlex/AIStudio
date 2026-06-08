@@ -19,8 +19,6 @@ public static class AppConfig
   /// хаб и профиль совпадали бы одним файлом и переключение на другую базу портило бы локальный <c>Settings.xml</c> ISIDA.
   /// </summary>
   public const string StudioHubSettingsFileName = "AIStudioHub.xml";
-  /// <summary>Прежнее имя файла настроек; используется для переименования при обновлении и для чтения старых копий в папке проекта.</summary>
-  public const string LegacyStudioSettingsFileName = "AIStudio.Settings.xml";
   private static string ConfigDirectory = Path.Combine(
       Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData),
       "ISIDA", "Settings"
@@ -32,8 +30,9 @@ public static class AppConfig
     InitializeConfig();
   }
 
-  public static string DataGomeostasFolderPath => GetSetting("DataGomeostasFolderPath");
-  public static string DataActionsFolderPath => GetSetting("DataActionsFolderPath");
+  /// <summary>Корневой каталог данных ISIDA (<c>Data</c>).</summary>
+  public static string DataFolderPath => ResolveDataFolderPath();
+
   /// <summary>Путь к файлу правил давления среды (ProbeKey → виталы).</summary>
   public static string EnvironmentPressureRulesFilePath
   {
@@ -41,32 +40,32 @@ public static class AppConfig
     {
       var path = GetSetting("EnvironmentPressureRulesFilePath");
       if (string.IsNullOrWhiteSpace(path))
-        path = Path.Combine(DataActionsFolderPath ?? string.Empty, "EnvironmentPressureRules.dat");
+        path = Path.Combine(IsidaDataPaths.ResolveActionsFolder(DataFolderPath), "EnvironmentPressureRules.dat");
       return path;
     }
   }
 
-  public static string SensorsFolderPath => GetSetting("SensorsFolderPath");
-  public static string ReflexesFolderPath => GetSetting("ReflexesFolderPath");
-  public static string PsychicDataFolderPath => GetSetting("PsychicDataFolderPath");
   public static string SettingsPath => GetSetting("SettingsPath");
   public static string LogsFolderPath => GetSetting("LogsFolderPath");
   public static string BootDataFolderPath => GetSetting("BootDataFolderPath");
-  /// <summary>Каталог для HTML-отчётов прогона сценариев (по умолчанию …\ISIDA\Data\Scenarios\Reports).</summary>
-  public static string ScenarioReportsFolderPath
+  /// <summary>Каталог для HTML-отчётов прогона сценариев (по умолчанию …\ISIDA\Scenarios\Reports).</summary>
+  public static string ScenarioReportsFolderPath => ResolveScenarioReportsFolderPath();
+  /// <summary>Каталог вывода Research Harness (подкаталог <c>Data\ResearchHarness</c>).</summary>
+  public static string ResearchHarnessOutputFolderPath =>
+      IsidaDataPaths.ResolveResearchHarnessFolder(DataFolderPath);
+
+  private static string ResolveDataFolderPath()
   {
-    get
-    {
-      var path = GetSetting("ScenarioReportsFolderPath");
-      if (string.IsNullOrWhiteSpace(path))
-      {
-        string appDataPath = Path.Combine(
-            Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData),
-            "ISIDA");
-        path = Path.Combine(appDataPath, "Data", "Scenarios", "Reports");
-      }
+    string path = GetSetting("DataFolderPath");
+    return string.IsNullOrWhiteSpace(path) ? IsidaDataPaths.GetDefaultDataFolder() : path;
+  }
+
+  private static string ResolveScenarioReportsFolderPath()
+  {
+    string path = GetSetting("ScenarioReportsFolderPath");
+    if (!string.IsNullOrWhiteSpace(path))
       return path;
-    }
+    return IsidaDataPaths.ResolveScenarioReportsFolder();
   }
 
   public static ResearchLogger.LogFormat LogFormat => GetLogFormatSetting("DefaultFormatLog", ResearchLogger.LogFormat.All);
@@ -108,47 +107,8 @@ public static class AppConfig
       string appDataPath = Path.Combine(
           Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData),
           "ISIDA");
-      app.Add(new XElement("ScenarioReportsFolderPath", Path.Combine(appDataPath, "Data", "Scenarios", "Reports")));
+      app.Add(new XElement("ScenarioReportsFolderPath", IsidaDataPaths.ResolveScenarioReportsFolder(appDataPath)));
       doc.Save(ConfigFullPath);
-    }
-    catch (Exception ex)
-    {
-      Logger.Error(ex.Message);
-    }
-  }
-
-  /// <summary>При первом запуске с новым именем файла переименовывает прежний AIStudio.Settings.xml в Settings.xml (профиль в каталоге студии).</summary>
-  private static void MigrateLegacyStudioSettingsFileIfNeeded()
-  {
-    try
-    {
-      Directory.CreateDirectory(ConfigDirectory);
-      string legacyPath = Path.Combine(ConfigDirectory, LegacyStudioSettingsFileName);
-      string projectProfileInStudioDir = Path.Combine(ConfigDirectory, StudioSettingsFileName);
-      if (!File.Exists(projectProfileInStudioDir) && File.Exists(legacyPath))
-        File.Move(legacyPath, projectProfileInStudioDir);
-    }
-    catch (Exception ex)
-    {
-      Logger.Error(ex.Message);
-    }
-  }
-
-  /// <summary>
-  /// Однократно копирует прежний объединённый <see cref="StudioSettingsFileName"/> из каталога студии в хаб
-  /// <see cref="StudioHubSettingsFileName"/>, если хаба ещё нет (обновление с версии без разделения файлов).
-  /// </summary>
-  private static void MigrateStudioHubFromLegacyCombinedSettingsIfNeeded()
-  {
-    try
-    {
-      Directory.CreateDirectory(ConfigDirectory);
-      string hubPath = Path.Combine(ConfigDirectory, StudioHubSettingsFileName);
-      if (File.Exists(hubPath))
-        return;
-      string legacyCombined = Path.Combine(ConfigDirectory, StudioSettingsFileName);
-      if (File.Exists(legacyCombined))
-        File.Copy(legacyCombined, hubPath, overwrite: false);
     }
     catch (Exception ex)
     {
@@ -184,8 +144,10 @@ public static class AppConfig
       if (!File.Exists(ConfigFullPath))
         return;
       string settingsFolder = GetSetting(nameof(SettingsPath));
-      string gomeostasFolder = GetSetting(nameof(DataGomeostasFolderPath));
-      if (!SettingsValidator.TryInferProjectRoot(settingsFolder ?? "", gomeostasFolder ?? "", out string projectRoot))
+      string dataFolder = GetSetting(nameof(DataFolderPath));
+      if (string.IsNullOrWhiteSpace(dataFolder))
+        dataFolder = ResolveDataFolderPath();
+      if (!SettingsValidator.TryInferProjectRoot(settingsFolder ?? "", dataFolder ?? "", out string projectRoot))
         return;
       string profilePath = Path.Combine(projectRoot, "Settings", StudioSettingsFileName);
       if (PathsEqualNormalized(profilePath, ConfigFullPath))
@@ -208,15 +170,18 @@ public static class AppConfig
   {
     try
     {
-      MigrateLegacyStudioSettingsFileIfNeeded();
-      MigrateStudioHubFromLegacyCombinedSettingsIfNeeded();
-
-      // Если хаба ещё нет — создаём (новая установка или после ручного удаления AIStudioHub.xml).
       if (!File.Exists(ConfigFullPath))
         CreateDefaultConfig();
       EnsureScenarioReportsFolderSetting();
       try
       {
+        Directory.CreateDirectory(DataFolderPath);
+        AIStudio.Common.ProjectBootstrap.EnsureDefaultProjectsParentPath();
+        AIStudio.Common.Adapters.AdapterPaths.EnsureAdaptersRoot();
+        string isidaRoot = IsidaDataPaths.TryGetProjectRootFromDataFolderPath(DataFolderPath, out string projectRoot)
+            ? projectRoot
+            : IsidaDataPaths.GetDefaultIsidaRoot();
+        Directory.CreateDirectory(IsidaDataPaths.ResolveScenariosFolder(isidaRoot));
         Directory.CreateDirectory(ScenarioReportsFolderPath);
       }
       catch
@@ -250,16 +215,12 @@ public static class AppConfig
     var defaultConfig = new XDocument(
       new XElement("Configuration",
         new XElement("AppSettings",
-          new XElement("DataGomeostasFolderPath", Path.Combine(appDataPath, "Data", "Gomeostas")),
-          new XElement("DataActionsFolderPath", Path.Combine(appDataPath, "Data", "Actions")),
+          new XElement("DataFolderPath", Path.Combine(appDataPath, "Data")),
           new XElement("EnvironmentPressureRulesFilePath", Path.Combine(appDataPath, "Data", "Actions", "EnvironmentPressureRules.dat")),
-          new XElement("SensorsFolderPath", Path.Combine(appDataPath, "Data", "Sensors")),
-          new XElement("ReflexesFolderPath", Path.Combine(appDataPath, "Data", "Reflexes")),
-          new XElement("PsychicDataFolderPath", Path.Combine(appDataPath, "Data", "Psychic")),
           new XElement("SettingsPath", Path.Combine(appDataPath, "Settings")),
           new XElement("LogsFolderPath", Path.Combine(appDataPath, "Logs")),
           new XElement("BootDataFolderPath", Path.Combine(appDataPath, "BootData")),
-          new XElement("ScenarioReportsFolderPath", Path.Combine(appDataPath, "Data", "Scenarios", "Reports")),
+          new XElement("ScenarioReportsFolderPath", Path.Combine(appDataPath, "Scenarios", "Reports")),
           new XElement("DefaultStileId", 0),
           new XElement("DefaultAdaptiveActionId", 0),
           new XElement("DefaultThemeTypeId", 4),
@@ -293,15 +254,11 @@ public static class AppConfig
     string appDataPath = Path.Combine(programDataPath, "ISIDA");
     try
     {
-      SetSetting("DataGomeostasFolderPath", Path.Combine(appDataPath, "Data", "Gomeostas"));
-      SetSetting("DataActionsFolderPath", Path.Combine(appDataPath, "Data", "Actions"));
-      SetSetting("SensorsFolderPath", Path.Combine(appDataPath, "Data", "Sensors"));
-      SetSetting("ReflexesFolderPath", Path.Combine(appDataPath, "Data", "Reflexes"));
-      SetSetting("PsychicDataFolderPath", Path.Combine(appDataPath, "Data", "Psychic"));
+      SetSetting("DataFolderPath", Path.Combine(appDataPath, "Data"));
       SetSetting("SettingsPath", Path.Combine(appDataPath, "Settings"));
       SetSetting("LogsFolderPath", Path.Combine(appDataPath, "Logs"));
       SetSetting("BootDataFolderPath", Path.Combine(appDataPath, "BootData"));
-      SetSetting("ScenarioReportsFolderPath", Path.Combine(appDataPath, "Data", "Scenarios", "Reports"));
+      SetSetting("ScenarioReportsFolderPath", Path.Combine(appDataPath, "Scenarios", "Reports"));
       Logger.Info($"Конфигурационные пути обновлены для установки в: {appDataPath}");
     }
     catch (Exception ex)

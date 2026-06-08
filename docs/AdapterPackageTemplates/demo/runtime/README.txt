@@ -6,34 +6,23 @@
 Состав SDK: сборки
 ------------------
 isida.dll
-
   Ядро ISIDA: гомеостаз, воздействия, рефлексы, пульс и прочие подсистемы симбионта.
   Host-адаптер ссылается на неё при интеграции среды с агентом.
-
 isida.dll.config (если есть в сборке isida)
-
   Опционально: конфигурация привязок сборок (.NET) для isida.dll.
-
 SymbiontEnv.Contract.dll
-
   Общий контракт среды: формат YAML (рецепты, триггеры), layout пакета, manifest, правила проверки.
   Одна и та же сборка для студии и для runtime host.
-
 Newtonsoft.Json.dll
-
   Зависимость isida.dll и SymbiontEnv.Contract.dll (работа с JSON).
 
 Состав SDK: XML-документация (IntelliSense)
 -------------------------------------------
-
 isida.xml
-
   Описание публичного API isida.dll для подсказок в IDE при разработке host.
   Подключите в проект host: Reference на isida.dll + положите isida.xml рядом с DLL
   (или укажите DocumentationFile / путь к XML в свойствах ссылки).
-
 SymbiontEnv.Contract.xml
-
   Описание API SymbiontEnv.Contract.dll (модели YAML, EnvironmentYamlCodec, AdapterManifest и т.д.).
   Аналогично — рядом с SymbiontEnv.Contract.dll в проекте host.
 
@@ -41,7 +30,6 @@ SymbiontEnv.Contract.xml
 
 Как это связано с вашим пакетом
 --------------------------------
-
 1. При «Создать пакет…» студия копирует весь каталог runtime\ (DLL, config, XML, README) в пакет %ProgramData%\ISIDA\Adapters\{id}\runtime\.
 
 2. В мастере можно указать каталог bin\Debug вашего host — студия подмешает оттуда DLL host

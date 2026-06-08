@@ -160,12 +160,14 @@ namespace AIStudio.Common
     {
       try
       {
-        string gomeostasPath = SettingsValidator.GetExpectedFolderPathForSetting(projectRootFull, "DataGomeostasFolderPath");
+        string gomeostasPath = IsidaDataPaths.ResolveGomeostasFolder(
+            SettingsValidator.GetExpectedFolderPathForSetting(projectRootFull, "DataFolderPath"));
         if (File.Exists(Path.Combine(gomeostasPath, "VitalParameters.dat")))
           return true;
         if (File.Exists(Path.Combine(gomeostasPath, "BehaviorStyles.dat")))
           return true;
-        string actionsPath = SettingsValidator.GetExpectedFolderPathForSetting(projectRootFull, "DataActionsFolderPath");
+        string actionsPath = IsidaDataPaths.ResolveActionsFolder(
+            SettingsValidator.GetExpectedFolderPathForSetting(projectRootFull, "DataFolderPath"));
         if (File.Exists(Path.Combine(actionsPath, "AdaptiveActions.dat")))
           return true;
         if (File.Exists(Path.Combine(actionsPath, "InfluenceActions.dat")))
@@ -180,9 +182,10 @@ namespace AIStudio.Common
 
     private static void WriteMinimalSeedData(string projectRootFull, string adapterId)
     {
-      string gomeostasPath = SettingsValidator.GetExpectedFolderPathForSetting(projectRootFull, "DataGomeostasFolderPath");
-      string actionsPath = SettingsValidator.GetExpectedFolderPathForSetting(projectRootFull, "DataActionsFolderPath");
-      string sensorsPath = SettingsValidator.GetExpectedFolderPathForSetting(projectRootFull, "SensorsFolderPath");
+      string dataFolder = SettingsValidator.GetExpectedFolderPathForSetting(projectRootFull, "DataFolderPath");
+      string gomeostasPath = IsidaDataPaths.ResolveGomeostasFolder(dataFolder);
+      string actionsPath = IsidaDataPaths.ResolveActionsFolder(dataFolder);
+      string sensorsPath = IsidaDataPaths.ResolveSensorsFolder(dataFolder);
       WriteFileIfMissing(Path.Combine(gomeostasPath, "VitalParameters.dat"), MinimalVitalParametersContent);
       WriteFileIfMissing(Path.Combine(gomeostasPath, "BehaviorStyles.dat"), MinimalBehaviorStylesContent);
       WriteFileIfMissing(Path.Combine(actionsPath, "AdaptiveActions.dat"), MinimalAdaptiveActionsContent);
@@ -218,20 +221,13 @@ namespace AIStudio.Common
       if (File.Exists(settingsFile))
         return;
       var appSettingsChildren = new List<XElement>();
-      appSettingsChildren.Add(new XElement("DataGomeostasFolderPath",
-          SettingsValidator.GetExpectedFolderPathForSetting(projectRootFull, "DataGomeostasFolderPath")));
-      appSettingsChildren.Add(new XElement("DataActionsFolderPath",
-          SettingsValidator.GetExpectedFolderPathForSetting(projectRootFull, "DataActionsFolderPath")));
+      appSettingsChildren.Add(new XElement("DataFolderPath",
+          SettingsValidator.GetExpectedFolderPathForSetting(projectRootFull, "DataFolderPath")));
       appSettingsChildren.Add(new XElement("EnvironmentPressureRulesFilePath",
           Path.Combine(
-              SettingsValidator.GetExpectedFolderPathForSetting(projectRootFull, "DataActionsFolderPath"),
+              IsidaDataPaths.ResolveActionsFolder(
+                  SettingsValidator.GetExpectedFolderPathForSetting(projectRootFull, "DataFolderPath")),
               "EnvironmentPressureRules.dat")));
-      appSettingsChildren.Add(new XElement("SensorsFolderPath",
-          SettingsValidator.GetExpectedFolderPathForSetting(projectRootFull, "SensorsFolderPath")));
-      appSettingsChildren.Add(new XElement("ReflexesFolderPath",
-          SettingsValidator.GetExpectedFolderPathForSetting(projectRootFull, "ReflexesFolderPath")));
-      appSettingsChildren.Add(new XElement("PsychicDataFolderPath",
-          SettingsValidator.GetExpectedFolderPathForSetting(projectRootFull, "PsychicDataFolderPath")));
       appSettingsChildren.Add(new XElement("SettingsPath", settingsDir));
       appSettingsChildren.Add(new XElement("LogsFolderPath",
           SettingsValidator.GetExpectedFolderPathForSetting(projectRootFull, "LogsFolderPath")));

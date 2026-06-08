@@ -31,11 +31,7 @@ namespace AIStudio.ViewModels
     private bool _bulkApplyingProjectSettings = false;
     private bool _logEnabled = false;
     private string _settingsPath;
-    private string _dataGomeostasFolderPath;
-    private string _dataActionsFolderPath;
-    private string _sensorsFolderPath;
-    private string _reflexesFolderPath;
-    private string _psychicDataFolderPath;
+    private string _dataFolderPath;
     private string _logsFolderPath;
     private string _bootDataFolderPath;
     private string _scenarioReportsFolderPath;
@@ -60,11 +56,7 @@ namespace AIStudio.ViewModels
     private int _reflexActionDisplayDuration;
     private int _previousReflexActionDisplayDuration;
     private bool _settingsPathNotMatchingTemplate;
-    private bool _dataGomeostasNotMatchingTemplate;
-    private bool _dataActionsNotMatchingTemplate;
-    private bool _sensorsNotMatchingTemplate;
-    private bool _reflexesNotMatchingTemplate;
-    private bool _psychicNotMatchingTemplate;
+    private bool _dataFolderNotMatchingTemplate;
     private bool _logsNotMatchingTemplate;
     private bool _bootDataNotMatchingTemplate;
     private bool _scenarioReportsNotMatchingTemplate;
@@ -75,39 +67,11 @@ namespace AIStudio.ViewModels
       set { _settingsPathNotMatchingTemplate = value; OnPropertyChanged(nameof(SettingsPathNotMatchingTemplate)); }
     }
 
-    /// <summary>Видимость предупреждения для каталога данных гомеостаза.</summary>
-    public bool DataGomeostasNotMatchingTemplate
+    /// <summary>Видимость предупреждения для каталога данных (Data).</summary>
+    public bool DataFolderNotMatchingTemplate
     {
-      get => _dataGomeostasNotMatchingTemplate;
-      set { _dataGomeostasNotMatchingTemplate = value; OnPropertyChanged(nameof(DataGomeostasNotMatchingTemplate)); }
-    }
-
-    /// <summary>Видимость предупреждения для каталога адаптивных действий.</summary>
-    public bool DataActionsNotMatchingTemplate
-    {
-      get => _dataActionsNotMatchingTemplate;
-      set { _dataActionsNotMatchingTemplate = value; OnPropertyChanged(nameof(DataActionsNotMatchingTemplate)); }
-    }
-
-    /// <summary>Видимость предупреждения для каталога вербальных сенсоров.</summary>
-    public bool SensorsNotMatchingTemplate
-    {
-      get => _sensorsNotMatchingTemplate;
-      set { _sensorsNotMatchingTemplate = value; OnPropertyChanged(nameof(SensorsNotMatchingTemplate)); }
-    }
-
-    /// <summary>Видимость предупреждения для каталога рефлексов.</summary>
-    public bool ReflexesNotMatchingTemplate
-    {
-      get => _reflexesNotMatchingTemplate;
-      set { _reflexesNotMatchingTemplate = value; OnPropertyChanged(nameof(ReflexesNotMatchingTemplate)); }
-    }
-
-    /// <summary>Видимость предупреждения для каталога психики.</summary>
-    public bool PsychicNotMatchingTemplate
-    {
-      get => _psychicNotMatchingTemplate;
-      set { _psychicNotMatchingTemplate = value; OnPropertyChanged(nameof(PsychicNotMatchingTemplate)); }
+      get => _dataFolderNotMatchingTemplate;
+      set { _dataFolderNotMatchingTemplate = value; OnPropertyChanged(nameof(DataFolderNotMatchingTemplate)); }
     }
 
     /// <summary>Видимость предупреждения для каталога логов.</summary>
@@ -141,49 +105,13 @@ namespace AIStudio.ViewModels
       }
     }
 
-    public string DataGomeostasFolderPath
+    public string DataFolderPath
     {
-      get => _dataGomeostasFolderPath;
+      get => _dataFolderPath;
       set
       {
-        _dataGomeostasFolderPath = value;
-        OnPropertyChanged(nameof(DataGomeostasFolderPath));
-      }
-    }
-    public string DataActionsFolderPath
-    {
-      get => _dataActionsFolderPath;
-      set
-      {
-        _dataActionsFolderPath = value;
-        OnPropertyChanged(nameof(DataActionsFolderPath));
-      }
-    }
-    public string SensorsFolderPath
-    {
-      get => _sensorsFolderPath;
-      set
-      {
-        _sensorsFolderPath = value;
-        OnPropertyChanged(nameof(SensorsFolderPath));
-      }
-    }
-    public string ReflexesFolderPath
-    {
-      get => _reflexesFolderPath;
-      set
-      {
-        _reflexesFolderPath = value;
-        OnPropertyChanged(nameof(ReflexesFolderPath));
-      }
-    }
-    public string PsychicDataFolderPath
-    {
-      get => _psychicDataFolderPath;
-      set
-      {
-        _psychicDataFolderPath = value;
-        OnPropertyChanged(nameof(PsychicDataFolderPath));
+        _dataFolderPath = value;
+        OnPropertyChanged(nameof(DataFolderPath));
       }
     }
     public string LogsFolderPath
@@ -546,15 +474,7 @@ namespace AIStudio.ViewModels
         Action<ProjectSettingsViewModel> reloadRuntimeAfterProjectRootSwitch = null)
     {
       _reloadRuntimeAfterProjectRootSwitch = reloadRuntimeAfterProjectRootSwitch;
-      SettingsPath = AppConfig.SettingsPath;
-      DataGomeostasFolderPath = AppConfig.DataGomeostasFolderPath;
-      DataActionsFolderPath = AppConfig.DataActionsFolderPath;
-      SensorsFolderPath = AppConfig.SensorsFolderPath;
-      ReflexesFolderPath = AppConfig.ReflexesFolderPath;
-      PsychicDataFolderPath = AppConfig.PsychicDataFolderPath;
-      LogsFolderPath = AppConfig.LogsFolderPath;
-      BootDataFolderPath = AppConfig.BootDataFolderPath;
-      ScenarioReportsFolderPath = AppConfig.ScenarioReportsFolderPath;
+      LoadFromAppConfig();
       DefaultStileId = AppConfig.DefaultStileId;
       WaitingPeriodForActionsVal = AppConfig.WaitingPeriodForActionsVal;
       _thinkingCycleDecayAgeDivisor = AppConfig.ThinkingCycleDecayAgeDivisor;
@@ -581,11 +501,11 @@ namespace AIStudio.ViewModels
         if (!AdaptiveActionsSystem.IsInitialized)
         {
           AdaptiveActionsSystem.InitializeInstance(_gomeostas,
-              DataActionsFolderPath);
+              IsidaDataPaths.ResolveActionsFolder(DataFolderPath));
         }
         _actionsSystem = AdaptiveActionsSystem.Instance;
         if (!GeneticReflexesSystem.IsInitialized)
-          GeneticReflexesSystem.InitializeInstance(_gomeostas, ReflexesFolderPath);
+          GeneticReflexesSystem.InitializeInstance(_gomeostas, IsidaDataPaths.ResolveReflexesFolder(DataFolderPath));
       }
       catch (Exception ex)
       {
@@ -614,6 +534,15 @@ namespace AIStudio.ViewModels
       OnPropertyChanged(nameof(NoOperatorStimulusSilencePulses));
       RefreshProjectPathTemplateWarnings();
     }
+    private void LoadFromAppConfig()
+    {
+      SettingsPath = AppConfig.SettingsPath;
+      DataFolderPath = AppConfig.DataFolderPath;
+      LogsFolderPath = AppConfig.LogsFolderPath;
+      BootDataFolderPath = AppConfig.BootDataFolderPath;
+      ScenarioReportsFolderPath = AppConfig.ScenarioReportsFolderPath;
+    }
+
     private void LoadLogFormats()
     {
       FormatLog.Clear();
@@ -681,20 +610,8 @@ namespace AIStudio.ViewModels
         case nameof(SettingsPath):
           initialPath = Directory.Exists(SettingsPath) ? SettingsPath : "";
           break;
-        case nameof(DataGomeostasFolderPath):
-          initialPath = Directory.Exists(DataGomeostasFolderPath) ? DataGomeostasFolderPath : "";
-          break;
-        case nameof(DataActionsFolderPath):
-          initialPath = Directory.Exists(DataActionsFolderPath) ? DataActionsFolderPath : "";
-          break;
-        case nameof(SensorsFolderPath):
-          initialPath = Directory.Exists(SensorsFolderPath) ? SensorsFolderPath : "";
-          break;
-        case nameof(ReflexesFolderPath):
-          initialPath = Directory.Exists(ReflexesFolderPath) ? ReflexesFolderPath : "";
-          break;
-        case nameof(PsychicDataFolderPath):
-          initialPath = Directory.Exists(PsychicDataFolderPath) ? PsychicDataFolderPath : "";
+        case nameof(DataFolderPath):
+          initialPath = Directory.Exists(DataFolderPath) ? DataFolderPath : "";
           break;
         case nameof(LogsFolderPath):
           initialPath = Directory.Exists(LogsFolderPath) ? LogsFolderPath : "";
@@ -718,24 +635,8 @@ namespace AIStudio.ViewModels
             SettingsPath = dialog.SelectedPath;
             RefreshProjectPathTemplateWarnings();
             break;
-          case nameof(DataGomeostasFolderPath):
-            DataGomeostasFolderPath = dialog.SelectedPath;
-            RefreshProjectPathTemplateWarnings();
-            break;
-          case nameof(DataActionsFolderPath):
-            DataActionsFolderPath = dialog.SelectedPath;
-            RefreshProjectPathTemplateWarnings();
-            break;
-          case nameof(SensorsFolderPath):
-            SensorsFolderPath = dialog.SelectedPath;
-            RefreshProjectPathTemplateWarnings();
-            break;
-          case nameof(ReflexesFolderPath):
-            ReflexesFolderPath = dialog.SelectedPath;
-            RefreshProjectPathTemplateWarnings();
-            break;
-          case nameof(PsychicDataFolderPath):
-            PsychicDataFolderPath = dialog.SelectedPath;
+          case nameof(DataFolderPath):
+            DataFolderPath = dialog.SelectedPath;
             RefreshProjectPathTemplateWarnings();
             break;
           case nameof(LogsFolderPath):
@@ -757,25 +658,17 @@ namespace AIStudio.ViewModels
     private void RefreshProjectPathTemplateWarnings()
     {
       string root;
-      if (!SettingsValidator.TryInferProjectRoot(SettingsPath, DataGomeostasFolderPath, out root))
+      if (!SettingsValidator.TryInferProjectRoot(SettingsPath, DataFolderPath, out root))
       {
         SettingsPathNotMatchingTemplate = false;
-        DataGomeostasNotMatchingTemplate = false;
-        DataActionsNotMatchingTemplate = false;
-        SensorsNotMatchingTemplate = false;
-        ReflexesNotMatchingTemplate = false;
-        PsychicNotMatchingTemplate = false;
+        DataFolderNotMatchingTemplate = false;
         LogsNotMatchingTemplate = false;
         BootDataNotMatchingTemplate = false;
         ScenarioReportsNotMatchingTemplate = false;
         return;
       }
       SettingsPathNotMatchingTemplate = !SettingsValidator.IsFolderPathMatchingProjectTemplate(root, SettingsPath, nameof(SettingsPath));
-      DataGomeostasNotMatchingTemplate = !SettingsValidator.IsFolderPathMatchingProjectTemplate(root, DataGomeostasFolderPath, nameof(DataGomeostasFolderPath));
-      DataActionsNotMatchingTemplate = !SettingsValidator.IsFolderPathMatchingProjectTemplate(root, DataActionsFolderPath, nameof(DataActionsFolderPath));
-      SensorsNotMatchingTemplate = !SettingsValidator.IsFolderPathMatchingProjectTemplate(root, SensorsFolderPath, nameof(SensorsFolderPath));
-      ReflexesNotMatchingTemplate = !SettingsValidator.IsFolderPathMatchingProjectTemplate(root, ReflexesFolderPath, nameof(ReflexesFolderPath));
-      PsychicNotMatchingTemplate = !SettingsValidator.IsFolderPathMatchingProjectTemplate(root, PsychicDataFolderPath, nameof(PsychicDataFolderPath));
+      DataFolderNotMatchingTemplate = !SettingsValidator.IsFolderPathMatchingProjectTemplate(root, DataFolderPath, nameof(DataFolderPath));
       LogsNotMatchingTemplate = !SettingsValidator.IsFolderPathMatchingProjectTemplate(root, LogsFolderPath, nameof(LogsFolderPath));
       BootDataNotMatchingTemplate = !SettingsValidator.IsFolderPathMatchingProjectTemplate(root, BootDataFolderPath, nameof(BootDataFolderPath));
       ScenarioReportsNotMatchingTemplate = !SettingsValidator.IsFolderPathMatchingProjectTemplate(root, ScenarioReportsFolderPath, nameof(ScenarioReportsFolderPath));
@@ -807,7 +700,7 @@ namespace AIStudio.ViewModels
       return ProjectFolderPicker.TryPickProjectRootFolder(
           Application.Current?.MainWindow,
           SettingsPath,
-          DataGomeostasFolderPath,
+          DataFolderPath,
           out projectRoot);
     }
 
@@ -827,7 +720,7 @@ namespace AIStudio.ViewModels
             "Структура проекта");
         return;
       }
-      if (SettingsValidator.TryInferProjectRoot(SettingsPath, DataGomeostasFolderPath, out string currentProjectRoot)
+      if (SettingsValidator.TryInferProjectRoot(SettingsPath, DataFolderPath, out string currentProjectRoot)
           && PathsReferToSameDirectory(projectRoot, currentProjectRoot))
       {
         MessageBox.Show(
@@ -843,11 +736,7 @@ namespace AIStudio.ViewModels
         nameof(SettingsPath),
         nameof(LogsFolderPath),
         nameof(BootDataFolderPath),
-        nameof(DataGomeostasFolderPath),
-        nameof(DataActionsFolderPath),
-        nameof(SensorsFolderPath),
-        nameof(ReflexesFolderPath),
-        nameof(PsychicDataFolderPath),
+        nameof(DataFolderPath),
         nameof(ScenarioReportsFolderPath)
       };
       var newPaths = new Dictionary<string, string>();
@@ -870,12 +759,6 @@ namespace AIStudio.ViewModels
           errors.Add(GetPathSettingDisplayName(key) + " (каталог): " + expected);
       }
       string projectSettingsXml = Path.Combine(projectRoot, "Settings", AppConfig.StudioSettingsFileName);
-      if (!File.Exists(projectSettingsXml))
-      {
-        string legacyProjectSettings = Path.Combine(projectRoot, "Settings", AppConfig.LegacyStudioSettingsFileName);
-        if (File.Exists(legacyProjectSettings))
-          projectSettingsXml = legacyProjectSettings;
-      }
       XElement appSettings = null;
       if (File.Exists(projectSettingsXml))
       {
@@ -891,7 +774,7 @@ namespace AIStudio.ViewModels
       }
       else
       {
-        errors.Add("Файл «" + AppConfig.StudioSettingsFileName + "» (или «" + AppConfig.LegacyStudioSettingsFileName + "») в каталоге Settings не найден; параметры со страницы не загружены из проекта.");
+        errors.Add("Файл «" + AppConfig.StudioSettingsFileName + "» в каталоге Settings не найден; параметры со страницы не загружены из проекта.");
       }
       bool wasInit = _isInitialized;
       _isInitialized = false;
@@ -1045,11 +928,7 @@ namespace AIStudio.ViewModels
         case nameof(SettingsPath): return "Каталог настроек";
         case nameof(LogsFolderPath): return "Каталог логов проекта";
         case nameof(BootDataFolderPath): return "Каталог загрузочных данных";
-        case nameof(DataGomeostasFolderPath): return "Каталог данных гомеостаза";
-        case nameof(DataActionsFolderPath): return "Каталог адаптивных действий";
-        case nameof(SensorsFolderPath): return "Каталог вербальных сенсоров";
-        case nameof(ReflexesFolderPath): return "Каталог безусл. и условн. рефлексов";
-        case nameof(PsychicDataFolderPath): return "Каталог файлов психики";
+        case nameof(DataFolderPath): return "Каталог данных гомеостаза";
         case nameof(ScenarioReportsFolderPath): return "Каталог отчётов сценариев (HTML)";
         default: return pathSettingKey;
       }
@@ -1062,11 +941,7 @@ namespace AIStudio.ViewModels
         case nameof(SettingsPath): SettingsPath = path; break;
         case nameof(LogsFolderPath): LogsFolderPath = path; break;
         case nameof(BootDataFolderPath): BootDataFolderPath = path; break;
-        case nameof(DataGomeostasFolderPath): DataGomeostasFolderPath = path; break;
-        case nameof(DataActionsFolderPath): DataActionsFolderPath = path; break;
-        case nameof(SensorsFolderPath): SensorsFolderPath = path; break;
-        case nameof(ReflexesFolderPath): ReflexesFolderPath = path; break;
-        case nameof(PsychicDataFolderPath): PsychicDataFolderPath = path; break;
+        case nameof(DataFolderPath): DataFolderPath = path; break;
         case nameof(ScenarioReportsFolderPath): ScenarioReportsFolderPath = path; break;
       }
     }
@@ -1327,11 +1202,7 @@ namespace AIStudio.ViewModels
     public void PushSettingsToAppConfig()
     {
       AppConfig.SetSetting(nameof(SettingsPath), SettingsPath);
-      AppConfig.SetSetting(nameof(DataGomeostasFolderPath), DataGomeostasFolderPath);
-      AppConfig.SetSetting(nameof(DataActionsFolderPath), DataActionsFolderPath);
-      AppConfig.SetSetting(nameof(SensorsFolderPath), SensorsFolderPath);
-      AppConfig.SetSetting(nameof(ReflexesFolderPath), ReflexesFolderPath);
-      AppConfig.SetSetting(nameof(PsychicDataFolderPath), PsychicDataFolderPath);
+      AppConfig.SetSetting(nameof(DataFolderPath), DataFolderPath);
       AppConfig.SetSetting(nameof(LogsFolderPath), LogsFolderPath);
       AppConfig.SetSetting(nameof(BootDataFolderPath), BootDataFolderPath);
       AppConfig.SetSetting(nameof(ScenarioReportsFolderPath), ScenarioReportsFolderPath);

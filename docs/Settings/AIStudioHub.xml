@@ -1,18 +1,14 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Configuration>
   <AppSettings>
-    <DataGomeostasFolderPath>C:\ProgramData\ISIDA\Data\Gomeostas</DataGomeostasFolderPath>
+    <DataFolderPath>C:\ProgramData\ISIDA\Data</DataFolderPath>
     <SettingsPath>C:\ProgramData\ISIDA\Settings</SettingsPath>
-    <DataActionsFolderPath>C:\ProgramData\ISIDA\Data\Actions</DataActionsFolderPath>
     <DefaultStileId>6</DefaultStileId>
     <DefaultAdaptiveActionId>1</DefaultAdaptiveActionId>
-    <SensorsFolderPath>C:\ProgramData\ISIDA\Data\Sensors</SensorsFolderPath>
     <RecognitionThreshold>3</RecognitionThreshold>
     <CompareLevel>30</CompareLevel>
     <DifSensorPar>0.02</DifSensorPar>
     <DynamicTime>7</DynamicTime>
-    <ReflexesFolderPath>C:\ProgramData\ISIDA\Data\Reflexes</ReflexesFolderPath>
-    <PsychicDataFolderPath>C:\ProgramData\ISIDA\Data\Psychic</PsychicDataFolderPath>
     <DefaultGeneticReflexId>0</DefaultGeneticReflexId>
     <FirstRun>1</FirstRun>
     <LogEnabled>true</LogEnabled>
@@ -26,8 +22,7 @@
     <ThinkingCycleDecayBase>1</ThinkingCycleDecayBase>
     <ThinkingCycleMainMaxAgePulses>1000</ThinkingCycleMainMaxAgePulses>
     <NoOperatorStimulusSilencePulses>30</NoOperatorStimulusSilencePulses>
-    <ScenarioReportsFolderPath>C:\ProgramData\ISIDA\Data\Scenarios\Reports</ScenarioReportsFolderPath>
-    <ResearchHarnessOutputFolderPath>C:\ProgramData\ISIDA\Data\ResearchHarness</ResearchHarnessOutputFolderPath>
+    <ScenarioReportsFolderPath>C:\ProgramData\ISIDA\Scenarios\Reports</ScenarioReportsFolderPath>
     <HomeostasisPulseSpeedDriftEnabled>true</HomeostasisPulseSpeedDriftEnabled>
   </AppSettings>
 </Configuration>

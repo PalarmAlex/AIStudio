@@ -4,18 +4,12 @@
 
 Файлы
 -----
-
 EnvironmentRecipes.yaml
-
   Каталог рецептов среды: исполняемая моторика, привязка к адаптивным действиям (adaptive_action_id).
   Корневой ключ recipes: — массив рецептов.
-
   Минимальный каркас:
-
     recipes: []
-
   Пример одного рецепта (сокращённо):
-
     recipes:
       - id: doc_props_on_save
         display_name: Свойства при сохранении
@@ -29,19 +23,13 @@ EnvironmentRecipes.yaml
           - type: set_property
             name: "ISIDA_Demo"
             template: "ok"
-
 EnvironmentTriggers.yaml
-
   Каталог триггеров: событие среды → influence_action_id (воздействие на гомеостаз).
   Корневой ключ triggers: — массив триггеров.
   document_kinds — на уровне триггера (не вложенный filter).
-
   Минимальный каркас:
-
     triggers: []
-
   Пример одного триггера (сокращённо):
-
     triggers:
       - id: on_document_saved
         display_name: После сохранения
@@ -51,7 +39,6 @@ EnvironmentTriggers.yaml
           - kind: document_saved
             environment: my-adapter
             enabled: true
-
 Формат
 ------
 Совместим с SymbiontEnv.Contract (EnvironmentYamlCodec), contractVersion 2.0 в manifest.json.

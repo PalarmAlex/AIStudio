@@ -1,8 +1,9 @@
 using System.IO;
+using ISIDA.Common;
 
 namespace AIStudio.Common
 {
-  /// <summary>Пути к файлам сценариев в каталоге данных ISIDA.</summary>
+  /// <summary>Пути к файлам сценариев в каталоге <c>{корень ISIDA}\Scenarios</c>.</summary>
   public static class ScenarioPaths
   {
     public const string RegistryFileName = "ScenarioRegistry.dat";
@@ -12,7 +13,14 @@ namespace AIStudio.Common
     public const string GroupLinesFilePrefix = "ScenarioGroup_";
     public const string GroupLinesFileSuffix = ".dat";
     public static string RootFolder =>
-        Path.Combine(Path.GetDirectoryName(AppConfig.DataActionsFolderPath) ?? "", "Scenarios");
+        IsidaDataPaths.ResolveScenariosFolder(ResolveIsidaRoot());
+
+    private static string ResolveIsidaRoot()
+    {
+      if (IsidaDataPaths.TryGetProjectRootFromDataFolderPath(AppConfig.DataFolderPath, out string projectRoot))
+        return projectRoot;
+      return IsidaDataPaths.GetDefaultIsidaRoot();
+    }
     public static string RegistryPath => Path.Combine(RootFolder, RegistryFileName);
     public static string LinesPath(int scenarioId) =>
         Path.Combine(RootFolder, $"{ScenarioLinesFilePrefix}{scenarioId}{ScenarioLinesFileSuffix}");

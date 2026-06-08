@@ -16,11 +16,11 @@ namespace AIStudio.Common.Adapters
     /// <summary>Ключ строки в AgentProperties.dat.</summary>
     public const string AdapterIdKey = "AdapterId";
     /// <summary>
-    /// Путь к <c>AgentProperties.dat</c> активного проекта (из <see cref="AppConfig.DataGomeostasFolderPath"/>).
+    /// Путь к <c>AgentProperties.dat</c> активного проекта (из <see cref="AppConfig.DataFolderPath"/>).
     /// </summary>
     public static string GetActiveAgentPropertiesPath()
     {
-      string gomeostasFolder = (AppConfig.DataGomeostasFolderPath ?? string.Empty).Trim();
+      string gomeostasFolder = IsidaDataPaths.ResolveGomeostasFolder(AppConfig.DataFolderPath);
       if (gomeostasFolder.Length == 0)
         return string.Empty;
       return Path.Combine(gomeostasFolder, "AgentProperties.dat");
@@ -33,9 +33,8 @@ namespace AIStudio.Common.Adapters
     {
       if (string.IsNullOrWhiteSpace(projectRoot))
         throw new ArgumentException("projectRoot");
-      string gomeostasPath = SettingsValidator.GetExpectedFolderPathForSetting(
-          projectRoot,
-          "DataGomeostasFolderPath");
+      string gomeostasPath = IsidaDataPaths.ResolveGomeostasFolder(
+          SettingsValidator.GetExpectedFolderPathForSetting(projectRoot, "DataFolderPath"));
       return Path.Combine(gomeostasPath, "AgentProperties.dat");
     }
 
@@ -136,11 +135,7 @@ namespace AIStudio.Common.Adapters
         return false;
       string settingsFile = Path.Combine(projectRoot, "Settings", AppConfig.StudioSettingsFileName);
       if (!File.Exists(settingsFile))
-      {
-        settingsFile = Path.Combine(projectRoot, "Settings", AppConfig.LegacyStudioSettingsFileName);
-        if (!File.Exists(settingsFile))
-          return false;
-      }
+        return false;
       try
       {
         XDocument doc = XDocument.Load(settingsFile);

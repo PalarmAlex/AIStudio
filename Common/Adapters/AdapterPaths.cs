@@ -9,7 +9,7 @@ namespace AIStudio.Common.Adapters
   /// </summary>
   public static class AdapterPaths
   {
-    /// <summary>Корень: <c>%ProgramData%\ISIDA\Adapters</c>.</summary>
+    /// <summary>Корень: <c>%ProgramData%\ISIDA\Adapters</c> (каталог студии, не проекта данных).</summary>
     public static readonly string AdaptersRootPath = Path.Combine(
         Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData),
         "ISIDA",

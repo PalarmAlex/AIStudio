@@ -242,11 +242,7 @@ namespace AIStudio
       config.BaseDirectory = Path.Combine(
           Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData),
           "ISIDA");
-      config.GomeostasFolder = AppConfig.DataGomeostasFolderPath;
-      config.ActionsFolder = AppConfig.DataActionsFolderPath;
-      config.SensorsFolder = AppConfig.SensorsFolderPath;
-      config.ReflexesFolder = AppConfig.ReflexesFolderPath;
-      config.PsychicDataFolder = AppConfig.PsychicDataFolderPath;
+      config.DataFolder = AppConfig.DataFolderPath;
       config.LogsFolder = AppConfig.LogsFolderPath;
       config.BootDataFolder = AppConfig.BootDataFolderPath;
       config.LogFormat = AppConfig.LogFormat;
@@ -322,7 +318,7 @@ namespace AIStudio
       WireGlobalTimerHostHandlers();
       GlobalTimer.ClearPulseWallClockAcceleration();
       string agentPropertiesPath = Path.Combine(
-          AppConfig.DataGomeostasFolderPath ?? string.Empty,
+          IsidaDataPaths.ResolveGomeostasFolder(AppConfig.DataFolderPath),
           "AgentProperties.dat");
       SymbiontProjectAdapterSettings.ValidateAndRepairBinding(
           _gomeostas,
