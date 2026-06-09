@@ -6,6 +6,7 @@ using ISIDA.SymbiontEnv.Contract;
 using ISIDA.Actions;
 using ISIDA.Common;
 using ISIDA.Gomeostas;
+using ISIDA.Reflexes;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -19,15 +20,13 @@ using System.Windows.Media;
 
 namespace AIStudio.ViewModels.SymbiontEnv
 {
-  /// <summary>
-  /// Детальный редактор одного рецепта среды.
-  /// </summary>
+  /// <summary>Детальный редактор одного рецепта среды (вкладки).</summary>
   public sealed class EnvironmentRecipeEditorViewModel : INotifyPropertyChanged
   {
     private readonly GomeostasSystem _gomeostas;
+    private readonly GeneticReflexesSystem _geneticReflexes;
     private readonly Action<EnvironmentRecipeEditorModel, bool> _onSaveAll;
     private readonly bool _isNew;
-    private readonly EnvironmentRecipeData _sourceRecipe;
     private readonly AdapterEnvironmentSchema _schema;
     private string _currentAgentName;
     private int _currentAgentStage;
@@ -35,59 +34,100 @@ namespace AIStudio.ViewModels.SymbiontEnv
     private string _adaptiveActionDescription;
     private string _recommendedTriggerDisplay;
     private string _recommendedTriggerDescription;
+    private string _recipeIdDescription;
+    private RecipeEditorTab _selectedTab = RecipeEditorTab.General;
     private EnvironmentRecipeStepRow _selectedStep;
+    private bool _dirty;
 
-    /// <summary>
-    /// Создаёт модель редактора.
-    /// </summary>
     public EnvironmentRecipeEditorViewModel(
         GomeostasSystem gomeostas,
+        GeneticReflexesSystem geneticReflexes,
         EnvironmentRecipeEditorModel model,
         bool isNew,
-        Action<EnvironmentRecipeEditorModel, bool> onSaveAll,
-        EnvironmentRecipeData sourceRecipe = null)
+        Action<EnvironmentRecipeEditorModel, bool> onSaveAll)
     {
       _gomeostas = gomeostas ?? throw new ArgumentNullException(nameof(gomeostas));
+      _geneticReflexes = geneticReflexes;
       Model = model ?? throw new ArgumentNullException(nameof(model));
       _isNew = isNew;
-      _sourceRecipe = sourceRecipe;
       _onSaveAll = onSaveAll ?? throw new ArgumentNullException(nameof(onSaveAll));
       _schema = AdapterSchemaLoader.LoadForCurrentProject();
       RecipeIdOptions = new ObservableCollection<AdapterSchemaRecipeCatalogEntry>();
+      Links = new ObservableCollection<EnvironmentLinkItem>();
+      StepHandlerSchema = new SchemaActionEditorViewModel(_schema);
+      StepHandlerSchema.ValuesCommitted += OnStepSchemaCommitted;
+      StepHandlerSchema.SelectedCatalogChanged += OnStepSchemaCatalogChanged;
+
       SaveCommand = new RelayCommand(_ => Save(), _ => IsEditingEnabled);
       CancelCommand = new RelayCommand(_ => RequestClose?.Invoke(false));
+      AddInvokeStepCommand = new RelayCommand(_ => AddInvokeStep(), _ => IsEditingEnabled);
+      AddCommentStepCommand = new RelayCommand(_ => AddCommentStep(), _ => IsEditingEnabled);
+      DeleteSelectedStepsCommand = new RelayCommand(_ => DeleteSelectedSteps(), _ => IsEditingEnabled && SelectedStep != null);
+      MoveStepUpCommand = new RelayCommand(_ => MoveStep(-1), _ => IsEditingEnabled && SelectedStep != null);
+      MoveStepDownCommand = new RelayCommand(_ => MoveStep(1), _ => IsEditingEnabled && SelectedStep != null);
+      NavigateToTriggerCommand = new RelayCommand(_ => NavigateToTrigger(), _ => Model.RecommendedTriggerInfluenceIds?.Count > 0);
+      NavigateToReflexesCommand = new RelayCommand(_ => NavigateToReflexes());
+
       RefreshAgent();
       RefreshRecipeIdOptions();
+      UpdateRecipeIdDescription();
       UpdateAdaptiveActionDisplay();
       UpdateRecommendedTriggerDisplay();
-      EnvironmentRecipePreconditionSchemaHelper.Initialize(
-          Model,
-          _sourceRecipe,
-          _schema,
-          applyNewRecipeDefaults: isNew && sourceRecipe == null);
       EnvironmentRecipeStepSchemaHelper.InitializeAllSteps(Model.Steps, _schema);
       SelectedStep = Model.Steps.FirstOrDefault();
+      RefreshLinks();
     }
 
-    /// <summary>Модель полей.</summary>
     public EnvironmentRecipeEditorModel Model { get; }
-
-    /// <summary>Допустимые ID рецепта из schema/recipe-catalog.json и существующих записей.</summary>
     public ObservableCollection<AdapterSchemaRecipeCatalogEntry> RecipeIdOptions { get; }
+    public ObservableCollection<EnvironmentLinkItem> Links { get; }
+    public SchemaActionEditorViewModel StepHandlerSchema { get; }
 
-    /// <summary>Закрыть редактор (saved).</summary>
     public event Action<bool> RequestClose;
-
-    /// <summary>Вернуться к реестру без сохранения.</summary>
+    public event Action<EnvironmentNavigationRequest> NavigateRequest;
     public Action CloseAction { get; set; }
-
     public event PropertyChangedEventHandler PropertyChanged;
 
     public ICommand SaveCommand { get; }
     public ICommand CancelCommand { get; }
+    public ICommand AddInvokeStepCommand { get; }
+    public ICommand AddCommentStepCommand { get; }
+    public ICommand DeleteSelectedStepsCommand { get; }
+    public ICommand MoveStepUpCommand { get; }
+    public ICommand MoveStepDownCommand { get; }
+    public ICommand NavigateToTriggerCommand { get; }
+    public ICommand NavigateToReflexesCommand { get; }
 
-    public string CurrentAgentTitle =>
-        SymbiontPageTitleFormatter.Format("Редактор рецепта среды", _currentAgentName, _currentAgentStage);
+    public RecipeEditorTab SelectedTab
+    {
+      get => _selectedTab;
+      set
+      {
+        if (_selectedTab == value)
+          return;
+        _selectedTab = value;
+        OnPropertyChanged();
+        if (value == RecipeEditorTab.Links)
+          RefreshLinks();
+      }
+    }
+
+    public EnvironmentRecipeStepRow SelectedStep
+    {
+      get => _selectedStep;
+      set
+      {
+        if (_selectedStep == value)
+          return;
+        _selectedStep = value;
+        OnPropertyChanged();
+        LoadSelectedStepSchema();
+      }
+    }
+
+    public bool Dirty => _dirty;
+
+    public string EditorTitle => "РЕЦЕПТ: " + (Model.Id ?? string.Empty);
 
     public bool IsStageZero => _currentAgentStage == 0;
     public bool HasAdapter => SymbiontEnvironmentGate.IsEnvironmentEditingAllowed();
@@ -104,82 +144,6 @@ namespace AIStudio.ViewModels.SymbiontEnv
 
     public Brush WarningMessageColor => !HasAdapter || !IsStageZero ? Brushes.Red : Brushes.Gray;
 
-    public IReadOnlyList<EnvironmentRecipeRiskTier> RiskTierChoices { get; } = new[]
-    {
-      EnvironmentRecipeRiskTier.A,
-      EnvironmentRecipeRiskTier.B,
-      EnvironmentRecipeRiskTier.C
-    };
-
-    public IReadOnlyList<AdapterSchemaStepType> StepTypeOptions =>
-        EnvironmentRecipeStepSchemaHelper.GetStepTypes(_schema).ToList();
-
-    public EnvironmentRecipeStepRow SelectedStep
-    {
-      get => _selectedStep;
-      set
-      {
-        if (ReferenceEquals(_selectedStep, value))
-          return;
-        _selectedStep = value;
-        OnPropertyChanged();
-        OnPropertyChanged(nameof(HasSelectedStep));
-      }
-    }
-
-    public bool HasSelectedStep => SelectedStep != null;
-
-    public EnvironmentRecipeStepRow CreateNewStep() =>
-        EnvironmentRecipeStepSchemaHelper.CreateDefaultStep(_schema);
-
-    public string AdaptiveActionDisplay
-    {
-      get => _adaptiveActionDisplay;
-      private set
-      {
-        if (_adaptiveActionDisplay == value)
-          return;
-        _adaptiveActionDisplay = value;
-        OnPropertyChanged();
-      }
-    }
-
-    public string AdaptiveActionDescription
-    {
-      get => _adaptiveActionDescription;
-      private set
-      {
-        if (_adaptiveActionDescription == value)
-          return;
-        _adaptiveActionDescription = value;
-        OnPropertyChanged();
-      }
-    }
-
-    public string RecommendedTriggerDisplay
-    {
-      get => _recommendedTriggerDisplay;
-      private set
-      {
-        if (_recommendedTriggerDisplay == value)
-          return;
-        _recommendedTriggerDisplay = value;
-        OnPropertyChanged();
-      }
-    }
-
-    public string RecommendedTriggerDescription
-    {
-      get => _recommendedTriggerDescription;
-      private set
-      {
-        if (_recommendedTriggerDescription == value)
-          return;
-        _recommendedTriggerDescription = value;
-        OnPropertyChanged();
-      }
-    }
-
     public string RecipeId
     {
       get => Model.Id;
@@ -189,207 +153,178 @@ namespace AIStudio.ViewModels.SymbiontEnv
         if (string.Equals(Model.Id, normalized, StringComparison.Ordinal))
           return;
         Model.Id = normalized;
+        MarkDirty();
         OnPropertyChanged();
+        UpdateRecipeIdDescription();
+        OnPropertyChanged(nameof(EditorTitle));
       }
     }
 
-    /// <summary>
-    /// Перестраивает поля параметров выбранного шага после смены типа.
-    /// </summary>
-    public void SyncSelectedStepSchema()
+    public string RecipeIdDescription
     {
-      if (SelectedStep == null)
-        return;
-      var preserved = EnvironmentRecipeStepSchemaHelper.ToParametersDictionary(SelectedStep);
-      EnvironmentRecipeStepSchemaHelper.ApplyStepType(
-          SelectedStep,
-          SelectedStep.StepType,
-          _schema,
-          preserved);
+      get => _recipeIdDescription;
+      private set { _recipeIdDescription = value; OnPropertyChanged(); }
     }
 
-    /// <summary>
-    /// Вставляет плейсхолдер в поле template.
-    /// </summary>
-    public void InsertTemplatePlaceholder(Window owner, EnvironmentRecipeStepParameterField field)
+    public string AdaptiveActionDisplay
     {
-      if (!IsEditingEnabled || field == null)
-        return;
-      var dialog = new RecipeStepValueSelectionDialog(
-          "Плейсхолдер шаблона",
-          "Выберите плейсхолдер для вставки в template:",
-          EnvironmentRecipeStepSchemaHelper.KnownTemplatePlaceholders,
-          field.Value);
-      if (owner != null)
-        dialog.Owner = owner;
-      if (dialog.ShowDialog() != true || string.IsNullOrWhiteSpace(dialog.SelectedValue))
-        return;
-      field.Value = string.IsNullOrWhiteSpace(field.Value)
-          ? dialog.SelectedValue
-          : field.Value + dialog.SelectedValue;
-      EnvironmentRecipeStepSchemaHelper.RefreshSummary(SelectedStep);
+      get => _adaptiveActionDisplay;
+      private set { _adaptiveActionDisplay = value; OnPropertyChanged(); }
     }
 
-    /// <summary>
-    /// Выбирает имя свойства из справочника КБ.
-    /// </summary>
-    public void PickPropertyName(Window owner, EnvironmentRecipeStepParameterField field)
+    public string AdaptiveActionDescription
     {
-      if (!IsEditingEnabled || field == null)
-        return;
-      var dialog = new RecipeStepValueSelectionDialog(
-          "Имя свойства",
-          "Выберите имя пользовательского свойства документа:",
-          EnvironmentRecipeStepSchemaHelper.KnownPropertyNames,
-          field.Value);
-      if (owner != null)
-        dialog.Owner = owner;
-      if (dialog.ShowDialog() != true || string.IsNullOrWhiteSpace(dialog.SelectedValue))
-        return;
-      field.Value = dialog.SelectedValue;
-      EnvironmentRecipeStepSchemaHelper.RefreshSummary(SelectedStep);
+      get => _adaptiveActionDescription;
+      private set { _adaptiveActionDescription = value; OnPropertyChanged(); }
     }
 
-    /// <summary>
-    /// Выбор ID рецепта из каталога адаптера.
-    /// </summary>
+    public string RecommendedTriggerDisplay
+    {
+      get => _recommendedTriggerDisplay;
+      private set { _recommendedTriggerDisplay = value; OnPropertyChanged(); }
+    }
+
+    public string RecommendedTriggerDescription
+    {
+      get => _recommendedTriggerDescription;
+      private set { _recommendedTriggerDescription = value; OnPropertyChanged(); }
+    }
+
     public void PickRecipeId(Window owner)
     {
       if (!IsEditingEnabled)
         return;
-
-      var dialog = new RecipeIdSelectionDialog(Model.Id, RecipeIdOptions)
-      {
-        Owner = owner
-      };
+      var dialog = new RecipeIdSelectionDialog(Model.Id, RecipeIdOptions) { Owner = owner };
       if (dialog.ShowDialog() == true && !string.IsNullOrWhiteSpace(dialog.SelectedRecipeId))
         RecipeId = dialog.SelectedRecipeId;
     }
 
-    /// <summary>
-    /// Выбор одного рекомендуемого воздействия (триггер).
-    /// </summary>
     public void PickRecommendedTriggers(Window owner)
     {
       if (!IsEditingEnabled)
         return;
-
       int currentId = Model.RecommendedTriggerInfluenceIds != null && Model.RecommendedTriggerInfluenceIds.Count > 0
           ? Model.RecommendedTriggerInfluenceIds[0]
           : 0;
-      var dialog = new InfluenceActionRadioSelectionDialog(currentId);
-      if (owner != null)
-        dialog.Owner = owner;
+      var dialog = new InfluenceActionRadioSelectionDialog(currentId) { Owner = owner };
       if (dialog.ShowDialog() == true && dialog.SelectedInfluenceActionId > 0)
       {
         Model.RecommendedTriggerInfluenceIds = new List<int> { dialog.SelectedInfluenceActionId };
         UpdateRecommendedTriggerDisplay();
+        MarkDirty();
+        RefreshLinks();
       }
     }
 
-    /// <summary>
-    /// Выбор одного адаптивного действия.
-    /// </summary>
     public void PickAdaptiveAction(Window owner)
     {
       if (!IsEditingEnabled || !AdaptiveActionsSystem.IsInitialized)
         return;
-
-      var dialog = new AdaptiveActionRadioSelectionDialog(Model.AdaptiveActionId);
-      if (owner != null)
-        dialog.Owner = owner;
+      var dialog = new AdaptiveActionRadioSelectionDialog(Model.AdaptiveActionId) { Owner = owner };
       if (dialog.ShowDialog() == true && dialog.SelectedAdaptiveActionId > 0)
       {
         Model.AdaptiveActionId = dialog.SelectedAdaptiveActionId;
         UpdateAdaptiveActionDisplay();
+        MarkDirty();
+        RefreshLinks();
       }
     }
 
-    private void RefreshRecipeIdOptions()
+    public void OnModelFieldChanged()
     {
-      RecipeIdOptions.Clear();
-      var knownIds = new HashSet<string>(StringComparer.Ordinal);
-      foreach (AdapterSchemaRecipeCatalogEntry entry in AdapterSchemaLoader.LoadRecipeCatalogForCurrentProject())
-      {
-        if (entry == null || string.IsNullOrWhiteSpace(entry.Id) || !knownIds.Add(entry.Id))
-          continue;
-        RecipeIdOptions.Add(entry);
-      }
+      MarkDirty();
+    }
 
+    private void AddInvokeStep()
+    {
+      EnvironmentRecipeStepRow row = EnvironmentRecipeStepSchemaHelper.CreateDefaultInvokeStep(_schema);
+      Model.Steps.Add(row);
+      SelectedStep = row;
+      MarkDirty();
+    }
+
+    private void AddCommentStep()
+    {
+      EnvironmentRecipeStepRow row = EnvironmentRecipeStepSchemaHelper.CreateDefaultCommentStep();
+      Model.Steps.Add(row);
+      SelectedStep = row;
+      MarkDirty();
+    }
+
+    private void DeleteSelectedSteps()
+    {
+      if (SelectedStep == null)
+        return;
+      int index = Model.Steps.IndexOf(SelectedStep);
+      Model.Steps.Remove(SelectedStep);
+      SelectedStep = index >= 0 && index < Model.Steps.Count ? Model.Steps[index] : Model.Steps.LastOrDefault();
+      MarkDirty();
+    }
+
+    private void MoveStep(int delta)
+    {
+      if (SelectedStep == null)
+        return;
+      int index = Model.Steps.IndexOf(SelectedStep);
+      int newIndex = index + delta;
+      if (index < 0 || newIndex < 0 || newIndex >= Model.Steps.Count)
+        return;
+      Model.Steps.RemoveAt(index);
+      Model.Steps.Insert(newIndex, SelectedStep);
+      MarkDirty();
+    }
+
+    private void NavigateToTrigger()
+    {
+      int eaId = Model.RecommendedTriggerInfluenceIds != null && Model.RecommendedTriggerInfluenceIds.Count > 0
+          ? Model.RecommendedTriggerInfluenceIds[0]
+          : 0;
+      NavigateRequest?.Invoke(new EnvironmentNavigationRequest
+      {
+        Tab = EnvironmentShellTab.Triggers,
+        InfluenceActionId = eaId
+      });
+    }
+
+    private void NavigateToReflexes()
+    {
+      NavigateRequest?.Invoke(new EnvironmentNavigationRequest { Tab = EnvironmentShellTab.Overview });
+    }
+
+    private void OnStepSchemaCommitted(Dictionary<string, string> values)
+    {
+      if (SelectedStep == null || SelectedStep.IsComment)
+        return;
+      SelectedStep.HandlerId = StepHandlerSchema.SelectedCatalogId;
+      EnvironmentRecipeStepSchemaHelper.ApplyArgsFromDictionary(SelectedStep, values);
+      EnvironmentRecipeStepSchemaHelper.RefreshSummary(SelectedStep, _schema);
+      MarkDirty();
+    }
+
+    private void OnStepSchemaCatalogChanged()
+    {
+      if (SelectedStep == null || SelectedStep.IsComment)
+        return;
+      SelectedStep.HandlerId = StepHandlerSchema.SelectedCatalogId;
+      EnvironmentRecipeStepSchemaHelper.RefreshSummary(SelectedStep, _schema);
+      MarkDirty();
+    }
+
+    private void LoadSelectedStepSchema()
+    {
+      StepHandlerSchema.IsEditingEnabled = IsEditingEnabled && SelectedStep != null && SelectedStep.IsInvoke;
+      if (SelectedStep == null || SelectedStep.IsComment)
+        return;
+      StepHandlerSchema.LoadFromHandler(SelectedStep.HandlerId, SelectedStep.Args);
+    }
+
+    private void RefreshLinks()
+    {
+      Links.Clear();
       var errors = new List<string>();
-      foreach (EnvironmentRecipeData recipe in EnvironmentCatalogStorage.LoadRecipes(errors))
-      {
-        string id = (recipe?.Id ?? string.Empty).Trim();
-        if (id.Length == 0 || !knownIds.Add(id))
-          continue;
-        RecipeIdOptions.Add(new AdapterSchemaRecipeCatalogEntry
-        {
-          Id = id,
-          Label = recipe.DisplayName ?? id,
-          Description = recipe.Description ?? string.Empty
-        });
-      }
-
-      string currentId = (Model.Id ?? string.Empty).Trim();
-      if (currentId.Length > 0 && knownIds.Add(currentId))
-      {
-        RecipeIdOptions.Add(new AdapterSchemaRecipeCatalogEntry
-        {
-          Id = currentId,
-          Label = Model.DisplayName ?? currentId
-        });
-      }
-    }
-
-    private void UpdateAdaptiveActionDisplay()
-    {
-      if (Model.AdaptiveActionId <= 0)
-      {
-        AdaptiveActionDisplay = string.Empty;
-        AdaptiveActionDescription = string.Empty;
-        return;
-      }
-
-      AdaptiveActionDisplay = Model.AdaptiveActionId.ToString(CultureInfo.InvariantCulture);
-      if (!AdaptiveActionsSystem.IsInitialized)
-      {
-        AdaptiveActionDescription = string.Empty;
-        return;
-      }
-
-      var action = AdaptiveActionsSystem.Instance.GetAllAdaptiveActions()
-          ?.FirstOrDefault(a => a.Id == Model.AdaptiveActionId);
-      AdaptiveActionDescription = action != null
-          ? (action.Name ?? string.Empty) + (string.IsNullOrWhiteSpace(action.Description)
-              ? string.Empty
-              : " — " + action.Description)
-          : string.Empty;
-    }
-
-    private void UpdateRecommendedTriggerDisplay()
-    {
-      if (Model.RecommendedTriggerInfluenceIds == null || Model.RecommendedTriggerInfluenceIds.Count == 0)
-      {
-        RecommendedTriggerDisplay = string.Empty;
-        RecommendedTriggerDescription = string.Empty;
-        return;
-      }
-
-      int id = Model.RecommendedTriggerInfluenceIds[0];
-      RecommendedTriggerDisplay = id.ToString(CultureInfo.InvariantCulture);
-      if (!InfluenceActionSystem.IsInitialized)
-      {
-        RecommendedTriggerDescription = string.Empty;
-        return;
-      }
-
-      var action = InfluenceActionSystem.Instance.GetAllInfluenceActions()
-          ?.FirstOrDefault(a => a.Id == id);
-      RecommendedTriggerDescription = action != null
-          ? (action.Name ?? string.Empty) + (string.IsNullOrWhiteSpace(action.Description)
-              ? string.Empty
-              : " — " + action.Description)
-          : string.Empty;
+      IList<EnvironmentTriggerData> triggers = EnvironmentCatalogStorage.LoadTriggers(errors);
+      foreach (EnvironmentLinkItem item in EnvironmentLinksService.BuildRecipeLinks(Model, triggers, _geneticReflexes, _schema))
+        Links.Add(item);
     }
 
     private void Save()
@@ -413,6 +348,7 @@ namespace AIStudio.ViewModels.SymbiontEnv
       try
       {
         _onSaveAll(Model, _isNew);
+        _dirty = false;
         RequestClose?.Invoke(true);
         CloseAction?.Invoke();
       }
@@ -420,6 +356,75 @@ namespace AIStudio.ViewModels.SymbiontEnv
       {
         MessageBox.Show(ex.Message, "Ошибка сохранения", MessageBoxButton.OK, MessageBoxImage.Error);
       }
+    }
+
+    private void MarkDirty()
+    {
+      _dirty = true;
+      OnPropertyChanged(nameof(Dirty));
+    }
+
+    private void RefreshRecipeIdOptions()
+    {
+      RecipeIdOptions.Clear();
+      var knownIds = new HashSet<string>(StringComparer.Ordinal);
+      foreach (AdapterSchemaRecipeCatalogEntry entry in AdapterSchemaLoader.LoadRecipeCatalogForCurrentProject())
+      {
+        if (entry == null || string.IsNullOrWhiteSpace(entry.Id) || !knownIds.Add(entry.Id))
+          continue;
+        RecipeIdOptions.Add(entry);
+      }
+      var errors = new List<string>();
+      foreach (EnvironmentRecipeData recipe in EnvironmentCatalogStorage.LoadRecipes(errors))
+      {
+        string id = (recipe?.Id ?? string.Empty).Trim();
+        if (id.Length == 0 || !knownIds.Add(id))
+          continue;
+        RecipeIdOptions.Add(new AdapterSchemaRecipeCatalogEntry
+        {
+          Id = id,
+          Label = recipe.DisplayName ?? id,
+          Description = recipe.Description ?? string.Empty
+        });
+      }
+    }
+
+    private void UpdateRecipeIdDescription()
+    {
+      string id = (Model.Id ?? string.Empty).Trim();
+      if (id.Length == 0) { RecipeIdDescription = string.Empty; return; }
+      AdapterSchemaRecipeCatalogEntry entry = RecipeIdOptions.FirstOrDefault(e => string.Equals(e?.Id, id, StringComparison.Ordinal));
+      RecipeIdDescription = entry == null
+          ? string.Empty
+          : string.IsNullOrWhiteSpace(entry.Description) ? entry.Label : entry.Label + " — " + entry.Description;
+    }
+
+    private void UpdateAdaptiveActionDisplay()
+    {
+      if (Model.AdaptiveActionId <= 0) { AdaptiveActionDisplay = string.Empty; AdaptiveActionDescription = string.Empty; return; }
+      AdaptiveActionDisplay = Model.AdaptiveActionId.ToString(CultureInfo.InvariantCulture);
+      if (!AdaptiveActionsSystem.IsInitialized) { AdaptiveActionDescription = string.Empty; return; }
+      var action = AdaptiveActionsSystem.Instance.GetAllAdaptiveActions()?.FirstOrDefault(a => a.Id == Model.AdaptiveActionId);
+      AdaptiveActionDescription = action != null
+          ? (action.Name ?? string.Empty) + (string.IsNullOrWhiteSpace(action.Description) ? string.Empty : " — " + action.Description)
+          : string.Empty;
+    }
+
+    private void UpdateRecommendedTriggerDisplay()
+    {
+      if (Model.RecommendedTriggerInfluenceIds == null || Model.RecommendedTriggerInfluenceIds.Count == 0)
+      {
+        RecommendedTriggerDisplay = string.Empty;
+        RecommendedTriggerDescription = string.Empty;
+        return;
+      }
+      int id = Model.RecommendedTriggerInfluenceIds[0];
+      RecommendedTriggerDisplay = id.ToString(CultureInfo.InvariantCulture);
+      if (!InfluenceActionSystem.IsInitialized) { RecommendedTriggerDescription = string.Empty; return; }
+      var action = InfluenceActionSystem.Instance.GetAllInfluenceActions()?.FirstOrDefault(a => a.Id == id);
+      RecommendedTriggerDescription = action != null
+          ? (action.Name ?? string.Empty) + (string.IsNullOrWhiteSpace(action.Description) ? string.Empty : " — " + action.Description)
+          : string.Empty;
     }
 
     private void RefreshAgent()

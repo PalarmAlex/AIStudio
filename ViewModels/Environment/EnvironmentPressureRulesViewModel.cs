@@ -17,12 +17,14 @@ namespace AIStudio.ViewModels.SymbiontEnv
   /// <summary>
   /// Редактор правил давления среды (<see cref="AppConfig.EnvironmentPressureRulesFilePath"/>).
   /// </summary>
-  public sealed class EnvironmentPressureRulesViewModel : IDisposable
+  public sealed class EnvironmentPressureRulesViewModel : IEnvironmentChildViewModel
   {
     private readonly GomeostasSystem _gomeostas;
     private readonly List<EnvironmentPressureRuleRow> _allRows = new List<EnvironmentPressureRuleRow>();
     private string _currentAgentName;
     private int _currentAgentStage;
+    private bool _dirty;
+    private int _validationIssueCount;
 
     public EnvironmentPressureRulesViewModel(GomeostasSystem gomeostas)
     {
@@ -44,6 +46,13 @@ namespace AIStudio.ViewModels.SymbiontEnv
     public ICommand SaveCommand { get; }
     public ICommand RemoveAllCommand { get; }
 
+    public event Action DirtyChanged;
+    public event Action<int> ValidationIssueCountChanged;
+
+    public bool Dirty => _dirty;
+    public int ValidationIssueCount => _validationIssueCount;
+    public bool CanSave => IsEditingEnabled && _dirty;
+
     public bool IsStageZero => _currentAgentStage == 0;
     public bool HasAdapter => SymbiontEnvironmentGate.IsEnvironmentEditingAllowed();
     public bool IsEditingEnabled => HasAdapter && IsStageZero && !GlobalTimer.IsPulsationRunning;
@@ -62,6 +71,16 @@ namespace AIStudio.ViewModels.SymbiontEnv
 
     public List<ParameterData> GetAllParameters() => _gomeostas.GetAllParameters().ToList();
 
+    public void Reload()
+    {
+      _dirty = false;
+      DirtyChanged?.Invoke();
+      ReloadFromDisk();
+      RecalculateValidation();
+    }
+
+    public void Save() => SaveToDisk();
+
     public void ReloadFromDisk()
     {
       var agent = _gomeostas.GetAgentState();
@@ -71,6 +90,7 @@ namespace AIStudio.ViewModels.SymbiontEnv
       _allRows.AddRange(EnvironmentPressureRulesStorage.Load());
       RefreshProbeKeyOptions();
       RefreshRulesCollection();
+      RecalculateValidation();
     }
 
     public void RegisterNewRow(EnvironmentPressureRuleRow row)
@@ -79,6 +99,28 @@ namespace AIStudio.ViewModels.SymbiontEnv
         return;
       if (!_allRows.Contains(row))
         _allRows.Add(row);
+      MarkDirty();
+    }
+
+    public void MarkDirty()
+    {
+      _dirty = true;
+      DirtyChanged?.Invoke();
+      RecalculateValidation();
+    }
+
+    private void RecalculateValidation()
+    {
+      int count = 0;
+      foreach (EnvironmentPressureRuleRow row in _allRows)
+      {
+        if (row == null || string.IsNullOrWhiteSpace(row.ProbeKey))
+          count++;
+      }
+      if (_validationIssueCount == count)
+        return;
+      _validationIssueCount = count;
+      ValidationIssueCountChanged?.Invoke(count);
     }
 
     public EnvironmentPressureRuleRow CreateNewRow()
@@ -108,6 +150,7 @@ namespace AIStudio.ViewModels.SymbiontEnv
         _allRows.Remove(row);
         Rules.Remove(row);
       }
+      MarkDirty();
       return true;
     }
 
@@ -170,7 +213,8 @@ namespace AIStudio.ViewModels.SymbiontEnv
         }
 
         EnvironmentPressureRulesStorage.Save(_allRows);
-        MessageBox.Show("Правила давления среды сохранены.", "Сохранение", MessageBoxButton.OK, MessageBoxImage.Information);
+        _dirty = false;
+        DirtyChanged?.Invoke();
         ReloadFromDisk();
       }
       catch (Exception ex)

@@ -517,16 +517,20 @@ namespace AIStudio
           case "42": // Ментальные цепочки (эпизодика ИФ)
             ShowMentalEpisodicTree();
             break;
+          case "49": // Обзор поведения среды
+            if (TryShowEnvironmentPage(() => ShowEnvironmentShell(EnvironmentShellTab.Overview)))
+              break;
+            break;
           case "45": // Рецепты среды
-            if (TryShowEnvironmentPage(ShowEnvironmentRecipesRegistry))
+            if (TryShowEnvironmentPage(() => ShowEnvironmentShell(EnvironmentShellTab.Recipes)))
               break;
             break;
           case "46": // Триггеры среды
-            if (TryShowEnvironmentPage(ShowEnvironmentTriggers))
+            if (TryShowEnvironmentPage(() => ShowEnvironmentShell(EnvironmentShellTab.Triggers)))
               break;
             break;
           case "48": // Давление среды на виталы
-            if (TryShowEnvironmentPage(ShowEnvironmentPressureRules))
+            if (TryShowEnvironmentPage(() => ShowEnvironmentShell(EnvironmentShellTab.Pressure)))
               break;
             break;
           case "47": // Адаптеры среды
@@ -653,28 +657,13 @@ namespace AIStudio
       return false;
     }
 
-    private void ShowEnvironmentRecipesRegistry()
-    {
-      void OpenEditor(EnvironmentRecipeEditorViewModel vm)
-      {
-        vm.CloseAction = ShowEnvironmentRecipesRegistry;
-        vm.RequestClose += _ => ShowEnvironmentRecipesRegistry();
-        CurrentContent = new Pages.SymbiontEnv.EnvironmentRecipeEditorView { DataContext = vm };
-      }
-      var registryVm = new EnvironmentRecipesRegistryViewModel(_gomeostas, OpenEditor);
-      CurrentContent = new Pages.SymbiontEnv.EnvironmentRecipesRegistryView { DataContext = registryVm };
-    }
+    private EnvironmentShellViewModel _environmentShell;
 
-    private void ShowEnvironmentTriggers()
+    private void ShowEnvironmentShell(EnvironmentShellTab tab)
     {
-      var vm = new EnvironmentTriggersViewModel(_gomeostas);
-      CurrentContent = new Pages.SymbiontEnv.EnvironmentTriggersView { DataContext = vm };
-    }
-
-    private void ShowEnvironmentPressureRules()
-    {
-      var vm = new EnvironmentPressureRulesViewModel(_gomeostas);
-      CurrentContent = new Pages.SymbiontEnv.EnvironmentPressureRulesView { DataContext = vm };
+      _environmentShell?.Dispose();
+      _environmentShell = new EnvironmentShellViewModel(_gomeostas, _geneticReflexesSystem, tab);
+      CurrentContent = new Pages.SymbiontEnv.EnvironmentShellView { DataContext = _environmentShell };
     }
 
     private void ShowAdapters()

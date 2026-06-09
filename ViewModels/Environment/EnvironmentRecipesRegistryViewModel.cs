@@ -1,8 +1,10 @@
 using AIStudio.Common;
+using AIStudio.Common.Adapters;
 using AIStudio.Common.SymbiontEnv;
 using ISIDA.SymbiontEnv.Contract;
 using ISIDA.Common;
 using ISIDA.Gomeostas;
+using ISIDA.Reflexes;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -11,32 +13,34 @@ using System.Linq;
 using System.Windows;
 using System.Windows.Input;
 using System.Windows.Media;
+
 namespace AIStudio.ViewModels.SymbiontEnv
 {
-  /// <summary>
-  /// Реестр рецептов среды (список из <see cref="EnvironmentPaths.RecipesFilePath"/>).
-  /// </summary>
-  public sealed class EnvironmentRecipesRegistryViewModel : IDisposable
+  /// <summary>Реестр рецептов среды.</summary>
+  public sealed class EnvironmentRecipesRegistryViewModel : IEnvironmentChildViewModel
   {
     private readonly GomeostasSystem _gomeostas;
+    private readonly GeneticReflexesSystem _geneticReflexes;
     private readonly Action<EnvironmentRecipeEditorViewModel> _openEditor;
     private readonly List<EnvironmentRecipeListItem> _allItems = new List<EnvironmentRecipeListItem>();
     private readonly List<EnvironmentRecipeData> _allRecipes = new List<EnvironmentRecipeData>();
+    private readonly AdapterEnvironmentSchema _schema;
     private string _currentAgentName;
     private int _currentAgentStage;
     private string _filterId = string.Empty;
     private string _filterTitle = string.Empty;
-    /// <summary>
-    /// Создаёт модель реестра.
-    /// </summary>
+
     public EnvironmentRecipesRegistryViewModel(
         GomeostasSystem gomeostas,
+        GeneticReflexesSystem geneticReflexes,
         Action<EnvironmentRecipeEditorViewModel> openEditor)
     {
       _gomeostas = gomeostas ?? throw new ArgumentNullException(nameof(gomeostas));
+      _geneticReflexes = geneticReflexes;
       _openEditor = openEditor ?? throw new ArgumentNullException(nameof(openEditor));
+      _schema = AdapterSchemaLoader.LoadForCurrentProject();
       Items = new ObservableCollection<EnvironmentRecipeListItem>();
-      RefreshCommand = new RelayCommand(_ => ReloadFromDisk());
+      RefreshCommand = new RelayCommand(_ => Reload());
       ApplyFiltersCommand = new RelayCommand(_ => ApplyFilters());
       ResetFiltersCommand = new RelayCommand(_ => ResetFilters());
       EditCommand = new RelayCommand(_ => EditSelected(), _ => Selected != null);
@@ -44,16 +48,12 @@ namespace AIStudio.ViewModels.SymbiontEnv
       NewCommand = new RelayCommand(_ => CreateNew(), _ => IsEditingEnabled);
       RemoveAllCommand = new RelayCommand(RemoveAllRecipes, _ => IsEditingEnabled);
       GlobalTimer.PulsationStateChanged += OnPulsationStateChanged;
-      ReloadFromDisk();
+      Reload();
     }
 
-    /// <summary>Элементы таблицы (после фильтра).</summary>
     public ObservableCollection<EnvironmentRecipeListItem> Items { get; }
-    /// <summary>Выбранная строка.</summary>
     public EnvironmentRecipeListItem Selected { get; set; }
-    /// <summary>Заголовок страницы.</summary>
-    public string CurrentAgentTitle =>
-        SymbiontPageTitleFormatter.Format("Рецепты среды", _currentAgentName, _currentAgentStage);
+
     public string FilterIdText
     {
       get => _filterId;
@@ -73,9 +73,18 @@ namespace AIStudio.ViewModels.SymbiontEnv
     public ICommand DuplicateCommand { get; }
     public ICommand NewCommand { get; }
     public ICommand RemoveAllCommand { get; }
+
+    public event Action DirtyChanged;
+    public event Action<int> ValidationIssueCountChanged;
+
+    public bool Dirty => false;
+    public int ValidationIssueCount => Items.Sum(i => i.WarningCount);
+    public bool CanSave => false;
+
     public bool IsStageZero => _currentAgentStage == 0;
     public bool HasAdapter => SymbiontEnvironmentGate.IsEnvironmentEditingAllowed();
     public bool IsEditingEnabled => HasAdapter && IsStageZero && !GlobalTimer.IsPulsationRunning;
+
     public string PulseWarningMessage =>
         !HasAdapter
             ? "Укажите тип среды в свойствах симбионта"
@@ -84,10 +93,23 @@ namespace AIStudio.ViewModels.SymbiontEnv
                 : GlobalTimer.IsPulsationRunning
                     ? "Редактирование доступно только при выключенной пульсации"
                     : string.Empty;
+
     public Brush WarningMessageColor => !HasAdapter || !IsStageZero ? Brushes.Red : Brushes.Gray;
-    /// <summary>
-    /// Удаляет выбранные рецепты с подтверждением.
-    /// </summary>
+
+    public void Save() { }
+
+    public void Reload() => ReloadFromDisk();
+
+    public void SelectAndOpen(string recipeId)
+    {
+      EnvironmentRecipeListItem item = _allItems.FirstOrDefault(
+          i => string.Equals(i?.Id, recipeId, StringComparison.OrdinalIgnoreCase));
+      if (item == null)
+        return;
+      Selected = item;
+      EditSelected();
+    }
+
     public bool TryDeleteSelected(IReadOnlyList<EnvironmentRecipeListItem> items)
     {
       if (items == null || items.Count == 0 || !IsEditingEnabled)
@@ -97,7 +119,7 @@ namespace AIStudio.ViewModels.SymbiontEnv
           : "Удалить выбранные рецепты (" + items.Count + ")?";
       if (MessageBox.Show(msg, "Подтверждение", MessageBoxButton.YesNo, MessageBoxImage.Question) != MessageBoxResult.Yes)
         return false;
-      var ids = new HashSet<string>(items.Select(i => i.Id), StringComparer.OrdinalIgnoreCase);
+      var ids = new HashSet<string>(items.Select(i => i.Id), StringComparer.Ordinal);
       _allRecipes.RemoveAll(r => ids.Contains(r.Id));
       SaveAllToDisk();
       ReloadFromDisk();
@@ -116,7 +138,7 @@ namespace AIStudio.ViewModels.SymbiontEnv
       foreach (EnvironmentRecipeData recipe in loaded)
         _allRecipes.Add(recipe.Clone());
       foreach (EnvironmentRecipeData recipe in _allRecipes.OrderBy(r => r.Id, StringComparer.OrdinalIgnoreCase))
-        _allItems.Add(EnvironmentRecipeMapper.ToListItem(recipe));
+        _allItems.Add(EnvironmentRecipeMapper.ToListItem(recipe, _schema));
       if (errors.Count > 0)
       {
         MessageBox.Show(
@@ -126,6 +148,13 @@ namespace AIStudio.ViewModels.SymbiontEnv
             MessageBoxImage.Warning);
       }
       ApplyFilters();
+      NotifyChildState();
+    }
+
+    private void NotifyChildState()
+    {
+      DirtyChanged?.Invoke();
+      ValidationIssueCountChanged?.Invoke(ValidationIssueCount);
     }
 
     private void ApplyFilters()
@@ -164,29 +193,14 @@ namespace AIStudio.ViewModels.SymbiontEnv
         MessageBox.Show("Рецепт не найден.", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Warning);
         return;
       }
-      var editorVm = new EnvironmentRecipeEditorViewModel(
-          _gomeostas,
-          EnvironmentRecipeMapper.ToEditorModel(recipe),
-          isNew: false,
-          onSaveAll: SaveAllFromEditor,
-          sourceRecipe: recipe);
-      _openEditor(editorVm);
+      OpenEditor(EnvironmentRecipeMapper.ToEditorModel(recipe), isNew: false);
     }
 
     private void CreateNew()
     {
       string newId = "recipe_" + DateTime.Now.ToString("yyyyMMdd_HHmmss", CultureInfo.InvariantCulture);
-      var model = new EnvironmentRecipeEditorModel
-      {
-        Id = newId,
-        DisplayName = "Новый рецепт"
-      };
-      var editorVm = new EnvironmentRecipeEditorViewModel(
-          _gomeostas,
-          model,
-          isNew: true,
-          onSaveAll: SaveAllFromEditor);
-      _openEditor(editorVm);
+      var model = new EnvironmentRecipeEditorModel { Id = newId, DisplayName = "Новый рецепт" };
+      OpenEditor(model, isNew: true);
     }
 
     private void DuplicateSelected()
@@ -200,12 +214,17 @@ namespace AIStudio.ViewModels.SymbiontEnv
       EnvironmentRecipeEditorModel model = EnvironmentRecipeMapper.ToEditorModel(recipe);
       model.Id = model.Id + "_copy";
       model.DisplayName = (model.DisplayName ?? string.Empty) + " (копия)";
+      OpenEditor(model, isNew: true);
+    }
+
+    private void OpenEditor(EnvironmentRecipeEditorModel model, bool isNew)
+    {
       var editorVm = new EnvironmentRecipeEditorViewModel(
           _gomeostas,
+          _geneticReflexes,
           model,
-          isNew: true,
-          onSaveAll: SaveAllFromEditor,
-          sourceRecipe: recipe);
+          isNew,
+          SaveAllFromEditor);
       _openEditor(editorVm);
     }
 
@@ -216,11 +235,7 @@ namespace AIStudio.ViewModels.SymbiontEnv
           r => string.Equals(r.Id, def.Id, StringComparison.OrdinalIgnoreCase));
       if (isNew && duplicateIdx >= 0)
       {
-        MessageBox.Show(
-            "Рецепт с ID \"" + def.Id + "\" уже существует.",
-            "Сохранение",
-            MessageBoxButton.OK,
-            MessageBoxImage.Warning);
+        MessageBox.Show("Рецепт с ID \"" + def.Id + "\" уже существует.", "Сохранение", MessageBoxButton.OK, MessageBoxImage.Warning);
         return;
       }
       if (duplicateIdx >= 0)
@@ -235,35 +250,21 @@ namespace AIStudio.ViewModels.SymbiontEnv
     {
       if (!IsEditingEnabled)
         return;
-
-      MessageBoxResult result = MessageBox.Show(
-          "Вы действительно хотите удалить ВСЕ рецепты среды? Это действие нельзя будет отменить.",
-          "Подтверждение удаления",
-          MessageBoxButton.YesNo,
-          MessageBoxImage.Warning);
-      if (result != MessageBoxResult.Yes)
+      if (MessageBox.Show(
+              "Удалить ВСЕ рецепты среды?",
+              "Подтверждение",
+              MessageBoxButton.YesNo,
+              MessageBoxImage.Warning) != MessageBoxResult.Yes)
         return;
-
       try
       {
         _allRecipes.Clear();
-        _allItems.Clear();
-        Items.Clear();
         EnvironmentCatalogStorage.SaveRecipes(new List<EnvironmentRecipeData>());
-        MessageBox.Show(
-            "Все рецепты среды успешно удалены",
-            "Удаление завершено",
-            MessageBoxButton.OK,
-            MessageBoxImage.Information);
         ReloadFromDisk();
       }
       catch (Exception ex)
       {
-        MessageBox.Show(
-            "Ошибка удаления рецептов среды: " + ex.Message,
-            "Ошибка",
-            MessageBoxButton.OK,
-            MessageBoxImage.Error);
+        MessageBox.Show("Ошибка: " + ex.Message, "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
         ReloadFromDisk();
       }
     }
@@ -285,7 +286,6 @@ namespace AIStudio.ViewModels.SymbiontEnv
       Application.Current?.Dispatcher.Invoke(ApplyFilters);
     }
 
-    /// <inheritdoc />
     public void Dispose()
     {
       GlobalTimer.PulsationStateChanged -= OnPulsationStateChanged;

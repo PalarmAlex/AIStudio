@@ -1,0 +1,51 @@
+<UserControl x:Class="AIStudio.Pages.SymbiontEnv.EnvironmentBehaviorOverviewView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+  <Grid Margin="4">
+    <Grid.RowDefinitions>
+      <RowDefinition Height="Auto"/>
+      <RowDefinition Height="*"/>
+    </Grid.RowDefinitions>
+
+    <Border Grid.Row="0" BorderBrush="#FFE0E0E0" BorderThickness="1" CornerRadius="4" Padding="8" Margin="0,0,0,8" Background="#FFF9F9F9">
+      <Grid>
+        <Grid.ColumnDefinitions>
+          <ColumnDefinition Width="Auto"/>
+          <ColumnDefinition Width="*"/>
+          <ColumnDefinition Width="Auto"/>
+        </Grid.ColumnDefinitions>
+        <TextBlock Grid.Column="0" Text="Поиск:" VerticalAlignment="Center" Margin="0,0,8,0"/>
+        <TextBox Grid.Column="1" Text="{Binding FilterText, UpdateSourceTrigger=PropertyChanged}" Padding="4,3" Margin="0,0,16,0"/>
+        <StackPanel Grid.Column="2" Orientation="Horizontal">
+          <CheckBox Content="триггеры" IsChecked="{Binding ShowTriggers}" Margin="0,0,12,0" VerticalAlignment="Center"/>
+          <CheckBox Content="рецепты" IsChecked="{Binding ShowRecipes}" Margin="0,0,12,0" VerticalAlignment="Center"/>
+          <CheckBox Content="разрывы" IsChecked="{Binding ShowGapsOnly}" VerticalAlignment="Center"/>
+          <Button Content="Обновить" Margin="12,0,0,0" Padding="10,4" Command="{Binding RefreshCommand}"/>
+        </StackPanel>
+      </Grid>
+    </Border>
+
+    <DataGrid Grid.Row="1"
+              ItemsSource="{Binding Chains}"
+              AutoGenerateColumns="False"
+              IsReadOnly="True"
+              SelectionMode="Single"
+              BorderBrush="#FFE0E0E0"
+              BorderThickness="1"
+              RowBackground="#FFF9F9F9"
+              AlternatingRowBackground="White"
+              GridLinesVisibility="Horizontal"
+              MouseDoubleClick="ChainsGrid_MouseDoubleClick">
+      <DataGrid.Columns>
+        <DataGridTextColumn Header="Триггер" Binding="{Binding TriggerId}" Width="160"/>
+        <DataGridTextColumn Header="Событие" Binding="{Binding EventKind}" Width="140"/>
+        <DataGridTextColumn Header="EA" Binding="{Binding InfluenceActionId}" Width="50"/>
+        <DataGridTextColumn Header="G_AD" Binding="{Binding AdaptiveActionId}" Width="50"/>
+        <DataGridTextColumn Header="Рецепт" Binding="{Binding RecipeId}" Width="160"/>
+        <DataGridTextColumn Header="Шагов" Binding="{Binding StepCount}" Width="60"/>
+        <DataGridTextColumn Header="Статус" Binding="{Binding StatusText}" Width="50"/>
+        <DataGridTextColumn Header="Цепочка" Binding="{Binding DetailText}" Width="*"/>
+      </DataGrid.Columns>
+    </DataGrid>
+  </Grid>
+</UserControl>

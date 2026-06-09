@@ -1,7 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Configuration>
   <AppSettings>
-    <DataFolderPath>C:\ProgramData\ISIDA\Data</DataFolderPath>
     <SettingsPath>C:\ProgramData\ISIDA\Settings</SettingsPath>
     <DefaultStileId>6</DefaultStileId>
     <DefaultAdaptiveActionId>1</DefaultAdaptiveActionId>
@@ -24,5 +23,8 @@
     <NoOperatorStimulusSilencePulses>30</NoOperatorStimulusSilencePulses>
     <ScenarioReportsFolderPath>C:\ProgramData\ISIDA\Scenarios\Reports</ScenarioReportsFolderPath>
     <HomeostasisPulseSpeedDriftEnabled>true</HomeostasisPulseSpeedDriftEnabled>
+    <DataFolderPath>C:\ProgramData\ISIDA\Data</DataFolderPath>
+    <ProjectsFolderPath>C:\ProgramData\ISIDA\Projects</ProjectsFolderPath>
+    <AdaptersFolderPath>C:\ProgramData\ISIDA\Adapters</AdaptersFolderPath>
   </AppSettings>
 </Configuration>

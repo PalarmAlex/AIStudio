@@ -87,8 +87,10 @@
     <Compile Include="Common\Environment\EnvironmentPressureRulesStorage.cs" />
     <Compile Include="Common\Environment\EnvironmentPressureRulesValidation.cs" />
     <Compile Include="Common\Environment\EnvironmentPaths.cs" />
+    <Compile Include="Common\Environment\EnvironmentLinksService.cs" />
     <Compile Include="Common\Environment\EnvironmentRecipeMapper.cs" />
     <Compile Include="Common\Environment\EnvironmentTriggerMapper.cs" />
+    <Compile Include="Common\Environment\SchemaCatalogItemRow.cs" />
     <Compile Include="Common\Adapters\AdapterPaths.cs" />
     <Compile Include="Common\Adapters\AdapterRegistry.cs" />
     <Compile Include="Common\Adapters\AdapterPackageManager.cs" />
@@ -396,30 +398,28 @@
     <Compile Include="Common\AgentLogCellTooltipProvider.cs" />
     <Compile Include="Common\ScenarioReportHtmlBuilder.cs" />
     <Compile Include="Common\ScenarioReportLogDisplay.cs" />
+    <Compile Include="ViewModels\Environment\EnvironmentBehaviorChainRow.cs" />
+    <Compile Include="ViewModels\Environment\EnvironmentBehaviorOverviewViewModel.cs" />
+    <Compile Include="ViewModels\Environment\EnvironmentLinkItem.cs" />
+    <Compile Include="ViewModels\Environment\EnvironmentNavigationRequest.cs" />
+    <Compile Include="ViewModels\Environment\EnvironmentRecipeEditorTab.cs" />
     <Compile Include="ViewModels\Environment\EnvironmentRecipeListItem.cs" />
     <Compile Include="ViewModels\Environment\EnvironmentRecipeStepRow.cs" />
-    <Compile Include="ViewModels\Environment\EnvironmentRecipeStepParameterField.cs" />
-    <Compile Include="ViewModels\Environment\EnvironmentRecipePreconditionField.cs" />
-    <Compile Include="ViewModels\Environment\EnvironmentRecipePreconditionListItem.cs" />
-    <Compile Include="ViewModels\Environment\EnvironmentRecipePreconditionSchemaHelper.cs" />
-    <Compile Include="ViewModels\Environment\EnvironmentSchemaFieldsHelper.cs" />
-    <Compile Include="ViewModels\Environment\EnvironmentTriggerFilterSchemaHelper.cs" />
     <Compile Include="ViewModels\Environment\EnvironmentRecipeStepSchemaHelper.cs" />
     <Compile Include="ViewModels\Environment\EnvironmentRecipeEditorModel.cs" />
+    <Compile Include="ViewModels\Environment\EnvironmentShellTab.cs" />
+    <Compile Include="ViewModels\Environment\EnvironmentShellViewModel.cs" />
     <Compile Include="ViewModels\Environment\EnvironmentTriggerRow.cs" />
-    <Compile Include="ViewModels\Environment\EnvironmentTriggerDetectRow.cs" />
+    <Compile Include="ViewModels\Environment\IEnvironmentChildViewModel.cs" />
+    <Compile Include="ViewModels\Environment\SchemaActionEditorViewModel.cs" />
+    <Compile Include="ViewModels\Environment\SchemaParamRow.cs" />
+    <Compile Include="ViewModels\Environment\ValidationIssueRow.cs" />
     <Compile Include="ViewModels\Adapters\AdapterListItem.cs" />
     <Compile Include="ViewModels\Adapters\AdaptersViewModel.cs" />
     <Compile Include="ViewModels\Environment\EnvironmentRecipesRegistryViewModel.cs" />
     <Compile Include="ViewModels\Environment\EnvironmentRecipeEditorViewModel.cs" />
     <Compile Include="ViewModels\Environment\EnvironmentTriggersViewModel.cs" />
     <Compile Include="ViewModels\Environment\EnvironmentPressureRulesViewModel.cs" />
-    <Compile Include="Dialogs\EnvironmentTriggerDetectEditorDialog.xaml.cs">
-      <DependentUpon>EnvironmentTriggerDetectEditorDialog.xaml</DependentUpon>
-    </Compile>
-    <Compile Include="Dialogs\EnvironmentTriggerFilterEditorDialog.xaml.cs">
-      <DependentUpon>EnvironmentTriggerFilterEditorDialog.xaml</DependentUpon>
-    </Compile>
     <Compile Include="Dialogs\MetricProbeKeySelectionDialog.xaml.cs">
       <DependentUpon>MetricProbeKeySelectionDialog.xaml</DependentUpon>
     </Compile>
@@ -440,6 +440,15 @@
     </Compile>
     <Compile Include="Pages\Adapters\AdaptersView.xaml.cs">
       <DependentUpon>AdaptersView.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Controls\Environment\SchemaActionPanel.xaml.cs">
+      <DependentUpon>SchemaActionPanel.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Pages\Environment\EnvironmentBehaviorOverviewView.xaml.cs">
+      <DependentUpon>EnvironmentBehaviorOverviewView.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Pages\Environment\EnvironmentShellView.xaml.cs">
+      <DependentUpon>EnvironmentShellView.xaml</DependentUpon>
     </Compile>
     <Compile Include="Pages\Environment\EnvironmentRecipesRegistryView.xaml.cs">
       <DependentUpon>EnvironmentRecipesRegistryView.xaml</DependentUpon>
@@ -727,14 +736,6 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="Dialogs\EnvironmentTriggerDetectEditorDialog.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="Dialogs\EnvironmentTriggerFilterEditorDialog.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
     <Page Include="Dialogs\MetricProbeKeySelectionDialog.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
@@ -762,6 +763,18 @@
     <Page Include="Pages\Adapters\AdaptersView.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Controls\Environment\SchemaActionPanel.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Pages\Environment\EnvironmentBehaviorOverviewView.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Pages\Environment\EnvironmentShellView.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
     </Page>
     <Page Include="Pages\Environment\EnvironmentRecipesRegistryView.xaml">
       <SubType>Designer</SubType>

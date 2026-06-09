@@ -1,7 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Globalization;
-using System.Linq;
 using AIStudio.ViewModels.SymbiontEnv;
 using ISIDA.SymbiontEnv.Contract;
 
@@ -17,21 +15,22 @@ namespace AIStudio.Common.SymbiontEnv
     {
       if (trigger == null)
         return new EnvironmentTriggerRow();
-      return new EnvironmentTriggerRow
+
+      var row = new EnvironmentTriggerRow
       {
         Id = trigger.Id,
         DisplayName = trigger.DisplayName,
         InfluenceActionId = trigger.InfluenceActionId,
-        DetectRules = trigger.DetectRules?
-            .Select(r => new EnvironmentTriggerDetectRow
-            {
-              Kind = r?.Kind ?? string.Empty,
-              Environment = r?.Environment ?? string.Empty,
-              Enabled = r != null && r.Enabled,
-              CommandIdsText = FormatCommandIds(r?.Parameters)
-            })
-            .ToList() ?? new List<EnvironmentTriggerDetectRow>()
+        EventKind = trigger.EventKind ?? string.Empty
       };
+
+      if (trigger.EventParameters != null)
+      {
+        foreach (KeyValuePair<string, string> kv in trigger.EventParameters)
+          row.EventParameters[kv.Key] = kv.Value;
+      }
+
+      return row;
     }
 
     /// <summary>Данные для YAML.</summary>
@@ -39,60 +38,25 @@ namespace AIStudio.Common.SymbiontEnv
     {
       if (row == null)
         throw new ArgumentNullException(nameof(row));
+
       var data = new EnvironmentTriggerData
       {
         Id = row.Id?.Trim() ?? string.Empty,
         DisplayName = row.DisplayName ?? string.Empty,
-        InfluenceActionId = row.InfluenceActionId
+        InfluenceActionId = row.InfluenceActionId,
+        EventKind = row.EventKind?.Trim() ?? string.Empty
       };
-      EnvironmentTriggerFilterSchemaHelper.ApplyToData(row, data);
-      if (row.DetectRules != null)
+
+      if (row.EventParameters != null)
       {
-        foreach (EnvironmentTriggerDetectRow rule in row.DetectRules)
+        foreach (KeyValuePair<string, string> kv in row.EventParameters)
         {
-          var parameters = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
-          SetCommandIds(parameters, ParseCommandIds(rule?.CommandIdsText));
-          data.DetectRules.Add(new EnvironmentTriggerDetectData
-          {
-            Kind = rule?.Kind ?? string.Empty,
-            Environment = rule?.Environment ?? string.Empty,
-            Enabled = rule != null && rule.Enabled,
-            Parameters = parameters
-          });
+          if (!string.IsNullOrWhiteSpace(kv.Value))
+            data.EventParameters[kv.Key] = kv.Value;
         }
       }
+
       return data;
-    }
-
-    private static string FormatCommandIds(IDictionary<string, string> parameters)
-    {
-      if (parameters == null ||
-          !parameters.TryGetValue("command_ids", out string text) ||
-          string.IsNullOrWhiteSpace(text))
-        return string.Empty;
-      return text.Replace(",", ", ");
-    }
-
-    private static List<int> ParseCommandIds(string text)
-    {
-      var list = new List<int>();
-      if (string.IsNullOrWhiteSpace(text))
-        return list;
-      foreach (string part in text.Split(new[] { ',', ';', ' ' }, StringSplitOptions.RemoveEmptyEntries))
-      {
-        if (int.TryParse(part.Trim(), NumberStyles.Integer, CultureInfo.InvariantCulture, out int id))
-          list.Add(id);
-      }
-      return list;
-    }
-
-    private static void SetCommandIds(IDictionary<string, string> parameters, IList<int> ids)
-    {
-      if (parameters == null || ids == null || ids.Count == 0)
-        return;
-      parameters["command_ids"] = string.Join(
-          ",",
-          ids.Select(id => id.ToString(CultureInfo.InvariantCulture)));
     }
   }
 }

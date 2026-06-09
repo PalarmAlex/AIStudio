@@ -4,7 +4,7 @@
 
 Технические форматы — в [`AdapterContract.md`](AdapterContract.md). План функций студии — [`AdapterPlatform_ImplementationPlan.md`](AdapterPlatform_ImplementationPlan.md).
 
-**Версия гайда:** 0.8 (2026-06-07), `contractVersion` платформы: **2.0**.
+**Версия гайда:** 0.9 (2026-06-09), `contractVersion` платформы: **2.0**.
 
 ---
 
@@ -207,18 +207,18 @@ MyAdapter\
 **`EnvironmentRecipes.yaml`**
 
 ```yaml
-# Рецепты среды (привязка к adaptive_action_id в Data агента).
+# Рецепты среды: моторика host (invoke). Условия запуска — рефлексы и триггеры.
 recipes: []
 ```
 
 **`EnvironmentTriggers.yaml`**
 
 ```yaml
-# Триггеры среды: событие → influence_action_id.
+# Триггеры среды: событие host → influence_action_id.
 triggers: []
 ```
 
-Для осмысленного старта добавьте 1–2 примера с валидными `adaptive_action_id` / `influence_action_id` из `.dat` проекта.
+Для осмысленного старта добавьте 1–2 примера с валидными `adaptive_action_id` / `influence_action_id` из `.dat` проекта. Шаги — `type: invoke` с `handler` и **flat-ключами** из `argsSchema`; опционально `type: comment` с `text`. Строковый `args: "k=v; …"` **не поддерживается**. На триггер — одно поле `event`.
 
 Формат — [`AdapterContract.md`](AdapterContract.md) § YAML среды.
 
@@ -228,51 +228,49 @@ triggers: []
 
 | Файл | Содержание |
 |------|------------|
-| `recipe-preconditions.json` | Поля блока `preconditions:` рецепта |
-| `recipe-steps.json` | Допустимые `type` шагов (`stepTypes`) |
+| `handlers-catalog.json` | Handler'ы для шагов `invoke` (`handlers[]`, `argsSchema[]`) |
+| `trigger-detect.json` | Допустимые значения `event` (`detectKinds[]`, опционально `parameters[]`) |
+| `trigger-catalog.json` | Каталог допустимых `id` триггеров (combobox в редакторе триггеров) |
 | `recipe-catalog.json` | Каталог допустимых `id` рецептов |
-| `trigger-filter.json` | Фильтр документа/контекста триггера |
-| `trigger-detect.json` | Допустимые `detect.kind` (`detectKinds`) |
 | `metric-probes.json` | Ключи ProbeKey для «Давление среды на виталы» |
 
-Пример preconditions:
+Пример handlers-catalog:
 
 ```json
 {
   "schemaVersion": "2.0",
-  "fields": [
+  "handlers": [
     {
-      "key": "document_kinds",
-      "label": "Типы документа",
-      "type": "stringList",
-      "enumValues": ["document", "project", "view"],
-      "required": false,
-      "default": []
-    },
-    {
-      "key": "not_edit_mode",
-      "label": "Не в режиме редактирования",
-      "type": "bool",
-      "required": false,
-      "default": false
+      "id": "set_custom_property",
+      "label": "Задать свойство документа",
+      "argsSchema": [
+        { "key": "name", "label": "Имя", "type": "string", "required": true },
+        { "key": "template", "label": "Шаблон", "type": "string" }
+      ]
     }
   ]
 }
 ```
 
-Пример step types:
+Пример trigger-detect:
 
 ```json
 {
-  "schemaVersion": "2.0",
-  "stepTypes": [
-    { "type": "set_property", "label": "Установить свойство" },
-    { "type": "run_command", "label": "Выполнить команду host" }
+  "schemaVersion": "1.0",
+  "detectKinds": [
+    { "kind": "document_saved", "label": "Документ сохранён" },
+    {
+      "kind": "command_before",
+      "label": "Перед командой",
+      "parameters": [
+        { "key": "command_ids", "label": "ID команд", "type": "string" }
+      ]
+    }
   ]
 }
 ```
 
-**Правило:** каждый `key` / `type` в schema должен поддерживаться **вашим runtime** при чтении YAML. Образцы для demo — в `docs/AdapterPackageTemplates/demo/schema/`.
+**Правило:** каждый `handler` id / `event` kind в schema должен поддерживаться **вашим runtime** при чтении YAML. Образцы для demo — в `docs/AdapterPackageTemplates/demo/schema/`.
 
 Если schema отсутствует или пуста, соответствующие списки в редакторах «Среда» **пустые** — пакет без schema не проходит «Проверить».
 
@@ -369,13 +367,23 @@ triggers: []
 
 ## 10. Редакторы «Среда» и schema
 
-Редакторы **Рецепты среды** и **Триггеры среды**:
+Редакторы среды объединены в **Environment Shell** (меню «Среда» → вкладки):
+
+| Вкладка | Назначение |
+|---------|------------|
+| Обзор поведения | Цепочки триггер → рецепт → адаптивное действие; разрывы связей |
+| Триггеры среды | YAML триггеров; `SchemaActionPanel` для параметров события |
+| Рецепты среды | Реестр и редактор рецепта (Основное / Шаги / Связи) |
+| Давление среды | `EnvironmentPressureRules.dat` |
+
+Общие правила:
 
 - читают и пишут YAML в `{project}\BootData\Environment\` (runtime contract);
 - загружают **schema** из `Adapters\{AdapterId}\schema\` через `AdapterSchemaLoader`;
-- показывают только поля и типы шагов из schema пакета (пустой schema → пустые списки в UI).
+- шаги `invoke` редактируются через **SchemaActionPanel** (handler + flat-ключи из `argsSchema`);
+- показывают только handler'ы, типы события и каталоги id из schema пакета (пустой schema → пустые списки в UI).
 
-При смене `AdapterId` в свойствах симбионта перезагрузите редактор «Среда», чтобы подтянулась новая schema.
+При смене `AdapterId` в свойствах симбионта перезагрузите Environment Shell, чтобы подтянулась новая schema.
 
 ---
 
@@ -386,7 +394,7 @@ triggers: []
 | `manifest.json` читается | Error | Нет файла, неверный JSON |
 | `contractVersion` = `2.0` | Error | Устаревшая или неизвестная версия |
 | `id` валиден | Error | Пустой id, недопустимые символы |
-| Каталог `schema\` с JSON | Error | Нет каталога, нет `*.json`, битый JSON, нет обязательных массивов |
+| Каталог `schema\` с JSON | Error | Нет каталога, нет `*.json`, битый JSON, нет обязательных массивов (`handlers`, `detectKinds`, `triggers`, `recipes`, `probes`) |
 | `BootData\Environment\*.yaml` | Warning | Файл отсутствует или не парсится codec |
 | `displayName`, `version`, `author` | Warning | Пустые поля |
 
@@ -407,6 +415,7 @@ triggers: []
 | Меню «Среда» недоступно | Нет типа среды в свойствах симбионта | Выбрать пакет в «Свойства симбионта» |
 | «Среда» была, пропала | Пакет удалён из Adapters | Зарегистрировать снова или сбросить тип среды |
 | Рецепты OK в студии, в среде нет | Runtime не читает те же ключи | Сверить schema, YAML и runtime |
+| Шаги рецепта не исполняются | Строковый `args` в YAML | Перейти на flat-ключи по `argsSchema` ([`AdapterContract.md`](AdapterContract.md) § 6.3) |
 | Путают Settings проекта и host | Разные файлы | См. § 9 |
 
 ---
@@ -423,7 +432,7 @@ triggers: []
 
 - [ ] `manifest.json` с уникальным `id`
 - [ ] `contractVersion`: `2.0`
-- [ ] `schema\` — шесть JSON-файлов (§ 7.5) с осмысленным содержимым
+- [ ] `schema\` — пять JSON-файлов (§ 7.5) с осмысленным содержимым
 - [ ] «Проверить» — без Error
 - [ ] `runtime\` — SDK + host DLL (для дистрибуции, не для «Проверить»)
 - [ ] `BootData\Environment\` — оба YAML (если пакет для студии)
@@ -454,4 +463,4 @@ triggers: []
 
 ---
 
-*Версия 0.8: contract 2.0, schema-driven редакторы, `recipe-catalog.json`, валидация без проверки runtime.*
+*Версия 0.9: contract 2.0, invoke-only шаги, одно event на триггер, schema из четырёх файлов.*

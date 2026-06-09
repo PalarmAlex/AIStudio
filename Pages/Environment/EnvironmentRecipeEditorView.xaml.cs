@@ -4,67 +4,49 @@ using AIStudio.ViewModels.SymbiontEnv;
 
 namespace AIStudio.Pages.SymbiontEnv
 {
-  /// <summary>
-  /// Детальный редактор рецепта среды.
-  /// </summary>
   public partial class EnvironmentRecipeEditorView : UserControl
   {
-    /// <summary>
-    /// Создаёт представление.
-    /// </summary>
     public EnvironmentRecipeEditorView()
     {
       InitializeComponent();
+      ShowTab(RecipeEditorTab.General);
     }
 
     private EnvironmentRecipeEditorViewModel Vm => DataContext as EnvironmentRecipeEditorViewModel;
 
-    private void BackButton_Click(object sender, RoutedEventArgs e)
+    private void BackButton_Click(object sender, RoutedEventArgs e) => Vm?.CloseAction?.Invoke();
+
+    private void PickRecommendedTriggers_Click(object sender, RoutedEventArgs e) =>
+        Vm?.PickRecommendedTriggers(Window.GetWindow(this));
+
+    private void PickRecipeId_Click(object sender, RoutedEventArgs e) =>
+        Vm?.PickRecipeId(Window.GetWindow(this));
+
+    private void PickAdaptiveAction_Click(object sender, RoutedEventArgs e) =>
+        Vm?.PickAdaptiveAction(Window.GetWindow(this));
+
+    private void TabGeneral_Click(object sender, RoutedEventArgs e) => ShowTab(RecipeEditorTab.General);
+
+    private void TabSteps_Click(object sender, RoutedEventArgs e) => ShowTab(RecipeEditorTab.Steps);
+
+    private void TabLinks_Click(object sender, RoutedEventArgs e) => ShowTab(RecipeEditorTab.Links);
+
+    private void ShowTab(RecipeEditorTab tab)
     {
-      Vm?.CloseAction?.Invoke();
+      if (Vm != null)
+        Vm.SelectedTab = tab;
+      GeneralPanel.Visibility = tab == RecipeEditorTab.General ? Visibility.Visible : Visibility.Collapsed;
+      StepsPanel.Visibility = tab == RecipeEditorTab.Steps ? Visibility.Visible : Visibility.Collapsed;
+      LinksPanel.Visibility = tab == RecipeEditorTab.Links ? Visibility.Visible : Visibility.Collapsed;
     }
 
-    private void PickRecommendedTriggers_Click(object sender, RoutedEventArgs e)
+    private void StepsGrid_LoadingRow(object sender, DataGridRowEventArgs e)
     {
-      Vm?.PickRecommendedTriggers(Window.GetWindow(this));
+      e.Row.Header = (e.Row.GetIndex() + 1).ToString();
     }
 
-    private void PickRecipeId_Click(object sender, RoutedEventArgs e)
-    {
-      Vm?.PickRecipeId(Window.GetWindow(this));
-    }
+    private void ModelField_TextChanged(object sender, TextChangedEventArgs e) => Vm?.OnModelFieldChanged();
 
-    private void PickAdaptiveAction_Click(object sender, RoutedEventArgs e)
-    {
-      Vm?.PickAdaptiveAction(Window.GetWindow(this));
-    }
-
-    private void StepsGrid_AddingNewItem(object sender, AddingNewItemEventArgs e)
-    {
-      if (Vm == null)
-        return;
-      EnvironmentRecipeStepRow row = Vm.CreateNewStep();
-      e.NewItem = row;
-      Vm.SelectedStep = row;
-    }
-
-    private void StepTypeComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
-    {
-      if (Vm == null || e.AddedItems.Count == 0)
-        return;
-      Vm.SyncSelectedStepSchema();
-    }
-
-    private void InsertPlaceholder_Click(object sender, RoutedEventArgs e)
-    {
-      if (sender is FrameworkElement element && element.Tag is EnvironmentRecipeStepParameterField field)
-        Vm?.InsertTemplatePlaceholder(Window.GetWindow(this), field);
-    }
-
-    private void PickPropertyName_Click(object sender, RoutedEventArgs e)
-    {
-      if (sender is FrameworkElement element && element.Tag is EnvironmentRecipeStepParameterField field)
-        Vm?.PickPropertyName(Window.GetWindow(this), field);
-    }
+    private void ModelField_Changed(object sender, RoutedEventArgs e) => Vm?.OnModelFieldChanged();
   }
 }

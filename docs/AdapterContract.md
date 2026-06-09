@@ -1,7 +1,7 @@
 # Контракт платформы адаптеров среды (AIStudio)
 
 **Версия контракта:** `2.0`  
-**Дата:** 2026-06-07  
+**Дата:** 2026-06-09  
 **Статус:** нормативный документ для AIStudio, авторов адаптеров и runtime host. AIStudio **не обязательна** для разработки host; пакет с `manifest.json` нужен только при интеграции со студией (§ 0.5). Кодек YAML и проверка пакета — **`SymbiontEnv.Contract.dll`** (общая библиотека студии и host).
 
 Связанные документы:
@@ -128,7 +128,7 @@
    - читает runtime host;
    - копируются из пакета адаптера в проект симбионта при создании проекта.
 4. **Нормализация** — канонические ключи при записи, допустимые алиасы при чтении, правила round-trip.
-5. **UI schema** (JSON в `schema\`) — описание полей редакторов «Среда» (combobox типов шагов, preconditions, detect); загрузка через `AdapterSchemaLoader` в AIStudio.
+5. **UI schema** (JSON в `schema\`) — описание handler'ов, типов события и каталогов для редакторов «Среда»; загрузка через `AdapterSchemaLoader` в AIStudio.
 
 ### 1.2. Что контракт не регулирует
 
@@ -267,28 +267,23 @@ AdapterId|my-adapter
 |---------|----------------|------------------------|
 | ID рецепта | `id` | `recipe_id` |
 | ID триггера | `id` | `trigger_key` |
-| Типы документа в preconditions | `document_kinds` | `document_types` |
-| Фильтр документа триггера | `document_kinds` | `document_filter` |
 
-Дополнительные алиасы (`set_custom_property`, `command_pre`, `file_save_post` и т.п.) — **на усмотрение конкретного host**; кодек их не нормализует. Host может принимать legacy-имена при исполнении, но при записи из студии используются канонические ключи § 5.2.
+Дополнительные алиасы (`file_save_post`, `command_pre` и т.п.) — **на усмотрение конкретного host** при исполнении; кодек их не нормализует. При записи из студии используются канонические ключи § 5.2.
 
 ### 5.3. Внутренняя модель после чтения
 
-- `document_kinds` в preconditions и триггерах выделяется в отдельное поле модели; остальные ключи `preconditions` с булевыми значениями попадают в словарь `Preconditions` (имена **opaque**, семантика — в `schema\` адаптера).
-- `type` шага и `kind` detect **сохраняются как в файле** (без переименования кодеком).
-- Параметры шага и detect — словари строк; `command_ids` в detect сериализуется списком целых.
+- Шаг рецепта: `type` всегда `invoke`; параметры `handler` и `args` (строка `key=value; …`) — в словаре параметров шага.
+- Триггер: одно поле `event` (kind из `trigger-detect.json`); дополнительные scalar-параметры события (например `command_ids`) — в словаре параметров события.
+- Неизвестные ключи верхнего уровня рецепта/триггера при чтении игнорируются кодеком (legacy `preconditions`, `risk_tier`, `detect`, `document_kinds`).
 
 ### 5.4. Пустые коллекции
 
 Writers студии и runtime host для пустых списков эмитируют явно:
 
 ```yaml
-document_kinds: []
 recommended_trigger_influence_ids: []
 command_ids: []
 ```
-
-Отсутствие ключа и `[]` при чтении трактуются как пустой список (для `document_kinds` — «без фильтра по типу» в runtime host).
 
 ### 5.5. Устаревший формат файла рецептов
 
@@ -317,14 +312,14 @@ recipes:
     adaptive_action_id: <int>       # обязательно, > 0, ISIDA G_AD
     display_name: <string>          # опционально
     description: <string>           # опционально
-    risk_tier: A|B|C                # опционально; default B при неизвестном
     reactive_eligible: <bool>       # опционально; default true
     recommended_trigger_influence_ids: [<int>, ...]  # опционально, справочно
-    preconditions: { ... }          # опционально
     steps: [ ... ]                  # опционально
-    postcondition_log: <string>     # опционально
-    test_notes: <string>            # опционально
 ```
+
+**Не используются в contract 2.0:** `risk_tier`, `preconditions`, `postcondition_log`, `test_notes` и прочие legacy-поля — writers их не эмитируют; при чтении игнорируются.
+
+Условия запуска рецепта (когда активируется G_AD) задаются **деревом рефлексов ISIDA** и **триггерами среды**, не полями рецепта.
 
 ### 6.2. Связь с ISIDA
 
@@ -335,94 +330,68 @@ recipes:
 
 Runtime **не** проверяет существование ID в `.dat` при чтении YAML; валидация — задача студии и сценариев тестирования.
 
-### 6.3. Блок `preconditions`
+### 6.3. Блок `steps`
 
-Структура YAML фиксирована; **набор ключей** задаётся адаптером в `schema/recipe-preconditions.json`:
+Шаги двух типов: `invoke` (исполняется host) и `comment` (пропускается runtime).
 
-| Ключ в YAML | Тип в schema | Описание |
-|-------------|--------------|----------|
-| `document_kinds` | `stringList` | Допустимые типы активного документа (значения `enumValues` — opaque-строки среды) |
-| `<bool_key>` | `bool` | Логические предусловия; имя и подпись — из `fields[].key` / `label` |
+**Зарезервированные ключи шага:** `type`, `handler`, `text`.
 
-Студия показывает только поля из schema. Runtime host интерпретирует ключи, описанные в schema своего пакета; неизвестные ключи при чтении YAML сохраняются, но host может игнорировать их при исполнении.
-
-Типовой пример bool-ключей (не обязателен для всех адаптеров): `not_edit_mode`, `not_read_only`, `checkout_required`.
-
-### 6.4. Блок `steps`
-
-Каждый элемент:
+#### `type: invoke`
 
 ```yaml
-- type: <string>
-  <param_key>: <scalar>
+- type: invoke
+  handler: <string>                 # id из handlers-catalog.json
+  <arg_key>: <scalar>              # flat-ключи из argsSchema handler'а
 ```
 
-Все ключи кроме `type` — параметры шага (строковые scalars). Регистр ключей параметров **не** значим при чтении.
+Строковое поле `args: "k=v; …"` и legacy single-recipe в корне YAML **не поддерживаются**.
 
-#### 6.4.1. Типы шагов
+| Ключ | Назначение |
+|------|------------|
+| `handler` | Идентификатор метода host |
+| остальные scalar | Аргументы handler'а по `argsSchema` |
 
-Допустимые `type` и параметры описываются в `schema/recipe-steps.json` (`stepTypes[]`). Студия строит combobox и поля шага **только** из этого файла.
-
-Типовой набор для CAD/документных сред (пример в каркасе demo):
-
-| `type` | Назначение |
-|--------|------------|
-| `set_property` | Запись свойства документа (`name`, `template`, `config`, `overwrite`, …) |
-| `run_command` | Выполнение команды host по `command_id` |
-| `refresh` / `rebuild` | Обновление представления или перестроение модели (семантика host) |
-| `log` | Запись в лог host (`message`, `level`) |
-
-Поле `runtimeType` в schema (опционально) подсказывает host внутреннее имя обработчика; в YAML на диске пишется `type` из schema.
-
-Неизвестный `type` при исполнении — ошибка host (политика на стороне runtime).
-
-#### 6.4.2. Расширение типов шагов
-
-Новые `type` добавляет автор адаптера в `recipe-steps.json` и реализует в runtime host. Контракт YAML **не** фиксирует closed enum — только строковый `type` и произвольные scalar-параметры.
-
-### 6.5. `risk_tier`
-
-| Значение | Смысл (политика проекта) |
-|----------|--------------------------|
-| `A` | Низкий риск, без подтверждения |
-| `B` | Стандарт |
-| `C` | Высокий риск / бэклог подтверждений |
-
-Неизвестное значение → `Unknown` / трактовка как `B` при записи.
-
-### 6.6. Пример (эталон)
+#### `type: comment`
 
 ```yaml
-# Рецепты среды (исполняемая моторика; привязка к G_AD — adaptive_action_id).
+- type: comment
+  text: <string>                    # произвольный комментарий для автора
+```
+
+Допустимые `handler` и схема аргументов — в `schema/handlers-catalog.json`. Студия использует `SchemaActionPanel` (каталог + форма параметров).
+
+Неизвестный `handler` при исполнении — ошибка host.
+
+### 6.4. Расширение handler'ов
+
+Новые handler'ы добавляет автор адаптера в `handlers-catalog.json` и реализует в runtime host. Контракт YAML: `invoke` + `handler` + flat-ключи argsSchema.
+
+### 6.5. Пример (эталон)
+
+```yaml
+# Рецепты среды: моторика host (invoke). Условия запуска — рефлексы и триггеры.
 recipes:
   - id: kb_name_on_save
     display_name: "Наименование по КБ после сохранения"
     description: "Заполнить Обозначение и Наименование по шаблону политики КБ"
     adaptive_action_id: 37
-    risk_tier: B
     reactive_eligible: true
     recommended_trigger_influence_ids: [101]
-
-    preconditions:
-      document_kinds: [document, project]
-      not_edit_mode: true
-      not_read_only: true
-      checkout_required: false
-
     steps:
-      - type: set_property
-        config: document
-        name: "Обозначение"
+      - type: invoke
+        handler: set_custom_property
+        config: active
+        name: Обозначение
         template: "{PROJECT}-{DISCIPLINE}-{SEQ:4}"
         overwrite: if_empty
-      - type: set_property
-        config: document
-        name: "Наименование"
+      - type: invoke
+        handler: set_custom_property
+        config: active
+        name: Наименование
         template: "{DESCRIPTION}"
-        overwrite: if_empty
-
-    postcondition_log: properties_updated
-    test_notes: "Открыть документ → сохранить → проверить свойства и лог"
+        overwrite: never_if_filled
+      - type: comment
+        text: "Заполнить оба поля по КБ"
 ```
 
 ---
@@ -436,48 +405,45 @@ triggers:
   - id: <string>                    # обязательно, уникален в файле
     display_name: <string>          # опционально
     influence_action_id: <int>      # обязательно, > 0, ISIDA EA (прокси)
-    document_kinds: [...]           # опционально; см. § 6.3
-    detect:
-      - kind: <string>
-        enabled: <bool>             # опционально, default true
-        environment: <string>       # опционально, напр. my-adapter
-        command_ids: [<int>, ...]   # для command_before
+    event: <string>                 # обязательно; kind из trigger-detect.json
+    <event_param>: <scalar>         # опционально; см. § 7.3
 ```
 
-Секция `triggers:` **обязательна** (допускается пустой список). Файл без `triggers:` — ошибка валидации.
+Секция `triggers:` **обязательна** (допускается пустой список). На каждый триггер — **одно** событие (`event`), не массив `detect`.
+
+**Не используются в contract 2.0:** `document_kinds`, `detect[]`, `environment`, `enabled` — legacy; writers их не эмитируют.
 
 ### 7.2. Связь с ISIDA
 
 | Поле | Справочник | Назначение |
 |------|------------|------------|
-| `influence_action_id` | Influence Actions (EA) | При срабатывании detect → `ApplyMultipleInfluenceActions`. **Только ID из `InfluenceActions.dat`**, не RuleId из `EnvironmentPressureRules.dat`. |
+| `influence_action_id` | Influence Actions (EA) | При срабатывании события → `ApplyMultipleInfluenceActions`. **Только ID из `InfluenceActions.dat`**, не RuleId из `EnvironmentPressureRules.dat`. |
 
-### 7.3. Правила `detect` (contract v1)
+### 7.3. События и параметры (contract 2.0)
 
-| `kind` (канон) | Алиас | Параметры | Поведение runtime host |
-|----------------|-------|-----------|------------------------|
-| `command_before` | `command_pre` | `command_ids`, `environment` | Перед выполнением команды; match по ID |
-| `document_saved` | `file_save_post` | `environment`, `enabled` | После сохранения документа |
+Допустимые значения `event` и параметры события описываются в `schema/trigger-detect.json` (`detectKinds[]`).
 
-- `environment: my-adapter` — фильтр host; опционален, но рекомендуется для мультисредовых файлов.
-- Пустой `command_ids` — правило зарегистрировано, ID заполняются калибровкой в среде.
+| `event` (канон) | Параметры | Поведение runtime host |
+|-----------------|-----------|------------------------|
+| `command_before` | `command_ids: [<int>, …]` | Перед выполнением команды; match по ID |
+| `document_saved` | — | После сохранения документа |
+
+Параметры события, не входящие в reserved keys триггера (`id`, `display_name`, `influence_action_id`, `event`), сериализуются как scalar-поля на том же уровне, что и `event`. `command_ids` при записи — список целых в квадратных скобках.
 
 ### 7.4. Пример (эталон)
 
 ```yaml
-# Триггеры среды: событие → influence_action_id.
+# Триггеры среды: событие host → influence_action_id.
 triggers:
   - id: save_active_document
     display_name: "Сохранение активного документа"
     influence_action_id: 101
-    document_kinds: [document, project]
-    detect:
-      - kind: command_before
-        environment: my-adapter
-        command_ids: []
-      - kind: document_saved
-        environment: my-adapter
-        enabled: true
+    event: document_saved
+  - id: before_rebuild
+    display_name: "Перед Rebuild"
+    influence_action_id: 102
+    event: command_before
+    command_ids: [57603]
 ```
 
 ---
@@ -569,49 +535,25 @@ triggers:
 
 | Файл | Содержание |
 |------|------------|
-| `recipe-preconditions.json` | Поля блока `preconditions` |
-| `recipe-steps.json` | Допустимые `type` шагов и параметры |
+| `handlers-catalog.json` | Handler'ы для шагов `invoke` (`handlers[]`, `argsSchema[]`) |
+| `trigger-detect.json` | Допустимые значения `event` (`detectKinds[]`, опционально `parameters[]`) |
+| `trigger-catalog.json` | Каталог допустимых `id` триггеров (выбор ID в редакторе триггеров) |
 | `recipe-catalog.json` | Каталог допустимых `id` рецептов (combobox в редакторе рецепта) |
-| `trigger-filter.json` | Фильтр контекста триггера (`document_kinds`, …) |
-| `trigger-detect.json` | Правила `detect` (`detectKinds[]`) |
 | `metric-probes.json` | Ключи **ProbeKey** в `EnvironmentPressureRules.dat` (редактор «Давление среды на виталы») |
 
-### 10.2. Формат дескriptor поля (фрагмент)
+**Устаревшие файлы** (не использовать; «Проверить» выдаёт Warning): `recipe-preconditions.json`, `recipe-steps.json`, `trigger-filter.json`, `macros-catalog.json`.
+
+### 10.2. Формат `handlers-catalog.json` (фрагмент)
 
 ```json
 {
   "schemaVersion": "2.0",
-  "fields": [
+  "handlers": [
     {
-      "key": "document_kinds",
-      "label": "Типы документа",
-      "type": "stringList",
-      "enumValues": ["document", "project", "view"],
-      "required": false,
-      "default": []
-    },
-    {
-      "key": "not_edit_mode",
-      "label": "Не в режиме редактирования",
-      "type": "bool",
-      "required": false,
-      "default": false
-    }
-  ]
-}
-```
-
-### 10.3. Формат дескriptor шага (фрагмент)
-
-```json
-{
-  "schemaVersion": "2.0",
-  "stepTypes": [
-    {
-      "type": "set_property",
+      "id": "set_custom_property",
       "label": "Задать свойство документа",
-      "runtimeType": "set_custom_property",
-      "parameters": [
+      "description": "Запись свойства активного документа",
+      "argsSchema": [
         { "key": "name", "label": "Имя", "type": "string", "required": true },
         { "key": "template", "label": "Шаблон", "type": "string" },
         {
@@ -621,21 +563,32 @@ triggers:
           "values": ["if_empty", "never_if_filled"]
         }
       ]
-    },
+    }
+  ]
+}
+```
+
+### 10.3. Формат `trigger-detect.json` (фрагмент)
+
+```json
+{
+  "schemaVersion": "1.0",
+  "detectKinds": [
+    { "kind": "document_saved", "label": "Документ сохранён" },
     {
-      "type": "run_command",
-      "label": "Выполнить команду",
+      "kind": "command_before",
+      "label": "Перед командой",
       "parameters": [
-        { "key": "command_id", "label": "Command ID", "type": "int", "required": true }
+        { "key": "command_ids", "label": "ID команд", "type": "string" }
       ]
     }
   ]
 }
 ```
 
-**Правило:** каждый `key` / `type` / `kind` в schema должен поддерживаться runtime адаптера. Студия не добавляет поля и типы шагов, отсутствующие в schema.
+**Правило:** каждый `handler` id / `event` kind в schema должен поддерживаться runtime адаптера. Студия не добавляет handler'ы и события, отсутствующие в schema.
 
-### 10.5. Формат `recipe-catalog.json` (фрагмент)
+### 10.4. Формат `recipe-catalog.json` (фрагмент)
 
 ```json
 {
@@ -650,7 +603,7 @@ triggers:
 }
 ```
 
-### 10.4. Формат `metric-probes.json` (фрагмент)
+### 10.5. Формат `metric-probes.json` (фрагмент)
 
 ```json
 {
@@ -679,7 +632,7 @@ triggers:
 | T2 | Host после Write студии — Read без ошибок |
 | T3 | Студия после Write host — Read без ошибок |
 
-Рекомендуемые фикстуры: пустые каталоги, полный рецепт, legacy `recipe_id` + `document_types`, триггер с `document_filter`.
+Рекомендуемые фикстуры: пустые каталоги, полный рецепт с `invoke`, триггер с `event` и `command_ids`, legacy `recipe_id`.
 
 **CI:** пересборка при изменении `AdapterContract.md`, `SymbiontEnv.Contract`, редакторов среды в AIStudio.
 
@@ -695,7 +648,7 @@ triggers:
 | V2 | `contractVersion` = `"2.0"` | Error |
 | V3 | `id` валиден (`[a-z0-9_-]+`) | Error |
 | V4 | Каталог `schema\` существует и содержит `*.json` | Error |
-| V5 | Структура JSON в schema (массивы `fields`, `stepTypes`, `detectKinds`, `probes`, …) | Error |
+| V5 | Структура JSON в schema (массивы `handlers`, `detectKinds`, `probes`, `recipes`, …) | Error |
 | V6 | `displayName`, `version`, `author` заполнены | Warning |
 | V7 | `BootData\Environment\*.yaml` парсятся codec (если есть) | Warning |
 | V8 | Неизвестные имена файлов в `schema\` | Info |
@@ -709,8 +662,8 @@ triggers:
 | Уровень | Владелец | Формат |
 |---------|----------|--------|
 | Гомеостаз, рефлексы, сценарии | ISIDA / AIStudio | `.dat`, сценарии |
-| Каркас рецепта/триггера (`id`, `adaptive_action_id`, `steps`, `detect`) | Contract 2.0 | YAML |
-| Семантика preconditions/detect/step params | Runtime адаптера | YAML + schema |
+| Каркас рецепта/триггера (`id`, `adaptive_action_id`, `steps`, `event`) | Contract 2.0 | YAML |
+| Семантика handler/args и параметров события | Runtime адаптера | YAML + schema |
 | Исполнение | Host (`my-host.dll`, …) | — |
 
 ---
@@ -742,7 +695,7 @@ triggers:
 **Автор пакета для AIStudio:**
 
 - [ ] `manifest.json` с `contractVersion: "2.0"` и валидным `id`
-- [ ] `schema\` — шесть JSON-файлов (§ 10.1) согласованы с runtime
+- [ ] `schema\` — пять JSON-файлов (§ 10.1) согласованы с runtime
 - [ ] «Проверить» проходит без Error
 - [ ] (Рекомендуется) BootData с `recipes:` / `triggers:` для seed проекта
 - [ ] (Рекомендуется) `runtime\` — полный closure с `isida.dll` для дистрибуции
@@ -757,8 +710,8 @@ triggers:
 **Разработчик runtime host:**
 
 - [ ] Использует `EnvironmentYamlCodec` из `SymbiontEnv.Contract.dll`
-- [ ] Поддерживает `type` / `kind` / bool-ключи из schema пакета
-- [ ] Исполняет шаги и detect по семантике своей среды
+- [ ] Поддерживает `handler` / `event` / параметры события из schema пакета
+- [ ] Исполняет шаги `invoke` и события триггеров по семантике своей среды
 
 ---
 
@@ -766,7 +719,8 @@ triggers:
 
 | Версия | Дата | Изменения |
 |--------|------|-----------|
-| 2.0 | 2026-06-07 | `contractVersion` 2.0; schema-driven редакторы; `recipe-catalog.json`; `SymbiontEnv.Contract.dll`; валидация § 12 без проверки `runtime\`; preconditions/steps — по schema |
+| 2.0 | 2026-06-09 | Шаги `invoke` (handler + flat-ключи argsSchema) и `comment`; триггер — одно `event`; schema — пять файлов (`trigger-catalog.json`); Environment Shell и `SchemaActionPanel` в AIStudio |
+| 2.0 | 2026-06-07 | `contractVersion` 2.0; schema-driven редакторы; `recipe-catalog.json`; `SymbiontEnv.Contract.dll`; валидация § 12 без проверки `runtime\` |
 | 1.0 | 2026-06-03 | Первый нормативный release (устарел) |
 
 ---

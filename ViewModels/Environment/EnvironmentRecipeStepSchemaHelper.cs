@@ -1,37 +1,19 @@
 using AIStudio.Common.Adapters;
+using ISIDA.SymbiontEnv.Contract;
 using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.Linq;
+using System.Text;
 
 namespace AIStudio.ViewModels.SymbiontEnv
 {
   /// <summary>
-  /// Синхронизация шагов рецепта со schema/recipe-steps.json.
+  /// Шаги рецепта: <c>invoke</c> (flat args) и <c>comment</c>.
   /// </summary>
   public static class EnvironmentRecipeStepSchemaHelper
   {
-    public static readonly IReadOnlyList<string> KnownTemplatePlaceholders = new[]
-    {
-      "{DESCRIPTION}",
-      "{PROJECT}",
-      "{DISCIPLINE}",
-      "{SEQ}",
-      "{SEQ:4}",
-      "{DOCUMENT_PATH}",
-      "{FILE_NAME}",
-      "{FILE_NAME_WITHOUT_EXT}",
-      "{DOCUMENT_TITLE}"
-    };
-
-    public static readonly IReadOnlyList<string> KnownPropertyNames = new[]
-    {
-      "Обозначение",
-      "Наименование",
-      "Материал",
-      "Разработал",
-      "Проверил"
-    };
+    public const string StepTypeInvoke = "invoke";
+    public const string StepTypeComment = "comment";
 
     public static void InitializeAllSteps(
         IEnumerable<EnvironmentRecipeStepRow> steps,
@@ -40,101 +22,138 @@ namespace AIStudio.ViewModels.SymbiontEnv
       if (steps == null)
         return;
       foreach (EnvironmentRecipeStepRow step in steps)
-        InitializeStepRow(step, schema);
+        RefreshSummary(step, schema);
     }
 
-    public static void InitializeStepRow(EnvironmentRecipeStepRow step, AdapterEnvironmentSchema schema)
+    public static EnvironmentRecipeStepRow CreateDefaultInvokeStep(AdapterEnvironmentSchema schema)
     {
-      if (step == null)
-        return;
-      Dictionary<string, string> existing = ParseParametersText(step.ParametersText);
-      ApplyStepType(step, step.StepType, schema, existing);
-    }
-
-    public static void ApplyStepType(
-        EnvironmentRecipeStepRow step,
-        string stepType,
-        AdapterEnvironmentSchema schema,
-        IDictionary<string, string> preservedValues = null)
-    {
-      if (step == null)
-        return;
-
-      step.StepType = stepType ?? string.Empty;
-      step.ParameterFields.Clear();
-
-      AdapterSchemaStepType schemaType = FindStepType(schema, step.StepType);
-      if (schemaType?.Parameters == null || schemaType.Parameters.Count == 0)
-      {
-        step.Summary = BuildSummary(step.StepType, preservedValues);
-        return;
-      }
-
-      var values = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
-      if (preservedValues != null)
-      {
-        foreach (KeyValuePair<string, string> kv in preservedValues)
-          values[kv.Key] = kv.Value ?? string.Empty;
-      }
-
-      foreach (AdapterSchemaStepParameter parameter in schemaType.Parameters)
-      {
-        if (parameter == null || string.IsNullOrWhiteSpace(parameter.Key))
-          continue;
-
-        string key = parameter.Key.Trim();
-        if (!values.TryGetValue(key, out string currentValue))
-          currentValue = string.Empty;
-
-        var field = new EnvironmentRecipeStepParameterField
-        {
-          Key = key,
-          Label = string.IsNullOrWhiteSpace(parameter.Label) ? key : parameter.Label,
-          FieldType = parameter.Type ?? "string",
-          Required = parameter.Required,
-          EnumValues = parameter.Values?.ToList() ?? new List<string>(),
-          Value = currentValue
-        };
-        field.PropertyChanged += (_, args) =>
-        {
-          if (args.PropertyName == nameof(EnvironmentRecipeStepParameterField.Value))
-            RefreshSummary(step);
-        };
-        step.ParameterFields.Add(field);
-      }
-
-      step.Summary = BuildSummary(step.StepType, ToParametersDictionary(step));
-    }
-
-    public static EnvironmentRecipeStepRow CreateDefaultStep(AdapterEnvironmentSchema schema)
-    {
-      AdapterSchemaStepType first = GetStepTypes(schema).FirstOrDefault();
-      if (first == null || string.IsNullOrWhiteSpace(first.Type))
-        return new EnvironmentRecipeStepRow();
-      var row = new EnvironmentRecipeStepRow { StepType = first.Type };
-      ApplyStepType(row, first.Type, schema);
+      var row = new EnvironmentRecipeStepRow { StepKind = StepTypeInvoke };
+      AdapterSchemaHandler firstHandler = schema?.Handlers?.FirstOrDefault(h => !string.IsNullOrWhiteSpace(h?.Id));
+      if (firstHandler != null)
+        row.HandlerId = firstHandler.Id;
+      RefreshSummary(row, schema);
       return row;
     }
 
-    public static Dictionary<string, string> ToParametersDictionary(EnvironmentRecipeStepRow step)
+    public static EnvironmentRecipeStepRow CreateDefaultCommentStep()
     {
-      var dict = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
-      if (step?.ParameterFields == null)
-        return dict;
-      foreach (EnvironmentRecipeStepParameterField field in step.ParameterFields)
+      return new EnvironmentRecipeStepRow
       {
-        if (field == null || string.IsNullOrWhiteSpace(field.Key))
-          continue;
-        dict[field.Key] = field.Value ?? string.Empty;
-      }
-      return dict;
+        StepKind = StepTypeComment,
+        CommentText = "Комментарий"
+      };
     }
 
-    public static void RefreshSummary(EnvironmentRecipeStepRow step)
+    public static void ApplyFromStepData(EnvironmentRecipeStepRow row, EnvironmentRecipeStepData step)
     {
-      if (step == null)
+      if (row == null)
         return;
-      step.Summary = BuildSummary(step.StepType, ToParametersDictionary(step));
+
+      string type = (step?.Type ?? StepTypeInvoke).Trim().ToLowerInvariant();
+      if (string.Equals(type, StepTypeComment, StringComparison.Ordinal))
+      {
+        row.StepKind = StepTypeComment;
+        row.CommentText = step?.Text ?? string.Empty;
+        row.HandlerId = string.Empty;
+        row.Args.Clear();
+        return;
+      }
+
+      row.StepKind = StepTypeInvoke;
+      row.HandlerId = step?.Handler ?? string.Empty;
+      row.CommentText = string.Empty;
+      row.Args.Clear();
+      if (step?.Args != null)
+      {
+        foreach (KeyValuePair<string, string> kv in step.Args)
+          row.Args[kv.Key] = kv.Value;
+      }
+    }
+
+    public static EnvironmentRecipeStepData ToStepData(EnvironmentRecipeStepRow row)
+    {
+      if (row == null)
+        return new EnvironmentRecipeStepData { Type = StepTypeInvoke };
+
+      if (row.IsComment)
+      {
+        return new EnvironmentRecipeStepData
+        {
+          Type = StepTypeComment,
+          Text = row.CommentText ?? string.Empty
+        };
+      }
+
+      var data = new EnvironmentRecipeStepData
+      {
+        Type = StepTypeInvoke,
+        Handler = row.HandlerId ?? string.Empty
+      };
+      foreach (KeyValuePair<string, string> kv in row.Args)
+        data.Args[kv.Key] = kv.Value;
+      return data;
+    }
+
+    public static void ApplyArgsFromDictionary(EnvironmentRecipeStepRow row, IDictionary<string, string> values)
+    {
+      if (row == null)
+        return;
+      row.Args.Clear();
+      if (values == null)
+        return;
+      foreach (KeyValuePair<string, string> kv in values)
+        row.Args[kv.Key] = kv.Value ?? string.Empty;
+    }
+
+    public static void RefreshSummary(EnvironmentRecipeStepRow row, AdapterEnvironmentSchema schema)
+    {
+      if (row == null)
+        return;
+
+      if (row.IsComment)
+      {
+        row.Summary = string.IsNullOrWhiteSpace(row.CommentText) ? "(комментарий)" : row.CommentText;
+        return;
+      }
+
+      string handlerId = (row.HandlerId ?? string.Empty).Trim();
+      if (handlerId.Length == 0)
+      {
+        row.Summary = string.Empty;
+        return;
+      }
+
+      AdapterSchemaHandler handler = schema?.Handlers?
+          .FirstOrDefault(h => string.Equals(h?.Id, handlerId, StringComparison.OrdinalIgnoreCase));
+
+      var parts = new List<string>();
+      if (handler?.ArgsSchema != null)
+      {
+        foreach (AdapterSchemaHandlerArg arg in handler.ArgsSchema.Take(3))
+        {
+          if (arg == null || string.IsNullOrWhiteSpace(arg.Key))
+            continue;
+          if (row.Args.TryGetValue(arg.Key, out string value) && !string.IsNullOrWhiteSpace(value))
+          {
+            string label = string.IsNullOrWhiteSpace(arg.Label) ? arg.Key : arg.Label;
+            parts.Add(label + ": " + value);
+          }
+        }
+      }
+
+      if (parts.Count > 0)
+      {
+        row.Summary = string.Join("; ", parts);
+        return;
+      }
+
+      if (handler != null && !string.IsNullOrWhiteSpace(handler.Label))
+      {
+        row.Summary = handler.Label;
+        return;
+      }
+
+      row.Summary = handlerId;
     }
 
     public static string ValidateSteps(
@@ -148,89 +167,87 @@ namespace AIStudio.ViewModels.SymbiontEnv
       foreach (EnvironmentRecipeStepRow step in steps)
       {
         index++;
-        if (step == null || string.IsNullOrWhiteSpace(step.StepType))
-          return "Шаг " + index + ": укажите тип шага.";
+        if (step == null)
+          return "Шаг " + index + ": пустая строка.";
 
-        AdapterSchemaStepType schemaType = FindStepType(schema, step.StepType);
-        if (schemaType == null)
-          return "Шаг " + index + ": неизвестный тип \"" + step.StepType +
-                 "\". Укажите тип из schema/recipe-steps.json пакета адаптера.";
-        if (schemaType.Parameters == null)
+        if (step.IsComment)
           continue;
 
-        foreach (AdapterSchemaStepParameter parameter in schemaType.Parameters)
-        {
-          if (parameter == null || !parameter.Required || string.IsNullOrWhiteSpace(parameter.Key))
-            continue;
+        if (string.IsNullOrWhiteSpace(step.HandlerId))
+          return "Шаг " + index + ": укажите handler.";
 
-          EnvironmentRecipeStepParameterField field = step.ParameterFields
-              .FirstOrDefault(f => string.Equals(f?.Key, parameter.Key, StringComparison.OrdinalIgnoreCase));
-          if (field == null || string.IsNullOrWhiteSpace(field.Value))
-          {
-            string label = string.IsNullOrWhiteSpace(parameter.Label) ? parameter.Key : parameter.Label;
-            return "Шаг " + index + " (" + step.StepType + "): заполните поле \"" + label + "\".";
-          }
-        }
+        if (!IsKnownHandler(schema, step.HandlerId))
+          return "Шаг " + index + ": неизвестный handler \"" + step.HandlerId + "\".";
+
+        string argsError = ValidateHandlerArgs(schema, step.HandlerId, step.Args);
+        if (!string.IsNullOrWhiteSpace(argsError))
+          return "Шаг " + index + " (" + step.HandlerId + "): " + argsError;
       }
 
       return string.Empty;
     }
 
-    public static IEnumerable<AdapterSchemaStepType> GetStepTypes(AdapterEnvironmentSchema schema)
+    public static int CountValidationIssues(
+        IEnumerable<EnvironmentRecipeStepRow> steps,
+        AdapterEnvironmentSchema schema)
     {
-      if (schema?.RecipeStepTypes == null || schema.RecipeStepTypes.Count == 0)
-        return Enumerable.Empty<AdapterSchemaStepType>();
-      return schema.RecipeStepTypes.Where(s => !string.IsNullOrWhiteSpace(s?.Type));
-    }
-
-    private static AdapterSchemaStepType FindStepType(AdapterEnvironmentSchema schema, string stepType)
-    {
-      if (string.IsNullOrWhiteSpace(stepType))
-        return null;
-      return GetStepTypes(schema)
-          .FirstOrDefault(s => string.Equals(s.Type, stepType, StringComparison.OrdinalIgnoreCase));
-    }
-
-    private static Dictionary<string, string> ParseParametersText(string text)
-    {
-      var dict = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
-      if (string.IsNullOrWhiteSpace(text))
-        return dict;
-
-      foreach (string line in text.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries))
+      if (steps == null)
+        return 0;
+      int count = 0;
+      foreach (EnvironmentRecipeStepRow step in steps)
       {
-        int eq = line.IndexOf('=');
-        if (eq <= 0)
+        if (step == null)
+        {
+          count++;
           continue;
-        string key = line.Substring(0, eq).Trim();
-        string value = line.Substring(eq + 1).Trim();
-        if (key.Length > 0)
-          dict[key] = value;
+        }
+        if (step.IsComment)
+          continue;
+        if (string.IsNullOrWhiteSpace(step.HandlerId) || !IsKnownHandler(schema, step.HandlerId))
+          count++;
+        else if (!string.IsNullOrWhiteSpace(ValidateHandlerArgs(schema, step.HandlerId, step.Args)))
+          count++;
+      }
+      return count;
+    }
+
+    public static IEnumerable<AdapterSchemaHandler> GetHandlers(AdapterEnvironmentSchema schema)
+    {
+      if (schema?.Handlers == null || schema.Handlers.Count == 0)
+        return Enumerable.Empty<AdapterSchemaHandler>();
+      return schema.Handlers.Where(h => !string.IsNullOrWhiteSpace(h?.Id));
+    }
+
+    private static bool IsKnownHandler(AdapterEnvironmentSchema schema, string handlerId)
+    {
+      if (string.IsNullOrWhiteSpace(handlerId) || schema?.Handlers == null)
+        return false;
+      return schema.Handlers.Any(h => string.Equals(h?.Id, handlerId.Trim(), StringComparison.OrdinalIgnoreCase));
+    }
+
+    private static string ValidateHandlerArgs(
+        AdapterEnvironmentSchema schema,
+        string handlerId,
+        IDictionary<string, string> args)
+    {
+      AdapterSchemaHandler handler = schema?.Handlers?
+          .FirstOrDefault(h => string.Equals(h?.Id, handlerId?.Trim(), StringComparison.OrdinalIgnoreCase));
+      if (handler?.ArgsSchema == null || handler.ArgsSchema.Count == 0)
+        return string.Empty;
+
+      var argValues = args ?? new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+      foreach (AdapterSchemaHandlerArg arg in handler.ArgsSchema)
+      {
+        if (arg == null || !arg.Required || string.IsNullOrWhiteSpace(arg.Key))
+          continue;
+        if (!argValues.TryGetValue(arg.Key, out string value) || string.IsNullOrWhiteSpace(value))
+        {
+          string label = string.IsNullOrWhiteSpace(arg.Label) ? arg.Key : arg.Label;
+          return "заполните аргумент \"" + label + "\".";
+        }
       }
 
-      return dict;
-    }
-
-    private static string BuildSummary(string stepType, IDictionary<string, string> parameters)
-    {
-      if (parameters == null || parameters.Count == 0)
-        return stepType ?? string.Empty;
-
-      var parts = new List<string>();
-      foreach (KeyValuePair<string, string> kv in parameters.OrderBy(k => k.Key, StringComparer.OrdinalIgnoreCase))
-      {
-        if (string.IsNullOrWhiteSpace(kv.Value))
-          continue;
-        parts.Add(kv.Key + "=" + kv.Value);
-      }
-
-      if (parts.Count == 0)
-        return stepType ?? string.Empty;
-
-      string joined = string.Join(", ", parts);
-      if (joined.Length > 120)
-        joined = joined.Substring(0, 117) + "...";
-      return joined;
+      return string.Empty;
     }
   }
 }

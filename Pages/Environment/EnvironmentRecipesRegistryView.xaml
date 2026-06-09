@@ -1,51 +1,22 @@
 <UserControl x:Class="AIStudio.Pages.SymbiontEnv.EnvironmentRecipesRegistryView"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-             xmlns:converters="clr-namespace:AIStudio.Converters"
-             mc:Ignorable="d"
-             d:DesignHeight="500" d:DesignWidth="900">
-  <UserControl.Resources>
-    <converters:InverseBooleanToVisibilityConverter x:Key="InverseBooleanToVisibilityConverter"/>
-    <Style TargetType="DataGridCell">
-      <Setter Property="Padding" Value="5"/>
-    </Style>
-  </UserControl.Resources>
-
-  <Grid Margin="12">
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+  <Grid Margin="4">
     <Grid.RowDefinitions>
-      <RowDefinition Height="Auto"/>
-      <RowDefinition Height="Auto"/>
       <RowDefinition Height="Auto"/>
       <RowDefinition Height="Auto"/>
       <RowDefinition Height="*"/>
       <RowDefinition Height="Auto"/>
     </Grid.RowDefinitions>
 
-    <TextBlock Grid.Row="0"
-               Text="{Binding CurrentAgentTitle}"
-               FontSize="18"
-               FontWeight="SemiBold"
-               HorizontalAlignment="Center"
-               Margin="0,0,0,5"
-               Foreground="#FF333333"/>
-
-    <TextBlock Grid.Row="1"
-               HorizontalAlignment="Left"
-               Margin="0,0,0,5"
-               Foreground="#FF333333"
-               TextWrapping="Wrap"
-               Text="Реестр рецептов среды. Двойной щелчок по строке открывает редактор. Удаление — клавиша Delete."/>
-
-    <Border Grid.Row="2" BorderBrush="#FFE0E0E0" BorderThickness="1" CornerRadius="4" Padding="8,6" Margin="0,0,0,5" Background="#FFF9F9F9">
+    <Border Grid.Row="0" BorderBrush="#FFE0E0E0" BorderThickness="1" CornerRadius="4" Padding="8,6" Margin="0,0,0,8" Background="#FFF9F9F9">
       <StackPanel Orientation="Horizontal">
-        <Button Content="Обновить с диска" Padding="10,6" Margin="0,0,8,0" Command="{Binding RefreshCommand}"/>
+        <Button Content="Обновить" Padding="10,6" Margin="0,0,8,0" Command="{Binding RefreshCommand}"/>
         <Button Content="Новый рецепт" Padding="10,6" Command="{Binding NewCommand}" IsEnabled="{Binding IsEditingEnabled}"/>
       </StackPanel>
     </Border>
 
-    <Border Grid.Row="3" BorderBrush="#FFE0E0E0" BorderThickness="1" CornerRadius="4" Padding="8" Margin="0,0,0,5" Background="#FFF9F9F9">
+    <Border Grid.Row="1" BorderBrush="#FFE0E0E0" BorderThickness="1" CornerRadius="4" Padding="8" Margin="0,0,0,8" Background="#FFF9F9F9">
       <Grid>
         <Grid.ColumnDefinitions>
           <ColumnDefinition Width="Auto"/>
@@ -64,71 +35,32 @@
       </Grid>
     </Border>
 
-    <Border Grid.Row="4"
-            BorderBrush="#FFE0E0E0"
-            BorderThickness="1"
-            CornerRadius="4"
-            Margin="0,0,0,5">
-      <DataGrid ItemsSource="{Binding Items}"
-                SelectedItem="{Binding Selected, Mode=TwoWay}"
-                AutoGenerateColumns="False"
-                IsReadOnly="True"
-                SelectionMode="Extended"
-                CanUserAddRows="False"
-                CanUserDeleteRows="False"
-                BorderThickness="0"
-                Background="White"
-                RowBackground="#FFF9F9F9"
-                AlternatingRowBackground="White"
-                GridLinesVisibility="None"
-                VerticalScrollBarVisibility="Auto"
-                HorizontalScrollBarVisibility="Auto"
-                MouseDoubleClick="DataGrid_OnMouseDoubleClick"
-                PreviewKeyDown="DataGrid_OnPreviewKeyDown">
-        <DataGrid.Columns>
-          <DataGridTextColumn Header="ID" Binding="{Binding Id}" Width="180"/>
-          <DataGridTextColumn Header="Название" Binding="{Binding DisplayName}" Width="*"/>
-          <DataGridTextColumn Header="G_AD" Binding="{Binding AdaptiveActionId}" Width="60"/>
-          <DataGridTextColumn Header="Риск" Binding="{Binding RiskTier}" Width="50"/>
-        </DataGrid.Columns>
-      </DataGrid>
-    </Border>
+    <DataGrid Grid.Row="2"
+              ItemsSource="{Binding Items}"
+              SelectedItem="{Binding Selected, Mode=TwoWay}"
+              AutoGenerateColumns="False"
+              IsReadOnly="True"
+              SelectionMode="Extended"
+              BorderBrush="#FFE0E0E0"
+              BorderThickness="1"
+              RowBackground="#FFF9F9F9"
+              AlternatingRowBackground="White"
+              GridLinesVisibility="Horizontal"
+              MouseDoubleClick="DataGrid_OnMouseDoubleClick"
+              PreviewKeyDown="DataGrid_OnPreviewKeyDown">
+      <DataGrid.Columns>
+        <DataGridTextColumn Header="ID" Binding="{Binding Id}" Width="180"/>
+        <DataGridTextColumn Header="Название" Binding="{Binding DisplayName}" Width="*"/>
+        <DataGridTextColumn Header="G_AD" Binding="{Binding AdaptiveActionId}" Width="60"/>
+        <DataGridTextColumn Header="Шагов" Binding="{Binding StepCount}" Width="60"/>
+        <DataGridTextColumn Header="⚠" Binding="{Binding WarningText}" Width="40"/>
+      </DataGrid.Columns>
+    </DataGrid>
 
-    <Grid Grid.Row="5" Margin="0,0,0,0">
-      <Grid.ColumnDefinitions>
-        <ColumnDefinition Width="*"/>
-        <ColumnDefinition Width="Auto"/>
-      </Grid.ColumnDefinitions>
-
-      <TextBlock Grid.Column="0"
-                 Text="{Binding PulseWarningMessage}"
-                 Foreground="{Binding WarningMessageColor}"
-                 FontStyle="Italic"
-                 VerticalAlignment="Center"
-                 Margin="8,0,0,0"
-                 TextWrapping="Wrap"
-                 Visibility="{Binding IsEditingEnabled, Converter={StaticResource InverseBooleanToVisibilityConverter}}"/>
-
-      <StackPanel Grid.Column="1"
-                  Orientation="Horizontal"
-                  HorizontalAlignment="Right">
-        <Button Content="Редактировать"
-                Command="{Binding EditCommand}"
-                Style="{StaticResource AgentButtonStyle}"
-                Margin="0,0,8,0"
-                Cursor="Hand"
-                ToolTip="Открыть редактор выбранного рецепта"/>
-        <Button Content="Копировать"
-                Command="{Binding DuplicateCommand}"
-                Style="{StaticResource YellowButtonStyle}"
-                Cursor="Hand"
-                ToolTip="Создать копию выбранного рецепта"/>
-        <Button Content="Очистить"
-                Command="{Binding RemoveAllCommand}"
-                IsEnabled="{Binding IsEditingEnabled}"
-                Style="{StaticResource RedButtonStyle}"
-                ToolTip="Удалить все рецепты из файла"/>
-      </StackPanel>
-    </Grid>
+    <StackPanel Grid.Row="3" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,8,0,0">
+      <Button Content="Открыть" Command="{Binding EditCommand}" Style="{StaticResource AgentButtonStyle}" Margin="0,0,8,0"/>
+      <Button Content="Копировать" Command="{Binding DuplicateCommand}" Style="{StaticResource YellowButtonStyle}" Margin="0,0,8,0"/>
+      <Button Content="Очистить" Command="{Binding RemoveAllCommand}" IsEnabled="{Binding IsEditingEnabled}" Style="{StaticResource RedButtonStyle}"/>
+    </StackPanel>
   </Grid>
 </UserControl>

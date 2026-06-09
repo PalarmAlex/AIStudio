@@ -26,6 +26,15 @@ namespace AIStudio.Pages.SymbiontEnv
 
     private void DataGrid_OnPreviewKeyDown(object sender, KeyEventArgs e)
     {
+      if (e.Key == Key.Enter)
+      {
+        if (DataContext is EnvironmentRecipesRegistryViewModel vmEnter)
+        {
+          vmEnter.EditCommand.Execute(null);
+          e.Handled = true;
+        }
+        return;
+      }
       if (e.Key != Key.Delete)
         return;
       var dg = sender as DataGrid;

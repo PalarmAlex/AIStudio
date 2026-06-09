@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using AIStudio.Common.Adapters;
 using AIStudio.ViewModels.SymbiontEnv;
 using ISIDA.SymbiontEnv.Contract;
 
@@ -12,16 +13,35 @@ namespace AIStudio.Common.SymbiontEnv
   public static class EnvironmentRecipeMapper
   {
     /// <summary>Строка реестра.</summary>
-    public static EnvironmentRecipeListItem ToListItem(EnvironmentRecipeData recipe)
+    public static EnvironmentRecipeListItem ToListItem(EnvironmentRecipeData recipe, AdapterEnvironmentSchema schema)
     {
       if (recipe == null)
         return null;
+
+      int stepCount = recipe.Steps?.Count ?? 0;
+      int warnings = 0;
+      if (schema != null && recipe.Steps != null)
+      {
+        foreach (EnvironmentRecipeStepData step in recipe.Steps)
+        {
+          if (step == null)
+            continue;
+          if (string.Equals(step.Type, EnvironmentRecipeStepSchemaHelper.StepTypeComment, StringComparison.OrdinalIgnoreCase))
+            continue;
+          if (string.IsNullOrWhiteSpace(step.Handler))
+            warnings++;
+          else if (!schema.Handlers.Any(h => string.Equals(h?.Id, step.Handler, StringComparison.OrdinalIgnoreCase)))
+            warnings++;
+        }
+      }
+
       return new EnvironmentRecipeListItem
       {
         Id = recipe.Id,
         DisplayName = recipe.DisplayName,
         AdaptiveActionId = recipe.AdaptiveActionId,
-        RiskTier = recipe.RiskTier.ToString()
+        StepCount = stepCount,
+        WarningCount = warnings
       };
     }
 
@@ -36,21 +56,14 @@ namespace AIStudio.Common.SymbiontEnv
         DisplayName = recipe.DisplayName,
         Description = recipe.Description,
         AdaptiveActionId = recipe.AdaptiveActionId,
-        RiskTier = recipe.RiskTier == EnvironmentRecipeRiskTier.Unknown
-            ? EnvironmentRecipeRiskTier.B
-            : recipe.RiskTier,
         ReactiveEligible = recipe.ReactiveEligible,
-        PostconditionLog = recipe.PostconditionLog,
-        TestNotes = recipe.TestNotes,
         RecommendedTriggerInfluenceIds = new List<int>(recipe.RecommendedTriggerInfluenceIds)
       };
       foreach (EnvironmentRecipeStepData step in recipe.Steps)
       {
-        model.Steps.Add(new EnvironmentRecipeStepRow
-        {
-          StepType = step?.Type ?? string.Empty,
-          ParametersText = FormatParameters(step?.Parameters)
-        });
+        var row = new EnvironmentRecipeStepRow();
+        EnvironmentRecipeStepSchemaHelper.ApplyFromStepData(row, step);
+        model.Steps.Add(row);
       }
       return model;
     }
@@ -66,33 +79,12 @@ namespace AIStudio.Common.SymbiontEnv
         AdaptiveActionId = model.AdaptiveActionId,
         DisplayName = model.DisplayName ?? string.Empty,
         Description = model.Description ?? string.Empty,
-        RiskTier = model.RiskTier,
         ReactiveEligible = model.ReactiveEligible,
-        PostconditionLog = model.PostconditionLog ?? string.Empty,
-        TestNotes = model.TestNotes ?? string.Empty,
         RecommendedTriggerInfluenceIds = model.RecommendedTriggerInfluenceIds?.ToList() ?? new List<int>()
       };
-      EnvironmentRecipePreconditionSchemaHelper.ApplyToData(model, data);
       foreach (EnvironmentRecipeStepRow row in model.Steps)
-      {
-        data.Steps.Add(new EnvironmentRecipeStepData
-        {
-          Type = row?.StepType ?? string.Empty,
-          Parameters = new Dictionary<string, string>(
-              EnvironmentRecipeStepSchemaHelper.ToParametersDictionary(row),
-              StringComparer.OrdinalIgnoreCase)
-        });
-      }
+        data.Steps.Add(EnvironmentRecipeStepSchemaHelper.ToStepData(row));
       return data;
-    }
-
-    private static string FormatParameters(Dictionary<string, string> parameters)
-    {
-      if (parameters == null || parameters.Count == 0)
-        return string.Empty;
-      return string.Join(
-          System.Environment.NewLine,
-          parameters.Select(kv => kv.Key + "=" + kv.Value));
     }
   }
 }

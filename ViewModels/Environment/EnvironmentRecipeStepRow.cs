@@ -1,54 +1,74 @@
-using System.Collections.ObjectModel;
-using System.Collections.Specialized;
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
 
 namespace AIStudio.ViewModels.SymbiontEnv
 {
-  /// <summary>
-  /// Строка шага рецепта в редакторе.
-  /// </summary>
+  /// <summary>Строка шага рецепта (<c>invoke</c> или <c>comment</c>).</summary>
   public sealed class EnvironmentRecipeStepRow : INotifyPropertyChanged
   {
-    private string _stepType = string.Empty;
-    private string _parametersText = string.Empty;
+    private string _stepKind = EnvironmentRecipeStepSchemaHelper.StepTypeInvoke;
+    private string _handlerId = string.Empty;
+    private string _commentText = string.Empty;
     private string _summary = string.Empty;
+    private string _validationError = string.Empty;
 
     public EnvironmentRecipeStepRow()
     {
-      ParameterFields = new ObservableCollection<EnvironmentRecipeStepParameterField>();
-      ParameterFields.CollectionChanged += (_, __) => OnPropertyChanged(nameof(ParameterFields));
+      Args = new Dictionary<string, string>();
     }
 
-    /// <summary>Тип шага.</summary>
-    public string StepType
+    /// <summary><c>invoke</c> или <c>comment</c>.</summary>
+    public string StepKind
     {
-      get => _stepType;
+      get => _stepKind;
       set
       {
         string normalized = value ?? string.Empty;
-        if (_stepType == normalized)
+        if (_stepKind == normalized)
           return;
-        _stepType = normalized;
+        _stepKind = normalized;
         OnPropertyChanged();
+        OnPropertyChanged(nameof(DisplayAction));
+        OnPropertyChanged(nameof(IsComment));
+        OnPropertyChanged(nameof(IsInvoke));
       }
     }
 
-    /// <summary>Устаревший текстовый формат; используется при загрузке до инициализации полей.</summary>
-    public string ParametersText
+    /// <summary>ID handler из handlers-catalog.json.</summary>
+    public string HandlerId
     {
-      get => _parametersText;
+      get => _handlerId;
       set
       {
         string normalized = value ?? string.Empty;
-        if (_parametersText == normalized)
+        if (_handlerId == normalized)
           return;
-        _parametersText = normalized;
+        _handlerId = normalized;
         OnPropertyChanged();
+        OnPropertyChanged(nameof(DisplayAction));
       }
     }
 
-    /// <summary>Краткое описание параметров для списка шагов.</summary>
+    /// <summary>Flat-аргументы handler.</summary>
+    public Dictionary<string, string> Args { get; }
+
+    /// <summary>Текст комментария.</summary>
+    public string CommentText
+    {
+      get => _commentText;
+      set
+      {
+        string normalized = value ?? string.Empty;
+        if (_commentText == normalized)
+          return;
+        _commentText = normalized;
+        OnPropertyChanged();
+        OnPropertyChanged(nameof(DisplayAction));
+      }
+    }
+
+    /// <summary>Краткое описание для таблицы.</summary>
     public string Summary
     {
       get => _summary;
@@ -62,8 +82,29 @@ namespace AIStudio.ViewModels.SymbiontEnv
       }
     }
 
-    /// <summary>Структурированные поля параметров по schema.</summary>
-    public ObservableCollection<EnvironmentRecipeStepParameterField> ParameterFields { get; }
+    public string ValidationError
+    {
+      get => _validationError;
+      set
+      {
+        string normalized = value ?? string.Empty;
+        if (_validationError == normalized)
+          return;
+        _validationError = normalized;
+        OnPropertyChanged();
+        OnPropertyChanged(nameof(HasValidationError));
+      }
+    }
+
+    public bool HasValidationError => !string.IsNullOrWhiteSpace(_validationError);
+
+    public bool IsComment =>
+        string.Equals(StepKind, EnvironmentRecipeStepSchemaHelper.StepTypeComment, System.StringComparison.OrdinalIgnoreCase);
+
+    public bool IsInvoke => !IsComment;
+
+    public string DisplayAction =>
+        IsComment ? "💬 " + (string.IsNullOrWhiteSpace(CommentText) ? "комментарий" : CommentText) : HandlerId;
 
     public event PropertyChangedEventHandler PropertyChanged;
 

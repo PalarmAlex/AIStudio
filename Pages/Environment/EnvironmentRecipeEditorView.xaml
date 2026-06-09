@@ -1,28 +1,36 @@
 <UserControl x:Class="AIStudio.Pages.SymbiontEnv.EnvironmentRecipeEditorView"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:env="clr-namespace:AIStudio.ViewModels.SymbiontEnv"
+             xmlns:controls="clr-namespace:AIStudio.Controls.Environment"
+             xmlns:converters="clr-namespace:AIStudio.Converters"
              MinHeight="400">
   <UserControl.Resources>
-    <converters:BoolToVisibilityConverter xmlns:converters="clr-namespace:AIStudio.Converters" x:Key="BoolToVisibilityConverter"/>
-    <converters:InverseBooleanConverter xmlns:converters="clr-namespace:AIStudio.Converters" x:Key="InverseBooleanConverter"/>
-    <converters:InverseBooleanToVisibilityConverter xmlns:converters="clr-namespace:AIStudio.Converters" x:Key="InverseBooleanToVisibilityConverter"/>
+    <converters:BoolToVisibilityConverter x:Key="BoolToVisibilityConverter"/>
   </UserControl.Resources>
-  <Grid Margin="8">
+
+  <Grid Margin="4">
     <Grid.RowDefinitions>
       <RowDefinition Height="Auto"/>
-      <RowDefinition Height="*"/>
       <RowDefinition Height="Auto"/>
+      <RowDefinition Height="*"/>
     </Grid.RowDefinitions>
 
-    <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,6">
-      <Button Content="← Назад к реестру" Padding="10,6" Margin="0,0,10,0" Click="BackButton_Click"/>
-      <TextBlock Text="{Binding CurrentAgentTitle}" FontSize="14" FontWeight="Bold" VerticalAlignment="Center"/>
+    <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,8">
+      <Button Content="← К реестру" Padding="10,6" Margin="0,0,10,0" Click="BackButton_Click"/>
+      <TextBlock Text="{Binding EditorTitle}" FontSize="14" FontWeight="Bold" VerticalAlignment="Center"/>
     </StackPanel>
 
-    <TabControl Grid.Row="1" DataContext="{Binding Model}">
-      <TabItem Header="Сведения">
-        <ScrollViewer VerticalScrollBarVisibility="Auto" Margin="8">
-          <StackPanel>
+    <StackPanel Grid.Row="1" Orientation="Horizontal" Margin="0,0,0,8">
+      <Button Content="Основное" Padding="12,6" Margin="0,0,4,0" Click="TabGeneral_Click"/>
+      <Button Content="Шаги" Padding="12,6" Margin="0,0,4,0" Click="TabSteps_Click"/>
+      <Button Content="Связи" Padding="12,6" Margin="0,0,4,0" Click="TabLinks_Click"/>
+    </StackPanel>
+
+    <ScrollViewer Grid.Row="2" VerticalScrollBarVisibility="Auto">
+      <StackPanel>
+        <StackPanel x:Name="GeneralPanel">
+          <StackPanel DataContext="{Binding Model}" IsEnabled="{Binding DataContext.IsEditingEnabled, RelativeSource={RelativeSource AncestorType=UserControl}}">
             <TextBlock Text="ID" FontWeight="SemiBold"/>
             <Grid Margin="0,4,0,8">
               <Grid.ColumnDefinitions>
@@ -30,19 +38,14 @@
                 <ColumnDefinition Width="Auto"/>
                 <ColumnDefinition Width="*"/>
               </Grid.ColumnDefinitions>
-              <TextBox Grid.Column="0"
-                       Text="{Binding DataContext.RecipeId, RelativeSource={RelativeSource AncestorType=UserControl}, UpdateSourceTrigger=PropertyChanged}"
-                       IsReadOnly="{Binding DataContext.IsEditingEnabled, RelativeSource={RelativeSource AncestorType=UserControl}, Converter={StaticResource InverseBooleanConverter}}"/>
-              <Button Grid.Column="1" Content="Выбрать…" Margin="8,0,8,0" Padding="10,4"
-                      Click="PickRecipeId_Click"
-                      IsEnabled="{Binding DataContext.IsEditingEnabled, RelativeSource={RelativeSource AncestorType=UserControl}}"/>
+              <TextBox Grid.Column="0" Text="{Binding DataContext.RecipeId, RelativeSource={RelativeSource AncestorType=UserControl}, UpdateSourceTrigger=PropertyChanged}"/>
+              <Button Grid.Column="1" Content="Выбрать…" Margin="8,0,8,0" Padding="10,4" Click="PickRecipeId_Click"/>
+              <TextBlock Grid.Column="2" Text="{Binding DataContext.RecipeIdDescription, RelativeSource={RelativeSource AncestorType=UserControl}}" VerticalAlignment="Center" TextWrapping="Wrap" Foreground="#FF555555"/>
             </Grid>
-
             <TextBlock Text="Название" FontWeight="SemiBold"/>
-            <TextBox Text="{Binding DisplayName, UpdateSourceTrigger=PropertyChanged}" Margin="0,4,0,8"/>
+            <TextBox Text="{Binding DisplayName, UpdateSourceTrigger=PropertyChanged}" Margin="0,4,0,8" TextChanged="ModelField_TextChanged"/>
             <TextBlock Text="Описание" FontWeight="SemiBold"/>
-            <TextBox Text="{Binding Description, UpdateSourceTrigger=PropertyChanged}" AcceptsReturn="True" Height="60" Margin="0,4,0,8"/>
-
+            <TextBox Text="{Binding Description, UpdateSourceTrigger=PropertyChanged}" AcceptsReturn="True" Height="48" Margin="0,4,0,8" TextChanged="ModelField_TextChanged"/>
             <TextBlock Text="Адаптивное действие (G_AD)" FontWeight="SemiBold"/>
             <Grid Margin="0,4,0,8">
               <Grid.ColumnDefinitions>
@@ -50,197 +53,77 @@
                 <ColumnDefinition Width="Auto"/>
                 <ColumnDefinition Width="*"/>
               </Grid.ColumnDefinitions>
-              <TextBox Grid.Column="0"
-                       Text="{Binding DataContext.AdaptiveActionDisplay, RelativeSource={RelativeSource AncestorType=UserControl}, Mode=OneWay}"
-                       IsReadOnly="True"/>
-              <Button Grid.Column="1" Content="Выбрать…" Margin="8,0,8,0" Padding="10,4"
-                      Click="PickAdaptiveAction_Click"
-                      IsEnabled="{Binding DataContext.IsEditingEnabled, RelativeSource={RelativeSource AncestorType=UserControl}}"/>
-              <TextBlock Grid.Column="2"
-                         Text="{Binding DataContext.AdaptiveActionDescription, RelativeSource={RelativeSource AncestorType=UserControl}}"
-                         VerticalAlignment="Center"
-                         TextWrapping="Wrap"
-                         Foreground="#FF555555"/>
+              <TextBox Grid.Column="0" Text="{Binding DataContext.AdaptiveActionDisplay, RelativeSource={RelativeSource AncestorType=UserControl}, Mode=OneWay}" IsReadOnly="True"/>
+              <Button Grid.Column="1" Content="Выбрать…" Margin="8,0,8,0" Padding="10,4" Click="PickAdaptiveAction_Click"/>
+              <TextBlock Grid.Column="2" Text="{Binding DataContext.AdaptiveActionDescription, RelativeSource={RelativeSource AncestorType=UserControl}}" VerticalAlignment="Center" TextWrapping="Wrap" Foreground="#FF555555"/>
             </Grid>
-
-            <TextBlock Text="Уровень риска" FontWeight="SemiBold"/>
-            <ComboBox ItemsSource="{Binding DataContext.RiskTierChoices, RelativeSource={RelativeSource AncestorType=UserControl}}"
-                      SelectedItem="{Binding RiskTier}" Margin="0,4,0,8" Width="120" HorizontalAlignment="Left"/>
-            <CheckBox Content="Реактивное исполнение (reactive_eligible)" IsChecked="{Binding ReactiveEligible}" Margin="0,0,0,8"/>
-
-            <TextBlock Text="Рекомендуемые воздействия (триггеры)" FontWeight="SemiBold"/>
-            <Grid Margin="0,4,0,8">
+            <CheckBox Content="reactive_eligible" IsChecked="{Binding ReactiveEligible}" Margin="0,0,0,8" Checked="ModelField_Changed" Unchecked="ModelField_Changed"/>
+            <TextBlock Text="Рекомендуемый триггер (EA)" FontWeight="SemiBold"/>
+            <Grid Margin="0,4,0,0">
               <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="120"/>
                 <ColumnDefinition Width="Auto"/>
                 <ColumnDefinition Width="*"/>
               </Grid.ColumnDefinitions>
-              <TextBox Grid.Column="0"
-                       Text="{Binding DataContext.RecommendedTriggerDisplay, RelativeSource={RelativeSource AncestorType=UserControl}, Mode=OneWay}"
-                       IsReadOnly="True"/>
-              <Button Grid.Column="1" Content="Выбрать…" Margin="8,0,8,0" Padding="10,4"
-                      Click="PickRecommendedTriggers_Click"
-                      IsEnabled="{Binding DataContext.IsEditingEnabled, RelativeSource={RelativeSource AncestorType=UserControl}}"/>
-              <TextBlock Grid.Column="2"
-                         Text="{Binding DataContext.RecommendedTriggerDescription, RelativeSource={RelativeSource AncestorType=UserControl}}"
-                         VerticalAlignment="Center"
-                         TextWrapping="Wrap"
-                         Foreground="#FF555555"/>
+              <TextBox Grid.Column="0" Text="{Binding DataContext.RecommendedTriggerDisplay, RelativeSource={RelativeSource AncestorType=UserControl}, Mode=OneWay}" IsReadOnly="True"/>
+              <Button Grid.Column="1" Content="Выбрать…" Margin="8,0,8,0" Padding="10,4" Click="PickRecommendedTriggers_Click"/>
+              <TextBlock Grid.Column="2" Text="{Binding DataContext.RecommendedTriggerDescription, RelativeSource={RelativeSource AncestorType=UserControl}}" VerticalAlignment="Center" TextWrapping="Wrap" Foreground="#FF555555"/>
             </Grid>
           </StackPanel>
-        </ScrollViewer>
-      </TabItem>
-      <TabItem Header="Предусловия">
-        <ScrollViewer VerticalScrollBarVisibility="Auto" Margin="8">
-          <StackPanel IsEnabled="{Binding DataContext.IsEditingEnabled, RelativeSource={RelativeSource AncestorType=UserControl}}">
-            <ItemsControl ItemsSource="{Binding PreconditionFields}">
-              <ItemsControl.ItemTemplate>
-                <DataTemplate>
-                  <StackPanel Margin="0,0,0,4">
-                    <CheckBox Content="{Binding Label}"
-                              IsChecked="{Binding IsChecked, UpdateSourceTrigger=PropertyChanged}"
-                              Margin="0,4"
-                              Visibility="{Binding IsBoolType, Converter={StaticResource BoolToVisibilityConverter}}"/>
-                    <StackPanel Visibility="{Binding IsStringListType, Converter={StaticResource BoolToVisibilityConverter}}">
-                      <TextBlock Text="{Binding Label}" FontWeight="SemiBold" Margin="0,8,0,4"/>
-                      <ItemsControl ItemsSource="{Binding ListItems}">
-                        <ItemsControl.ItemTemplate>
-                          <DataTemplate>
-                            <CheckBox Content="{Binding Label}"
-                                      IsChecked="{Binding IsSelected, UpdateSourceTrigger=PropertyChanged}"
-                                      Margin="0,4"/>
-                          </DataTemplate>
-                        </ItemsControl.ItemTemplate>
-                      </ItemsControl>
-                    </StackPanel>
-                  </StackPanel>
-                </DataTemplate>
-              </ItemsControl.ItemTemplate>
-            </ItemsControl>
-            <TextBlock Text="Поля и допустимые значения задаются в schema/recipe-preconditions.json пакета адаптера."
-                       Foreground="#FF777777"
-                       FontStyle="Italic"
-                       TextWrapping="Wrap"
-                       Margin="0,8,0,0"/>
-          </StackPanel>
-        </ScrollViewer>
-      </TabItem>
-      <TabItem Header="Шаги">
-        <Grid Margin="4">
-          <Grid.RowDefinitions>
-            <RowDefinition Height="*"/>
-            <RowDefinition Height="5"/>
-            <RowDefinition Height="2*"/>
-          </Grid.RowDefinitions>
+        </StackPanel>
 
-          <DataGrid x:Name="StepsGrid" Grid.Row="0"
-                    ItemsSource="{Binding Steps}"
-                    SelectedItem="{Binding DataContext.SelectedStep, RelativeSource={RelativeSource AncestorType=UserControl}, Mode=TwoWay}"
+        <StackPanel x:Name="StepsPanel" Visibility="Collapsed">
+          <StackPanel Orientation="Horizontal" Margin="0,0,0,6">
+            <Button Content="+ Шаг" Command="{Binding AddInvokeStepCommand}" Padding="10,4" Margin="0,0,8,0"/>
+            <Button Content="+ Комментарий" Command="{Binding AddCommentStepCommand}" Padding="10,4" Margin="0,0,8,0"/>
+            <Button Content="▲" Command="{Binding MoveStepUpCommand}" Padding="8,4" Margin="0,0,4,0"/>
+            <Button Content="▼" Command="{Binding MoveStepDownCommand}" Padding="8,4" Margin="0,0,8,0"/>
+            <Button Content="Удалить" Command="{Binding DeleteSelectedStepsCommand}" Style="{StaticResource RedButtonStyle}" Padding="10,4"/>
+          </StackPanel>
+          <DataGrid x:Name="StepsGrid"
+                    ItemsSource="{Binding Model.Steps}"
+                    SelectedItem="{Binding SelectedStep, Mode=TwoWay}"
                     AutoGenerateColumns="False"
-                    CanUserAddRows="True"
-                    CanUserDeleteRows="True"
+                    CanUserAddRows="False"
+                    CanUserDeleteRows="False"
                     SelectionMode="Single"
+                    IsReadOnly="True"
                     BorderBrush="#FFE0E0E0"
                     BorderThickness="1"
-                    RowBackground="#FFF9F9F9"
-                    AlternatingRowBackground="White"
-                    GridLinesVisibility="Horizontal"
-                    AddingNewItem="StepsGrid_AddingNewItem">
+                    MinHeight="140"
+                    Margin="0,0,0,8"
+                    LoadingRow="StepsGrid_LoadingRow">
             <DataGrid.Columns>
-              <DataGridTextColumn Header="Тип" Binding="{Binding StepType}" Width="160" IsReadOnly="True"/>
-              <DataGridTextColumn Header="Параметры" Binding="{Binding Summary}" Width="*" IsReadOnly="True"/>
+              <DataGridTextColumn Header="№" Binding="{Binding RelativeSource={RelativeSource AncestorType=DataGridRow}, Path=Header}" Width="40"/>
+              <DataGridTextColumn Header="Действие" Binding="{Binding DisplayAction}" Width="200"/>
+              <DataGridTextColumn Header="Кратко" Binding="{Binding Summary}" Width="*"/>
             </DataGrid.Columns>
           </DataGrid>
-
-          <GridSplitter Grid.Row="1" Height="5" HorizontalAlignment="Stretch" Background="#FFE8E8E8"/>
-
-          <Border Grid.Row="2" BorderBrush="#FFE0E0E0" BorderThickness="1" Padding="10"
-                  Visibility="{Binding DataContext.HasSelectedStep, RelativeSource={RelativeSource AncestorType=UserControl}, Converter={StaticResource BoolToVisibilityConverter}}">
-            <ScrollViewer VerticalScrollBarVisibility="Auto">
-              <StackPanel DataContext="{Binding DataContext.SelectedStep, RelativeSource={RelativeSource AncestorType=UserControl}}"
-                          IsEnabled="{Binding DataContext.IsEditingEnabled, RelativeSource={RelativeSource AncestorType=UserControl}}">
-                <TextBlock Text="Тип шага" FontWeight="SemiBold" Margin="0,0,0,4"/>
-                <ComboBox x:Name="StepTypeComboBox"
-                          Width="320"
-                          HorizontalAlignment="Left"
-                          Margin="0,0,0,12"
-                          ItemsSource="{Binding DataContext.StepTypeOptions, RelativeSource={RelativeSource AncestorType=UserControl}}"
-                          DisplayMemberPath="Label"
-                          SelectedValuePath="Type"
-                          SelectedValue="{Binding StepType, UpdateSourceTrigger=PropertyChanged}"
-                          SelectionChanged="StepTypeComboBox_SelectionChanged"
-                          IsEnabled="{Binding DataContext.IsEditingEnabled, RelativeSource={RelativeSource AncestorType=UserControl}}"/>
-
-                <TextBlock Text="Параметры шага" FontWeight="SemiBold" Margin="0,0,0,6"/>
-                <ItemsControl ItemsSource="{Binding ParameterFields}">
-                  <ItemsControl.ItemTemplate>
-                    <DataTemplate>
-                      <Grid Margin="0,0,0,8">
-                        <Grid.ColumnDefinitions>
-                          <ColumnDefinition Width="180"/>
-                          <ColumnDefinition Width="*"/>
-                          <ColumnDefinition Width="Auto"/>
-                        </Grid.ColumnDefinitions>
-                        <TextBlock Grid.Column="0" Text="{Binding Label}" VerticalAlignment="Center" Margin="0,0,8,0"/>
-                        <ComboBox Grid.Column="1"
-                                  ItemsSource="{Binding EnumValues}"
-                                  SelectedItem="{Binding Value, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                                  Visibility="{Binding HasEnumValues, Converter={StaticResource BoolToVisibilityConverter}}"/>
-                        <TextBox Grid.Column="1"
-                                 Text="{Binding Value, UpdateSourceTrigger=PropertyChanged}"
-                                 Visibility="{Binding HasEnumValues, Converter={StaticResource InverseBooleanToVisibilityConverter}}"/>
-                        <StackPanel Grid.Column="2" Orientation="Horizontal" Margin="8,0,0,0">
-                          <Button Content="Вставить…" Padding="8,3" Margin="0,0,6,0"
-                                  Visibility="{Binding IsTemplateField, Converter={StaticResource BoolToVisibilityConverter}}"
-                                  Click="InsertPlaceholder_Click" Tag="{Binding}"/>
-                          <Button Content="Справочник…" Padding="8,3"
-                                  Visibility="{Binding IsPropertyNameField, Converter={StaticResource BoolToVisibilityConverter}}"
-                                  Click="PickPropertyName_Click" Tag="{Binding}"/>
-                        </StackPanel>
-                      </Grid>
-                    </DataTemplate>
-                  </ItemsControl.ItemTemplate>
-                </ItemsControl>
-                <TextBlock Text="Поля и допустимые значения задаются в schema/recipe-steps.json пакета адаптера."
-                           Foreground="#FF777777" FontStyle="Italic" TextWrapping="Wrap" Margin="0,8,0,0"/>
-              </StackPanel>
-            </ScrollViewer>
-          </Border>
-
-          <TextBlock Grid.Row="2"
-                     Text="Выберите шаг в таблице для редактирования параметров."
-                     VerticalAlignment="Center"
-                     HorizontalAlignment="Center"
-                     Foreground="#FF888888"
-                     Visibility="{Binding DataContext.HasSelectedStep, RelativeSource={RelativeSource AncestorType=UserControl}, Converter={StaticResource InverseBooleanToVisibilityConverter}}"/>
-        </Grid>
-      </TabItem>
-      <TabItem Header="Прочее">
-        <StackPanel Margin="12">
-          <TextBlock Text="postcondition_log" FontWeight="SemiBold"/>
-          <TextBox Text="{Binding PostconditionLog, UpdateSourceTrigger=PropertyChanged}" Margin="0,4,0,8"/>
-          <TextBlock Text="test_notes" FontWeight="SemiBold"/>
-          <TextBox Text="{Binding TestNotes, UpdateSourceTrigger=PropertyChanged}" AcceptsReturn="True" Height="80"/>
+          <controls:SchemaActionPanel DataContext="{Binding StepHandlerSchema}" MinHeight="200"/>
         </StackPanel>
-      </TabItem>
-    </TabControl>
 
-    <Grid Grid.Row="2" Margin="0,8,0,0">
-      <TextBlock Text="{Binding PulseWarningMessage}" Foreground="{Binding WarningMessageColor}" VerticalAlignment="Center"/>
-      <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
-        <Button Content="Сохранить"
-                Command="{Binding SaveCommand}"
-                IsEnabled="{Binding IsEditingEnabled}"
-                Style="{StaticResource ActionButtonStyle}"
-                Margin="0,0,0,0"
-                Cursor="Hand"
-                ToolTip="Сохранить рецепт"/>
-        <Button Content="Отмена"
-                Command="{Binding CancelCommand}"
-                Style="{StaticResource RedButtonStyle}"
-                Cursor="Hand"
-                ToolTip="Закрыть без сохранения"/>
+        <StackPanel x:Name="LinksPanel" Visibility="Collapsed">
+          <ItemsControl ItemsSource="{Binding Links}">
+            <ItemsControl.ItemTemplate>
+              <DataTemplate>
+                <Border BorderBrush="#FFE8E8E8" BorderThickness="0,0,0,1" Padding="4">
+                  <TextBlock TextWrapping="Wrap">
+                    <Run Text="{Binding Category, Mode=OneWay}" FontWeight="SemiBold"/>
+                    <Run Text=": "/>
+                    <Run Text="{Binding Title, Mode=OneWay}"/>
+                    <Run Text=" — "/>
+                    <Run Text="{Binding Detail, Mode=OneWay}"/>
+                  </TextBlock>
+                </Border>
+              </DataTemplate>
+            </ItemsControl.ItemTemplate>
+          </ItemsControl>
+          <StackPanel Orientation="Horizontal" Margin="0,12,0,0">
+            <Button Content="→ Триггеры" Command="{Binding NavigateToTriggerCommand}" Padding="10,4" Margin="0,0,8,0"/>
+            <Button Content="→ Рефлексы" Command="{Binding NavigateToReflexesCommand}" Padding="10,4"/>
+          </StackPanel>
+        </StackPanel>
       </StackPanel>
-    </Grid>
+    </ScrollViewer>
   </Grid>
 </UserControl>

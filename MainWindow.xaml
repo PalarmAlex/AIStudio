@@ -118,6 +118,10 @@
 
         <Expander Header="Среда" Style="{StaticResource MenuExpanderStyle}">
           <StackPanel>
+            <Button Content="Обзор поведения" Margin="20,2,5,2"
+              Style="{StaticResource MenuButtonStyle}"
+              Command="{Binding VerticalMenuItemClickedCommand}"
+              CommandParameter="49"/>
             <Button Content="Рецепты среды" Margin="20,2,5,2"
               Style="{StaticResource MenuButtonStyle}"
               Command="{Binding VerticalMenuItemClickedCommand}"

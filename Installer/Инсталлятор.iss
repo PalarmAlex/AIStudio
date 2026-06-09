@@ -58,7 +58,7 @@ Source: "{#DocsDir}\Data\Gomeostas\*"; DestDir: "{commonappdata}\ISIDA\Data\Gome
 Source: "{#DocsDir}\Data\Reflexes\*"; DestDir: "{commonappdata}\ISIDA\Data\Reflexes"; Flags: recursesubdirs createallsubdirs onlyifdoesntexist uninsneveruninstall
 Source: "{#DocsDir}\Data\Sensors\*"; DestDir: "{commonappdata}\ISIDA\Data\Sensors"; Flags: recursesubdirs createallsubdirs onlyifdoesntexist uninsneveruninstall
 Source: "{#DocsDir}\Data\Psychic\*"; DestDir: "{commonappdata}\ISIDA\Data\Psychic"; Flags: recursesubdirs createallsubdirs onlyifdoesntexist uninsneveruninstall
-Source: "{#DocsDir}\Data\Scenarios\*"; DestDir: "{commonappdata}\ISIDA\Scenarios"; Flags: recursesubdirs createallsubdirs onlyifdoesntexist uninsneveruninstall
+Source: "{#DocsDir}\Scenarios\*"; DestDir: "{commonappdata}\ISIDA\Scenarios"; Flags: recursesubdirs createallsubdirs onlyifdoesntexist uninsneveruninstall
 Source: "{#DocsDir}\BootData\*"; DestDir: "{commonappdata}\ISIDA\BootData"; Flags: recursesubdirs createallsubdirs onlyifdoesntexist uninsneveruninstall
 
 ; Каркасы пакетов адаптеров («Создать пакет…» читает %ProgramData%\ISIDA\AdapterPackageTemplates\demo\)
