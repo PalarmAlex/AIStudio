@@ -1,5 +1,5 @@
 {
-  "schemaVersion": "2.0",
+  "schemaVersion": "3.0",
   "probes": [
     {
       "key": "host.active_doc_modified",

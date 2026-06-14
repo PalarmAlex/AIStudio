@@ -28,7 +28,7 @@ namespace AIStudio.Dialogs
       {
         if (!AdaptiveActionsSystem.IsInitialized)
         {
-          MessageBox.Show("Система адаптивных действий не инициализирована",
+          MessageBox.Show("Система моторных действий не инициализирована",
               "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
           return;
         }
@@ -72,7 +72,7 @@ namespace AIStudio.Dialogs
       }
       catch (Exception ex)
       {
-        MessageBox.Show($"Ошибка загрузки адаптивных действий: {ex.Message}",
+        MessageBox.Show($"Ошибка загрузки моторных действий: {ex.Message}",
             "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
       }
       AdaptiveActionsList.ItemsSource = _adaptiveActions;

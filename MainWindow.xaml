@@ -139,7 +139,7 @@
 
         <Expander Header="Гомеостаз симбионта" Style="{StaticResource MenuExpanderStyle}">
           <StackPanel>
-            <Button Content="Адаптивные действия" Margin="20,2,5,2"
+            <Button Content="Моторные действия" Margin="20,2,5,2"
               Style="{StaticResource MenuButtonStyle}"
               Command="{Binding VerticalMenuItemClickedCommand}"
               CommandParameter="3"/>            

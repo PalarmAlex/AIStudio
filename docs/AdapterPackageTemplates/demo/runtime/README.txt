@@ -4,12 +4,12 @@
 Состав SDK: сборки
 ------------------
 isida.dll
-  Ядро ISIDA: гомеостаз, воздействия, рефлексы, пульс и прочие подсистемы симбионта.
+  Ядро ISIDA: гомеостаз, рефлексы, пульс, IHostMotorDispatcher.
   Host-адаптер ссылается на неё при интеграции среды с агентом.
 isida.dll.config (если есть в сборке isida)
   Опционально: конфигурация привязок сборок (.NET) для isida.dll.
 SymbiontEnv.Contract.dll
-  Общий контракт среды: формат YAML (рецепты, триггеры), layout пакета, manifest, правила проверки.
+  Общий контракт среды: YAML v3 (expression_pattern_id, homeostasis_deltas), manifest, проверка пакета.
   Одна и та же сборка для студии и для runtime host.
 Newtonsoft.Json.dll
   Зависимость isida.dll и SymbiontEnv.Contract.dll (работа с JSON).

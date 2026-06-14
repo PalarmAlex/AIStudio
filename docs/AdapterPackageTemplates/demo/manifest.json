@@ -2,9 +2,10 @@
   "id": "my-adapter",
   "displayName": "Мой адаптер (замените id и название)",
   "version": "0.1.0",
-  "contractVersion": "2.0",
-  "schemaVersion": "2.0",
+  "contractVersion": "3.0",
+  "schemaVersion": "3.0",
+  "architectureSpecVersion": "2.2",
   "author": "",
   "bootDataRelativePath": "BootData",
-  "description": "Каркас пакета. Скопируйте каталог, задайте уникальный id, заполните schema и runtime, затем «Зарегистрировать пакет»."
+  "description": "Каркас пакета contract 3.0. Задайте уникальный id, заполните schema (incl. expression-pattern-catalog) и runtime, затем «Зарегистрировать пакет»."
 }

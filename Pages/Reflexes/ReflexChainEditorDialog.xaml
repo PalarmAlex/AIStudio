@@ -247,7 +247,7 @@
             <DataGridTemplateColumn Header="Действие" Width="220">
               <DataGridTemplateColumn.HeaderStyle>
                 <Style TargetType="DataGridColumnHeader">
-                  <Setter Property="ToolTip" Value="Адаптивное действие для выполнения в этом звене"/>
+                  <Setter Property="ToolTip" Value="Моторное действие для выполнения в этом звене"/>
                   <Setter Property="FontSize" Value="12"/>
                   <Setter Property="FontWeight" Value="SemiBold"/>
                 </Style>

@@ -30,7 +30,7 @@ namespace AIStudio.ViewModels
     public bool IsStageZero => _currentAgentStage == 0;
     public bool IsReadOnlyMode => !IsEditingEnabled;
     public string CurrentAgentTitle =>
-        SymbiontPageTitleFormatter.Format("Адаптивные действия", _currentAgentName, _currentAgentStage);
+        SymbiontPageTitleFormatter.Format("Моторные действия", _currentAgentName, _currentAgentStage);
     public ObservableCollection<AdaptiveActionsSystem.AdaptiveAction> AdaptiveActions { get; } = new ObservableCollection<AdaptiveActionsSystem.AdaptiveAction>();
     public ICommand SaveCommand { get; }
     public ICommand RemoveActionCommand { get; }
@@ -134,14 +134,14 @@ namespace AIStudio.ViewModels
           if (success)
           {
             RefreshAllCollections();
-            MessageBox.Show("Адаптивные действия успешно сохранены",
+            MessageBox.Show("Моторные действия успешно сохранены",
                 "Сохранение завершено",
                 MessageBoxButton.OK,
                 MessageBoxImage.Information);
           }
           else
           {
-            MessageBox.Show($"Не удалось сохранить адаптивные действия:\n{error}",
+            MessageBox.Show($"Не удалось сохранить моторные действия:\n{error}",
                 "Ошибка сохранения",
                 MessageBoxButton.OK,
                 MessageBoxImage.Error);
@@ -241,7 +241,7 @@ namespace AIStudio.ViewModels
     }
 
     /// <summary>
-    /// Применяет изменения из локальной коллекции в систему адаптивных действий
+    /// Применяет изменения из локальной коллекции в систему моторных действий
     /// </summary>
     private void ApplyLocalActionsToSystem()
     {
@@ -321,7 +321,7 @@ namespace AIStudio.ViewModels
     public void RemoveAlldAction(object parameter)
     {
       var result = MessageBox.Show(
-          $"Вы действительно хотите удалить ВСЕ адаптивные действия? Это действие нельзя будет отменить.",
+          $"Вы действительно хотите удалить ВСЕ моторные действия? Это действие нельзя будет отменить.",
           "Подтверждение удаления",
           MessageBoxButton.YesNo,
           MessageBoxImage.Warning);
@@ -341,14 +341,14 @@ namespace AIStudio.ViewModels
           var (success, error) = _actionsSystem.SaveActions(false); // все удалено - не надо валидаций 
           if (success)
           {
-            MessageBox.Show("Все адаптивные действия,кроме заданного по умолчанию, успешно удалены",
+            MessageBox.Show("Все моторные действия,кроме заданного по умолчанию, успешно удалены",
                 "Удаление завершено",
                 MessageBoxButton.OK,
                 MessageBoxImage.Information);
           }
           else
           {
-            MessageBox.Show($"Не удалось удалить адаптивные действия:\n{error}",
+            MessageBox.Show($"Не удалось удалить моторные действия:\n{error}",
                 "Ошибка сохранения после удаления",
                 MessageBoxButton.OK,
                 MessageBoxImage.Error);
@@ -356,7 +356,7 @@ namespace AIStudio.ViewModels
         }
         catch (Exception ex)
         {
-          MessageBox.Show($"Ошибка удаления адаптивных действий: {ex.Message}",
+          MessageBox.Show($"Ошибка удаления моторных действий: {ex.Message}",
               "Ошибка",
               MessageBoxButton.OK,
               MessageBoxImage.Error);
@@ -389,7 +389,7 @@ namespace AIStudio.ViewModels
       {
         return new DescriptionWithLink
         {
-          Text = "Служит для создания адаптивных действий, которые могут активироваться в безусловных и условных рефлексах, а также в качестве базовой реакции на изменения состояний параметров гомеостаза. Представляет собой аналог врожденных базовых адаптивных действий живых организмов, передаваемых по наследству."
+          Text = "Служит для создания моторных действий, которые могут активироваться в безусловных и условных рефлексах, а также в качестве базовой реакции на изменения состояний параметров гомеостаза. Представляет собой аналог врожденных базовых моторных действий живых организмов, передаваемых по наследству."
         };
       }
     }

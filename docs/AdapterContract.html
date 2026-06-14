@@ -37,9 +37,10 @@
 </head>
 <body>
 <main class="help-content">
-<p><strong>Версия контракта:</strong> <code>2.0</code><br>
-<strong>Дата:</strong> 2026-06-09<br>
-<strong>Статус:</strong> нормативный документ для AIStudio, авторов адаптеров и runtime host. AIStudio <strong>не обязательна</strong> для разработки host; пакет с <code>manifest.json</code> нужен только при интеграции со студией (§ 0.5). Кодек YAML и проверка пакета — <strong><code>SymbiontEnv.Contract.dll</code></strong> (общая библиотека студии и host).</p>
+<p><strong>Версия контракта:</strong> <code>3.0</code><br>
+<strong>Дата:</strong> 2026-06-13<br>
+<strong>Статус:</strong> нормативный документ для AIStudio, авторов адаптеров и runtime host. AIStudio <strong>не обязательна</strong> для разработки host; пакет с <code>manifest.json</code> нужен только при интеграции со студией (§ 0.5). Кодек YAML и проверка пакета — <strong><code>SymbiontEnv.Contract.dll</code></strong>.</p>
+<p><strong>Синхронизация:</strong> архитектура v2.2 — <code>SymbiontArchitecture_OperatorEnvironment_Spec.md</code> (Velum docs). Contract 3.0 <strong>не</strong> использует <code>adaptive_action_id</code>, <code>influence_action_id</code>.</p>
 <p>Связанные документы:</p>
 <table>
 <thead>
@@ -50,7 +51,11 @@
 </thead>
 <tbody>
 <tr>
-<td><a href="AdapterAuthorGuide.md"><code>AdapterAuthorGuide.md</code></a></td>
+<td><a href="../../../../VELUM/Velum/docs/SymbiontArchitecture_OperatorEnvironment_Spec.md"><code>SymbiontArchitecture_OperatorEnvironment_Spec.md</code></a> (v2.2)</td>
+<td>Архитектура operator/environment, <code>IHostMotorDispatcher</code></td>
+</tr>
+<tr>
+<td><a href="AdapterAuthorGuide.md"><code>AdapterAuthorGuide.md</code></a> (v1.0)</td>
 <td>Практика сборки и регистрации пакета</td>
 </tr>
 <tr>
@@ -119,7 +124,7 @@
 </code></pre>
 <p>Студия <strong>не копирует</strong> каркас при работе: каталог появляется <strong>при установке AIStudio</strong>. Исходник каркаса — <code>docs/AdapterPackageTemplates/demo/</code>. Автор копирует каталог, меняет <code>id</code>, заполняет schema и runtime.</p>
 <h3 id="03-runtime-host-исполнитель-среды">0.3. Runtime host (исполнитель среды)</h3>
-<p><strong><code>runtime\*.dll</code></strong> — программа, которая <strong>вне студии</strong> читает YAML проекта и исполняет рецепты/триггеры (эталонная реализация v1 — ориентир).</p>
+<p><strong><code>runtime\*.dll</code></strong> — программа, которая <strong>вне студии</strong> читает YAML проекта, исполняет рецепты/триггеры и реализует <strong><code>IHostMotorDispatcher</code></strong> (Spec v2.2).</p>
 <table>
 <thead>
 <tr>
@@ -187,7 +192,17 @@
 </tbody>
 </table>
 <p>Автор host может использовать любой редактор данных симбионта; контракт YAML и <code>SymbiontEnv.Contract.dll</code> доступны без установки AIStudio.</p>
-<h3 id="06-роли-пользователей">0.6. Роли пользователей</h3>
+<h3 id="06-operator-vs-mechanical">0.6. Operator path vs mechanical path</h3>
+<table>
+<thead><tr><th>Путь</th><th>Механизм</th><th>В operator PerceptionImage?</th></tr></thead>
+<tbody>
+<tr><td><strong>Оператор</strong></td><td>Каналы + <code>HomeostasisSignificance</code></td><td><strong>Да</strong></td></tr>
+<tr><td><strong>Среда</strong></td><td><code>homeostasis_deltas</code> в triggers YAML</td><td><strong>Нет</strong></td></tr>
+<tr><td><strong>Рецепт</strong></td><td><code>expression_pattern_id</code> → dispatcher</td><td>Моторика агента</td></tr>
+</tbody>
+</table>
+<p><strong>Не использовать:</strong> <code>InfluenceActions.dat</code>, EA-прокси в триггерах. Double dispatch (Command + mechanical на одном событии) — запрещён.</p>
+<h3 id="07-роли-пользователей">0.7. Роли пользователей</h3>
 <table>
 <thead>
 <tr>
@@ -210,7 +225,7 @@
 </tr>
 </tbody>
 </table>
-<h3 id="07-запрещённые-формулировки-в-ui">0.7. Запрещённые формулировки в UI</h3>
+<h3 id="08-запрещённые-формулировки-в-ui">0.8. Запрещённые формулировки в UI</h3>
 <p>Избегать: «подключить адаптер», «адаптер активен», «запустить адаптер», «установить адаптер» (путается с установкой программы в ОС).</p>
 <p>Использовать: <strong>«зарегистрировать пакет»</strong>, <strong>«тип среды»</strong>, <strong>«описание пакета <code>{id}</code>»</strong>.</p>
 <hr>
@@ -272,8 +287,12 @@
 </thead>
 <tbody>
 <tr>
+<td><code>3.0</code></td>
+<td><strong>Да (текущая)</strong> — expression patterns, mechanical deltas</td>
+</tr>
+<tr>
 <td><code>2.0</code></td>
-<td>Да (текущая)</td>
+<td>Нет (устарел — <code>adaptive_action_id</code>, <code>influence_action_id</code>)</td>
 </tr>
 <tr>
 <td><code>1.0</code></td>
@@ -358,7 +377,7 @@
   schema\                               ОБЯЗАТЕЛЬНО для регистрации в студии
   adapter-settings\                     ОПЦИОНАЛЬНО
 </code></pre>
-<p>Пакет <strong>для регистрации в AIStudio</strong> должен содержать <code>manifest.json</code> с <code>contractVersion: "2.0"</code> и каталог <code>schema\</code> с валидными JSON (§ 12). <code>BootData\</code> и <code>runtime\</code> рекомендуются для seed проекта и дистрибуции host, но <strong>не блокируют</strong> «Проверить». Без студии достаточно host + <code>isida.dll</code> (§ 0.5).</p>
+<p>Пакет <strong>для регистрации в AIStudio</strong> должен содержать <code>manifest.json</code> с <code>contractVersion: "3.0"</code> и каталог <code>schema\</code> с валидными JSON (§ 12).</p>
 <h3 id="42-расширенный-пакет-рекомендации">4.2. Расширенный пакет (рекомендации)</h3>
 <p>Дополнительно к § 4.1:</p>
 <ul>
@@ -424,9 +443,11 @@
 </ul>
 <h3 id="54-пустые-коллекции">5.4. Пустые коллекции</h3>
 <p>Writers студии и runtime host для пустых списков эмитируют явно:</p>
-<pre><code class="language-yaml">recommended_trigger_influence_ids: []
+<pre><code class="language-yaml">homeostasis_deltas: []
 command_ids: []
+recommended_trigger_keys: []
 </code></pre>
+<p><strong>Удалены (contract 3.0):</strong> <code>adaptive_action_id</code>, <code>influence_action_id</code>, <code>recommended_trigger_influence_ids</code> — при чтении игнорируются с Warning; при «Проверить» в новых пакетах — Error.</p>
 <h3 id="55-устаревший-формат-файла-рецептов">5.5. Устаревший формат файла рецептов</h3>
 <p>Допускается <strong>один рецепт в корне документа</strong> (без ключа <code>recipes:</code>) — только для чтения. Writers всегда создают:</p>
 <pre><code class="language-yaml">recipes:
@@ -440,18 +461,17 @@ command_ids: []
 </ul>
 <hr>
 <h2 id="6-runtime-contract-environmentrecipesyaml">6. Runtime contract: <code>EnvironmentRecipes.yaml</code></h2>
-<h3 id="61-корневая-структура">6.1. Корневая структура</h3>
+<h3 id="61-корневая-структура">6.1. Корневая структура (contract 3.0)</h3>
 <pre><code class="language-yaml">recipes:
-  - id: &lt;string&gt;                    # обязательно, уникален в файле
-    adaptive_action_id: &lt;int&gt;       # обязательно, &gt; 0, ISIDA G_AD
-    display_name: &lt;string&gt;          # опционально
-    description: &lt;string&gt;           # опционально
-    reactive_eligible: &lt;bool&gt;       # опционально; default true
-    recommended_trigger_influence_ids: [&lt;int&gt;, ...]  # опционально, справочно
-    steps: [ ... ]                  # опционально
+  - id: &lt;string&gt;
+    expression_pattern_id: &lt;int&gt;         # обязательно, &gt; 0; Expression PhraseTree
+    display_name: &lt;string&gt;
+    description: &lt;string&gt;
+    reactive_eligible: &lt;bool&gt;
+    recommended_trigger_keys: [&lt;string&gt;, ...]
+    steps: [ ... ]
 </code></pre>
-<p><strong>Не используются в contract 2.0:</strong> <code>risk_tier</code>, <code>preconditions</code>, <code>postcondition_log</code>, <code>test_notes</code> и прочие legacy-поля — writers их не эмитируют; при чтении игнорируются.</p>
-<p>Условия запуска рецепта (когда активируется G_AD) задаются <strong>деревом рефлексов ISIDA</strong> и <strong>триггерами среды</strong>, не полями рецепта.</p>
+<p><strong>Удалено:</strong> <code>adaptive_action_id</code>, <code>recommended_trigger_influence_ids</code>. Запуск — Genetic L3 <code>expr:velum.recipe.*</code> + <code>IHostMotorDispatcher</code>.</p>
 <h3 id="62-связь-с-isida">6.2. Связь с ISIDA</h3>
 <table>
 <thead>
@@ -463,14 +483,14 @@ command_ids: []
 </thead>
 <tbody>
 <tr>
-<td><code>adaptive_action_id</code></td>
-<td>Adaptive Actions (G_AD)</td>
-<td>Рецепт исполняется, когда активно это G_AD</td>
+<td><code>expression_pattern_id</code></td>
+<td>Expression channel (<code>expr:velum.*</code>)</td>
+<td>Рецепт при <code>IHostMotorDispatcher</code></td>
 </tr>
 <tr>
-<td><code>recommended_trigger_influence_ids</code></td>
-<td>Influence Actions (EA)</td>
-<td>Рекомендация редактору; <strong>не</strong> исполняется runtime из YAML</td>
+<td><code>recommended_trigger_keys</code></td>
+<td><code>EnvironmentTriggers.yaml</code> (<code>id</code>)</td>
+<td>Справочно для редактора</td>
 </tr>
 </tbody>
 </table>
@@ -511,42 +531,36 @@ command_ids: []
 <h3 id="64-расширение-handlerов">6.4. Расширение handler'ов</h3>
 <p>Новые handler'ы добавляет автор адаптера в <code>handlers-catalog.json</code> и реализует в runtime host. Контракт YAML: <code>invoke</code> + <code>handler</code> + flat-ключи argsSchema.</p>
 <h3 id="65-пример-эталон">6.5. Пример (эталон)</h3>
-<pre><code class="language-yaml"># Рецепты среды: моторика host (invoke). Условия запуска — рефлексы и триггеры.
+<pre><code class="language-yaml"># Рецепты: expression_pattern_id → IHostMotorDispatcher (contract 3.0).
 recipes:
   - id: kb_name_on_save
     display_name: &quot;Наименование по КБ после сохранения&quot;
-    description: &quot;Заполнить Обозначение и Наименование по шаблону политики КБ&quot;
-    adaptive_action_id: 37
+    expression_pattern_id: 42001
     reactive_eligible: true
-    recommended_trigger_influence_ids: [101]
+    recommended_trigger_keys: [save_active_document]
     steps:
       - type: invoke
         handler: set_custom_property
-        config: active
         name: Обозначение
         template: &quot;{PROJECT}-{DISCIPLINE}-{SEQ:4}&quot;
         overwrite: if_empty
-      - type: invoke
-        handler: set_custom_property
-        config: active
-        name: Наименование
-        template: &quot;{DESCRIPTION}&quot;
-        overwrite: never_if_filled
       - type: comment
-        text: &quot;Заполнить оба поля по КБ&quot;
+        text: &quot;expr:velum.recipe.kb_apply_on_save (ID 42001)&quot;
 </code></pre>
 <hr>
 <h2 id="7-runtime-contract-environmenttriggersyaml">7. Runtime contract: <code>EnvironmentTriggers.yaml</code></h2>
-<h3 id="71-корневая-структура">7.1. Корневая структура</h3>
+<h3 id="71-корневая-структура">7.1. Корневая структура (contract 3.0)</h3>
 <pre><code class="language-yaml">triggers:
-  - id: &lt;string&gt;                    # обязательно, уникален в файле
-    display_name: &lt;string&gt;          # опционально
-    influence_action_id: &lt;int&gt;      # обязательно, &gt; 0, ISIDA EA (прокси)
-    event: &lt;string&gt;                 # обязательно; kind из trigger-detect.json
-    &lt;event_param&gt;: &lt;scalar&gt;         # опционально; см. § 7.3
+  - id: &lt;string&gt;
+    display_name: &lt;string&gt;
+    event: &lt;string&gt;
+    homeostasis_deltas:
+      - parameter_id: &lt;int&gt;
+        delta: &lt;float&gt;
+    reflex_trigger_expression_pattern_id: &lt;int&gt;
+    &lt;event_param&gt;: &lt;scalar&gt;
 </code></pre>
-<p>Секция <code>triggers:</code> <strong>обязательна</strong> (допускается пустой список). На каждый триггер — <strong>одно</strong> событие (<code>event</code>), не массив <code>detect</code>.</p>
-<p><strong>Не используются в contract 2.0:</strong> <code>document_kinds</code>, <code>detect[]</code>, <code>environment</code>, <code>enabled</code> — legacy; writers их не эмитируют.</p>
+<p><strong>Удалено:</strong> <code>influence_action_id</code>. Mechanical path — <code>PulseHomeostasisLedger</code> (<code>EnvironmentMechanical</code>).</p>
 <h3 id="72-связь-с-isida">7.2. Связь с ISIDA</h3>
 <table>
 <thead>
@@ -558,13 +572,18 @@ recipes:
 </thead>
 <tbody>
 <tr>
-<td><code>influence_action_id</code></td>
-<td>Influence Actions (EA)</td>
-<td>При срабатывании события → <code>ApplyMultipleInfluenceActions</code>. <strong>Только ID из <code>InfluenceActions.dat</code></strong>, не RuleId из <code>EnvironmentPressureRules.dat</code>.</td>
+<td><code>homeostasis_deltas</code></td>
+<td>Mechanical path</td>
+<td>Явные дельты гомеостаза от среды</td>
+</tr>
+<tr>
+<td><code>reflex_trigger_expression_pattern_id</code></td>
+<td>Expression (<code>expr:env.*</code>)</td>
+<td>Пусковой паттерн Genetic Level3</td>
 </tr>
 </tbody>
 </table>
-<h3 id="73-события-и-параметры-contract-20">7.3. События и параметры (contract 2.0)</h3>
+<h3 id="73-события-и-параметры-contract-30">7.3. События и параметры (contract 3.0)</h3>
 <p>Допустимые значения <code>event</code> и параметры события описываются в <code>schema/trigger-detect.json</code> (<code>detectKinds[]</code>).</p>
 <table>
 <thead>
@@ -578,26 +597,28 @@ recipes:
 <tr>
 <td><code>command_before</code></td>
 <td><code>command_ids: [&lt;int&gt;, …]</code></td>
-<td>Перед выполнением команды; match по ID</td>
+<td><strong>Только</strong> Command buffer → CommandChannel</td>
 </tr>
 <tr>
 <td><code>document_saved</code></td>
 <td>—</td>
-<td>После сохранения документа</td>
+<td><code>homeostasis_deltas</code> + optional <code>reflex_trigger_expression_pattern_id</code></td>
 </tr>
 </tbody>
 </table>
-<p>Параметры события, не входящие в reserved keys триггера (<code>id</code>, <code>display_name</code>, <code>influence_action_id</code>, <code>event</code>), сериализуются как scalar-поля на том же уровне, что и <code>event</code>. <code>command_ids</code> при записи — список целых в квадратных скобках.</p>
-<h3 id="74-пример-эталон">7.4. Пример (эталон)</h3>
-<pre><code class="language-yaml"># Триггеры среды: событие host → influence_action_id.
+<p>Reserved keys: <code>id</code>, <code>display_name</code>, <code>event</code>, <code>homeostasis_deltas</code>, <code>reflex_trigger_expression_pattern_id</code>.</p>
+<h3 id="74-пример-эталон">7.4. Пример (эталон contract 3.0)</h3>
+<pre><code class="language-yaml"># Триггеры: mechanical path + expr:env.* (не influence_action_id).
 triggers:
   - id: save_active_document
     display_name: &quot;Сохранение активного документа&quot;
-    influence_action_id: 101
     event: document_saved
+    homeostasis_deltas:
+      - parameter_id: 3
+        delta: 1.0
+    reflex_trigger_expression_pattern_id: 41001
   - id: before_rebuild
-    display_name: &quot;Перед Rebuild&quot;
-    influence_action_id: 102
+    display_name: &quot;Перед Rebuild (Command buffer only)&quot;
     event: command_before
     command_ids: [57603]
 </code></pre>
@@ -643,12 +664,12 @@ triggers:
 <p><strong>Не</strong> включать в пакет: <code>.cs</code>, <code>.csproj</code>, <code>.pdb</code> (опционально), исходники, <code>.git</code>, артефакты AIStudio.</p>
 <hr>
 <h2 id="9-manifestjson">9. <code>manifest.json</code></h2>
-<h3 id="91-обязательные-поля-contract-20">9.1. Обязательные поля (contract 2.0)</h3>
+<h3 id="91-обязательные-поля-contract-30">9.1. Обязательные поля (contract 3.0)</h3>
 <pre><code class="language-json">{
   &quot;id&quot;: &quot;my-adapter&quot;,
   &quot;displayName&quot;: &quot;Мой адаптер&quot;,
   &quot;version&quot;: &quot;1.0.0&quot;,
-  &quot;contractVersion&quot;: &quot;2.0&quot;,
+  &quot;contractVersion&quot;: &quot;3.0&quot;,
   &quot;author&quot;: &quot;Example Author&quot;,
   &quot;bootDataRelativePath&quot;: &quot;BootData&quot;
 }
@@ -680,7 +701,7 @@ triggers:
 <tr>
 <td><code>contractVersion</code></td>
 <td>string</td>
-<td><code>"2.0"</code> для этого документа</td>
+<td><code>"3.0"</code> для этого документа</td>
 </tr>
 <tr>
 <td><code>author</code></td>
@@ -705,7 +726,7 @@ triggers:
 <tbody>
 <tr>
 <td><code>schemaVersion</code></td>
-<td>Версия набора JSON в <code>schema\</code> (для contract 2.0: <code>"2.0"</code>)</td>
+<td>Версия набора JSON в <code>schema\</code> (для contract 3.0: <code>"3.0"</code>)</td>
 </tr>
 <tr>
 <td><code>adapterSettingsRelativePath</code></td>
@@ -726,8 +747,9 @@ triggers:
   &quot;id&quot;: &quot;my-adapter&quot;,
   &quot;displayName&quot;: &quot;Мой адаптер — Reactive Core&quot;,
   &quot;version&quot;: &quot;1.0.0&quot;,
-  &quot;contractVersion&quot;: &quot;2.0&quot;,
-  &quot;schemaVersion&quot;: &quot;2.0&quot;,
+  &quot;contractVersion&quot;: &quot;3.0&quot;,
+  &quot;schemaVersion&quot;: &quot;3.0&quot;,
+  &quot;architectureSpecVersion&quot;: &quot;2.2&quot;,
   &quot;author&quot;: &quot;Example Author&quot;,
   &quot;bootDataRelativePath&quot;: &quot;BootData&quot;,
   &quot;adapterSettingsRelativePath&quot;: &quot;adapter-settings&quot;,
@@ -737,61 +759,44 @@ triggers:
 <hr>
 <h2 id="10-ui-schema-schema">10. UI schema (<code>schema\</code>)</h2>
 <p>Студия загружает schema через <code>AdapterSchemaLoader</code> при редактировании проекта с выбранным <code>AdapterId</code>. Каталог <code>schema\</code> <strong>обязателен</strong> для регистрации пакета (§ 12). Без schema редакторы «Среда» показывают пустые списки полей и типов шагов.</p>
-<h3 id="101-имена-файлов-schemaversion-20">10.1. Имена файлов (schemaVersion 2.0)</h3>
+<h3 id="101-имена-файлов-schemaversion-30">10.1. Имена файлов (schemaVersion 3.0)</h3>
 <table>
-<thead>
-<tr>
-<th>Файл</th>
-<th>Содержание</th>
-</tr>
-</thead>
+<thead><tr><th>Файл</th><th>Содержание</th></tr></thead>
 <tbody>
-<tr>
-<td><code>handlers-catalog.json</code></td>
-<td>Handler'ы для шагов <code>invoke</code> (<code>handlers[]</code>, <code>argsSchema[]</code>)</td>
-</tr>
-<tr>
-<td><code>trigger-detect.json</code></td>
-<td>Допустимые значения <code>event</code> (<code>detectKinds[]</code>, опционально <code>parameters[]</code>)</td>
-</tr>
-<tr>
-<td><code>trigger-catalog.json</code></td>
-<td>Каталог допустимых <code>id</code> триггеров (выбор ID в редакторе триггеров)</td>
-</tr>
-<tr>
-<td><code>recipe-catalog.json</code></td>
-<td>Каталог допустимых <code>id</code> рецептов (combobox в редакторе рецепта)</td>
-</tr>
-<tr>
-<td><code>metric-probes.json</code></td>
-<td>Ключи <strong>ProbeKey</strong> в <code>EnvironmentPressureRules.dat</code> (редактор «Давление среды на виталы»)</td>
-</tr>
+<tr><td><code>handlers-catalog.json</code></td><td>Handler'ы <code>invoke</code></td></tr>
+<tr><td><code>trigger-detect.json</code></td><td><code>event</code> kinds</td></tr>
+<tr><td><code>trigger-catalog.json</code></td><td>ID триггеров</td></tr>
+<tr><td><code>recipe-catalog.json</code></td><td>ID рецептов</td></tr>
+<tr><td><code>expression-pattern-catalog.json</code></td><td><strong>Новый:</strong> <code>expr:velum.*</code>, <code>expr:env.*</code></td></tr>
+<tr><td><code>metric-probes.json</code></td><td>ProbeKey</td></tr>
 </tbody>
 </table>
-<p><strong>Устаревшие файлы</strong> (не использовать; «Проверить» выдаёт Warning): <code>recipe-preconditions.json</code>, <code>recipe-steps.json</code>, <code>trigger-filter.json</code>, <code>macros-catalog.json</code>.</p>
-<h3 id="102-формат-handlers-catalogjson-фрагмент">10.2. Формат <code>handlers-catalog.json</code> (фрагмент)</h3>
+<h3 id="102-expression-pattern-catalog">10.2. <code>expression-pattern-catalog.json</code> (фрагмент)</h3>
 <pre><code class="language-json">{
-  &quot;schemaVersion&quot;: &quot;2.0&quot;,
+  &quot;schemaVersion&quot;: &quot;3.0&quot;,
+  &quot;patterns&quot;: [
+    { &quot;id&quot;: 42001, &quot;token&quot;: &quot;expr:velum.recipe.kb_apply_on_save&quot;, &quot;label&quot;: &quot;Рецепт КБ&quot;, &quot;kind&quot;: &quot;velum_recipe&quot; },
+    { &quot;id&quot;: 41001, &quot;token&quot;: &quot;expr:env.document_saved&quot;, &quot;label&quot;: &quot;Save&quot;, &quot;kind&quot;: &quot;env_trigger&quot; }
+  ]
+}
+</code></pre>
+<h3 id="103-handlers-catalog">10.3. <code>handlers-catalog.json</code> (фрагмент)</h3>
+<pre><code class="language-json">{
+  &quot;schemaVersion&quot;: &quot;3.0&quot;,
   &quot;handlers&quot;: [
     {
       &quot;id&quot;: &quot;set_custom_property&quot;,
       &quot;label&quot;: &quot;Задать свойство документа&quot;,
-      &quot;description&quot;: &quot;Запись свойства активного документа&quot;,
       &quot;argsSchema&quot;: [
         { &quot;key&quot;: &quot;name&quot;, &quot;label&quot;: &quot;Имя&quot;, &quot;type&quot;: &quot;string&quot;, &quot;required&quot;: true },
-        { &quot;key&quot;: &quot;template&quot;, &quot;label&quot;: &quot;Шаблон&quot;, &quot;type&quot;: &quot;string&quot; },
-        {
-          &quot;key&quot;: &quot;overwrite&quot;,
-          &quot;label&quot;: &quot;Перезапись&quot;,
-          &quot;type&quot;: &quot;enum&quot;,
-          &quot;values&quot;: [&quot;if_empty&quot;, &quot;never_if_filled&quot;]
-        }
+        { &quot;key&quot;: &quot;template&quot;, &quot;label&quot;: &quot;Шаблон&quot;, &quot;type&quot;: &quot;string&quot; }
       ]
     }
   ]
 }
 </code></pre>
-<h3 id="103-формат-trigger-detectjson-фрагмент">10.3. Формат <code>trigger-detect.json</code> (фрагмент)</h3>
+<p><strong>Устаревшие файлы schema:</strong> <code>recipe-preconditions.json</code>, <code>recipe-steps.json</code>, <code>trigger-filter.json</code>, <code>macros-catalog.json</code>.</p>
+<h3 id="104-trigger-detect">10.4. <code>trigger-detect.json</code> (фрагмент)</h3>
 <pre><code class="language-json">{
   &quot;schemaVersion&quot;: &quot;1.0&quot;,
   &quot;detectKinds&quot;: [
@@ -807,9 +812,9 @@ triggers:
 }
 </code></pre>
 <p><strong>Правило:</strong> каждый <code>handler</code> id / <code>event</code> kind в schema должен поддерживаться runtime адаптера. Студия не добавляет handler'ы и события, отсутствующие в schema.</p>
-<h3 id="104-формат-recipe-catalogjson-фрагмент">10.4. Формат <code>recipe-catalog.json</code> (фрагмент)</h3>
+<h3 id="105-recipe-catalog">10.5. <code>recipe-catalog.json</code> (фрагмент)</h3>
 <pre><code class="language-json">{
-  &quot;schemaVersion&quot;: &quot;2.0&quot;,
+  &quot;schemaVersion&quot;: &quot;3.0&quot;,
   &quot;recipes&quot;: [
     {
       &quot;id&quot;: &quot;doc_props_on_save&quot;,
@@ -819,9 +824,9 @@ triggers:
   ]
 }
 </code></pre>
-<h3 id="105-формат-metric-probesjson-фрагмент">10.5. Формат <code>metric-probes.json</code> (фрагмент)</h3>
+<h3 id="106-metric-probes">10.6. <code>metric-probes.json</code> (фрагмент)</h3>
 <pre><code class="language-json">{
-  &quot;schemaVersion&quot;: &quot;2.0&quot;,
+  &quot;schemaVersion&quot;: &quot;3.0&quot;,
   &quot;probes&quot;: [
     {
       &quot;key&quot;: &quot;host.active_doc_modified&quot;,
@@ -831,10 +836,10 @@ triggers:
   ]
 }
 </code></pre>
-<p>Студия заполняет combobox <strong>ProbeKey</strong> в <code>EnvironmentPressureRules.dat</code> из <code>probes[].key</code> (плюс пункт «оператор, не среда»). Дискретные стимулы оператора и YAML-триггеры — в <code>InfluenceActions.dat</code> (без ProbeKey).</p>
+<p>Студия заполняет combobox <strong>ProbeKey</strong> в <code>EnvironmentPressureRules.dat</code> из <code>probes[].key</code> (плюс «оператор, не среда»). <strong>Operator path:</strong> каналы + <code>HomeostasisSignificance</code> — не <code>InfluenceActions.dat</code>. YAML-триггеры — только mechanical path (<code>homeostasis_deltas</code>).</p>
 <hr>
 <h2 id="11-согласование-парсеров-aistudio-runtime-host">11. Согласование парсеров (AIStudio ↔ runtime host)</h2>
-<p>С contract <strong>2.0</strong> AIStudio и host <strong>должны</strong> ссылаться на одну сборку <code>SymbiontEnv.Contract.dll</code> (<code>EnvironmentYamlCodec</code>). Согласование — round-trip тестами:</p>
+<p>С contract <strong>3.0</strong> AIStudio и host <strong>должны</strong> ссылаться на одну сборку <code>SymbiontEnv.Contract.dll</code>. Дополнительные тесты: T4 (expression pattern), T5 (mechanical deltas).</p>
 <table>
 <thead>
 <tr>
@@ -878,7 +883,7 @@ triggers:
 </tr>
 <tr>
 <td>V2</td>
-<td><code>contractVersion</code> = <code>"2.0"</code></td>
+<td><code>contractVersion</code> = <code>"3.0"</code></td>
 <td>Error</td>
 </tr>
 <tr>
@@ -908,8 +913,8 @@ triggers:
 </tr>
 <tr>
 <td>V8</td>
-<td>Неизвестные имена файлов в <code>schema\</code></td>
-<td>Info</td>
+<td>Legacy <code>adaptive_action_id</code> / <code>influence_action_id</code> в YAML</td>
+<td>Error</td>
 </tr>
 </tbody>
 </table>
@@ -931,8 +936,12 @@ triggers:
 <td><code>.dat</code>, сценарии</td>
 </tr>
 <tr>
-<td>Каркас рецепта/триггера (<code>id</code>, <code>adaptive_action_id</code>, <code>steps</code>, <code>event</code>)</td>
-<td>Contract 2.0</td>
+<td>Каркас рецепта (<code>expression_pattern_id</code>, <code>steps</code>)</td>
+<td>Contract 3.0</td>
+</tr>
+<tr>
+<td>Каркас триггера (<code>event</code>, <code>homeostasis_deltas</code>, <code>reflex_trigger_expression_pattern_id</code>)</td>
+<td>Contract 3.0</td>
 <td>YAML</td>
 </tr>
 <tr>
@@ -979,19 +988,17 @@ triggers:
 </table>
 <p>Пути часто задают через <code>%ProgramData%\...</code>.</p>
 <hr>
-<h2 id="15-чеклист-соответствия-contract-20">15. Чеклист соответствия contract 2.0</h2>
-<p><strong>Автор host (минимум, без студии):</strong></p>
+<h2 id="15-чеклист-соответствия-contract-30">15. Чеклист соответствия contract 3.0</h2>
+<p><strong>Автор host:</strong></p>
 <ul>
-<li>[ ] Host ссылается на <code>isida.dll</code> и <code>SymbiontEnv.Contract.dll</code></li>
-<li>[ ] YAML читается/пишется через <code>EnvironmentYamlCodec</code> (§ 5–7)</li>
+<li>[ ] <code>isida.dll</code>, <code>SymbiontEnv.Contract.dll</code>, <code>IHostMotorDispatcher</code></li>
+<li>[ ] YAML v3; mechanical triggers без <code>InfluenceActionId</code></li>
 </ul>
-<p><strong>Автор пакета для AIStudio:</strong></p>
+<p><strong>Автор пакета:</strong></p>
 <ul>
-<li>[ ] <code>manifest.json</code> с <code>contractVersion: "2.0"</code> и валидным <code>id</code></li>
-<li>[ ] <code>schema\</code> — пять JSON-файлов (§ 10.1) согласованы с runtime</li>
-<li>[ ] «Проверить» проходит без Error</li>
-<li>[ ] (Рекомендуется) BootData с <code>recipes:</code> / <code>triggers:</code> для seed проекта</li>
-<li>[ ] (Рекомендуется) <code>runtime\</code> — полный closure с <code>isida.dll</code> для дистрибуции</li>
+<li>[ ] <code>contractVersion: "3.0"</code></li>
+<li>[ ] <code>schema\</code> incl. <code>expression-pattern-catalog.json</code></li>
+<li>[ ] BootData без legacy ключей</li>
 </ul>
 <p><strong>Разработчик AIStudio:</strong></p>
 <ul>
@@ -1018,14 +1025,14 @@ triggers:
 </thead>
 <tbody>
 <tr>
-<td>2.0</td>
-<td>2026-06-09</td>
-<td>Шаги <code>invoke</code> (handler + flat-ключи argsSchema) и <code>comment</code>; триггер — одно <code>event</code>; schema — пять файлов (<code>trigger-catalog.json</code>); Environment Shell и <code>SchemaActionPanel</code> в AIStudio</td>
+<td>3.0</td>
+<td>2026-06-13</td>
+<td><code>expression_pattern_id</code>, <code>homeostasis_deltas</code>, <code>reflex_trigger_expression_pattern_id</code>; удалены EA/G_AD поля; Spec v2.2</td>
 </tr>
 <tr>
 <td>2.0</td>
-<td>2026-06-07</td>
-<td><code>contractVersion</code> 2.0; schema-driven редакторы; <code>recipe-catalog.json</code>; <code>SymbiontEnv.Contract.dll</code>; валидация § 12 без проверки <code>runtime\</code></td>
+<td>2026-06-09</td>
+<td>invoke/comment; одно <code>event</code> (<strong>устарел</strong>)</td>
 </tr>
 <tr>
 <td>1.0</td>
@@ -1035,7 +1042,7 @@ triggers:
 </tbody>
 </table>
 <hr>
-<p><em>Контракт 2.0 соответствует <code>SymbiontEnv.Contract.dll</code> (<code>EnvironmentYamlCodec</code>, <code>AdapterPackageValidator</code>) и редакторам «Среда» в AIStudio. Изменения codec или schema без обновления этого документа не допускаются.</em></p>
+<p><em>Контракт 3.0 соответствует Spec v2.2 (<code>SymbiontArchitecture_OperatorEnvironment_Spec.md</code>) и <code>SymbiontEnv.Contract.dll</code>. Изменения codec или schema без обновления этого документа не допускаются.</em></p>
 </main>
 </body>
 </html>

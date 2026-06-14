@@ -1,21 +1,23 @@
 # Контракт платформы адаптеров среды (AIStudio)
 
-**Версия контракта:** `2.0`  
-**Дата:** 2026-06-09  
+**Версия контракта:** `3.0`  
+**Дата:** 2026-06-13  
 **Статус:** нормативный документ для AIStudio, авторов адаптеров и runtime host. AIStudio **не обязательна** для разработки host; пакет с `manifest.json` нужен только при интеграции со студией (§ 0.5). Кодек YAML и проверка пакета — **`SymbiontEnv.Contract.dll`** (общая библиотека студии и host).
 
 Связанные документы:
 
 | Документ | Назначение |
 |----------|------------|
-| [`AdapterAuthorGuide.md`](AdapterAuthorGuide.md) | Практика сборки и регистрации пакета |
+| [`SymbiontArchitecture_OperatorEnvironment_Spec.md`](../../../../VELUM/Velum/docs/SymbiontArchitecture_OperatorEnvironment_Spec.md) (v2.2) | **Архитектура:** operator vs environment, Expression/Command, `BaseExternalActions`, `PulseHomeostasisLedger`, `IHostMotorDispatcher` |
+| [`Velum_RecipeReflexEditor_ImplementationPlan.md`](../../../../VELUM/Velum/docs/Velum_RecipeReflexEditor_ImplementationPlan.md) (v2.2) | Эталонная реализация Reactive Core (Velum) |
+| [`AdapterAuthorGuide.md`](AdapterAuthorGuide.md) (v1.0) | Практика сборки и регистрации пакета (contract 3.0) |
 | [`AdapterPlatform_ImplementationPlan.md`](AdapterPlatform_ImplementationPlan.md) | План реализации в студии |
+
+**Синхронизация с архитектурой v2.2:** YAML contract 3.0 **не** использует `adaptive_action_id`, `influence_action_id`, `InfluenceActions.dat` как прокси среды. Рецепты привязаны к **`expression_pattern_id`** (Expression channel); триггеры — к **`homeostasis_deltas`** (mechanical path) и **`reflex_trigger_expression_pattern_id`** (`expr:env.*`). Legacy read/write contract 2.0 **не поддерживается**.
 
 ---
 
 ## 0. Термины и роли
-
-Этот раздел фиксирует **три разные сущности**, которые не следует смешивать в UI и документации.
 
 ### 0.1. Проект симбионта
 
@@ -25,7 +27,7 @@
 {projectRoot}\
   Settings\Settings.xml     — профиль проекта (пути Data, BootData)
   Data\Gomeostas\AgentProperties.dat — свойства симбионта, в т.ч. AdapterId
-  Data\                     — ISIDA (.dat): гомеостаз, рефлексы, действия…
+  Data\                     — ISIDA (.dat): гомеостаз, рефлексы, каналы…
   BootData\                 — boot-данные, в т.ч. Environment\*.yaml при работе со средой
 ```
 
@@ -64,11 +66,9 @@
 %ProgramData%\ISIDA\AdapterPackageTemplates\demo\
 ```
 
-Студия **не копирует** каркас при работе: каталог появляется **при установке AIStudio**. Исходник каркаса — `docs/AdapterPackageTemplates/demo/`. Автор копирует каталог, меняет `id`, заполняет schema и runtime.
-
 ### 0.3. Runtime host (исполнитель среды)
 
-**`runtime\*.dll`** — программа, которая **вне студии** читает YAML проекта и исполняет рецепты/триггеры (эталонная реализация v1 — ориентир).
+**`runtime\*.dll`** — программа, которая **вне студии** читает YAML проекта, исполняет рецепты/триггеры и реализует **`IHostMotorDispatcher`** (Spec v2.2 §3.7).
 
 | Где нужен runtime | Когда |
 |-------------------|--------|
@@ -78,7 +78,7 @@
 
 ### 0.4. Связь проекта симбионта и пакета
 
-Поле **`AdapterId`** в `Data\Gomeostas\AgentProperties.dat` (свойства симбионта) — **не подключение к DLL**, а метка:
+Поле **`AdapterId`** в `Data\Gomeostas\AgentProperties.dat` — метка:
 
 > «Для этого симбионта используем описание среды из зарегистрированного пакета `{id}`».
 
@@ -86,32 +86,45 @@
 
 - доступность редакторов меню «Среда»;
 - seed BootData при **создании** проекта (если тип среды выбран);
-- combobox и подсказки из `schema\` — в т.ч. **ProbeKey** в редакторе «Давление среды на виталы» (`EnvironmentPressureRules.dat`) и каталог ID рецептов из `recipe-catalog.json`.
+- combobox и подсказки из `schema\` — ProbeKey в `EnvironmentPressureRules.dat`, каталог рецептов из `recipe-catalog.json`.
 
 ### 0.5. Когда нужен пакет для студии
 
-Ядро платформы для host — **`isida.dll`** и runtime contract YAML (§ 5–7). Формат **пакета** (`manifest.json`, `Adapters\{id}\`, BootData, schema) обязателен **только** если используется AIStudio.
+Ядро платформы для host — **`isida.dll`**, runtime contract YAML (§ 5–7), **`IHostMotorDispatcher`**. Формат **пакета** обязателен **только** при использовании AIStudio.
 
 | Компонент | Только host (без студии) | С AIStudio |
 |-----------|--------------------------|------------|
-| `isida.dll` | **Обязательно** (ссылка в host) | **Обязательно** в `runtime\` |
+| `isida.dll` | **Обязательно** | **Обязательно** в `runtime\` |
 | `manifest.json`, `Adapters\{id}\` | Не нужны | Нужны для регистрации |
 | `BootData\Environment\*.yaml` в пакете | Не нужны | Нужны (seed проекта) |
-| `schema\` | Не нужна | **Обязательна** для регистрации в студии (редакторы «Среда») |
+| `schema\` | Не нужна | **Обязательна** для регистрации |
 
-Автор host может использовать любой редактор данных симбионта; контракт YAML и `SymbiontEnv.Contract.dll` доступны без установки AIStudio.
+### 0.6. Operator path vs mechanical path (норматив Spec v2.2)
 
-### 0.6. Роли пользователей
+**Не смешивать** в YAML и runtime:
+
+| Путь | Источник | YAML / ISIDA | Попадает в operator `PerceptionImage`? |
+|------|----------|--------------|----------------------------------------|
+| **Operator** | Пульт: Verbal, Command, Expression, Visual, `HomeostasisSignificance` | каналы + significance | **Да** |
+| **Mechanical (среда)** | Триггеры SW, pressure rules, SessionHealth | `homeostasis_deltas` в triggers; **не** EA-прокси | **Нет** |
+| **Наблюдаемая команда SW** | Command buffer host | `CommandPatternIdList` | **Да** (отдельно от mechanical delta) |
+
+- Учительский сдвиг гомеостаза с пульта — **только** `HomeostasisSignificance` (не `InfluenceActions.dat`).
+- Событие SW → гомеостаз — **только** `homeostasis_deltas` + запись в `PulseHomeostasisLedger` (`EnvironmentMechanical`).
+- Рецепт исполняется по **`expression_pattern_id`** (`expr:velum.recipe.*`) через `IHostMotorDispatcher`, не по `AdaptiveActions.dat`.
+- **Double dispatch запрещён:** одно событие SW — Command buffer **или** mechanical trigger, не оба с одной семантикой (Spec §4.2).
+
+### 0.7. Роли пользователей
 
 | Роль | Типичный поток |
 |------|----------------|
-| **Настройщик симбионта** | Получить пакет от автора → **зарегистрировать** в студии → создать/открыть проект → настроить данные (гомеостаз, рецепты/триггеры) |
-| **Автор адаптера (только host)** | Host + `isida.dll` → YAML по контракту → свой деплой у конечника |
-| **Автор адаптера + студия** | Собрать пакет → **зарегистрировать** в студии → тестовый проект с `AdapterId` → рецепты/schema |
+| **Настройщик симбионта** | Зарегистрировать пакет → создать/открыть проект → настроить рецепты/триггеры v3 |
+| **Автор адаптера (только host)** | Host + `isida.dll` + `IHostMotorDispatcher` → YAML contract 3.0 |
+| **Автор адаптера + студия** | Пакет → регистрация → тестовый проект с `AdapterId` |
 
-### 0.7. Запрещённые формулировки в UI
+### 0.8. Запрещённые формулировки в UI
 
-Избегать: «подключить адаптер», «адаптер активен», «запустить адаптер», «установить адаптер» (путается с установкой программы в ОС).
+Избегать: «подключить адаптер», «адаптер активен», «запустить адаптер».
 
 Использовать: **«зарегистрировать пакет»**, **«тип среды»**, **«описание пакета `{id}`»**.
 
@@ -121,30 +134,26 @@
 
 ### 1.1. Что регулирует контракт
 
-1. **Структура пакета адаптера** — каталог, который регистрируется в `%ProgramData%\ISIDA\Adapters\{id}\`.
-2. **`manifest.json`** — метаданные адаптера и ссылки на части пакета.
-3. **Runtime contract YAML** — формат файлов `EnvironmentRecipes.yaml` и `EnvironmentTriggers.yaml`, которые:
-   - редактирует AIStudio;
-   - читает runtime host;
-   - копируются из пакета адаптера в проект симбионта при создании проекта.
-4. **Нормализация** — канонические ключи при записи, допустимые алиасы при чтении, правила round-trip.
-5. **UI schema** (JSON в `schema\`) — описание handler'ов, типов события и каталогов для редакторов «Среда»; загрузка через `AdapterSchemaLoader` в AIStudio.
+1. **Структура пакета адаптера** — каталог в `%ProgramData%\ISIDA\Adapters\{id}\`.
+2. **`manifest.json`** — метаданные и `contractVersion`.
+3. **Runtime contract YAML** — `EnvironmentRecipes.yaml`, `EnvironmentTriggers.yaml` (contract **3.0**).
+4. **Нормализация** — канонические ключи, round-trip через `SymbiontEnv.Contract.dll`.
+5. **UI schema** (`schema\`) — handler'ы, события, каталоги для редакторов «Среда».
 
 ### 1.2. Что контракт не регулирует
 
-- Форматы ISIDA (`.dat`: G_AD, EA, GeneticReflexes, гомеостаз) — зона ответственности `isida.dll` и редакторов студии (если используется AIStudio).
-- Реализацию API конкретной среды (CAD, офисные пакеты, IDE и т.д.) — только в runtime host.
-- Загрузку DLL адаптера в процесс AIStudio — **запрещена**; runtime исполняется вне студии.
-- Деплой и дистрибуцию runtime host на машине пользователя.
+- Форматы ISIDA (`.dat`: genetic reflexes, `BaseExternalActions.dat`, Expression primaries, гомеостаз) — `isida.dll` и редакторы студии; норматив — **Spec v2.2**.
+- Реализацию API целевой среды — только в runtime host.
+- Загрузку DLL адаптера в AIStudio — **запрещена**.
 
 ### 1.3. Роли
 
 | Роль | Ответственность |
 |------|-----------------|
-| **AIStudio** | Редактирование данных симбионта; регистрация пакетов; валидация «Проверить»; запись YAML по runtime contract |
-| **Пакет адаптера** | Для студии: manifest, BootData-образцы, runtime DLL (**вкл. `isida.dll`**), schema (рекомендуется) |
-| **Runtime host** | Чтение YAML проекта; исполнение шагов рецептов; детекция триггеров |
-| **Проект симбионта** | `AgentProperties.dat` с `AdapterId`; рабочие `BootData\Environment\*.yaml` и `Data\` |
+| **AIStudio** | Редактирование данных; регистрация пакетов; запись YAML v3; валидация binding expression patterns |
+| **Пакет адаптера** | manifest, BootData-образцы, runtime (`isida.dll` + host), schema |
+| **Runtime host** | `IHostMotorDispatcher`; mechanical triggers; исполнение рецептов |
+| **Проект симбионта** | `AgentProperties.dat`; `BootData\Environment\*.yaml`; `Data\` |
 
 ---
 
@@ -154,24 +163,24 @@
 
 | Значение | Поддержка AIStudio (текущая) |
 |----------|------------------------------|
-| `2.0` | Да (текущая) |
-| `1.0` | Нет (устарела) |
+| `3.0` | **Да (текущая)** — expression patterns, mechanical deltas |
+| `2.0` | **Нет** — `adaptive_action_id` / `influence_action_id` устарели |
+| `1.0` | Нет |
 
-- Студия **отклоняет** пакет с неизвестной major-версией контракта.
-- Minor-расширения контракта (новые опциональные ключи YAML при сохранении обратной совместимости) оформляются ревизией этого документа без смены major, если все существующие runtime v1 продолжают читать старые файлы.
+- Студия **отклоняет** пакет с неизвестной major-версией.
+- Contract 3.0 — **breaking change** относительно 2.0; миграция boot — утилита студии (Spec §2.5), не dual-read в codec.
 
 ### 2.2. `version` в manifest
 
-Версия **пакета адаптера** (SemVer рекомендуется: `1.0.0`). Не путать с `contractVersion`.
+Версия **пакета адаптера** (SemVer). Не путать с `contractVersion`.
 
 ### 2.3. Политика изменений
 
 | Изменение | Действие |
 |-----------|----------|
-| Новый обязательный ключ в YAML | Новая major `contractVersion` + обновление runtime |
-| Новый опциональный ключ | Документировать в § YAML; runtime игнорирует неизвестные ключи |
-| Новый `step.type` или `detect.kind` | Поддержка в runtime адаптера + запись в schema; контракт YAML остаётся extensible (type/kind — строки) |
-| Смена канона записи | Обновить § 5 + dual round-trip тесты |
+| Новый обязательный ключ YAML | Новая major `contractVersion` |
+| Новый опциональный ключ | Документировать; runtime игнорирует неизвестные ключи |
+| Смена канона записи | Обновить § 5–7 + round-trip тесты |
 
 ---
 
@@ -183,73 +192,48 @@
 %ProgramData%\ISIDA\Adapters\{adapterId}\
 ```
 
-- `adapterId` совпадает с полем `id` в `manifest.json`.
-- Допустимые символы `id`: `[a-z0-9_-]+` (регистр сохраняется; рекомендуется lowercase).
-- Повторная установка того же `id` — полная замена каталога (с подтверждением в UI).
+- `adapterId` = `id` в `manifest.json`; символы `[a-z0-9_-]+`.
 
 ### 3.2. Проект симбионта
 
 ```
 {projectRoot}\
-  Settings\Settings.xml       — профиль проекта (пути)
-  Data\Gomeostas\AgentProperties.dat — свойства симбионта, в т.ч. AdapterId
+  Settings\Settings.xml
+  Data\Gomeostas\AgentProperties.dat
   BootData\Environment\
     EnvironmentRecipes.yaml
     EnvironmentTriggers.yaml
-  Data\                       — ISIDA (.dat)
+  Data\                       — ISIDA (.dat), incl. BaseExternalActions.dat, Expression primaries
 ```
 
-При **новом проекте** студия копирует `{Adapters\{adapterId}\BootData\}` → `{projectRoot}\BootData\` (файлы не перезаписываются, если уже существуют — политика seed).
-
-### 3.3. AdapterId в свойствах симбионта (MVP)
+### 3.3. AdapterId
 
 ```
 AdapterId|my-adapter
 ```
 
-(строка в `Data\Gomeostas\AgentProperties.dat`, формат `Ключ|Значение`)
-
-- Задаётся при создании проекта или в UI «Свойства симбионта»; должен совпадать с зарегистрированным пакетом в `Adapters\{id}\`.
-- Пустой или отсутствующий `AdapterId` → редакторы меню «Среда» заблокированы; **гомеостаз и пульт оператора доступны**.
-- `AdapterId` **не обязателен** при создании проекта симбионта (проект «только гомеостаз»).
-- Legacy `<AdapterId>` в `Settings.xml` при открытии проекта переносится в `AgentProperties.dat` и удаляется из Settings.
+- Пустой `AdapterId` → меню «Среда» заблокировано; гомеостаз и пульт доступны.
 
 ---
 
 ## 4. Структура пакета адаптера
 
-### 4.1. MVP (минимум для «Проверить» и нового проекта)
+### 4.1. MVP
 
 ```
 {packageRoot}\
-  manifest.json                         ОБЯЗАТЕЛЬНО
-  BootData\
-    Environment\
-      EnvironmentRecipes.yaml             ОБЯЗАТЕЛЬНО (допускается recipes: [])
-      EnvironmentTriggers.yaml          ОБЯЗАТЕЛЬНО (допускается triggers: [])
-  runtime\                              ОБЯЗАТЕЛЬНО для адаптеров с DLL-host
-    *.dll                               (полный closure — § 8)
+  manifest.json                         ОБЯЗАТЕЛЬНО (contractVersion 3.0)
+  BootData\Environment\*.yaml           ОБЯЗАТЕЛЬНО (допускается пустые списки)
+  runtime\                              ОБЯЗАТЕЛЬНО для DLL-host
   schema\                               ОБЯЗАТЕЛЬНО для регистрации в студии
-  adapter-settings\                     ОПЦИОНАЛЬНО
 ```
 
-Пакет **для регистрации в AIStudio** должен содержать `manifest.json` с `contractVersion: "2.0"` и каталог `schema\` с валидными JSON (§ 12). `BootData\` и `runtime\` рекомендуются для seed проекта и дистрибуции host, но **не блокируют** «Проверить». Без студии достаточно host + `isida.dll` (§ 0.5).
-
-### 4.2. Расширенный пакет (рекомендации)
-
-Дополнительно к § 4.1:
-
-- `schema\` — все файлы UI schema (§ 10); для полноценных редакторов «Среда».
-- `adapter-settings\Settings.xml` — шаблон настроек host на целевой машине.
-
-### 4.3. Имена файлов BootData
+### 4.2. Имена файлов BootData
 
 | Файл | Строго |
 |------|--------|
 | Рецепты | `BootData\Environment\EnvironmentRecipes.yaml` |
 | Триггеры | `BootData\Environment\EnvironmentTriggers.yaml` |
-
-Другие имена (`UserTriggers.yaml`, `Recipes\*.yaml`) — **legacy** вне контракта v1; миграция на усмотрение host.
 
 ---
 
@@ -257,126 +241,90 @@ AdapterId|my-adapter
 
 ### 5.1. Принцип
 
-- **На диске (канон записи)** — ключи и значения из столбца «Канон».
-- **При чтении** — допускаются алиасы; парсеры приводят к внутренней модели.
-- **Dual round-trip** (рекомендуемый gate): эталонный файл → Read → Write → Read; результат эквивалентен канону для **AIStudio** и **runtime host**, если оба используют `EnvironmentYamlCodec` из `SymbiontEnv.Contract.dll`.
+- **Канон записи** — ключи из § 6–7.
+- **Dual round-trip** через `EnvironmentYamlCodec` (`SymbiontEnv.Contract.dll`).
 
-### 5.2. Таблица алиасов (поддерживает `EnvironmentYamlCodec`)
+### 5.2. Таблица алиасов
 
 | Область | Канон (запись) | Алиасы (только чтение) |
 |---------|----------------|------------------------|
 | ID рецепта | `id` | `recipe_id` |
 | ID триггера | `id` | `trigger_key` |
 
-Дополнительные алиасы (`file_save_post`, `command_pre` и т.п.) — **на усмотрение конкретного host** при исполнении; кодек их не нормализует. При записи из студии используются канонические ключи § 5.2.
+**Удалены (contract 3.0):** `adaptive_action_id`, `influence_action_id`, `recommended_trigger_influence_ids` — при чтении **игнорируются** с Warning в валидаторе.
 
 ### 5.3. Внутренняя модель после чтения
 
-- Шаг рецепта: `type` всегда `invoke`; параметры `handler` и `args` (строка `key=value; …`) — в словаре параметров шага.
-- Триггер: одно поле `event` (kind из `trigger-detect.json`); дополнительные scalar-параметры события (например `command_ids`) — в словаре параметров события.
-- Неизвестные ключи верхнего уровня рецепта/триггера при чтении игнорируются кодеком (legacy `preconditions`, `risk_tier`, `detect`, `document_kinds`).
+- Шаг рецепта: `type: invoke` + `handler` + flat args; `type: comment` + `text`.
+- Триггер: `event` + scalar-параметры события + `homeostasis_deltas` + `reflex_trigger_expression_pattern_id`.
 
 ### 5.4. Пустые коллекции
 
-Writers студии и runtime host для пустых списков эмитируют явно:
-
 ```yaml
-recommended_trigger_influence_ids: []
+homeostasis_deltas: []
 command_ids: []
+recommended_trigger_keys: []
 ```
 
-### 5.5. Устаревший формат файла рецептов
+### 5.5. Кодировка
 
-Допускается **один рецепт в корне документа** (без ключа `recipes:`) — только для чтения. Writers всегда создают:
-
-```yaml
-recipes:
-  - id: ...
-```
-
-### 5.6. Кодировка и синтаксис
-
-- UTF-8 без BOM.
-- Подмножество YAML 1.1: maps, sequences, scalars; block sequences для `recipes`, `triggers`, `steps`, `detect`.
-- Комментарии `#` допускаются; writers могут добавлять заголовочный комментарий.
+UTF-8 без BOM; подмножество YAML 1.1.
 
 ---
 
 ## 6. Runtime contract: `EnvironmentRecipes.yaml`
 
-### 6.1. Корневая структура
+### 6.1. Корневая структура (contract 3.0)
 
 ```yaml
 recipes:
-  - id: <string>                    # обязательно, уникален в файле
-    adaptive_action_id: <int>       # обязательно, > 0, ISIDA G_AD
-    display_name: <string>          # опционально
-    description: <string>           # опционально
-    reactive_eligible: <bool>       # опционально; default true
-    recommended_trigger_influence_ids: [<int>, ...]  # опционально, справочно
-    steps: [ ... ]                  # опционально
+  - id: <string>                         # обязательно, уникален в файле
+    expression_pattern_id: <int>         # обязательно, > 0; ID в Expression PhraseTree
+    display_name: <string>               # опционально
+    description: <string>                # опционально
+    reactive_eligible: <bool>            # опционально; default true
+    recommended_trigger_keys: [<string>] # опционально, справочно (id триггеров)
+    steps: [ ... ]                       # опционально
 ```
 
-**Не используются в contract 2.0:** `risk_tier`, `preconditions`, `postcondition_log`, `test_notes` и прочие legacy-поля — writers их не эмитируют; при чтении игнорируются.
+**Удалено относительно contract 2.0:** `adaptive_action_id`, `recommended_trigger_influence_ids`.
 
-Условия запуска рецепта (когда активируется G_AD) задаются **деревом рефлексов ISIDA** и **триггерами среды**, не полями рецепта.
+Условия запуска рецепта задаются **GeneticReflex Level3** (`expr:velum.recipe.*`) и **`IHostMotorDispatcher`**, не полями G_AD / AdaptiveActions.
 
-### 6.2. Связь с ISIDA
+### 6.2. Связь с ISIDA (Spec v2.2)
 
 | Поле | Справочник ISIDA | Назначение |
 |------|------------------|------------|
-| `adaptive_action_id` | Adaptive Actions (G_AD) | Рецепт исполняется, когда активно это G_AD |
-| `recommended_trigger_influence_ids` | Influence Actions (EA) | Рекомендация редактору; **не** исполняется runtime из YAML |
+| `expression_pattern_id` | Expression channel (`DefaultExpressionPrimaries.tmp`, `ExpressionPhrases.dat`) | Host ищет рецепт при dispatch моторного образа с этим pattern ID |
+| `recommended_trigger_keys` | `EnvironmentTriggers.yaml` (`id`) | Подсказка редактору; **не** исполняется runtime из YAML |
 
-Runtime **не** проверяет существование ID в `.dat` при чтении YAML; валидация — задача студии и сценариев тестирования.
+Runtime **не** проверяет существование pattern ID в boot при чтении YAML; валидация — студия (§ 12) и smoke-тесты host.
+
+**`BaseExternalActions.dat`:** motor metadata (antagonists, vigor) для того же ID — **не** поле рецепта; arbitration в `isida` до dispatch.
 
 ### 6.3. Блок `steps`
 
-Шаги двух типов: `invoke` (исполняется host) и `comment` (пропускается runtime).
-
-**Зарезервированные ключи шага:** `type`, `handler`, `text`.
-
-#### `type: invoke`
+Без изменений принципа: `invoke` (host) и `comment` (пропуск).
 
 ```yaml
 - type: invoke
-  handler: <string>                 # id из handlers-catalog.json
-  <arg_key>: <scalar>              # flat-ключи из argsSchema handler'а
+  handler: <string>
+  <arg_key>: <scalar>
 ```
 
-Строковое поле `args: "k=v; …"` и legacy single-recipe в корне YAML **не поддерживаются**.
+Handler'ы — в `schema/handlers-catalog.json`.
 
-| Ключ | Назначение |
-|------|------------|
-| `handler` | Идентификатор метода host |
-| остальные scalar | Аргументы handler'а по `argsSchema` |
-
-#### `type: comment`
+### 6.4. Пример (эталон contract 3.0)
 
 ```yaml
-- type: comment
-  text: <string>                    # произвольный комментарий для автора
-```
-
-Допустимые `handler` и схема аргументов — в `schema/handlers-catalog.json`. Студия использует `SchemaActionPanel` (каталог + форма параметров).
-
-Неизвестный `handler` при исполнении — ошибка host.
-
-### 6.4. Расширение handler'ов
-
-Новые handler'ы добавляет автор адаптера в `handlers-catalog.json` и реализует в runtime host. Контракт YAML: `invoke` + `handler` + flat-ключи argsSchema.
-
-### 6.5. Пример (эталон)
-
-```yaml
-# Рецепты среды: моторика host (invoke). Условия запуска — рефлексы и триггеры.
+# Рецепты среды: моторика host. Запуск — genetic L3 expr:velum.recipe.* → IHostMotorDispatcher.
 recipes:
   - id: kb_name_on_save
     display_name: "Наименование по КБ после сохранения"
     description: "Заполнить Обозначение и Наименование по шаблону политики КБ"
-    adaptive_action_id: 37
+    expression_pattern_id: 42001
     reactive_eligible: true
-    recommended_trigger_influence_ids: [101]
+    recommended_trigger_keys: [save_active_document]
     steps:
       - type: invoke
         handler: set_custom_property
@@ -384,64 +332,70 @@ recipes:
         name: Обозначение
         template: "{PROJECT}-{DISCIPLINE}-{SEQ:4}"
         overwrite: if_empty
-      - type: invoke
-        handler: set_custom_property
-        config: active
-        name: Наименование
-        template: "{DESCRIPTION}"
-        overwrite: never_if_filled
       - type: comment
-        text: "Заполнить оба поля по КБ"
+        text: "Привязка: expr:velum.recipe.kb_apply_on_save (ID 42001 в boot проекта)"
 ```
 
 ---
 
 ## 7. Runtime contract: `EnvironmentTriggers.yaml`
 
-### 7.1. Корневая структура
+### 7.1. Корневая структура (contract 3.0)
 
 ```yaml
 triggers:
-  - id: <string>                    # обязательно, уникален в файле
-    display_name: <string>          # опционально
-    influence_action_id: <int>      # обязательно, > 0, ISIDA EA (прокси)
-    event: <string>                 # обязательно; kind из trigger-detect.json
-    <event_param>: <scalar>         # опционально; см. § 7.3
+  - id: <string>                                    # обязательно, уникален
+    display_name: <string>                          # опционально
+    event: <string>                                 # обязательно; kind из trigger-detect.json
+    homeostasis_deltas:                             # опционально; mechanical path
+      - parameter_id: <int>
+        delta: <float>
+    reflex_trigger_expression_pattern_id: <int>     # опционально; expr:env.* для Genetic L3
+    <event_param>: <scalar>                         # опционально; см. § 7.3
 ```
 
-Секция `triggers:` **обязательна** (допускается пустой список). На каждый триггер — **одно** событие (`event`), не массив `detect`.
+**Удалено относительно contract 2.0:** `influence_action_id`.
 
-**Не используются в contract 2.0:** `document_kinds`, `detect[]`, `environment`, `enabled` — legacy; writers их не эмитируют.
+**Правила mechanical path (Spec §4.1, §5.4):**
+
+- `homeostasis_deltas` → `PulseHomeostasisLedger` (`EnvironmentMechanical`); **не** operator `PerceptionImage`.
+- `reflex_trigger_expression_pattern_id` → пусковой паттерн `expr:env.*` для genetic reflex; **не** заменяет `homeostasis_deltas`.
+- Наблюдаемая команда (`command_before`) → **только** Command buffer host; **не** дублировать mechanical apply на том же событии (§ 0.6).
 
 ### 7.2. Связь с ISIDA
 
-| Поле | Справочник | Назначение |
-|------|------------|------------|
-| `influence_action_id` | Influence Actions (EA) | При срабатывании события → `ApplyMultipleInfluenceActions`. **Только ID из `InfluenceActions.dat`**, не RuleId из `EnvironmentPressureRules.dat`. |
+| Поле | Назначение |
+|------|------------|
+| `homeostasis_deltas` | Явные дельты параметров гомеостаза от среды |
+| `reflex_trigger_expression_pattern_id` | ID паттерна `expr:env.*` в Expression channel для Genetic Level3 |
 
-### 7.3. События и параметры (contract 2.0)
+**Не использовать:** `InfluenceActions.dat`, EA-прокси 101+, `ApplyMultipleInfluenceActions` для YAML-триггеров.
 
-Допустимые значения `event` и параметры события описываются в `schema/trigger-detect.json` (`detectKinds[]`).
+### 7.3. События и параметры
 
-| `event` (канон) | Параметры | Поведение runtime host |
-|-----------------|-----------|------------------------|
-| `command_before` | `command_ids: [<int>, …]` | Перед выполнением команды; match по ID |
-| `document_saved` | — | После сохранения документа |
+Допустимые `event` — в `schema/trigger-detect.json`.
 
-Параметры события, не входящие в reserved keys триггера (`id`, `display_name`, `influence_action_id`, `event`), сериализуются как scalar-поля на том же уровне, что и `event`. `command_ids` при записи — список целых в квадратных скобках.
+| `event` (канон) | Параметры | Поведение host (contract 3.0) |
+|-----------------|-----------|-------------------------------|
+| `command_before` | `command_ids: [<int>, …]` | **Только** запись в Command buffer → CommandChannel |
+| `document_saved` | — | Mechanical: `homeostasis_deltas` + optional `reflex_trigger_expression_pattern_id` |
 
-### 7.4. Пример (эталон)
+Reserved keys триггера: `id`, `display_name`, `event`, `homeostasis_deltas`, `reflex_trigger_expression_pattern_id`.
+
+### 7.4. Пример (эталон contract 3.0)
 
 ```yaml
-# Триггеры среды: событие host → influence_action_id.
+# Триггеры среды: mechanical path + expr:env.* (не influence_action_id).
 triggers:
   - id: save_active_document
     display_name: "Сохранение активного документа"
-    influence_action_id: 101
     event: document_saved
+    homeostasis_deltas:
+      - parameter_id: 3
+        delta: 1.0
+    reflex_trigger_expression_pattern_id: 41001
   - id: before_rebuild
-    display_name: "Перед Rebuild"
-    influence_action_id: 102
+    display_name: "Перед Rebuild (наблюдаемая команда)"
     event: command_before
     command_ids: [57603]
 ```
@@ -452,76 +406,62 @@ triggers:
 
 ### 8.1. Требование
 
-В `runtime\` должны находиться **все** сборки, без которых host не стартует на чистой машине пользователя, включая:
+В `runtime\` — полный closure host, включая:
 
-- основную DLL host (например `my-host.dll`);
-- **`isida.dll`** (обязательно) и транзитивные зависимости;
-- interop/bindings целевой среды;
-- зависимости UI host и прочие из `bin\Debug` / Release host-проекта.
+- основную DLL host;
+- **`isida.dll`** (обязательно);
+- реализацию **`IHostMotorDispatcher`**;
+- interop целевой среды.
 
-### 8.2. Чеклист для адаптера (ориентир)
+### 8.2. Чеклист
 
 | Категория | Примеры |
 |-----------|---------|
-| Host | `my-host.dll` |
+| Host | `velum.dll`, `my-host.dll` |
 | ISIDA | `isida.dll` |
-| Interop | `*.Interop.*.dll`, bindings целевого API |
-| UI host | зависимости UI-фреймворка host |
-
-Точный список фиксируется в README пакета адаптера. «Создать пакет…» копирует стартовый SDK (`isida.dll`, `SymbiontEnv.Contract.dll`, …) из `%ProgramData%\ISIDA\AdapterPackageTemplates\demo\runtime\` и дополняет DLL host из `bin\Debug`. «Проверить» **не** валидирует содержимое `runtime\` (§ 12) — ответственность автора при дистрибуции.
-
-### 8.3. Исключения
-
-**Не** включать в пакет: `.cs`, `.csproj`, `.pdb` (опционально), исходники, `.git`, артефакты AIStudio.
+| Contract | `SymbiontEnv.Contract.dll` |
 
 ---
 
 ## 9. `manifest.json`
 
-### 9.1. Обязательные поля (contract 2.0)
+### 9.1. Обязательные поля (contract 3.0)
 
 ```json
 {
   "id": "my-adapter",
   "displayName": "Мой адаптер",
   "version": "1.0.0",
-  "contractVersion": "2.0",
+  "contractVersion": "3.0",
   "author": "Example Author",
   "bootDataRelativePath": "BootData"
 }
 ```
 
-| Поле | Тип | Правила |
-|------|-----|---------|
-| `id` | string | `[a-z0-9_-]+`, уникален среди установленных |
-| `displayName` | string | Для UI студии |
-| `version` | string | Версия пакета |
-| `contractVersion` | string | `"2.0"` для этого документа |
-| `author` | string | |
-| `bootDataRelativePath` | string | Относительно корня пакета; обычно `"BootData"` |
+| Поле | Правила |
+|------|---------|
+| `contractVersion` | `"3.0"` для этого документа |
 
 ### 9.2. Опциональные поля
 
 | Поле | Назначение |
 |------|------------|
-| `schemaVersion` | Версия набора JSON в `schema\` (для contract 2.0: `"2.0"`) |
-| `adapterSettingsRelativePath` | `"adapter-settings"` |
-| `description` | Краткое описание |
-| `supportedStudioVersions` | Ограничение версий AIStudio (post-MVP) |
+| `schemaVersion` | Версия JSON в `schema\` (для contract 3.0: `"3.0"`) |
+| `architectureSpecVersion` | Ссылка на Spec (рекомендуется: `"2.2"`) |
 
-### 9.3. Пример (полный)
+### 9.3. Пример
 
 ```json
 {
-  "id": "my-adapter",
-  "displayName": "Мой адаптер — Reactive Core",
-  "version": "1.0.0",
-  "contractVersion": "2.0",
-  "schemaVersion": "2.0",
-  "author": "Example Author",
+  "id": "velum-solidworks",
+  "displayName": "Velum — SolidWorks",
+  "version": "2.0.0",
+  "contractVersion": "3.0",
+  "schemaVersion": "3.0",
+  "architectureSpecVersion": "2.2",
+  "author": "VELUM",
   "bootDataRelativePath": "BootData",
-  "adapterSettingsRelativePath": "adapter-settings",
-  "description": "Эталонный адаптер среды для симбионта ISIDA"
+  "description": "Reactive Core: expression_pattern_id, mechanical triggers"
 }
 ```
 
@@ -529,131 +469,79 @@ triggers:
 
 ## 10. UI schema (`schema\`)
 
-Студия загружает schema через `AdapterSchemaLoader` при редактировании проекта с выбранным `AdapterId`. Каталог `schema\` **обязателен** для регистрации пакета (§ 12). Без schema редакторы «Среда» показывают пустые списки полей и типов шагов.
-
-### 10.1. Имена файлов (schemaVersion 2.0)
+### 10.1. Имена файлов (schemaVersion 3.0)
 
 | Файл | Содержание |
 |------|------------|
-| `handlers-catalog.json` | Handler'ы для шагов `invoke` (`handlers[]`, `argsSchema[]`) |
-| `trigger-detect.json` | Допустимые значения `event` (`detectKinds[]`, опционально `parameters[]`) |
-| `trigger-catalog.json` | Каталог допустимых `id` триггеров (выбор ID в редакторе триггеров) |
-| `recipe-catalog.json` | Каталог допустимых `id` рецептов (combobox в редакторе рецепта) |
-| `metric-probes.json` | Ключи **ProbeKey** в `EnvironmentPressureRules.dat` (редактор «Давление среды на виталы») |
+| `handlers-catalog.json` | Handler'ы шагов `invoke` |
+| `trigger-detect.json` | Допустимые `event` |
+| `trigger-catalog.json` | Каталог `id` триггеров |
+| `recipe-catalog.json` | Каталог `id` рецептов |
+| `expression-pattern-catalog.json` | **Новый:** `expr:velum.*` / `expr:env.*` — id, token, label для редакторов |
+| `metric-probes.json` | ProbeKey в `EnvironmentPressureRules.dat` |
 
-**Устаревшие файлы** (не использовать; «Проверить» выдаёт Warning): `recipe-preconditions.json`, `recipe-steps.json`, `trigger-filter.json`, `macros-catalog.json`.
-
-### 10.2. Формат `handlers-catalog.json` (фрагмент)
+### 10.2. `expression-pattern-catalog.json` (фрагмент)
 
 ```json
 {
-  "schemaVersion": "2.0",
-  "handlers": [
+  "schemaVersion": "3.0",
+  "patterns": [
     {
-      "id": "set_custom_property",
-      "label": "Задать свойство документа",
-      "description": "Запись свойства активного документа",
-      "argsSchema": [
-        { "key": "name", "label": "Имя", "type": "string", "required": true },
-        { "key": "template", "label": "Шаблон", "type": "string" },
-        {
-          "key": "overwrite",
-          "label": "Перезапись",
-          "type": "enum",
-          "values": ["if_empty", "never_if_filled"]
-        }
-      ]
+      "id": 42001,
+      "token": "expr:velum.recipe.kb_apply_on_save",
+      "label": "Рецепт: КБ при Save",
+      "kind": "velum_recipe"
+    },
+    {
+      "id": 41001,
+      "token": "expr:env.document_saved",
+      "label": "Событие: документ сохранён",
+      "kind": "env_trigger"
     }
   ]
 }
 ```
 
-### 10.3. Формат `trigger-detect.json` (фрагмент)
+Редактор рецепта: combobox / picker по `expression_pattern_id` из каталога и boot проекта.
 
-```json
-{
-  "schemaVersion": "1.0",
-  "detectKinds": [
-    { "kind": "document_saved", "label": "Документ сохранён" },
-    {
-      "kind": "command_before",
-      "label": "Перед командой",
-      "parameters": [
-        { "key": "command_ids", "label": "ID команд", "type": "string" }
-      ]
-    }
-  ]
-}
-```
+### 10.3. `handlers-catalog.json`, `trigger-detect.json`
 
-**Правило:** каждый `handler` id / `event` kind в schema должен поддерживаться runtime адаптера. Студия не добавляет handler'ы и события, отсутствующие в schema.
+Формат без изменений принципа (см. contract 2.0); `schemaVersion`: `"3.0"`.
 
-### 10.4. Формат `recipe-catalog.json` (фрагмент)
+### 10.4. ProbeKey и оператор
 
-```json
-{
-  "schemaVersion": "2.0",
-  "recipes": [
-    {
-      "id": "doc_props_on_save",
-      "label": "Свойства документа при сохранении",
-      "description": "Заполнить свойства по шаблону политики"
-    }
-  ]
-}
-```
+Студия заполняет combobox **ProbeKey** в `EnvironmentPressureRules.dat` из `probes[].key` (плюс «оператор, не среда»).
 
-### 10.5. Формат `metric-probes.json` (фрагмент)
-
-```json
-{
-  "schemaVersion": "2.0",
-  "probes": [
-    {
-      "key": "host.active_doc_modified",
-      "label": "Документ изменён",
-      "description": "Сэмплер host: активный документ имеет несохранённые изменения"
-    }
-  ]
-}
-```
-
-Студия заполняет combobox **ProbeKey** в `EnvironmentPressureRules.dat` из `probes[].key` (плюс пункт «оператор, не среда»). Дискретные стимулы оператора и YAML-триггеры — в `InfluenceActions.dat` (без ProbeKey).
+**Operator path (Spec v2.2):** дискретные стимулы оператора — каналы Expression/Verbal/Command + **`HomeostasisSignificance`**; **не** `InfluenceActions.dat`. YAML-триггеры — **только** mechanical path (`homeostasis_deltas`).
 
 ---
 
 ## 11. Согласование парсеров (AIStudio ↔ runtime host)
 
-С contract **2.0** AIStudio и host **должны** ссылаться на одну сборку `SymbiontEnv.Contract.dll` (`EnvironmentYamlCodec`). Согласование — round-trip тестами:
+AIStudio и host **должны** использовать одну `SymbiontEnv.Contract.dll` (codec contract 3.0).
 
 | # | Тест |
 |---|------|
-| T1 | `EnvironmentYamlCodec`: Read(fixture) → Write(temp) → Read(temp) — эквивалент канону |
-| T2 | Host после Write студии — Read без ошибок |
-| T3 | Студия после Write host — Read без ошибок |
-
-Рекомендуемые фикстуры: пустые каталоги, полный рецепт с `invoke`, триггер с `event` и `command_ids`, legacy `recipe_id`.
-
-**CI:** пересборка при изменении `AdapterContract.md`, `SymbiontEnv.Contract`, редакторов среды в AIStudio.
+| T1 | Read(fixture v3) → Write → Read — эквивалент канону |
+| T2 | Host Read после Write студии |
+| T3 | Студия Read после Write host |
+| T4 | Recipe `expression_pattern_id` ↔ `expression-pattern-catalog.json` |
+| T5 | Trigger `homeostasis_deltas` + `reflex_trigger_expression_pattern_id` round-trip |
 
 ---
 
 ## 12. Валидация «Проверить» (AIStudio)
 
-Реализация: `AdapterPackageValidator` в `SymbiontEnv.Contract.dll` (обёртка в студии — `AdapterValidator`).
-
 | # | Проверка | Severity |
 |---|----------|----------|
-| V1 | `manifest.json` существует, JSON валиден | Error |
-| V2 | `contractVersion` = `"2.0"` | Error |
-| V3 | `id` валиден (`[a-z0-9_-]+`) | Error |
-| V4 | Каталог `schema\` существует и содержит `*.json` | Error |
-| V5 | Структура JSON в schema (массивы `handlers`, `detectKinds`, `probes`, `recipes`, …) | Error |
-| V6 | `displayName`, `version`, `author` заполнены | Warning |
-| V7 | `BootData\Environment\*.yaml` парсятся codec (если есть) | Warning |
-| V8 | Неизвестные имена файлов в `schema\` | Info |
-
-`runtime\`, BootData и `adapter-settings\` **не блокируют** регистрацию. Студия **не загружает** DLL из `runtime\`.
+| V1 | `manifest.json` валиден | Error |
+| V2 | `contractVersion` = `"3.0"` | Error |
+| V3 | `id` валиден | Error |
+| V4 | `schema\` с JSON (incl. `expression-pattern-catalog.json`) | Error |
+| V5 | Структура schema | Error |
+| V6 | YAML парсится codec v3 | Warning |
+| V7 | `expression_pattern_id` / `reflex_trigger_expression_pattern_id` в каталоге boot | Warning |
+| V8 | Legacy ключи `adaptive_action_id`, `influence_action_id` в YAML | **Error** (contract 3.0) |
 
 ---
 
@@ -661,68 +549,72 @@ triggers:
 
 | Уровень | Владелец | Формат |
 |---------|----------|--------|
-| Гомеостаз, рефлексы, сценарии | ISIDA / AIStudio | `.dat`, сценарии |
-| Каркас рецепта/триггера (`id`, `adaptive_action_id`, `steps`, `event`) | Contract 2.0 | YAML |
-| Семантика handler/args и параметров события | Runtime адаптера | YAML + schema |
-| Исполнение | Host (`my-host.dll`, …) | — |
+| Гомеостаз, рефлексы, каналы, `BaseExternalActions` | ISIDA / AIStudio | `.dat` (boot v2, Spec §8) |
+| Каркас рецепта (`id`, `expression_pattern_id`, `steps`) | Contract 3.0 | YAML |
+| Каркас триггера (`event`, `homeostasis_deltas`, `reflex_trigger_expression_pattern_id`) | Contract 3.0 | YAML |
+| Operator stimulus | ISIDA | PerceptionImage + `HomeostasisSignificance` |
+| Исполнение рецепта | Host | `IHostMotorDispatcher` → COM/API |
 
 ---
 
 ## 14. `adapter-settings` (опционально)
 
-Шаблон `adapter-settings\Settings.xml` — настройки **host на машине пользователя** после установки (не профиль проекта симбионта).
-
-Для типичных адаптеров ориентир по ключам (не часть YAML contract):
-
-| Ключ | Назначение |
-|------|------------|
-| `BootDataFolderPath` | Корень BootData на целевой машине |
-| `EnvironmentRecipesFilePath` | Путь к `EnvironmentRecipes.yaml` |
-| `EnvironmentTriggersFilePath` | Путь к `EnvironmentTriggers.yaml` |
-| `DataActionsFolderPath` | Каталог ISIDA Actions |
-
-Пути часто задают через `%ProgramData%\...`.
+Без изменений принципа (пути к YAML на машине host). Ключи `EnvironmentRecipesFilePath`, `EnvironmentTriggersFilePath` и т.д.
 
 ---
 
-## 15. Чеклист соответствия contract 2.0
+## 15. Чеклист соответствия contract 3.0
 
-**Автор host (минимум, без студии):**
+**Автор host:**
 
-- [ ] Host ссылается на `isida.dll` и `SymbiontEnv.Contract.dll`
-- [ ] YAML читается/пишется через `EnvironmentYamlCodec` (§ 5–7)
+- [ ] `isida.dll`, `SymbiontEnv.Contract.dll`, `IHostMotorDispatcher`
+- [ ] YAML v3 через `EnvironmentYamlCodec`
+- [ ] Mechanical triggers → ledger `EnvironmentMechanical`; без `InfluenceActionId`
+- [ ] Double dispatch исправлен (Command **или** mechanical)
 
 **Автор пакета для AIStudio:**
 
-- [ ] `manifest.json` с `contractVersion: "2.0"` и валидным `id`
-- [ ] `schema\` — пять JSON-файлов (§ 10.1) согласованы с runtime
-- [ ] «Проверить» проходит без Error
-- [ ] (Рекомендуется) BootData с `recipes:` / `triggers:` для seed проекта
-- [ ] (Рекомендуется) `runtime\` — полный closure с `isida.dll` для дистрибуции
+- [ ] `contractVersion: "3.0"`; `architectureSpecVersion: "2.2"` (рекомендуется)
+- [ ] `schema\` incl. `expression-pattern-catalog.json`
+- [ ] BootData YAML **без** legacy ключей
+- [ ] «Проверить» без Error
 
 **Разработчик AIStudio:**
 
-- [ ] Round-trip T1–T3 на фикстурах YAML
-- [ ] «Проверить» реализует § 12
-- [ ] Редакторы «Среда» читают schema через `AdapterSchemaLoader`
-- [ ] `AdapterId` в `AgentProperties.dat`; блок «Среда» без адаптера
+- [ ] Редакторы «Среда»: `expression_pattern_id`, `homeostasis_deltas`, `reflex_trigger_expression_pattern_id`
+- [ ] Отклонение YAML с `adaptive_action_id` / `influence_action_id`
+- [ ] `AdapterId` в `AgentProperties.dat`
 
 **Разработчик runtime host:**
 
-- [ ] Использует `EnvironmentYamlCodec` из `SymbiontEnv.Contract.dll`
-- [ ] Поддерживает `handler` / `event` / параметры события из schema пакета
-- [ ] Исполняет шаги `invoke` и события триггеров по семантике своей среды
+- [ ] `RecipeCatalog.FindByExpressionPatternId`
+- [ ] `SwEventDetector` v3 (mechanical deltas, expr:env trigger)
+- [ ] Не вызывать `ApplyMultipleInfluenceActions` для YAML-триггеров
 
 ---
 
-## 16. История версий документа
+## 16. Миграция contract 2.0 → 3.0
+
+Одноразовая утилита студии (не dual-read в production codec):
+
+| Было (2.0) | Стало (3.0) |
+|------------|-------------|
+| `adaptive_action_id` | `expression_pattern_id` (маппинг boot-таблицы) |
+| `influence_action_id` | `homeostasis_deltas` + `reflex_trigger_expression_pattern_id` |
+| `recommended_trigger_influence_ids` | `recommended_trigger_keys` |
+
+Поломка тестовых сценариев и boot v1 **допустима** (Spec v2.2).
+
+---
+
+## 17. История версий документа
 
 | Версия | Дата | Изменения |
 |--------|------|-----------|
-| 2.0 | 2026-06-09 | Шаги `invoke` (handler + flat-ключи argsSchema) и `comment`; триггер — одно `event`; schema — пять файлов (`trigger-catalog.json`); Environment Shell и `SchemaActionPanel` в AIStudio |
-| 2.0 | 2026-06-07 | `contractVersion` 2.0; schema-driven редакторы; `recipe-catalog.json`; `SymbiontEnv.Contract.dll`; валидация § 12 без проверки `runtime\` |
-| 1.0 | 2026-06-03 | Первый нормативный release (устарел) |
+| 3.0 | 2026-06-13 | Синхронизация со Spec v2.2: `expression_pattern_id`, `homeostasis_deltas`, `reflex_trigger_expression_pattern_id`; удалены `adaptive_action_id`, `influence_action_id`; `expression-pattern-catalog.json`; operator/mechanical path §0.6; `IHostMotorDispatcher`; миграция §16 |
+| 2.0 | 2026-06-09 | `invoke`/`comment`; `event`; schema 2.0 (**устарел**) |
+| 1.0 | 2026-06-03 | Первый release (**устарел**) |
 
 ---
 
-*Контракт 2.0 соответствует `SymbiontEnv.Contract.dll` (`EnvironmentYamlCodec`, `AdapterPackageValidator`) и редакторам «Среда» в AIStudio. Изменения codec или schema без обновления этого документа не допускаются.*
+*Контракт 3.0 соответствует архитектуре [`SymbiontArchitecture_OperatorEnvironment_Spec.md`](../../../../VELUM/Velum/docs/SymbiontArchitecture_OperatorEnvironment_Spec.md) v2.2 и плану [`Velum_RecipeReflexEditor_ImplementationPlan.md`](../../../../VELUM/Velum/docs/Velum_RecipeReflexEditor_ImplementationPlan.md) v2.2. Изменения codec или schema без обновления этого документа не допускаются.*

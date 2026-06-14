@@ -979,7 +979,7 @@ namespace AIStudio.ViewModels
           "Событие «долго без оператора»: порог тишины",
           errors);
       TryReadBool(appSettings, nameof(HomeostasisPulseSpeedDriftEnabled), v => HomeostasisPulseSpeedDriftEnabled = v, "Изменение параметров по Speed на каждом пульсе", errors);
-      TryReadInt(appSettings, nameof(DefaultAdaptiveActionId), v => DefaultAdaptiveActionId = v, "Адаптивное действие по умолчанию", errors);
+      TryReadInt(appSettings, nameof(DefaultAdaptiveActionId), v => DefaultAdaptiveActionId = v, "Моторное действие по умолчанию", errors);
       TryReadInt(appSettings, nameof(DefaultThemeTypeId), v => DefaultThemeTypeId = v, "Тема мышления по умолчанию", errors);
       TryReadIntWithValidator(
           appSettings,

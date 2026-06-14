@@ -115,7 +115,7 @@
 <h1 id="intro">Руководство автора адаптера среды</h1>
 <p>Практическая инструкция для <strong>разработчика host-среды</strong> (Velum, Excel, CAD…). AIStudio <strong>не обязательна</strong>: ядро платформы — <strong><code>isida.dll</code></strong> и контракт YAML (<a href="AdapterContract.md"><code>AdapterContract.md</code></a>). Студия нужна, если вы (или коллега) редактируете <strong>данные симбионта</strong> и YAML среды в общем UI.</p>
 <p>Технические форматы — в <a href="AdapterContract.md"><code>AdapterContract.md</code></a>. План функций студии — <a href="AdapterPlatform_ImplementationPlan.md"><code>AdapterPlatform_ImplementationPlan.md</code></a>.</p>
-<p><strong>Версия гайда:</strong> 0.9 (2026-06-09), <code>contractVersion</code> платформы: <strong>2.0</strong>.</p>
+<p><strong>Версия гайда:</strong> 1.0 (2026-06-13), <code>contractVersion</code> платформы: <strong>3.0</strong>. Архитектура: <code>SymbiontArchitecture_OperatorEnvironment_Spec.md</code> v2.2.</p>
 <hr>
 <h2 id="1-два-пути-разработчика-адаптера">1. Два пути разработчика адаптера</h2>
 <h3 id="11-только-host-isidadll-студия-не-нужна">1.1. Только host + <code>isida.dll</code> (студия не нужна)</h3>
@@ -376,7 +376,7 @@
 <h3 id="51-создать-пакет-реализовано">5.1. «Создать пакет…» (реализовано)</h3>
 <p><strong>Проект → Зарегистрированные пакеты… → Создать пакет…</strong></p>
 <ol>
-<li>Форма <strong>manifest</strong>: <code>id</code>, <code>displayName</code>, <code>version</code>, <code>author</code>, <code>contractVersion</code> (должен быть <code>2.0</code>).</li>
+<li>Форма <strong>manifest</strong>: <code>id</code>, <code>displayName</code>, <code>version</code>, <code>author</code>, <code>contractVersion</code> (должен быть <code>3.0</code>).</li>
 <li>Диалог <strong>каталога сборки host</strong> (<code>bin\Debug</code>) — <strong>опционален</strong>. <strong>Отмена</strong> — в пакет попадёт только стартовый SDK из demo (удобно в начале разработки host).</li>
 <li>Если host указан — все <code>*.dll</code> из его каталога копируются в <code>runtime\</code> <strong>поверх</strong> SDK.</li>
 <li>Сборка из каркаса demo + runtime, <strong>«Проверить»</strong> (manifest + schema), при успехе — копия в <code>%ProgramData%\ISIDA\Adapters\{id}\</code>.</li>
@@ -479,13 +479,13 @@
 recipes: []
 </code></pre>
 <p><strong><code>EnvironmentTriggers.yaml</code></strong></p>
-<pre><code class="language-yaml"># Триггеры среды: событие host → influence_action_id.
+<pre><code class="language-yaml"># Триггеры: mechanical path (contract 3.0). Не influence_action_id.
 triggers: []
 </code></pre>
-<p>Для осмысленного старта добавьте 1–2 примера с валидными <code>adaptive_action_id</code> / <code>influence_action_id</code> из <code>.dat</code> проекта. Шаги — <code>type: invoke</code> с <code>handler</code> и <strong>flat-ключами</strong> из <code>argsSchema</code>; опционально <code>type: comment</code> с <code>text</code>. Строковый <code>args: &quot;k=v; …&quot;</code> <strong>не поддерживается</strong>. На триггер — одно поле <code>event</code>.</p>
+<p>Для примеров используйте <code>expression_pattern_id</code>, <code>homeostasis_deltas</code>, <code>reflex_trigger_expression_pattern_id</code> из boot проекта. <strong>Не</strong> <code>adaptive_action_id</code> / <code>influence_action_id</code>.</p>
 <p>Формат — <a href="AdapterContract.md"><code>AdapterContract.md</code></a> § YAML среды.</p>
 <h3 id="75-заполните-schema">7.5. Заполните <code>schema\</code></h3>
-<p>Студия читает JSON из <code>Adapters\{id}\schema\</code> через <code>AdapterSchemaLoader</code> и строит UI редакторов «Среда». Имена файлов для <code>schemaVersion</code> 2.0:</p>
+<p>Студия читает JSON из <code>Adapters\{id}\schema\</code>. Имена файлов для <code>schemaVersion</code> <strong>3.0</strong> (шесть файлов, incl. <code>expression-pattern-catalog.json</code>):</p>
 <table>
 <thead>
 <tr>
@@ -518,7 +518,7 @@ triggers: []
 </table>
 <p>Пример handlers-catalog:</p>
 <pre><code class="language-json">{
-  &quot;schemaVersion&quot;: &quot;2.0&quot;,
+  &quot;schemaVersion&quot;: &quot;3.0&quot;,
   &quot;handlers&quot;: [
     {
       &quot;id&quot;: &quot;set_custom_property&quot;,
@@ -553,10 +553,10 @@ triggers: []
   &quot;id&quot;: &quot;my-cad-host&quot;,
   &quot;displayName&quot;: &quot;Адаптер CAD-среды (пример)&quot;,
   &quot;version&quot;: &quot;1.0.0&quot;,
-  &quot;contractVersion&quot;: &quot;2.0&quot;,
+  &quot;contractVersion&quot;: &quot;3.0&quot;,
   &quot;author&quot;: &quot;Your Company&quot;,
   &quot;bootDataRelativePath&quot;: &quot;BootData&quot;,
-  &quot;schemaVersion&quot;: &quot;2.0&quot;
+  &quot;schemaVersion&quot;: &quot;3.0&quot;
 }
 </code></pre>
 <table>
@@ -573,7 +573,7 @@ triggers: []
 </tr>
 <tr>
 <td><code>contractVersion</code></td>
-<td>Версия контракта платформы; текущая → <code>2.0</code></td>
+<td>Версия контракта платформы; текущая → <code>3.0</code></td>
 </tr>
 <tr>
 <td><code>bootDataRelativePath</code></td>
@@ -682,7 +682,7 @@ triggers: []
 <tbody>
 <tr>
 <td>Обзор поведения</td>
-<td>Цепочки триггер → рецепт → адаптивное действие; разрывы связей</td>
+<td>Цепочки триггер → рецепт → моторное действие; разрывы связей</td>
 </tr>
 <tr>
 <td>Триггеры среды</td>
@@ -723,7 +723,7 @@ triggers: []
 <td>Нет файла, неверный JSON</td>
 </tr>
 <tr>
-<td><code>contractVersion</code> = <code>2.0</code></td>
+<td><code>contractVersion</code> = <code>3.0</code></td>
 <td>Error</td>
 <td>Устаревшая или неизвестная версия</td>
 </tr>
@@ -764,8 +764,8 @@ triggers: []
 <tbody>
 <tr>
 <td>«Неподдерживаемый contractVersion»</td>
-<td>В manifest не <code>2.0</code></td>
-<td>Поставить <code>2.0</code> или обновить студию</td>
+<td>В manifest не <code>3.0</code></td>
+<td>Поставить <code>3.0</code>, обновить YAML (§16 Contract)</td>
 </tr>
 <tr>
 <td>«Нет секции recipes/triggers»</td>
@@ -812,7 +812,7 @@ triggers: []
 <hr>
 <h2 id="13-версионирование">13. Версионирование</h2>
 <ul>
-<li><strong><code>contractVersion</code> в manifest</strong> — согласование с AIStudio (<code>2.0</code> для текущего релиза).</li>
+<li><strong><code>contractVersion</code> в manifest</strong> — <code>3.0</code> (текущая). <code>2.0</code> устарел.</li>
 <li><strong><code>version</code> в manifest</strong> — версия вашего пакета (<code>1.0.0</code>, …).</li>
 <li>Новые поля в YAML или schema → новая <strong><code>contractVersion</code></strong> или согласованное расширение (см. Contract).</li>
 </ul>
@@ -820,8 +820,9 @@ triggers: []
 <h2 id="14-чеклист-перед-регистрацией-публикацией">14. Чеклист перед регистрацией / публикацией</h2>
 <ul>
 <li>[ ] <code>manifest.json</code> с уникальным <code>id</code></li>
-<li>[ ] <code>contractVersion</code>: <code>2.0</code></li>
-<li>[ ] <code>schema\</code> — пять JSON-файлов (§ 7.5) с осмысленным содержимым</li>
+<li>[ ] <code>contractVersion</code>: <code>3.0</code></li>
+<li>[ ] <code>schema\</code> — шесть JSON (incl. expression-pattern-catalog)</li>
+<li>[ ] BootData без legacy ключей</li>
 <li>[ ] «Проверить» — без Error</li>
 <li>[ ] <code>runtime\</code> — SDK + host DLL (для дистрибуции, не для «Проверить»)</li>
 <li>[ ] <code>BootData\Environment\</code> — оба YAML (если пакет для студии)</li>
@@ -864,7 +865,7 @@ triggers: []
 <li>Редактирование рецептов/триггеров с полями из <code>Adapters\my-cad-host\schema\</code>.</li>
 </ol>
 <hr>
-<p><em>Версия 0.9: contract 2.0, invoke-only шаги, одно event на триггер, schema из четырёх файлов.</em></p>
+<p><em>Версия 1.0 (2026-06-13): contract 3.0, expression_pattern_id, mechanical triggers, IHostMotorDispatcher, Spec v2.2.</em></p>
   </main>
 </div>
 </body>

@@ -406,8 +406,8 @@ namespace AIStudio
           case "2": // Стили реагирования
             ShowBehaviorStyles();
             break;
-          case "3": // Адаптивные действия
-            ShowAdaptiveActions();
+          case "3": // Моторные действия
+          ShowAdaptiveActions();
             break;
           case "4": // Безусловные рефлексы
             ShowGeneticReflexes();
@@ -2106,7 +2106,7 @@ namespace AIStudio
       CurrentContent = behaviorStylesView;
     }
 
-    // Открыть страницу адаптивных действий
+    // Открыть страницу моторных действий
     private void ShowAdaptiveActions()
     {
       var adaptiveActionsView = new AdaptiveActionsView();

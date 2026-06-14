@@ -4,7 +4,8 @@
 
 | Документ | Назначение |
 |----------|------------|
-| [`AdapterContract.md`](../../../AdapterContract.md) | Норматив: YAML, manifest, schema (`contractVersion` **2.0**) |
-| [`AdapterAuthorGuide.md`](../../../AdapterAuthorGuide.md) | Практика сборки и регистрации пакета |
+| [`AdapterContract.md`](../../../AdapterContract.md) | Норматив YAML v3 (`contractVersion` **3.0**) |
+| [`AdapterAuthorGuide.md`](../../../AdapterAuthorGuide.md) (v1.0) | Практика сборки пакета |
+| [`SymbiontArchitecture_OperatorEnvironment_Spec.md`](../../../../../../VELUM/Velum/docs/SymbiontArchitecture_OperatorEnvironment_Spec.md) | Архитектура v2.2 |
 
-HTML-копии рядом с AIStudio: `docs/AdapterContract.html`, `docs/AdapterAuthorGuide.html`.
+HTML: `docs/AdapterContract.html`, `docs/AdapterAuthorGuide.html`.

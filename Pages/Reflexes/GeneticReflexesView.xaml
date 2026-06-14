@@ -150,9 +150,9 @@
                     Height="25"/>
         </StackPanel>
 
-        <!-- Фильтр по адаптивным действиям -->
+        <!-- Фильтр по моторным действиям -->
         <StackPanel Orientation="Vertical" Margin="0,0,15,0" Width="150">
-          <TextBlock Text="Адаптивные действия" FontSize="12" Margin="0,0,0,2"/>
+          <TextBlock Text="Моторные действия" FontSize="12" Margin="0,0,0,2"/>
           <ComboBox Style="{StaticResource AgentComboBoxStyle}"
                     ItemsSource="{Binding AdaptiveActionsFilterOptions}"
                     SelectedValue="{Binding SelectedAdaptiveActionsFilter}"
@@ -279,8 +279,8 @@
             </DataGridTemplateColumn.CellStyle>
           </DataGridTemplateColumn>
 
-          <!-- Адаптивные действия -->
-          <DataGridTemplateColumn Header="Адаптивные действия" Width="*" 
+          <!-- Моторные действия -->
+          <DataGridTemplateColumn Header="Моторные действия" Width="*" 
                        CanUserSort="True" SortMemberPath="AdaptiveActions">
 
             <DataGridTemplateColumn.HeaderStyle>
@@ -307,7 +307,7 @@
             <DataGridTemplateColumn.HeaderStyle>
               <Style TargetType="DataGridColumnHeader">
                 <Setter Property="ToolTip"
-                    Value="Цепочка рефлексов для данной комбинации триггера.&#x0a;Последовательность адаптивных действий при срабатывании рефлекса."/>
+                    Value="Цепочка рефлексов для данной комбинации триггера.&#x0a;Последовательность моторных действий при срабатывании рефлекса."/>
               </Style>
             </DataGridTemplateColumn.HeaderStyle>
             <DataGridTemplateColumn.CellTemplate>

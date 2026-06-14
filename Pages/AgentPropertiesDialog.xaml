@@ -195,7 +195,7 @@
           <TextBlock TextWrapping="Wrap" FontSize="12" Foreground="#FF404040">
             <Run Text="stileCombination" FontWeight="SemiBold"/> — комбинации стилей реагирования<LineBreak/>
             <Run Text="InfluenceActionList" FontWeight="SemiBold"/> — список воздействий с пульта<LineBreak/>
-            <Run Text="AdaptiveActionList" FontWeight="SemiBold"/> — список адаптивных действий<LineBreak/>
+            <Run Text="AdaptiveActionList" FontWeight="SemiBold"/> — список моторных действий<LineBreak/>
             <Run Text="ReflexGenStyleCount" FontWeight="SemiBold"/> — количество комбинаций стилей<LineBreak/>
             <Run Text="ReflexGenTriggerCount" FontWeight="SemiBold"/> — количество воздействий<LineBreak/>
             <Run Text="ReflexGenLinesPerState" FontWeight="SemiBold"/> — строк на состояние (этап 2)<LineBreak/>

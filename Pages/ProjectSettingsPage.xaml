@@ -262,9 +262,9 @@
           Margin="5,0"/>
       </StackPanel>
 
-      <!-- Адаптивное действие по умолчанию -->
+      <!-- Моторное действие по умолчанию -->
       <StackPanel Grid.Column="1" Grid.Row="1" Orientation="Horizontal" Margin="0,0,0,5">
-        <TextBlock Text="Адаптивное действие по умолчанию:" 
+        <TextBlock Text="Моторное действие по умолчанию:" 
           Width="220"
           VerticalAlignment="Center"/>
 

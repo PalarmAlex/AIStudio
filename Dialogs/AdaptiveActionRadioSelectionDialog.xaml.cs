@@ -28,7 +28,7 @@ namespace AIStudio.Dialogs
       if (!AdaptiveActionsSystem.IsInitialized)
       {
         MessageBox.Show(
-            "Система адаптивных действий не инициализирована",
+            "Система моторных действий не инициализирована",
             "Ошибка",
             MessageBoxButton.OK,
             MessageBoxImage.Error);

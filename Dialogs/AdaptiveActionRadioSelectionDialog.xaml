@@ -1,7 +1,7 @@
 <Window x:Class="AIStudio.Dialogs.AdaptiveActionRadioSelectionDialog"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="Выбор адаптивного действия" Height="500" Width="700"
+        Title="Выбор моторного действия" Height="500" Width="700"
         WindowStartupLocation="CenterOwner"
         PreviewKeyDown="Window_PreviewKeyDown">
 
@@ -14,7 +14,7 @@
       <RowDefinition Height="Auto"/>
     </Grid.RowDefinitions>
 
-    <TextBlock Grid.Row="0" Text="Выберите одно адаптивное действие (G_AD):" Margin="0,0,0,10" FontWeight="Bold"/>
+    <TextBlock Grid.Row="0" Text="Выберите одно моторное действие (G_AD):" Margin="0,0,0,10" FontWeight="Bold"/>
     <TextBlock Grid.Row="1" Text="Фильтр:" Margin="0,0,0,4"/>
     <TextBox x:Name="FilterTextBox" Grid.Row="2"
              Margin="0,0,0,8"

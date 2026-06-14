@@ -336,7 +336,7 @@ namespace AIStudio.ViewModels.SymbiontEnv
       }
       if (Model.AdaptiveActionId <= 0)
       {
-        MessageBox.Show("Укажите адаптивное действие.", "Сохранение", MessageBoxButton.OK, MessageBoxImage.Warning);
+        MessageBox.Show("Укажите моторное действие.", "Сохранение", MessageBoxButton.OK, MessageBoxImage.Warning);
         return;
       }
       string stepsError = EnvironmentRecipeStepSchemaHelper.ValidateSteps(Model.Steps, _schema);

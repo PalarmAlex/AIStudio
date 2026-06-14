@@ -1,31 +1,47 @@
-Каталог schema\ — машиночитаемое описание возможностей адаптера для AIStudio.
-Студия читает эти JSON при редактировании проекта симбионта (редакторы «Среда», combobox ProbeKey
-в справочнике «Давление среды на виталы» — EnvironmentPressureRules.dat). Runtime host DLL для этого не нужен.
-Версия формата: schemaVersion 2.0 (совпадает с contractVersion 2.0 в manifest.json).
--------------------------------------------------------------------------------------
-Обязательные файлы (все пять должны быть в пакете для «Проверить» без Error):
-handlers-catalog.json
-  Допустимые handler'ы для шагов type: invoke в рецептах.
-  Массив handlers[]: id, label, description, argsSchema[] (key, label, type, required, values).
-  Аргументы в YAML — flat-ключи на уровне шага (не строковый args).
-trigger-detect.json
-  Допустимые типы события event в триггерах.
-  Массив detectKinds[]: kind, label, parameters[] (опционально, для параметров события).
-trigger-catalog.json
-  Каталог допустимых ID триггеров для редактора триггеров среды.
-  Массив triggers[]: id (обязателен), label, description.
-recipe-catalog.json
-  Каталог допустимых ID рецептов для редактора рецептов среды.
-  Массив recipes[]: id (обязателен), label, description.
-metric-probes.json
-  Ключи ProbeKey для EnvironmentPressureRules.dat (давление метрик на виталы на пульсе).
-  Массив probes[]: key (обязателен), label, description.
-Шаги рецепта в YAML:
-  - type: invoke — handler + flat-ключи из argsSchema
-  - type: comment — text (пропускается runtime)
-  Legacy: строковый args и single-recipe в корне YAML не поддерживаются.
-Правило
--------
-Каждый handler id / kind в schema должен поддерживаться вашим runtime host.
-Если файл отсутствует или пуст, студия для соответствующего редактора использует пустой список.
-«Проверить»: наличие schema\, валидный JSON, обязательные массивы (handlers, detectKinds, triggers, recipes, probes).
+Каталог schema\ — машиночитаемое описание возможностей адаптера для AIStudio (contract 3.0).
+
+Студия читает JSON при редактировании проекта (редакторы «Среда», ProbeKey в EnvironmentPressureRules.dat).
+Runtime host DLL для этого не нужен.
+
+Версия: schemaVersion 3.0 (совпадает с contractVersion 3.0 в manifest.json).
+
+-------------------------------------------------------------------------------------
+
+Обязательные файлы (шесть — для «Проверить» без Error):
+
+handlers-catalog.json
+  Handler'ы для шагов type: invoke. Массив handlers[].
+
+trigger-detect.json
+  Допустимые event в триггерах. Массив detectKinds[].
+
+trigger-catalog.json
+  ID триггеров для редактора. Массив triggers[].
+
+recipe-catalog.json
+  ID рецептов для редактора. Массив recipes[].
+
+expression-pattern-catalog.json   [НОВЫЙ в 3.0]
+  Паттерны Expression channel: expr:demo.env.*, expr:demo.recipe.* и т.д.
+  Массив patterns[]: id, token, label, description, kind.
+  Используется для picker expression_pattern_id и reflex_trigger_expression_pattern_id.
+
+metric-probes.json
+  Ключи ProbeKey для EnvironmentPressureRules.dat. Массив probes[].
+
+Шаги рецепта в YAML:
+  - type: invoke — handler + flat-ключи из argsSchema
+  - type: comment — text (пропускается runtime)
+
+Удалено (contract 3.0):
+  adaptive_action_id, influence_action_id в YAML.
+  Operator path — HomeostasisSignificance + каналы (не InfluenceActions.dat).
+
+Правило
+-------
+
+Каждый handler id / event kind / pattern id в schema должен согласовываться с boot проекта
+(DefaultExpressionPrimaries.tmp) и runtime host (IHostMotorDispatcher).
+
+«Проверить»: schema\, валидный JSON, обязательные массивы
+(handlers, detectKinds, triggers, recipes, patterns, probes).

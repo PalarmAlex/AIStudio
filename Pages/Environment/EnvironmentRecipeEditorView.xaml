@@ -46,7 +46,7 @@
             <TextBox Text="{Binding DisplayName, UpdateSourceTrigger=PropertyChanged}" Margin="0,4,0,8" TextChanged="ModelField_TextChanged"/>
             <TextBlock Text="Описание" FontWeight="SemiBold"/>
             <TextBox Text="{Binding Description, UpdateSourceTrigger=PropertyChanged}" AcceptsReturn="True" Height="48" Margin="0,4,0,8" TextChanged="ModelField_TextChanged"/>
-            <TextBlock Text="Адаптивное действие (G_AD)" FontWeight="SemiBold"/>
+            <TextBlock Text="Моторное действие (G_AD)" FontWeight="SemiBold"/>
             <Grid Margin="0,4,0,8">
               <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="120"/>

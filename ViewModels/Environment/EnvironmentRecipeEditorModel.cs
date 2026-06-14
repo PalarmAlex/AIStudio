@@ -24,7 +24,7 @@ namespace AIStudio.ViewModels.SymbiontEnv
     public string DisplayName { get; set; }
     /// <summary>Описание.</summary>
     public string Description { get; set; }
-    /// <summary>ID адаптивного действия.</summary>
+    /// <summary>ID моторного действия.</summary>
     public int AdaptiveActionId { get; set; }
     /// <summary>Допускается реактивное исполнение.</summary>
     public bool ReactiveEligible { get; set; }

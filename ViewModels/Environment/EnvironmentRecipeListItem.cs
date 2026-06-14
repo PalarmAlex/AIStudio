@@ -9,7 +9,7 @@ namespace AIStudio.ViewModels.SymbiontEnv
     public string Id { get; set; }
     /// <summary>Отображаемое имя.</summary>
     public string DisplayName { get; set; }
-    /// <summary>ID адаптивного действия.</summary>
+    /// <summary>ID моторного действия.</summary>
     public int AdaptiveActionId { get; set; }
     /// <summary>Число шагов.</summary>
     public int StepCount { get; set; }

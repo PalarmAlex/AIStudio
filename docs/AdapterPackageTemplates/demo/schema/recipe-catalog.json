@@ -1,10 +1,10 @@
 {
-  "schemaVersion": "2.0",
+  "schemaVersion": "3.0",
   "recipes": [
     {
       "id": "doc_props_on_save",
       "label": "Свойства документа при сохранении",
-      "description": "Заполнить свойства документа по шаблону политики при сохранении"
+      "description": "expression_pattern_id 201 → expr:demo.recipe.doc_props_on_save"
     },
     {
       "id": "host.view.fit_document",
