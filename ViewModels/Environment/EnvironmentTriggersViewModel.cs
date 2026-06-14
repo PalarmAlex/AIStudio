@@ -10,6 +10,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
 using System.Runtime.CompilerServices;
@@ -22,7 +23,7 @@ namespace AIStudio.ViewModels.SymbiontEnv
   /// <summary>
   /// Редактор триггеров среды (master-detail + SchemaActionPanel).
   /// </summary>
-  public sealed class EnvironmentTriggersViewModel : IEnvironmentChildViewModel, INotifyPropertyChanged
+  public sealed class EnvironmentTriggersViewModel : INotifyPropertyChanged
   {
     private readonly GomeostasSystem _gomeostas;
     private readonly GeneticReflexesSystem _geneticReflexes;
@@ -33,8 +34,8 @@ namespace AIStudio.ViewModels.SymbiontEnv
     private int _currentAgentStage;
     private string _filterId = string.Empty;
     private string _filterTitle = string.Empty;
-    private bool _dirty;
     private int _validationIssueCount;
+
     public EnvironmentTriggersViewModel(GomeostasSystem gomeostas, GeneticReflexesSystem geneticReflexes)
     {
       _gomeostas = gomeostas ?? throw new ArgumentNullException(nameof(gomeostas));
@@ -46,7 +47,7 @@ namespace AIStudio.ViewModels.SymbiontEnv
       EventSchema.ValuesCommitted += OnEventSchemaCommitted;
       EventSchema.SelectedCatalogChanged += OnEventSchemaCatalogChanged;
 
-      SaveCommand = new RelayCommand(_ => Save(), _ => CanSave);
+      SaveCommand = new RelayCommand(_ => Save(), _ => IsEditingEnabled);
       AddTriggerCommand = new RelayCommand(_ => AddTrigger(), _ => IsEditingEnabled);
       DeleteSelectedCommand = new RelayCommand(_ => DeleteSelected(), _ => IsEditingEnabled && SelectedTrigger != null);
       ApplyFiltersCommand = new RelayCommand(_ => ApplyFilters());
@@ -54,8 +55,6 @@ namespace AIStudio.ViewModels.SymbiontEnv
       RemoveAllCommand = new RelayCommand(RemoveAllTriggers, _ => IsEditingEnabled);
       PickTriggerIdFromCatalogCommand = new RelayCommand(_ => PickTriggerIdFromCatalog(), _ => IsEditingEnabled && SelectedTrigger != null);
       PickInfluenceActionCommand = new RelayCommand(_ => PickInfluenceAction(), _ => IsEditingEnabled && SelectedTrigger != null);
-      NavigateToRecipesCommand = new RelayCommand(_ => NavigateToRecipes(), _ => SelectedTrigger != null);
-      NavigateToReflexesCommand = new RelayCommand(_ => NavigateToReflexes(), _ => SelectedTrigger != null);
 
       GlobalTimer.PulsationStateChanged += OnPulsationStateChanged;
       Reload();
@@ -65,6 +64,11 @@ namespace AIStudio.ViewModels.SymbiontEnv
     public ObservableCollection<AdapterSchemaTriggerCatalogEntry> TriggerIdCatalog { get; }
     public ObservableCollection<EnvironmentLinkItem> Links { get; }
     public SchemaActionEditorViewModel EventSchema { get; }
+
+    public string CurrentAgentTitle =>
+        SymbiontPageTitleFormatter.Format("Триггеры среды", _currentAgentName, _currentAgentStage);
+
+    public DescriptionWithLink CurrentAgentDescription { get; } = new DescriptionWithLink();
 
     public EnvironmentTriggerRow SelectedTrigger
     {
@@ -91,10 +95,6 @@ namespace AIStudio.ViewModels.SymbiontEnv
       set { _filterTitle = value ?? string.Empty; OnPropertyChanged(); }
     }
 
-    public bool Dirty => _dirty;
-    public int ValidationIssueCount => _validationIssueCount;
-    public bool CanSave => IsEditingEnabled && _dirty;
-
     public ICommand SaveCommand { get; }
     public ICommand AddTriggerCommand { get; }
     public ICommand DeleteSelectedCommand { get; }
@@ -103,12 +103,7 @@ namespace AIStudio.ViewModels.SymbiontEnv
     public ICommand RemoveAllCommand { get; }
     public ICommand PickTriggerIdFromCatalogCommand { get; }
     public ICommand PickInfluenceActionCommand { get; }
-    public ICommand NavigateToRecipesCommand { get; }
-    public ICommand NavigateToReflexesCommand { get; }
 
-    public event Action DirtyChanged;
-    public event Action<int> ValidationIssueCountChanged;
-    public event Action<EnvironmentNavigationRequest> NavigateRequest;
     public event PropertyChangedEventHandler PropertyChanged;
 
     public bool IsStageZero => _currentAgentStage == 0;
@@ -128,11 +123,10 @@ namespace AIStudio.ViewModels.SymbiontEnv
 
     public void Reload()
     {
-      _dirty = false;
-      DirtyChanged?.Invoke();
       var agent = _gomeostas.GetAgentState();
       _currentAgentStage = agent?.EvolutionStage ?? 0;
       _currentAgentName = agent?.Name ?? string.Empty;
+      OnPropertyChanged(nameof(CurrentAgentTitle));
       _allRows.Clear();
       var errors = new List<string>();
       List<EnvironmentTriggerData> loaded = EnvironmentCatalogStorage.LoadTriggers(errors);
@@ -155,7 +149,6 @@ namespace AIStudio.ViewModels.SymbiontEnv
       ApplyFilters();
       SelectedTrigger = Triggers.FirstOrDefault();
       RecalculateValidation();
-      OnPropertyChanged(nameof(CanSave));
     }
 
     public void Save()
@@ -179,9 +172,6 @@ namespace AIStudio.ViewModels.SymbiontEnv
           definitions.Add(EnvironmentTriggerMapper.ToData(row));
         }
         EnvironmentCatalogStorage.SaveTriggers(definitions);
-        _dirty = false;
-        DirtyChanged?.Invoke();
-        OnPropertyChanged(nameof(CanSave));
         Reload();
       }
       catch (Exception ex)
@@ -295,27 +285,7 @@ namespace AIStudio.ViewModels.SymbiontEnv
         return;
       SelectedTrigger.InfluenceActionId = dialog.SelectedInfluenceActionId;
       MarkDirty();
-      RefreshLinks();
-    }
-
-    private void NavigateToRecipes()
-    {
-      if (SelectedTrigger == null)
-        return;
-      NavigateRequest?.Invoke(new EnvironmentNavigationRequest
-      {
-        Tab = EnvironmentShellTab.Recipes,
-        TriggerId = SelectedTrigger.Id,
-        InfluenceActionId = SelectedTrigger.InfluenceActionId
-      });
-    }
-
-    private void NavigateToReflexes()
-    {
-      NavigateRequest?.Invoke(new EnvironmentNavigationRequest
-      {
-        Tab = EnvironmentShellTab.Overview
-      });
+      RefreshTriggerLinks();
     }
 
     private void OnEventSchemaCommitted(Dictionary<string, string> values)
@@ -331,16 +301,18 @@ namespace AIStudio.ViewModels.SymbiontEnv
       }
       SelectedTrigger.EventSummary = BuildEventSummary(SelectedTrigger);
       MarkDirty();
-      RefreshLinks();
     }
 
     private void OnEventSchemaCatalogChanged()
     {
       if (SelectedTrigger == null)
         return;
-      SelectedTrigger.EventKind = EventSchema.SelectedCatalogId;
-      SelectedTrigger.EventSummary = BuildEventSummary(SelectedTrigger);
-      MarkDirty();
+
+      string catalogId = EventSchema.SelectedCatalogId ?? string.Empty;
+      IDictionary<string, string> parameters = string.Equals(catalogId, SelectedTrigger.EventKind, StringComparison.OrdinalIgnoreCase)
+          ? new Dictionary<string, string>(SelectedTrigger.EventParameters, StringComparer.OrdinalIgnoreCase)
+          : null;
+      EventSchema.ReloadCurrentCatalogParameters(parameters);
     }
 
     private void LoadSelectedTriggerDetails()
@@ -352,10 +324,10 @@ namespace AIStudio.ViewModels.SymbiontEnv
         return;
       }
       EventSchema.LoadFromEvent(SelectedTrigger.EventKind, SelectedTrigger.EventParameters);
-      RefreshLinks();
+      RefreshTriggerLinks();
     }
 
-    private void RefreshLinks()
+    private void RefreshTriggerLinks()
     {
       Links.Clear();
       if (SelectedTrigger == null)
@@ -365,6 +337,7 @@ namespace AIStudio.ViewModels.SymbiontEnv
       foreach (EnvironmentLinkItem item in EnvironmentLinksService.BuildTriggerLinks(SelectedTrigger, recipes, _geneticReflexes))
         Links.Add(item);
     }
+
 
     private void RemoveAllTriggers(object parameter)
     {
@@ -440,10 +413,6 @@ namespace AIStudio.ViewModels.SymbiontEnv
 
     private void MarkDirty()
     {
-      _dirty = true;
-      DirtyChanged?.Invoke();
-      OnPropertyChanged(nameof(CanSave));
-      OnPropertyChanged(nameof(Dirty));
       RecalculateValidation();
     }
 
@@ -453,8 +422,6 @@ namespace AIStudio.ViewModels.SymbiontEnv
       if (_validationIssueCount != count)
       {
         _validationIssueCount = count;
-        ValidationIssueCountChanged?.Invoke(count);
-        OnPropertyChanged(nameof(ValidationIssueCount));
       }
     }
 
@@ -485,7 +452,8 @@ namespace AIStudio.ViewModels.SymbiontEnv
       Application.Current?.Dispatcher.Invoke(() =>
       {
         OnPropertyChanged(nameof(IsEditingEnabled));
-        OnPropertyChanged(nameof(CanSave));
+        OnPropertyChanged(nameof(PulseWarningMessage));
+        OnPropertyChanged(nameof(WarningMessageColor));
         EventSchema.IsEditingEnabled = IsEditingEnabled;
       });
     }
@@ -493,6 +461,29 @@ namespace AIStudio.ViewModels.SymbiontEnv
     private void OnPropertyChanged([CallerMemberName] string propertyName = null)
     {
       PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+    }
+
+    /// <summary>
+    /// Класс описания с ссылкой
+    /// </summary>
+    public class DescriptionWithLink
+    {
+      public string Text { get; set; } = "Триггеры событий среды и их связь с воздействиями и рецептами поведения.";
+      public string LinkText { get; set; } = "Подробнее...";
+      public string Url { get; set; } = "https://scorcher.ru/isida/iadaptive_agents_guide.php#ref_9";
+      public ICommand OpenLinkCommand { get; }
+
+      public DescriptionWithLink()
+      {
+        OpenLinkCommand = new RelayCommand(_ =>
+        {
+          try
+          {
+            Process.Start(new ProcessStartInfo(Url) { UseShellExecute = true });
+          }
+          catch { }
+        });
+      }
     }
   }
 }

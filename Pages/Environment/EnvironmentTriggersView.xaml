@@ -4,17 +4,39 @@
              xmlns:converters="clr-namespace:AIStudio.Converters"
              xmlns:controls="clr-namespace:AIStudio.Controls.Environment">
   <UserControl.Resources>
-    <converters:InfluenceActionIdDisplayConverter x:Key="InfluenceActionIdDisplayConverter"/>
     <converters:InfluenceActionIdDescriptionConverter x:Key="InfluenceActionIdDescriptionConverter"/>
+    <converters:InverseBooleanToVisibilityConverter x:Key="InverseBooleanToVisibilityConverter"/>
   </UserControl.Resources>
 
-  <Grid Margin="4">
+  <Grid Margin="12">
     <Grid.RowDefinitions>
       <RowDefinition Height="Auto"/>
+      <RowDefinition Height="Auto"/>
+      <RowDefinition Height="Auto"/>
       <RowDefinition Height="*"/>
+      <RowDefinition Height="Auto"/>
     </Grid.RowDefinitions>
 
-    <Border Grid.Row="0" BorderBrush="#FFE0E0E0" BorderThickness="1" CornerRadius="4" Padding="8" Margin="0,0,0,8" Background="#FFF9F9F9">
+    <TextBlock Grid.Row="0"
+               Text="{Binding CurrentAgentTitle}"
+               FontSize="18"
+               FontWeight="SemiBold"
+               HorizontalAlignment="Center"
+               Margin="0,0,0,5"
+               Foreground="#FF333333"/>
+
+    <TextBlock Grid.Row="1"
+               HorizontalAlignment="Left"
+               Margin="0,0,0,10"
+               Foreground="#FF333333"
+               TextWrapping="Wrap">
+      <Run Text="{Binding CurrentAgentDescription.Text}"/>
+      <Hyperlink Command="{Binding CurrentAgentDescription.OpenLinkCommand}">
+        <Run Text="{Binding CurrentAgentDescription.LinkText}"/>
+      </Hyperlink>
+    </TextBlock>
+
+    <Border Grid.Row="2" BorderBrush="#FFE0E0E0" BorderThickness="1" CornerRadius="4" Padding="8" Margin="0,0,0,8" Background="#FFF9F9F9">
       <Grid>
         <Grid.ColumnDefinitions>
           <ColumnDefinition Width="Auto"/>
@@ -33,7 +55,7 @@
       </Grid>
     </Border>
 
-    <Grid Grid.Row="1">
+    <Grid Grid.Row="3">
       <Grid.ColumnDefinitions>
         <ColumnDefinition Width="2*" MinWidth="320"/>
         <ColumnDefinition Width="6"/>
@@ -99,7 +121,7 @@
           </Grid>
           <TextBlock Text="Событие" FontWeight="SemiBold" Margin="0,0,0,6"/>
           <controls:SchemaActionPanel DataContext="{Binding DataContext.EventSchema, RelativeSource={RelativeSource AncestorType=UserControl}}" MinHeight="220"/>
-          <TextBlock Text="Связи" FontWeight="SemiBold" Margin="0,12,0,6"/>
+          <TextBlock Text="Связи" FontWeight="SemiBold" Margin="0,8,0,4"/>
           <ItemsControl ItemsSource="{Binding DataContext.Links, RelativeSource={RelativeSource AncestorType=UserControl}}">
             <ItemsControl.ItemTemplate>
               <DataTemplate>
@@ -113,12 +135,31 @@
               </DataTemplate>
             </ItemsControl.ItemTemplate>
           </ItemsControl>
-          <StackPanel Orientation="Horizontal" Margin="0,8,0,0">
-            <Button Content="→ Рецепты" Command="{Binding DataContext.NavigateToRecipesCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" Padding="10,4" Margin="0,0,8,0"/>
-            <Button Content="→ Рефлексы" Command="{Binding DataContext.NavigateToReflexesCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" Padding="10,4"/>
-          </StackPanel>
         </StackPanel>
       </ScrollViewer>
+    </Grid>
+
+    <Grid Grid.Row="4" Margin="0,8,0,0">
+      <Grid.ColumnDefinitions>
+        <ColumnDefinition Width="*"/>
+        <ColumnDefinition Width="Auto"/>
+      </Grid.ColumnDefinitions>
+
+      <TextBlock Grid.Column="0"
+                 Text="{Binding PulseWarningMessage}"
+                 Foreground="{Binding WarningMessageColor}"
+                 FontStyle="Italic"
+                 VerticalAlignment="Center"
+                 Margin="8,0,0,0"
+                 TextWrapping="Wrap"
+                 Visibility="{Binding IsEditingEnabled, Converter={StaticResource InverseBooleanToVisibilityConverter}}"/>
+
+      <StackPanel Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Right">
+        <Button Content="Сохранить"
+                Command="{Binding SaveCommand}"
+                IsEnabled="{Binding IsEditingEnabled}"
+                Style="{StaticResource ActionButtonStyle}"/>
+      </StackPanel>
     </Grid>
   </Grid>
 </UserControl>

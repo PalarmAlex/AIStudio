@@ -20,6 +20,7 @@ namespace AIStudio.ViewModels.SymbiontEnv
     private string _selectedCatalogId = string.Empty;
     private string _selectedDescription = string.Empty;
     private string _validationError = string.Empty;
+    private bool _suppressSideEffects;
     private readonly List<SchemaCatalogItemRow> _allCatalogItems = new List<SchemaCatalogItemRow>();
 
     public SchemaActionEditorViewModel(AdapterEnvironmentSchema schema)
@@ -123,43 +124,65 @@ namespace AIStudio.ViewModels.SymbiontEnv
 
     public void LoadFromHandler(string handlerId, IDictionary<string, string> args)
     {
-      Mode = SchemaActionEditorMode.RecipeHandler;
-      _allCatalogItems.Clear();
-      foreach (AdapterSchemaHandler handler in EnvironmentRecipeStepSchemaHelper.GetHandlers(_schema))
+      _suppressSideEffects = true;
+      try
       {
-        _allCatalogItems.Add(new SchemaCatalogItemRow
+        Mode = SchemaActionEditorMode.RecipeHandler;
+        _allCatalogItems.Clear();
+        foreach (AdapterSchemaHandler handler in EnvironmentRecipeStepSchemaHelper.GetHandlers(_schema))
         {
-          Id = handler.Id,
-          Label = handler.Label,
-          Description = handler.Description
-        });
+          _allCatalogItems.Add(new SchemaCatalogItemRow
+          {
+            Id = handler.Id,
+            Label = handler.Label,
+            Description = handler.Description
+          });
+        }
+        ApplyCatalogFilter();
+        var argsSnapshot = SnapshotArgs(args);
+        string normalizedHandlerId = handlerId ?? string.Empty;
+        SelectedCatalogId = normalizedHandlerId;
+        LoadHandlerParameters(normalizedHandlerId, argsSnapshot);
+        ValidationError = string.Empty;
       }
-      ApplyCatalogFilter();
-      SelectedCatalogId = handlerId ?? string.Empty;
-      LoadHandlerParameters(handlerId, args);
+      finally
+      {
+        _suppressSideEffects = false;
+      }
     }
 
     public void LoadFromEvent(string eventKind, IDictionary<string, string> parameters)
     {
-      Mode = SchemaActionEditorMode.TriggerEvent;
-      _allCatalogItems.Clear();
-      if (_schema.TriggerDetectKinds != null)
+      _suppressSideEffects = true;
+      try
       {
-        foreach (AdapterSchemaDetectKind kind in _schema.TriggerDetectKinds)
+        Mode = SchemaActionEditorMode.TriggerEvent;
+        _allCatalogItems.Clear();
+        if (_schema.TriggerDetectKinds != null)
         {
-          if (kind == null || string.IsNullOrWhiteSpace(kind.Kind))
-            continue;
-          _allCatalogItems.Add(new SchemaCatalogItemRow
+          foreach (AdapterSchemaDetectKind kind in _schema.TriggerDetectKinds)
           {
-            Id = kind.Kind,
-            Label = kind.Label,
-            Description = kind.Kind
-          });
+            if (kind == null || string.IsNullOrWhiteSpace(kind.Kind))
+              continue;
+            _allCatalogItems.Add(new SchemaCatalogItemRow
+            {
+              Id = kind.Kind,
+              Label = kind.Label,
+              Description = kind.Kind
+            });
+          }
         }
+        ApplyCatalogFilter();
+        var paramsSnapshot = SnapshotArgs(parameters);
+        string normalizedEventKind = eventKind ?? string.Empty;
+        SelectedCatalogId = normalizedEventKind;
+        LoadEventParameters(normalizedEventKind, paramsSnapshot);
+        ValidationError = string.Empty;
       }
-      ApplyCatalogFilter();
-      SelectedCatalogId = eventKind ?? string.Empty;
-      LoadEventParameters(eventKind, parameters);
+      finally
+      {
+        _suppressSideEffects = false;
+      }
     }
 
     public bool TryCommit(out string error)
@@ -193,9 +216,28 @@ namespace AIStudio.ViewModels.SymbiontEnv
 
     public void NotifyParameterChanged()
     {
+      if (_suppressSideEffects)
+        return;
       ParameterValueChanged?.Invoke();
-      if (TryCommit(out string error))
-        ValuesCommitted?.Invoke(BuildCurrentValues());
+      TryCommit(out _);
+    }
+
+    public void ReloadCurrentCatalogParameters(IDictionary<string, string> args)
+    {
+      _suppressSideEffects = true;
+      try
+      {
+        var argsSnapshot = SnapshotArgs(args);
+        if (Mode == SchemaActionEditorMode.RecipeHandler)
+          LoadHandlerParameters(_selectedCatalogId, argsSnapshot);
+        else
+          LoadEventParameters(_selectedCatalogId, argsSnapshot);
+        ValidationError = string.Empty;
+      }
+      finally
+      {
+        _suppressSideEffects = false;
+      }
     }
 
     private Dictionary<string, string> BuildCurrentValues()
@@ -228,21 +270,31 @@ namespace AIStudio.ViewModels.SymbiontEnv
 
     private void OnSelectedCatalogChanged()
     {
-      if (Mode == SchemaActionEditorMode.RecipeHandler)
-      {
-        LoadHandlerParameters(_selectedCatalogId, null);
-      }
-      else
-      {
-        LoadEventParameters(_selectedCatalogId, null);
-      }
+      if (_suppressSideEffects)
+        return;
       SelectedCatalogChanged?.Invoke();
-      NotifyParameterChanged();
+    }
+
+    private static Dictionary<string, string> SnapshotArgs(IDictionary<string, string> args)
+    {
+      if (args == null || args.Count == 0)
+        return new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+      return new Dictionary<string, string>(args, StringComparer.OrdinalIgnoreCase);
+    }
+
+    private void ClearParameters()
+    {
+      foreach (SchemaParamRow row in Parameters)
+      {
+        if (row != null)
+          row.PropertyChanged -= OnParameterRowChanged;
+      }
+      Parameters.Clear();
     }
 
     private void LoadHandlerParameters(string handlerId, IDictionary<string, string> existingArgs)
     {
-      Parameters.Clear();
+      ClearParameters();
       AdapterSchemaHandler handler = _schema.Handlers?.FirstOrDefault(
           h => string.Equals(h?.Id, handlerId, StringComparison.OrdinalIgnoreCase));
       SelectedDescription = handler?.Description ?? handler?.Label ?? string.Empty;
@@ -273,7 +325,7 @@ namespace AIStudio.ViewModels.SymbiontEnv
 
     private void LoadEventParameters(string eventKind, IDictionary<string, string> existingParams)
     {
-      Parameters.Clear();
+      ClearParameters();
       AdapterSchemaDetectKind detectKind = _schema.TriggerDetectKinds?.FirstOrDefault(
           k => string.Equals(k?.Kind, eventKind, StringComparison.OrdinalIgnoreCase));
       SelectedDescription = detectKind?.Label ?? eventKind ?? string.Empty;

@@ -518,19 +518,19 @@ namespace AIStudio
             ShowMentalEpisodicTree();
             break;
           case "49": // Обзор поведения среды
-            if (TryShowEnvironmentPage(() => ShowEnvironmentShell(EnvironmentShellTab.Overview)))
+            if (TryShowEnvironmentPage(() => ShowEnvironmentOverview()))
               break;
             break;
           case "45": // Рецепты среды
-            if (TryShowEnvironmentPage(() => ShowEnvironmentShell(EnvironmentShellTab.Recipes)))
+            if (TryShowEnvironmentPage(() => ShowEnvironmentRecipes()))
               break;
             break;
           case "46": // Триггеры среды
-            if (TryShowEnvironmentPage(() => ShowEnvironmentShell(EnvironmentShellTab.Triggers)))
+            if (TryShowEnvironmentPage(() => ShowEnvironmentTriggers()))
               break;
             break;
           case "48": // Давление среды на виталы
-            if (TryShowEnvironmentPage(() => ShowEnvironmentShell(EnvironmentShellTab.Pressure)))
+            if (TryShowEnvironmentPage(() => ShowEnvironmentPressure()))
               break;
             break;
           case "47": // Адаптеры среды
@@ -657,13 +657,69 @@ namespace AIStudio
       return false;
     }
 
-    private EnvironmentShellViewModel _environmentShell;
-
-    private void ShowEnvironmentShell(EnvironmentShellTab tab)
+    private void ShowEnvironmentOverview()
     {
-      _environmentShell?.Dispose();
-      _environmentShell = new EnvironmentShellViewModel(_gomeostas, _geneticReflexesSystem, tab);
-      CurrentContent = new Pages.SymbiontEnv.EnvironmentShellView { DataContext = _environmentShell };
+      var view = new Pages.SymbiontEnv.EnvironmentBehaviorOverviewView();
+      var vm = new EnvironmentBehaviorOverviewViewModel(_gomeostas, _geneticReflexesSystem);
+      view.DataContext = vm;
+      CurrentContent = view;
+    }
+
+    private void ShowEnvironmentRecipes()
+    {
+      var view = new Pages.SymbiontEnv.EnvironmentRecipesRegistryView();
+      var vm = new EnvironmentRecipesRegistryViewModel(_gomeostas, OpenRecipeEditor);
+      view.DataContext = vm;
+      CurrentContent = view;
+    }
+
+    private void ShowEnvironmentTriggers()
+    {
+      var view = new Pages.SymbiontEnv.EnvironmentTriggersView();
+      var vm = new EnvironmentTriggersViewModel(_gomeostas, _geneticReflexesSystem);
+      view.DataContext = vm;
+      CurrentContent = view;
+    }
+
+    private void ShowEnvironmentPressure()
+    {
+      var view = new Pages.SymbiontEnv.EnvironmentPressureRulesView();
+      var vm = new EnvironmentPressureRulesViewModel(_gomeostas);
+      view.DataContext = vm;
+      CurrentContent = view;
+    }
+
+    private void OpenRecipeEditor(EnvironmentRecipeEditorViewModel editorVm)
+    {
+      editorVm.CloseAction = () => ShowEnvironmentRecipes();
+      editorVm.RequestClose += _ => ShowEnvironmentRecipes();
+      var view = new Pages.SymbiontEnv.EnvironmentRecipeEditorView();
+      view.DataContext = editorVm;
+      CurrentContent = view;
+    }
+
+    public void NavigateToRecipe(string recipeId)
+    {
+      ShowEnvironmentRecipes();
+      if (CurrentContent is Pages.SymbiontEnv.EnvironmentRecipesRegistryView view &&
+          view.DataContext is EnvironmentRecipesRegistryViewModel vm)
+      {
+        vm.SelectAndOpen(recipeId);
+      }
+    }
+
+    public void NavigateToTrigger(string triggerId)
+    {
+      ShowEnvironmentTriggers();
+      if (CurrentContent is Pages.SymbiontEnv.EnvironmentTriggersView view &&
+          view.DataContext is EnvironmentTriggersViewModel vm)
+      {
+        // Выбрать триггер по ID
+        var trigger = vm.Triggers.FirstOrDefault(t =>
+            string.Equals(t.Id, triggerId, StringComparison.OrdinalIgnoreCase));
+        if (trigger != null)
+          vm.SelectedTrigger = trigger;
+      }
     }
 
     private void ShowAdapters()

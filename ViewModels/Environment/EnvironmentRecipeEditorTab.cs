@@ -5,7 +5,6 @@ namespace AIStudio.ViewModels.SymbiontEnv
   {
     General,
     Steps,
-    Links,
     Test
   }
 }

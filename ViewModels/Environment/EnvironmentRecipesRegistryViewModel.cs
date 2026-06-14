@@ -1,15 +1,17 @@
 using AIStudio.Common;
 using AIStudio.Common.Adapters;
 using AIStudio.Common.SymbiontEnv;
-using ISIDA.SymbiontEnv.Contract;
 using ISIDA.Common;
 using ISIDA.Gomeostas;
-using ISIDA.Reflexes;
+using ISIDA.SymbiontEnv.Contract;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.ComponentModel;
+using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Windows;
 using System.Windows.Input;
 using System.Windows.Media;
@@ -17,26 +19,23 @@ using System.Windows.Media;
 namespace AIStudio.ViewModels.SymbiontEnv
 {
   /// <summary>Реестр рецептов среды.</summary>
-  public sealed class EnvironmentRecipesRegistryViewModel : IEnvironmentChildViewModel
+  public sealed class EnvironmentRecipesRegistryViewModel : INotifyPropertyChanged
   {
     private readonly GomeostasSystem _gomeostas;
-    private readonly GeneticReflexesSystem _geneticReflexes;
     private readonly Action<EnvironmentRecipeEditorViewModel> _openEditor;
     private readonly List<EnvironmentRecipeListItem> _allItems = new List<EnvironmentRecipeListItem>();
     private readonly List<EnvironmentRecipeData> _allRecipes = new List<EnvironmentRecipeData>();
     private readonly AdapterEnvironmentSchema _schema;
-    private string _currentAgentName;
     private int _currentAgentStage;
+    private string _currentAgentName;
     private string _filterId = string.Empty;
     private string _filterTitle = string.Empty;
 
     public EnvironmentRecipesRegistryViewModel(
         GomeostasSystem gomeostas,
-        GeneticReflexesSystem geneticReflexes,
         Action<EnvironmentRecipeEditorViewModel> openEditor)
     {
       _gomeostas = gomeostas ?? throw new ArgumentNullException(nameof(gomeostas));
-      _geneticReflexes = geneticReflexes;
       _openEditor = openEditor ?? throw new ArgumentNullException(nameof(openEditor));
       _schema = AdapterSchemaLoader.LoadForCurrentProject();
       Items = new ObservableCollection<EnvironmentRecipeListItem>();
@@ -44,12 +43,16 @@ namespace AIStudio.ViewModels.SymbiontEnv
       ApplyFiltersCommand = new RelayCommand(_ => ApplyFilters());
       ResetFiltersCommand = new RelayCommand(_ => ResetFilters());
       EditCommand = new RelayCommand(_ => EditSelected(), _ => Selected != null);
-      DuplicateCommand = new RelayCommand(_ => DuplicateSelected(), _ => Selected != null);
+      DuplicateCommand = new RelayCommand(_ => DuplicateSelected(), _ => Selected != null && IsEditingEnabled);
       NewCommand = new RelayCommand(_ => CreateNew(), _ => IsEditingEnabled);
-      RemoveAllCommand = new RelayCommand(RemoveAllRecipes, _ => IsEditingEnabled);
       GlobalTimer.PulsationStateChanged += OnPulsationStateChanged;
       Reload();
     }
+
+    public string CurrentAgentTitle =>
+        SymbiontPageTitleFormatter.Format("Рецепты поведения", _currentAgentName, _currentAgentStage);
+
+    public DescriptionWithLink CurrentAgentDescription { get; } = new DescriptionWithLink();
 
     public ObservableCollection<EnvironmentRecipeListItem> Items { get; }
     public EnvironmentRecipeListItem Selected { get; set; }
@@ -57,13 +60,21 @@ namespace AIStudio.ViewModels.SymbiontEnv
     public string FilterIdText
     {
       get => _filterId;
-      set => _filterId = value ?? string.Empty;
+      set
+      {
+        _filterId = value ?? string.Empty;
+        OnPropertyChanged();
+      }
     }
 
     public string FilterTitleText
     {
       get => _filterTitle;
-      set => _filterTitle = value ?? string.Empty;
+      set
+      {
+        _filterTitle = value ?? string.Empty;
+        OnPropertyChanged();
+      }
     }
 
     public ICommand RefreshCommand { get; }
@@ -72,14 +83,8 @@ namespace AIStudio.ViewModels.SymbiontEnv
     public ICommand EditCommand { get; }
     public ICommand DuplicateCommand { get; }
     public ICommand NewCommand { get; }
-    public ICommand RemoveAllCommand { get; }
 
-    public event Action DirtyChanged;
-    public event Action<int> ValidationIssueCountChanged;
-
-    public bool Dirty => false;
-    public int ValidationIssueCount => Items.Sum(i => i.WarningCount);
-    public bool CanSave => false;
+    public event PropertyChangedEventHandler PropertyChanged;
 
     public bool IsStageZero => _currentAgentStage == 0;
     public bool HasAdapter => SymbiontEnvironmentGate.IsEnvironmentEditingAllowed();
@@ -95,8 +100,6 @@ namespace AIStudio.ViewModels.SymbiontEnv
                     : string.Empty;
 
     public Brush WarningMessageColor => !HasAdapter || !IsStageZero ? Brushes.Red : Brushes.Gray;
-
-    public void Save() { }
 
     public void Reload() => ReloadFromDisk();
 
@@ -131,6 +134,12 @@ namespace AIStudio.ViewModels.SymbiontEnv
       var agent = _gomeostas.GetAgentState();
       _currentAgentStage = agent?.EvolutionStage ?? 0;
       _currentAgentName = agent?.Name ?? string.Empty;
+      OnPropertyChanged(nameof(CurrentAgentTitle));
+      OnPropertyChanged(nameof(IsStageZero));
+      OnPropertyChanged(nameof(IsEditingEnabled));
+      OnPropertyChanged(nameof(PulseWarningMessage));
+      OnPropertyChanged(nameof(WarningMessageColor));
+
       _allRecipes.Clear();
       _allItems.Clear();
       var errors = new List<string>();
@@ -148,13 +157,6 @@ namespace AIStudio.ViewModels.SymbiontEnv
             MessageBoxImage.Warning);
       }
       ApplyFilters();
-      NotifyChildState();
-    }
-
-    private void NotifyChildState()
-    {
-      DirtyChanged?.Invoke();
-      ValidationIssueCountChanged?.Invoke(ValidationIssueCount);
     }
 
     private void ApplyFilters()
@@ -179,6 +181,8 @@ namespace AIStudio.ViewModels.SymbiontEnv
     {
       _filterId = string.Empty;
       _filterTitle = string.Empty;
+      OnPropertyChanged(nameof(FilterIdText));
+      OnPropertyChanged(nameof(FilterTitleText));
       ApplyFilters();
     }
 
@@ -220,11 +224,10 @@ namespace AIStudio.ViewModels.SymbiontEnv
     private void OpenEditor(EnvironmentRecipeEditorModel model, bool isNew)
     {
       var editorVm = new EnvironmentRecipeEditorViewModel(
-          _gomeostas,
-          _geneticReflexes,
-          model,
-          isNew,
-          SaveAllFromEditor);
+        _gomeostas,
+        model,
+        isNew,
+        SaveAllFromEditor);
       _openEditor(editorVm);
     }
 
@@ -246,29 +249,6 @@ namespace AIStudio.ViewModels.SymbiontEnv
       ReloadFromDisk();
     }
 
-    public void RemoveAllRecipes(object parameter)
-    {
-      if (!IsEditingEnabled)
-        return;
-      if (MessageBox.Show(
-              "Удалить ВСЕ рецепты среды?",
-              "Подтверждение",
-              MessageBoxButton.YesNo,
-              MessageBoxImage.Warning) != MessageBoxResult.Yes)
-        return;
-      try
-      {
-        _allRecipes.Clear();
-        EnvironmentCatalogStorage.SaveRecipes(new List<EnvironmentRecipeData>());
-        ReloadFromDisk();
-      }
-      catch (Exception ex)
-      {
-        MessageBox.Show("Ошибка: " + ex.Message, "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
-        ReloadFromDisk();
-      }
-    }
-
     private void SaveAllToDisk()
     {
       try
@@ -283,12 +263,46 @@ namespace AIStudio.ViewModels.SymbiontEnv
 
     private void OnPulsationStateChanged()
     {
-      Application.Current?.Dispatcher.Invoke(ApplyFilters);
+      Application.Current?.Dispatcher.Invoke(() =>
+      {
+        OnPropertyChanged(nameof(IsEditingEnabled));
+        OnPropertyChanged(nameof(PulseWarningMessage));
+        OnPropertyChanged(nameof(WarningMessageColor));
+        ApplyFilters();
+      });
     }
 
     public void Dispose()
     {
       GlobalTimer.PulsationStateChanged -= OnPulsationStateChanged;
+    }
+
+    private void OnPropertyChanged([CallerMemberName] string propertyName = null)
+    {
+      PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+    }
+
+    /// <summary>
+    /// Класс описания с ссылкой
+    /// </summary>
+    public class DescriptionWithLink
+    {
+      public string Text { get; set; } = "Обзор рецептов поведения симбионта.";
+      public string LinkText { get; set; } = "Подробнее...";
+      public string Url { get; set; } = "https://scorcher.ru/isida/iadaptive_agents_guide.php#ref_9";
+      public ICommand OpenLinkCommand { get; }
+
+      public DescriptionWithLink()
+      {
+        OpenLinkCommand = new RelayCommand(_ =>
+        {
+          try
+          {
+            Process.Start(new ProcessStartInfo(Url) { UseShellExecute = true });
+          }
+          catch { }
+        });
+      }
     }
   }
 }

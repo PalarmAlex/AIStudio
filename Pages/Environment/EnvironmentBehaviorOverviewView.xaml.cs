@@ -1,6 +1,7 @@
+using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
-using System.Windows;
+using AIStudio;
 using AIStudio.ViewModels.SymbiontEnv;
 
 namespace AIStudio.Pages.SymbiontEnv
@@ -18,10 +19,22 @@ namespace AIStudio.Pages.SymbiontEnv
         return;
       if (!(sender is DataGrid grid) || !(grid.SelectedItem is EnvironmentBehaviorChainRow row))
         return;
-      if (!string.IsNullOrWhiteSpace(row.RecipeId))
-        vm.OpenRecipeCommand.Execute(row);
-      else if (!string.IsNullOrWhiteSpace(row.TriggerId))
-        vm.OpenTriggerCommand.Execute(row);
+
+      // Навигация через главное окно
+      var mainWindow = Application.Current.MainWindow;
+      if (mainWindow?.DataContext is MainViewModel mainVm)
+      {
+        if (!string.IsNullOrWhiteSpace(row.RecipeId))
+        {
+          // Открыть рецепт
+          mainVm.NavigateToRecipe(row.RecipeId);
+        }
+        else if (!string.IsNullOrWhiteSpace(row.TriggerId))
+        {
+          // Открыть триггер
+          mainVm.NavigateToTrigger(row.TriggerId);
+        }
+      }
     }
   }
 }

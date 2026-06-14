@@ -6,7 +6,6 @@ using ISIDA.SymbiontEnv.Contract;
 using ISIDA.Actions;
 using ISIDA.Common;
 using ISIDA.Gomeostas;
-using ISIDA.Reflexes;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -24,7 +23,6 @@ namespace AIStudio.ViewModels.SymbiontEnv
   public sealed class EnvironmentRecipeEditorViewModel : INotifyPropertyChanged
   {
     private readonly GomeostasSystem _gomeostas;
-    private readonly GeneticReflexesSystem _geneticReflexes;
     private readonly Action<EnvironmentRecipeEditorModel, bool> _onSaveAll;
     private readonly bool _isNew;
     private readonly AdapterEnvironmentSchema _schema;
@@ -41,19 +39,16 @@ namespace AIStudio.ViewModels.SymbiontEnv
 
     public EnvironmentRecipeEditorViewModel(
         GomeostasSystem gomeostas,
-        GeneticReflexesSystem geneticReflexes,
         EnvironmentRecipeEditorModel model,
         bool isNew,
         Action<EnvironmentRecipeEditorModel, bool> onSaveAll)
     {
       _gomeostas = gomeostas ?? throw new ArgumentNullException(nameof(gomeostas));
-      _geneticReflexes = geneticReflexes;
       Model = model ?? throw new ArgumentNullException(nameof(model));
       _isNew = isNew;
       _onSaveAll = onSaveAll ?? throw new ArgumentNullException(nameof(onSaveAll));
       _schema = AdapterSchemaLoader.LoadForCurrentProject();
       RecipeIdOptions = new ObservableCollection<AdapterSchemaRecipeCatalogEntry>();
-      Links = new ObservableCollection<EnvironmentLinkItem>();
       StepHandlerSchema = new SchemaActionEditorViewModel(_schema);
       StepHandlerSchema.ValuesCommitted += OnStepSchemaCommitted;
       StepHandlerSchema.SelectedCatalogChanged += OnStepSchemaCatalogChanged;
@@ -61,12 +56,7 @@ namespace AIStudio.ViewModels.SymbiontEnv
       SaveCommand = new RelayCommand(_ => Save(), _ => IsEditingEnabled);
       CancelCommand = new RelayCommand(_ => RequestClose?.Invoke(false));
       AddInvokeStepCommand = new RelayCommand(_ => AddInvokeStep(), _ => IsEditingEnabled);
-      AddCommentStepCommand = new RelayCommand(_ => AddCommentStep(), _ => IsEditingEnabled);
       DeleteSelectedStepsCommand = new RelayCommand(_ => DeleteSelectedSteps(), _ => IsEditingEnabled && SelectedStep != null);
-      MoveStepUpCommand = new RelayCommand(_ => MoveStep(-1), _ => IsEditingEnabled && SelectedStep != null);
-      MoveStepDownCommand = new RelayCommand(_ => MoveStep(1), _ => IsEditingEnabled && SelectedStep != null);
-      NavigateToTriggerCommand = new RelayCommand(_ => NavigateToTrigger(), _ => Model.RecommendedTriggerInfluenceIds?.Count > 0);
-      NavigateToReflexesCommand = new RelayCommand(_ => NavigateToReflexes());
 
       RefreshAgent();
       RefreshRecipeIdOptions();
@@ -75,28 +65,20 @@ namespace AIStudio.ViewModels.SymbiontEnv
       UpdateRecommendedTriggerDisplay();
       EnvironmentRecipeStepSchemaHelper.InitializeAllSteps(Model.Steps, _schema);
       SelectedStep = Model.Steps.FirstOrDefault();
-      RefreshLinks();
     }
 
     public EnvironmentRecipeEditorModel Model { get; }
     public ObservableCollection<AdapterSchemaRecipeCatalogEntry> RecipeIdOptions { get; }
-    public ObservableCollection<EnvironmentLinkItem> Links { get; }
     public SchemaActionEditorViewModel StepHandlerSchema { get; }
 
     public event Action<bool> RequestClose;
-    public event Action<EnvironmentNavigationRequest> NavigateRequest;
     public Action CloseAction { get; set; }
     public event PropertyChangedEventHandler PropertyChanged;
 
     public ICommand SaveCommand { get; }
     public ICommand CancelCommand { get; }
     public ICommand AddInvokeStepCommand { get; }
-    public ICommand AddCommentStepCommand { get; }
     public ICommand DeleteSelectedStepsCommand { get; }
-    public ICommand MoveStepUpCommand { get; }
-    public ICommand MoveStepDownCommand { get; }
-    public ICommand NavigateToTriggerCommand { get; }
-    public ICommand NavigateToReflexesCommand { get; }
 
     public RecipeEditorTab SelectedTab
     {
@@ -107,8 +89,6 @@ namespace AIStudio.ViewModels.SymbiontEnv
           return;
         _selectedTab = value;
         OnPropertyChanged();
-        if (value == RecipeEditorTab.Links)
-          RefreshLinks();
       }
     }
 
@@ -212,7 +192,6 @@ namespace AIStudio.ViewModels.SymbiontEnv
         Model.RecommendedTriggerInfluenceIds = new List<int> { dialog.SelectedInfluenceActionId };
         UpdateRecommendedTriggerDisplay();
         MarkDirty();
-        RefreshLinks();
       }
     }
 
@@ -226,7 +205,6 @@ namespace AIStudio.ViewModels.SymbiontEnv
         Model.AdaptiveActionId = dialog.SelectedAdaptiveActionId;
         UpdateAdaptiveActionDisplay();
         MarkDirty();
-        RefreshLinks();
       }
     }
 
@@ -243,14 +221,6 @@ namespace AIStudio.ViewModels.SymbiontEnv
       MarkDirty();
     }
 
-    private void AddCommentStep()
-    {
-      EnvironmentRecipeStepRow row = EnvironmentRecipeStepSchemaHelper.CreateDefaultCommentStep();
-      Model.Steps.Add(row);
-      SelectedStep = row;
-      MarkDirty();
-    }
-
     private void DeleteSelectedSteps()
     {
       if (SelectedStep == null)
@@ -259,36 +229,6 @@ namespace AIStudio.ViewModels.SymbiontEnv
       Model.Steps.Remove(SelectedStep);
       SelectedStep = index >= 0 && index < Model.Steps.Count ? Model.Steps[index] : Model.Steps.LastOrDefault();
       MarkDirty();
-    }
-
-    private void MoveStep(int delta)
-    {
-      if (SelectedStep == null)
-        return;
-      int index = Model.Steps.IndexOf(SelectedStep);
-      int newIndex = index + delta;
-      if (index < 0 || newIndex < 0 || newIndex >= Model.Steps.Count)
-        return;
-      Model.Steps.RemoveAt(index);
-      Model.Steps.Insert(newIndex, SelectedStep);
-      MarkDirty();
-    }
-
-    private void NavigateToTrigger()
-    {
-      int eaId = Model.RecommendedTriggerInfluenceIds != null && Model.RecommendedTriggerInfluenceIds.Count > 0
-          ? Model.RecommendedTriggerInfluenceIds[0]
-          : 0;
-      NavigateRequest?.Invoke(new EnvironmentNavigationRequest
-      {
-        Tab = EnvironmentShellTab.Triggers,
-        InfluenceActionId = eaId
-      });
-    }
-
-    private void NavigateToReflexes()
-    {
-      NavigateRequest?.Invoke(new EnvironmentNavigationRequest { Tab = EnvironmentShellTab.Overview });
     }
 
     private void OnStepSchemaCommitted(Dictionary<string, string> values)
@@ -305,9 +245,19 @@ namespace AIStudio.ViewModels.SymbiontEnv
     {
       if (SelectedStep == null || SelectedStep.IsComment)
         return;
-      SelectedStep.HandlerId = StepHandlerSchema.SelectedCatalogId;
-      EnvironmentRecipeStepSchemaHelper.RefreshSummary(SelectedStep, _schema);
-      MarkDirty();
+      ReloadStepSchemaParametersForCatalogSelection();
+    }
+
+    private void ReloadStepSchemaParametersForCatalogSelection()
+    {
+      if (SelectedStep == null || SelectedStep.IsComment)
+        return;
+
+      string catalogId = StepHandlerSchema.SelectedCatalogId ?? string.Empty;
+      IDictionary<string, string> args = string.Equals(catalogId, SelectedStep.HandlerId, StringComparison.OrdinalIgnoreCase)
+          ? new Dictionary<string, string>(SelectedStep.Args, StringComparer.OrdinalIgnoreCase)
+          : null;
+      StepHandlerSchema.ReloadCurrentCatalogParameters(args);
     }
 
     private void LoadSelectedStepSchema()
@@ -315,16 +265,8 @@ namespace AIStudio.ViewModels.SymbiontEnv
       StepHandlerSchema.IsEditingEnabled = IsEditingEnabled && SelectedStep != null && SelectedStep.IsInvoke;
       if (SelectedStep == null || SelectedStep.IsComment)
         return;
-      StepHandlerSchema.LoadFromHandler(SelectedStep.HandlerId, SelectedStep.Args);
-    }
-
-    private void RefreshLinks()
-    {
-      Links.Clear();
-      var errors = new List<string>();
-      IList<EnvironmentTriggerData> triggers = EnvironmentCatalogStorage.LoadTriggers(errors);
-      foreach (EnvironmentLinkItem item in EnvironmentLinksService.BuildRecipeLinks(Model, triggers, _geneticReflexes, _schema))
-        Links.Add(item);
+      var argsSnapshot = new Dictionary<string, string>(SelectedStep.Args, StringComparer.OrdinalIgnoreCase);
+      StepHandlerSchema.LoadFromHandler(SelectedStep.HandlerId, argsSnapshot);
     }
 
     private void Save()

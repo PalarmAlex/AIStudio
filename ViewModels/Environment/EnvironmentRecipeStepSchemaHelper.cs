@@ -35,15 +35,6 @@ namespace AIStudio.ViewModels.SymbiontEnv
       return row;
     }
 
-    public static EnvironmentRecipeStepRow CreateDefaultCommentStep()
-    {
-      return new EnvironmentRecipeStepRow
-      {
-        StepKind = StepTypeComment,
-        CommentText = "Комментарий"
-      };
-    }
-
     public static void ApplyFromStepData(EnvironmentRecipeStepRow row, EnvironmentRecipeStepData step)
     {
       if (row == null)

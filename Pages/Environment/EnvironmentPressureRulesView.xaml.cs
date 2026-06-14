@@ -80,8 +80,18 @@ namespace AIStudio.Pages.SymbiontEnv
 
     private void InfluencesCell_MouseDown(object sender, MouseButtonEventArgs e)
     {
-      if (e.ClickCount != 2 || Vm == null || !Vm.IsEditingEnabled)
+      if (e.ClickCount != 2 || Vm == null)
         return;
+      if (!Vm.IsEditingEnabled)
+      {
+        MessageBox.Show(
+            Vm.PulseWarningMessage,
+            "Редактирование недоступно",
+            MessageBoxButton.OK,
+            MessageBoxImage.Warning);
+        e.Handled = true;
+        return;
+      }
       if (!(sender is FrameworkElement element) || !(element.DataContext is EnvironmentPressureRuleRow row))
         return;
       var editor = new ActionInfluencesEditor(

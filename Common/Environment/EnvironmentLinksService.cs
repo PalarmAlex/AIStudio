@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
-using AIStudio.Common.Adapters;
 using AIStudio.ViewModels.SymbiontEnv;
 using ISIDA.Reflexes;
 using ISIDA.SymbiontEnv.Contract;
@@ -128,83 +127,6 @@ namespace AIStudio.Common.SymbiontEnv
           Detail = "EA " + trigger.InfluenceActionId + " не связан с G_AD через рефлекс",
           HasGap = true
         });
-      }
-
-      return links;
-    }
-
-    public static IList<EnvironmentLinkItem> BuildRecipeLinks(
-        EnvironmentRecipeEditorModel model,
-        IList<EnvironmentTriggerData> triggers,
-        GeneticReflexesSystem geneticReflexes,
-        AdapterEnvironmentSchema schema)
-    {
-      var links = new List<EnvironmentLinkItem>();
-      if (model == null)
-        return links;
-
-      links.Add(new EnvironmentLinkItem
-      {
-        Category = "G_AD",
-        Title = model.AdaptiveActionId.ToString(CultureInfo.InvariantCulture),
-        Detail = model.DisplayName ?? model.Id
-      });
-
-      if (model.RecommendedTriggerInfluenceIds != null)
-      {
-        foreach (int eaId in model.RecommendedTriggerInfluenceIds)
-        {
-          EnvironmentTriggerData trigger = triggers?.FirstOrDefault(
-              t => t != null && t.InfluenceActionId == eaId);
-          links.Add(new EnvironmentLinkItem
-          {
-            Category = "EA (рекомендуемый)",
-            Title = eaId.ToString(CultureInfo.InvariantCulture),
-            Detail = trigger != null ? trigger.DisplayName ?? trigger.Id : "триггер не найден",
-            TargetKind = trigger != null ? "trigger" : null,
-            TargetId = trigger?.Id,
-            HasGap = trigger == null
-          });
-        }
-      }
-
-      if (geneticReflexes != null && model.AdaptiveActionId > 0)
-      {
-        foreach (GeneticReflexesSystem.GeneticReflex reflex in geneticReflexes.GetAllGeneticReflexes())
-        {
-          if (reflex?.AdaptiveActions == null || !reflex.AdaptiveActions.Contains(model.AdaptiveActionId))
-            continue;
-          links.Add(new EnvironmentLinkItem
-          {
-            Category = "Рефлекс",
-            Title = "ID " + reflex.Id.ToString(CultureInfo.InvariantCulture),
-            Detail = "Level3: " + string.Join(", ", reflex.Level3 ?? new List<int>()),
-            TargetKind = "reflex",
-            TargetId = reflex.Id.ToString(CultureInfo.InvariantCulture)
-          });
-        }
-      }
-
-      if (model.Steps != null && schema?.Handlers != null)
-      {
-        var knownHandlers = new HashSet<string>(
-            schema.Handlers.Select(h => h?.Id).Where(id => !string.IsNullOrWhiteSpace(id)),
-            StringComparer.OrdinalIgnoreCase);
-        foreach (EnvironmentRecipeStepRow step in model.Steps)
-        {
-          if (step == null || !string.Equals(step.StepKind, EnvironmentRecipeStepSchemaHelper.StepTypeInvoke, StringComparison.OrdinalIgnoreCase))
-            continue;
-          if (!knownHandlers.Contains(step.HandlerId ?? string.Empty))
-          {
-            links.Add(new EnvironmentLinkItem
-            {
-              Category = "Handler",
-              Title = step.HandlerId,
-              Detail = "не найден в handlers-catalog.json",
-              HasGap = true
-            });
-          }
-        }
       }
 
       return links;

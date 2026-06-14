@@ -401,16 +401,12 @@
     <Compile Include="ViewModels\Environment\EnvironmentBehaviorChainRow.cs" />
     <Compile Include="ViewModels\Environment\EnvironmentBehaviorOverviewViewModel.cs" />
     <Compile Include="ViewModels\Environment\EnvironmentLinkItem.cs" />
-    <Compile Include="ViewModels\Environment\EnvironmentNavigationRequest.cs" />
     <Compile Include="ViewModels\Environment\EnvironmentRecipeEditorTab.cs" />
     <Compile Include="ViewModels\Environment\EnvironmentRecipeListItem.cs" />
     <Compile Include="ViewModels\Environment\EnvironmentRecipeStepRow.cs" />
     <Compile Include="ViewModels\Environment\EnvironmentRecipeStepSchemaHelper.cs" />
     <Compile Include="ViewModels\Environment\EnvironmentRecipeEditorModel.cs" />
-    <Compile Include="ViewModels\Environment\EnvironmentShellTab.cs" />
-    <Compile Include="ViewModels\Environment\EnvironmentShellViewModel.cs" />
     <Compile Include="ViewModels\Environment\EnvironmentTriggerRow.cs" />
-    <Compile Include="ViewModels\Environment\IEnvironmentChildViewModel.cs" />
     <Compile Include="ViewModels\Environment\SchemaActionEditorViewModel.cs" />
     <Compile Include="ViewModels\Environment\SchemaParamRow.cs" />
     <Compile Include="ViewModels\Environment\ValidationIssueRow.cs" />
@@ -446,9 +442,6 @@
     </Compile>
     <Compile Include="Pages\Environment\EnvironmentBehaviorOverviewView.xaml.cs">
       <DependentUpon>EnvironmentBehaviorOverviewView.xaml</DependentUpon>
-    </Compile>
-    <Compile Include="Pages\Environment\EnvironmentShellView.xaml.cs">
-      <DependentUpon>EnvironmentShellView.xaml</DependentUpon>
     </Compile>
     <Compile Include="Pages\Environment\EnvironmentRecipesRegistryView.xaml.cs">
       <DependentUpon>EnvironmentRecipesRegistryView.xaml</DependentUpon>
@@ -769,10 +762,6 @@
       <SubType>Designer</SubType>
     </Page>
     <Page Include="Pages\Environment\EnvironmentBehaviorOverviewView.xaml">
-      <Generator>MSBuild:Compile</Generator>
-      <SubType>Designer</SubType>
-    </Page>
-    <Page Include="Pages\Environment\EnvironmentShellView.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>

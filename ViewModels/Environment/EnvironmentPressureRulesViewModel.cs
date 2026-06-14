@@ -6,7 +6,10 @@ using ISIDA.Gomeostas;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.ComponentModel;
+using System.Diagnostics;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Windows;
 using System.Windows.Input;
 using System.Windows.Media;
@@ -17,14 +20,12 @@ namespace AIStudio.ViewModels.SymbiontEnv
   /// <summary>
   /// Редактор правил давления среды (<see cref="AppConfig.EnvironmentPressureRulesFilePath"/>).
   /// </summary>
-  public sealed class EnvironmentPressureRulesViewModel : IEnvironmentChildViewModel
+  public sealed class EnvironmentPressureRulesViewModel : INotifyPropertyChanged
   {
     private readonly GomeostasSystem _gomeostas;
     private readonly List<EnvironmentPressureRuleRow> _allRows = new List<EnvironmentPressureRuleRow>();
-    private string _currentAgentName;
     private int _currentAgentStage;
-    private bool _dirty;
-    private int _validationIssueCount;
+    private string _currentAgentName;
 
     public EnvironmentPressureRulesViewModel(GomeostasSystem gomeostas)
     {
@@ -32,7 +33,7 @@ namespace AIStudio.ViewModels.SymbiontEnv
       Rules = new ObservableCollection<EnvironmentPressureRuleRow>();
       ProbeKeyOptions = new ObservableCollection<AdapterSchemaMetricProbe>();
       SaveCommand = new RelayCommand(_ => SaveToDisk(), _ => IsEditingEnabled);
-      RemoveAllCommand = new RelayCommand(RemoveAllRules, _ => IsEditingEnabled);
+      RemoveAllCommand = new RelayCommand(_ => RemoveAll(), _ => IsEditingEnabled);
       GlobalTimer.PulsationStateChanged += OnPulsationStateChanged;
       ReloadFromDisk();
     }
@@ -43,15 +44,12 @@ namespace AIStudio.ViewModels.SymbiontEnv
     public string CurrentAgentTitle =>
         SymbiontPageTitleFormatter.Format("Давление среды на виталы", _currentAgentName, _currentAgentStage);
 
+    public DescriptionWithLink CurrentAgentDescription { get; } = new DescriptionWithLink();
+
     public ICommand SaveCommand { get; }
     public ICommand RemoveAllCommand { get; }
 
-    public event Action DirtyChanged;
-    public event Action<int> ValidationIssueCountChanged;
-
-    public bool Dirty => _dirty;
-    public int ValidationIssueCount => _validationIssueCount;
-    public bool CanSave => IsEditingEnabled && _dirty;
+    public event PropertyChangedEventHandler PropertyChanged;
 
     public bool IsStageZero => _currentAgentStage == 0;
     public bool HasAdapter => SymbiontEnvironmentGate.IsEnvironmentEditingAllowed();
@@ -73,13 +71,26 @@ namespace AIStudio.ViewModels.SymbiontEnv
 
     public void Reload()
     {
-      _dirty = false;
-      DirtyChanged?.Invoke();
       ReloadFromDisk();
-      RecalculateValidation();
     }
 
     public void Save() => SaveToDisk();
+
+    private void RemoveAll()
+    {
+      if (_allRows.Count == 0)
+        return;
+
+      if (MessageBox.Show($"Удалить все правила ({_allRows.Count})?",
+          "Подтверждение",
+          MessageBoxButton.YesNo,
+          MessageBoxImage.Question) != MessageBoxResult.Yes)
+        return;
+
+      _allRows.Clear();
+      RefreshRulesCollection();
+      MarkDirty();
+    }
 
     public void ReloadFromDisk()
     {
@@ -90,7 +101,7 @@ namespace AIStudio.ViewModels.SymbiontEnv
       _allRows.AddRange(EnvironmentPressureRulesStorage.Load());
       RefreshProbeKeyOptions();
       RefreshRulesCollection();
-      RecalculateValidation();
+      OnPropertyChanged(nameof(CurrentAgentTitle));
     }
 
     public void RegisterNewRow(EnvironmentPressureRuleRow row)
@@ -104,23 +115,7 @@ namespace AIStudio.ViewModels.SymbiontEnv
 
     public void MarkDirty()
     {
-      _dirty = true;
-      DirtyChanged?.Invoke();
-      RecalculateValidation();
-    }
-
-    private void RecalculateValidation()
-    {
-      int count = 0;
-      foreach (EnvironmentPressureRuleRow row in _allRows)
-      {
-        if (row == null || string.IsNullOrWhiteSpace(row.ProbeKey))
-          count++;
-      }
-      if (_validationIssueCount == count)
-        return;
-      _validationIssueCount = count;
-      ValidationIssueCountChanged?.Invoke(count);
+      // для совместимости
     }
 
     public EnvironmentPressureRuleRow CreateNewRow()
@@ -154,40 +149,6 @@ namespace AIStudio.ViewModels.SymbiontEnv
       return true;
     }
 
-    public void RemoveAllRules(object parameter)
-    {
-      if (!IsEditingEnabled)
-        return;
-
-      MessageBoxResult result = MessageBox.Show(
-          "Вы действительно хотите удалить ВСЕ правила давления среды? Это действие нельзя будет отменить.",
-          "Подтверждение удаления",
-          MessageBoxButton.YesNo,
-          MessageBoxImage.Warning);
-      if (result != MessageBoxResult.Yes)
-        return;
-
-      try
-      {
-        _allRows.Clear();
-        Rules.Clear();
-        EnvironmentPressureRulesStorage.Save(_allRows);
-        RefreshProbeKeyOptions();
-        MessageBox.Show("Все правила давления среды успешно удалены",
-            "Удаление завершено",
-            MessageBoxButton.OK,
-            MessageBoxImage.Information);
-      }
-      catch (Exception ex)
-      {
-        MessageBox.Show($"Ошибка удаления правил давления среды: {ex.Message}",
-            "Ошибка",
-            MessageBoxButton.OK,
-            MessageBoxImage.Error);
-        ReloadFromDisk();
-      }
-    }
-
     private void SaveToDisk()
     {
       try
@@ -213,8 +174,6 @@ namespace AIStudio.ViewModels.SymbiontEnv
         }
 
         EnvironmentPressureRulesStorage.Save(_allRows);
-        _dirty = false;
-        DirtyChanged?.Invoke();
         ReloadFromDisk();
       }
       catch (Exception ex)
@@ -253,12 +212,52 @@ namespace AIStudio.ViewModels.SymbiontEnv
 
     private void OnPulsationStateChanged()
     {
-      Application.Current?.Dispatcher.Invoke(RefreshRulesCollection);
+      Application.Current?.Dispatcher.Invoke(() =>
+      {
+        OnPropertyChanged(nameof(IsEditingEnabled));
+        OnPropertyChanged(nameof(IsReadOnlyMode));
+        OnPropertyChanged(nameof(PulseWarningMessage));
+        OnPropertyChanged(nameof(WarningMessageColor));
+        RefreshRulesCollection();
+      });
     }
 
     public void Dispose()
     {
       GlobalTimer.PulsationStateChanged -= OnPulsationStateChanged;
     }
+
+    private void OnPropertyChanged([CallerMemberName] string propertyName = null)
+    {
+      PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+    }
+
+    /// <summary>
+    /// Класс описания с ссылкой
+    /// </summary>
+    public class DescriptionWithLink
+    {
+      public string Text { get; set; } = "Правила давления метрик среды (ProbeKey) на параметры гомеостаза. Применяются на пульсе, не отображаются на пульте как кнопки стимулов.";
+      public string LinkText { get; set; } = "Подробнее...";
+      public string Url { get; set; } = "https://scorcher.ru/isida/iadaptive_agents_guide.php#ref_9";
+      public ICommand OpenLinkCommand { get; }
+
+      public DescriptionWithLink()
+      {
+        OpenLinkCommand = new RelayCommand(_ =>
+        {
+          try
+          {
+            Process.Start(new ProcessStartInfo(Url) { UseShellExecute = true });
+          }
+          catch { }
+        });
+      }
+    }
+
+
+
+
   }
+
 }

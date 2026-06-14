@@ -7,6 +7,9 @@ namespace AIStudio.ViewModels.SymbiontEnv
   /// <summary>Строка таблицы триггеров среды.</summary>
   public sealed class EnvironmentTriggerRow : INotifyPropertyChanged
   {
+    private string _id = string.Empty;
+    private string _displayName = string.Empty;
+    private int _influenceActionId;
     private string _eventKind = string.Empty;
     private string _eventSummary = string.Empty;
 
@@ -19,13 +22,45 @@ namespace AIStudio.ViewModels.SymbiontEnv
     }
 
     /// <summary>Уникальный ID триггера.</summary>
-    public string Id { get; set; }
+    public string Id
+    {
+      get => _id;
+      set
+      {
+        string normalized = value ?? string.Empty;
+        if (_id == normalized)
+          return;
+        _id = normalized;
+        OnPropertyChanged();
+      }
+    }
 
     /// <summary>Отображаемое имя.</summary>
-    public string DisplayName { get; set; }
+    public string DisplayName
+    {
+      get => _displayName;
+      set
+      {
+        string normalized = value ?? string.Empty;
+        if (_displayName == normalized)
+          return;
+        _displayName = normalized;
+        OnPropertyChanged();
+      }
+    }
 
     /// <summary>ID воздействия (InfluenceAction).</summary>
-    public int InfluenceActionId { get; set; }
+    public int InfluenceActionId
+    {
+      get => _influenceActionId;
+      set
+      {
+        if (_influenceActionId == value)
+          return;
+        _influenceActionId = value;
+        OnPropertyChanged();
+      }
+    }
 
     /// <summary>Тип события среды (schema/trigger-detect.json).</summary>
     public string EventKind
