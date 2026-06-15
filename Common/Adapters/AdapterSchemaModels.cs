@@ -2,6 +2,24 @@ using System.Collections.Generic;
 
 namespace AIStudio.Common.Adapters
 {
+  /// <summary>Подсказки редактора для полей argsSchema (handlers-catalog.json).</summary>
+  public static class AdapterSchemaEditorHints
+  {
+    public const string TemplatePlaceholder = "template_placeholder";
+    public const string PropertyName = "property_name";
+  }
+
+  /// <summary>Допустимое значение enum-параметра schema (ключ + опциональная подпись).</summary>
+  public sealed class AdapterSchemaArgValueOption
+  {
+    public string Key { get; set; }
+    public string Label { get; set; }
+
+    /// <summary>Текст для combobox: подпись или ключ, если подписи нет.</summary>
+    public string Display =>
+        string.IsNullOrWhiteSpace(Label) ? (Key ?? string.Empty) : Label;
+  }
+
   /// <summary>Параметр argsSchema handler'а из handlers-catalog.json.</summary>
   public sealed class AdapterSchemaHandlerArg
   {
@@ -9,7 +27,59 @@ namespace AIStudio.Common.Adapters
     public string Label { get; set; }
     public string Type { get; set; }
     public bool Required { get; set; }
-    public IList<string> Values { get; set; }
+    /// <summary>Опционально: template_placeholder, property_name (см. recipe-template-catalog.json).</summary>
+    public string EditorHint { get; set; }
+    public IList<AdapterSchemaArgValueOption> Values { get; set; }
+  }
+
+  /// <summary>Плейсхолдер шаблона значения из recipe-template-catalog.json.</summary>
+  public sealed class AdapterSchemaTemplatePlaceholder
+  {
+    public string Token { get; set; }
+    public string Label { get; set; }
+    public string Description { get; set; }
+
+    public string DisplayText
+    {
+      get
+      {
+        if (string.IsNullOrWhiteSpace(Token))
+          return Label ?? string.Empty;
+        if (string.IsNullOrWhiteSpace(Label))
+          return Token;
+        return Label + " (" + Token + ")";
+      }
+    }
+  }
+
+  /// <summary>Имя пользовательского свойства документа из recipe-template-catalog.json.</summary>
+  public sealed class AdapterSchemaPropertyNameEntry
+  {
+    public string Name { get; set; }
+    public string Label { get; set; }
+    public string Description { get; set; }
+
+    public string DisplayText
+    {
+      get
+      {
+        if (string.IsNullOrWhiteSpace(Name))
+          return Label ?? string.Empty;
+        if (string.IsNullOrWhiteSpace(Label) || string.Equals(Label, Name, System.StringComparison.Ordinal))
+          return Name;
+        return Label + " (" + Name + ")";
+      }
+    }
+  }
+
+  /// <summary>Справочники подстановок для редактора шагов рецепта.</summary>
+  public sealed class AdapterSchemaRecipeTemplateCatalog
+  {
+    public IList<AdapterSchemaTemplatePlaceholder> Placeholders { get; set; } =
+        new List<AdapterSchemaTemplatePlaceholder>();
+
+    public IList<AdapterSchemaPropertyNameEntry> PropertyNames { get; set; } =
+        new List<AdapterSchemaPropertyNameEntry>();
   }
 
   /// <summary>Handler invoke из handlers-catalog.json.</summary>
@@ -60,7 +130,7 @@ namespace AIStudio.Common.Adapters
     public string Label { get; set; }
     public string Type { get; set; }
     public bool Required { get; set; }
-    public IList<string> Values { get; set; }
+    public IList<AdapterSchemaArgValueOption> Values { get; set; }
   }
 
   /// <summary>Тип события из trigger-detect.json.</summary>
@@ -127,5 +197,7 @@ namespace AIStudio.Common.Adapters
     public IList<AdapterSchemaMetricProbe> MetricProbes { get; set; } = new List<AdapterSchemaMetricProbe>();
     public IList<AdapterSchemaRecipeCatalogEntry> RecipeCatalog { get; set; } = new List<AdapterSchemaRecipeCatalogEntry>();
     public IList<AdapterSchemaTriggerCatalogEntry> TriggerCatalog { get; set; } = new List<AdapterSchemaTriggerCatalogEntry>();
+    public AdapterSchemaRecipeTemplateCatalog RecipeTemplateCatalog { get; set; } =
+        new AdapterSchemaRecipeTemplateCatalog();
   }
 }

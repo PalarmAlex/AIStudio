@@ -18,7 +18,7 @@
 |------|------------|
 | `manifest.json` | `contractVersion` / `schemaVersion`: `3.0` |
 | `BootData/Environment/*.yaml` | `expression_pattern_id`, `homeostasis_deltas`, `reflex_trigger_expression_pattern_id` |
-| `schema/*.json` | **Шесть** файлов (incl. `expression-pattern-catalog.json`) |
+| `schema/*.json` | **Шесть** обязательных JSON (incl. `expression-pattern-catalog.json`); опционально `recipe-template-catalog.json` |
 | `runtime/` | SDK + host DLL; host реализует `IHostMotorDispatcher` |
 
 ## Demo ID паттернов (согласовать с boot проекта)

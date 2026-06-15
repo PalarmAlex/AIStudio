@@ -127,7 +127,8 @@ namespace AIStudio.ViewModels.SymbiontEnv
           if (row.Args.TryGetValue(arg.Key, out string value) && !string.IsNullOrWhiteSpace(value))
           {
             string label = string.IsNullOrWhiteSpace(arg.Label) ? arg.Key : arg.Label;
-            parts.Add(label + ": " + value);
+            string displayValue = FormatArgValueDisplay(arg, value);
+            parts.Add(label + ": " + displayValue);
           }
         }
       }
@@ -239,6 +240,23 @@ namespace AIStudio.ViewModels.SymbiontEnv
       }
 
       return string.Empty;
+    }
+
+    private static string FormatArgValueDisplay(AdapterSchemaHandlerArg arg, string value)
+    {
+      if (string.IsNullOrWhiteSpace(value) || arg?.Values == null || arg.Values.Count == 0)
+        return value ?? string.Empty;
+
+      foreach (AdapterSchemaArgValueOption option in arg.Values)
+      {
+        if (option == null || string.IsNullOrWhiteSpace(option.Key))
+          continue;
+        if (!string.Equals(option.Key, value, StringComparison.OrdinalIgnoreCase))
+          continue;
+        return option.Display;
+      }
+
+      return value;
     }
   }
 }

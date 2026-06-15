@@ -28,7 +28,7 @@ namespace AIStudio.ViewModels.SymbiontEnv
     private readonly GomeostasSystem _gomeostas;
     private readonly GeneticReflexesSystem _geneticReflexes;
     private readonly List<EnvironmentTriggerRow> _allRows = new List<EnvironmentTriggerRow>();
-    private AdapterEnvironmentSchema _schema = new AdapterEnvironmentSchema();
+    private AdapterEnvironmentSchema _schema = AdapterSchemaLoader.LoadForCurrentProject() ?? new AdapterEnvironmentSchema();
     private EnvironmentTriggerRow _selectedTrigger;
     private string _currentAgentName;
     private int _currentAgentStage;
@@ -172,6 +172,11 @@ namespace AIStudio.ViewModels.SymbiontEnv
           definitions.Add(EnvironmentTriggerMapper.ToData(row));
         }
         EnvironmentCatalogStorage.SaveTriggers(definitions);
+        MessageBox.Show(
+            "Триггеры среды сохранены.",
+            "Сохранение",
+            MessageBoxButton.OK,
+            MessageBoxImage.Information);
         Reload();
       }
       catch (Exception ex)
@@ -408,6 +413,7 @@ namespace AIStudio.ViewModels.SymbiontEnv
     private void RefreshSchema()
     {
       _schema = AdapterSchemaLoader.LoadForCurrentProject() ?? new AdapterEnvironmentSchema();
+      EventSchema.ReplaceSchema(_schema);
       EventSchema.LoadFromEvent(SelectedTrigger?.EventKind, SelectedTrigger?.EventParameters);
     }
 

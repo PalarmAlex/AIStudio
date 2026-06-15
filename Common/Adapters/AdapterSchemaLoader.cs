@@ -1,7 +1,9 @@
 using ISIDA.SymbiontEnv.Contract;
 using Newtonsoft.Json.Linq;
+using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 
 namespace AIStudio.Common.Adapters
 {
@@ -32,6 +34,7 @@ namespace AIStudio.Common.Adapters
       LoadMetricProbes(Path.Combine(schemaDir, "metric-probes.json"), schema.MetricProbes);
       LoadRecipeCatalog(Path.Combine(schemaDir, "recipe-catalog.json"), schema.RecipeCatalog);
       LoadTriggerCatalog(Path.Combine(schemaDir, "trigger-catalog.json"), schema.TriggerCatalog);
+      LoadRecipeTemplateCatalog(Path.Combine(schemaDir, "recipe-template-catalog.json"), schema.RecipeTemplateCatalog);
       return schema;
     }
 
@@ -159,19 +162,10 @@ namespace AIStudio.Common.Adapters
                 Key = argKey.Trim(),
                 Label = argItem["label"]?.ToString(),
                 Type = argItem["type"]?.ToString(),
-                Required = argItem["required"]?.Value<bool>() ?? false
+                Required = argItem["required"]?.Value<bool>() ?? false,
+                EditorHint = argItem["editorHint"]?.ToString(),
+                Values = ParseArgValueOptions(argItem)
               };
-              if (argItem["values"] is JArray valuesArr)
-              {
-                var values = new List<string>();
-                foreach (JToken valueToken in valuesArr)
-                {
-                  string value = valueToken?.ToString();
-                  if (!string.IsNullOrWhiteSpace(value))
-                    values.Add(value);
-                }
-                arg.Values = values;
-              }
               handler.ArgsSchema.Add(arg);
             }
           }
@@ -313,19 +307,9 @@ namespace AIStudio.Common.Adapters
                 Key = key.Trim(),
                 Label = paramItem["label"]?.ToString(),
                 Type = paramItem["type"]?.ToString(),
-                Required = paramItem["required"]?.Value<bool>() ?? false
+                Required = paramItem["required"]?.Value<bool>() ?? false,
+                Values = ParseArgValueOptions(paramItem)
               };
-              if (paramItem["values"] is JArray valuesArr)
-              {
-                var values = new List<string>();
-                foreach (JToken valueToken in valuesArr)
-                {
-                  string value = valueToken?.ToString();
-                  if (!string.IsNullOrWhiteSpace(value))
-                    values.Add(value);
-                }
-                param.Values = values;
-              }
               detectKind.Parameters.Add(param);
             }
           }
@@ -336,6 +320,136 @@ namespace AIStudio.Common.Adapters
       {
         // ignore
       }
+    }
+
+    private static void LoadRecipeTemplateCatalog(string path, AdapterSchemaRecipeTemplateCatalog target)
+    {
+      if (target == null || !File.Exists(path))
+        return;
+      try
+      {
+        JObject jo = JObject.Parse(File.ReadAllText(path));
+        if (jo["placeholders"] is JArray placeholdersArr)
+        {
+          foreach (JToken token in placeholdersArr)
+          {
+            if (!(token is JObject item))
+              continue;
+            string placeholderToken = item["token"]?.ToString();
+            if (string.IsNullOrWhiteSpace(placeholderToken))
+              continue;
+            target.Placeholders.Add(new AdapterSchemaTemplatePlaceholder
+            {
+              Token = placeholderToken.Trim(),
+              Label = item["label"]?.ToString(),
+              Description = item["description"]?.ToString()
+            });
+          }
+        }
+
+        if (jo["propertyNames"] is JArray propertyNamesArr)
+        {
+          foreach (JToken token in propertyNamesArr)
+          {
+            if (!(token is JObject item))
+              continue;
+            string name = item["name"]?.ToString();
+            if (string.IsNullOrWhiteSpace(name))
+              continue;
+            target.PropertyNames.Add(new AdapterSchemaPropertyNameEntry
+            {
+              Name = name.Trim(),
+              Label = item["label"]?.ToString(),
+              Description = item["description"]?.ToString()
+            });
+          }
+        }
+      }
+      catch
+      {
+        // ignore broken schema
+      }
+    }
+
+    /// <summary>Токены плейсхолдеров из schema пакета (пусто, если каталог не задан).</summary>
+    public static IReadOnlyList<string> GetTemplatePlaceholderTokens(AdapterEnvironmentSchema schema)
+    {
+      if (schema?.RecipeTemplateCatalog?.Placeholders == null || schema.RecipeTemplateCatalog.Placeholders.Count == 0)
+        return Array.Empty<string>();
+      return schema.RecipeTemplateCatalog.Placeholders
+          .Where(p => p != null && !string.IsNullOrWhiteSpace(p.Token))
+          .Select(p => p.Token.Trim())
+          .Distinct(StringComparer.OrdinalIgnoreCase)
+          .ToList();
+    }
+
+    /// <summary>Имена свойств документа из schema пакета (пусто, если каталог не задан).</summary>
+    public static IReadOnlyList<string> GetPropertyNameValues(AdapterEnvironmentSchema schema)
+    {
+      if (schema?.RecipeTemplateCatalog?.PropertyNames == null || schema.RecipeTemplateCatalog.PropertyNames.Count == 0)
+        return Array.Empty<string>();
+      return schema.RecipeTemplateCatalog.PropertyNames
+          .Where(p => p != null && !string.IsNullOrWhiteSpace(p.Name))
+          .Select(p => p.Name.Trim())
+          .Distinct(StringComparer.OrdinalIgnoreCase)
+          .ToList();
+    }
+
+    private static IList<AdapterSchemaArgValueOption> ParseArgValueOptions(JObject item)
+    {
+      if (item == null)
+        return null;
+
+      Dictionary<string, string> valueLabels = null;
+      if (item["valueLabels"] is JObject labelsObj)
+      {
+        valueLabels = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+        foreach (JProperty property in labelsObj.Properties())
+        {
+          string label = property.Value?.ToString();
+          if (!string.IsNullOrWhiteSpace(property.Name) && !string.IsNullOrWhiteSpace(label))
+            valueLabels[property.Name.Trim()] = label.Trim();
+        }
+        if (valueLabels.Count == 0)
+          valueLabels = null;
+      }
+
+      if (!(item["values"] is JArray valuesArr) || valuesArr.Count == 0)
+        return null;
+
+      var options = new List<AdapterSchemaArgValueOption>();
+      foreach (JToken valueToken in valuesArr)
+      {
+        if (valueToken is JObject valueObj)
+        {
+          string key = valueObj["key"]?.ToString() ?? valueObj["value"]?.ToString();
+          if (string.IsNullOrWhiteSpace(key))
+            continue;
+          string label = valueObj["label"]?.ToString();
+          if (string.IsNullOrWhiteSpace(label) && valueLabels != null)
+            valueLabels.TryGetValue(key.Trim(), out label);
+          options.Add(new AdapterSchemaArgValueOption
+          {
+            Key = key.Trim(),
+            Label = string.IsNullOrWhiteSpace(label) ? null : label.Trim()
+          });
+          continue;
+        }
+
+        string scalarKey = valueToken?.ToString();
+        if (string.IsNullOrWhiteSpace(scalarKey))
+          continue;
+        string scalarLabel = null;
+        if (valueLabels != null)
+          valueLabels.TryGetValue(scalarKey.Trim(), out scalarLabel);
+        options.Add(new AdapterSchemaArgValueOption
+        {
+          Key = scalarKey.Trim(),
+          Label = string.IsNullOrWhiteSpace(scalarLabel) ? null : scalarLabel.Trim()
+        });
+      }
+
+      return options.Count > 0 ? options : null;
     }
   }
 }

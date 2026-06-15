@@ -57,12 +57,11 @@
 
     <Grid Grid.Row="3">
       <Grid.ColumnDefinitions>
-        <ColumnDefinition Width="2*" MinWidth="320"/>
-        <ColumnDefinition Width="6"/>
-        <ColumnDefinition Width="3*" MinWidth="400"/>
+        <ColumnDefinition Width="630"/>
+        <ColumnDefinition Width="*"/>
       </Grid.ColumnDefinitions>
 
-      <DockPanel Grid.Column="0">
+      <DockPanel Grid.Column="0" Margin="0,0,12,0">
         <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Margin="0,0,0,6">
           <Button Content="+ Новый" Command="{Binding AddTriggerCommand}" Padding="10,4" Margin="0,0,8,0"/>
           <Button Content="Удалить" Command="{Binding DeleteSelectedCommand}" Style="{StaticResource RedButtonStyle}" Padding="10,4"/>
@@ -85,9 +84,7 @@
         </DataGrid>
       </DockPanel>
 
-      <GridSplitter Grid.Column="1" Width="6" HorizontalAlignment="Stretch"/>
-
-      <ScrollViewer Grid.Column="2" VerticalScrollBarVisibility="Auto">
+      <ScrollViewer Grid.Column="1" VerticalScrollBarVisibility="Auto">
         <StackPanel DataContext="{Binding SelectedTrigger}" IsEnabled="{Binding DataContext.IsEditingEnabled, RelativeSource={RelativeSource AncestorType=UserControl}}">
           <TextBlock Text="Детали триггера" FontWeight="SemiBold" Margin="0,0,0,8"/>
           <TextBlock Text="ID" FontWeight="SemiBold"/>

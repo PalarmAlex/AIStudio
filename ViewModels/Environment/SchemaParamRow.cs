@@ -1,3 +1,4 @@
+using AIStudio.Common.Adapters;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
@@ -14,8 +15,9 @@ namespace AIStudio.ViewModels.SymbiontEnv
     public string Key { get; set; }
     public string Label { get; set; }
     public string Type { get; set; }
+    public string EditorHint { get; set; }
     public bool Required { get; set; }
-    public IList<string> AllowedValues { get; set; }
+    public IList<KeyValuePair<string, string>> AllowedValueOptions { get; set; }
 
     public string Value
     {
@@ -66,9 +68,19 @@ namespace AIStudio.ViewModels.SymbiontEnv
     public bool IsBool =>
         string.Equals(Type, "bool", System.StringComparison.OrdinalIgnoreCase);
 
-    public bool IsEnum => AllowedValues != null && AllowedValues.Count > 0;
+    public bool IsEnum => AllowedValueOptions != null && AllowedValueOptions.Count > 0;
 
     public bool IsStringEditor => !IsBool && !IsEnum;
+
+    public bool IsTemplateField =>
+        string.Equals(EditorHint, AdapterSchemaEditorHints.TemplatePlaceholder, System.StringComparison.OrdinalIgnoreCase)
+        || (string.IsNullOrWhiteSpace(EditorHint)
+            && string.Equals(Key, "template", System.StringComparison.OrdinalIgnoreCase));
+
+    public bool IsPropertyNameField =>
+        string.Equals(EditorHint, AdapterSchemaEditorHints.PropertyName, System.StringComparison.OrdinalIgnoreCase)
+        || (string.IsNullOrWhiteSpace(EditorHint)
+            && string.Equals(Key, "name", System.StringComparison.OrdinalIgnoreCase));
 
     public event PropertyChangedEventHandler PropertyChanged;
 

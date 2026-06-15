@@ -186,6 +186,7 @@ triggers:
 | `trigger-catalog.json` | ID триггеров |
 | `recipe-catalog.json` | ID рецептов |
 | `expression-pattern-catalog.json` | **Новый:** id, token (`expr:velum.*`, `expr:env.*`), label |
+| `recipe-template-catalog.json` | **Опционально:** маски `{PLACEHOLDER}` и имена свойств для редактора шагов |
 | `metric-probes.json` | ProbeKey |
 
 Пример `expression-pattern-catalog.json`:

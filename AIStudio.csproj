@@ -431,6 +431,7 @@
     <Compile Include="Dialogs\InfluenceActionRadioSelectionDialog.xaml.cs">
       <DependentUpon>InfluenceActionRadioSelectionDialog.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Dialogs\RecipeStepCatalogPickItem.cs" />
     <Compile Include="Dialogs\RecipeStepValueSelectionDialog.xaml.cs">
       <DependentUpon>RecipeStepValueSelectionDialog.xaml</DependentUpon>
     </Compile>

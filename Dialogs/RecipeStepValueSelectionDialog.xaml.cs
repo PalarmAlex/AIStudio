@@ -9,32 +9,49 @@ namespace AIStudio.Dialogs
   {
     public string SelectedValue { get; private set; }
 
-    public RecipeStepValueSelectionDialog(string title, string prompt, IEnumerable<string> values, string initiallySelected)
+    public RecipeStepValueSelectionDialog(
+        string title,
+        string prompt,
+        IEnumerable<RecipeStepCatalogPickItem> items,
+        string initiallySelected)
     {
       InitializeComponent();
       Title = title ?? "Выбор значения";
       PromptText.Text = prompt ?? string.Empty;
       SelectedValue = initiallySelected ?? string.Empty;
 
-      var items = (values ?? Enumerable.Empty<string>())
-          .Where(v => !string.IsNullOrWhiteSpace(v))
-          .Distinct()
-          .OrderBy(v => v)
+      var list = (items ?? Enumerable.Empty<RecipeStepCatalogPickItem>())
+          .Where(i => i != null && !string.IsNullOrWhiteSpace(i.Value))
+          .GroupBy(i => i.Value, System.StringComparer.OrdinalIgnoreCase)
+          .Select(g => g.First())
+          .OrderBy(i => i.Value)
           .ToList();
-      ValuesList.ItemsSource = items;
+      ValuesList.ItemsSource = list;
 
       if (!string.IsNullOrWhiteSpace(SelectedValue))
       {
-        object match = items.FirstOrDefault(v => v == SelectedValue);
+        RecipeStepCatalogPickItem match = list.FirstOrDefault(
+            i => string.Equals(i.Value, SelectedValue, System.StringComparison.OrdinalIgnoreCase));
         if (match != null)
           ValuesList.SelectedItem = match;
       }
     }
 
+    public RecipeStepValueSelectionDialog(string title, string prompt, IEnumerable<string> values, string initiallySelected)
+        : this(
+            title,
+            prompt,
+            (values ?? Enumerable.Empty<string>())
+                .Where(v => !string.IsNullOrWhiteSpace(v))
+                .Select(v => new RecipeStepCatalogPickItem { Value = v.Trim(), Description = string.Empty }),
+            initiallySelected)
+    {
+    }
+
     private void OkButton_Click(object sender, RoutedEventArgs e)
     {
-      if (ValuesList.SelectedItem is string value)
-        SelectedValue = value;
+      if (ValuesList.SelectedItem is RecipeStepCatalogPickItem item)
+        SelectedValue = item.Value;
       DialogResult = true;
       Close();
     }
@@ -62,8 +79,8 @@ namespace AIStudio.Dialogs
 
     private void ValuesList_MouseDoubleClick(object sender, MouseButtonEventArgs e)
     {
-      if (ValuesList.SelectedItem is string value)
-        SelectedValue = value;
+      if (ValuesList.SelectedItem is RecipeStepCatalogPickItem item)
+        SelectedValue = item.Value;
       DialogResult = true;
       Close();
     }

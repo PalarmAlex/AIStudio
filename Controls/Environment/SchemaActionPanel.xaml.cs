@@ -1,3 +1,5 @@
+using AIStudio.ViewModels.SymbiontEnv;
+using System.Windows;
 using System.Windows.Controls;
 
 namespace AIStudio.Controls.Environment
@@ -8,6 +10,20 @@ namespace AIStudio.Controls.Environment
     public SchemaActionPanel()
     {
       InitializeComponent();
+    }
+
+    private SchemaActionEditorViewModel Vm => DataContext as SchemaActionEditorViewModel;
+
+    private void InsertPlaceholder_Click(object sender, RoutedEventArgs e)
+    {
+      if (sender is FrameworkElement element && element.Tag is SchemaParamRow row)
+        Vm?.PickTemplatePlaceholder(Window.GetWindow(this), row);
+    }
+
+    private void PickPropertyName_Click(object sender, RoutedEventArgs e)
+    {
+      if (sender is FrameworkElement element && element.Tag is SchemaParamRow row)
+        Vm?.PickPropertyName(Window.GetWindow(this), row);
     }
   }
 }

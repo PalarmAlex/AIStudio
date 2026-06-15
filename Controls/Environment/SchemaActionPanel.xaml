@@ -57,22 +57,59 @@
                   <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="140"/>
                     <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="98"/>
                   </Grid.ColumnDefinitions>
                   <TextBlock Grid.Column="0" Text="{Binding Label}" VerticalAlignment="Center" Margin="0,0,8,0"/>
                   <TextBox Grid.Column="1"
                            Text="{Binding Value, UpdateSourceTrigger=PropertyChanged}"
                            Padding="4,3"
-                           Visibility="{Binding IsStringEditor, Converter={StaticResource BoolToVisibilityConverter}}"/>
+                           ToolTip="Для составного шаблона вставляйте маски кнопкой «Вставить…» и добавляйте разделители вручную"
+                           Visibility="{Binding IsStringEditor, Converter={StaticResource BoolToVisibilityConverter}}">
+                    <TextBox.Style>
+                      <Style TargetType="TextBox">
+                        <Setter Property="Grid.ColumnSpan" Value="2"/>
+                        <Style.Triggers>
+                          <DataTrigger Binding="{Binding IsTemplateField}" Value="True">
+                            <Setter Property="Grid.ColumnSpan" Value="1"/>
+                          </DataTrigger>
+                          <DataTrigger Binding="{Binding IsPropertyNameField}" Value="True">
+                            <Setter Property="Grid.ColumnSpan" Value="1"/>
+                          </DataTrigger>
+                        </Style.Triggers>
+                      </Style>
+                    </TextBox.Style>
+                  </TextBox>
                   <CheckBox Grid.Column="1"
+                            Grid.ColumnSpan="2"
                             Content=""
                             IsChecked="{Binding BoolValue}"
                             VerticalAlignment="Center"
                             Visibility="{Binding IsBool, Converter={StaticResource BoolToVisibilityConverter}}"/>
                   <ComboBox Grid.Column="1"
-                            ItemsSource="{Binding AllowedValues}"
-                            SelectedItem="{Binding Value, Mode=TwoWay}"
+                            Grid.ColumnSpan="2"
+                            ItemsSource="{Binding AllowedValueOptions}"
+                            DisplayMemberPath="Value"
+                            SelectedValuePath="Key"
+                            SelectedValue="{Binding Value, Mode=TwoWay}"
                             Padding="4,3"
+                            HorizontalAlignment="Stretch"
                             Visibility="{Binding IsEnum, Converter={StaticResource BoolToVisibilityConverter}}"/>
+                  <Button Grid.Column="2"
+                          Content="Вставить…"
+                          Padding="8,3"
+                          HorizontalAlignment="Stretch"
+                          ToolTip="Справочник масок подстановки для шаблона значения"
+                          Visibility="{Binding IsTemplateField, Converter={StaticResource BoolToVisibilityConverter}}"
+                          Click="InsertPlaceholder_Click"
+                          Tag="{Binding}"/>
+                  <Button Grid.Column="2"
+                          Content="Справочник…"
+                          Padding="8,3"
+                          HorizontalAlignment="Stretch"
+                          ToolTip="Справочник имён свойств документа"
+                          Visibility="{Binding IsPropertyNameField, Converter={StaticResource BoolToVisibilityConverter}}"
+                          Click="PickPropertyName_Click"
+                          Tag="{Binding}"/>
                 </Grid>
               </DataTemplate>
             </ItemsControl.ItemTemplate>

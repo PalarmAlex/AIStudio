@@ -23,8 +23,8 @@ namespace AIStudio.ViewModels.SymbiontEnv
   public sealed class EnvironmentRecipeEditorViewModel : INotifyPropertyChanged
   {
     private readonly GomeostasSystem _gomeostas;
-    private readonly Action<EnvironmentRecipeEditorModel, bool> _onSaveAll;
-    private readonly bool _isNew;
+    private readonly Func<EnvironmentRecipeEditorModel, bool, bool> _onSaveAll;
+    private bool _isNew;
     private readonly AdapterEnvironmentSchema _schema;
     private string _currentAgentName;
     private int _currentAgentStage;
@@ -41,7 +41,7 @@ namespace AIStudio.ViewModels.SymbiontEnv
         GomeostasSystem gomeostas,
         EnvironmentRecipeEditorModel model,
         bool isNew,
-        Action<EnvironmentRecipeEditorModel, bool> onSaveAll)
+        Func<EnvironmentRecipeEditorModel, bool, bool> onSaveAll)
     {
       _gomeostas = gomeostas ?? throw new ArgumentNullException(nameof(gomeostas));
       Model = model ?? throw new ArgumentNullException(nameof(model));
@@ -281,6 +281,9 @@ namespace AIStudio.ViewModels.SymbiontEnv
         MessageBox.Show("Укажите моторное действие.", "Сохранение", MessageBoxButton.OK, MessageBoxImage.Warning);
         return;
       }
+      if (SelectedStep != null && SelectedStep.IsInvoke)
+        StepHandlerSchema.TryCommit(out _);
+
       string stepsError = EnvironmentRecipeStepSchemaHelper.ValidateSteps(Model.Steps, _schema);
       if (!string.IsNullOrWhiteSpace(stepsError))
       {
@@ -289,15 +292,26 @@ namespace AIStudio.ViewModels.SymbiontEnv
       }
       try
       {
-        _onSaveAll(Model, _isNew);
+        if (!_onSaveAll(Model, _isNew))
+          return;
+        if (_isNew)
+          _isNew = false;
         _dirty = false;
-        RequestClose?.Invoke(true);
-        CloseAction?.Invoke();
+        OnPropertyChanged(nameof(Dirty));
+        RefreshRecipeIdOptions();
+        UpdateRecipeIdDescription();
+        RefreshStepsTable();
+        MessageBox.Show("Рецепт сохранён.", "Сохранение", MessageBoxButton.OK, MessageBoxImage.Information);
       }
       catch (Exception ex)
       {
         MessageBox.Show(ex.Message, "Ошибка сохранения", MessageBoxButton.OK, MessageBoxImage.Error);
       }
+    }
+
+    private void RefreshStepsTable()
+    {
+      EnvironmentRecipeStepSchemaHelper.InitializeAllSteps(Model.Steps, _schema);
     }
 
     private void MarkDirty()

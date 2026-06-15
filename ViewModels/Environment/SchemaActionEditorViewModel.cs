@@ -1,11 +1,13 @@
 using AIStudio.Common.Adapters;
 using AIStudio.Common.SymbiontEnv;
+using AIStudio.Dialogs;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Linq;
 using System.Runtime.CompilerServices;
+using System.Windows;
 using System.Windows.Input;
 
 namespace AIStudio.ViewModels.SymbiontEnv
@@ -13,7 +15,7 @@ namespace AIStudio.ViewModels.SymbiontEnv
   /// <summary>Редактор действия + параметров по schema (handler или event).</summary>
   public sealed class SchemaActionEditorViewModel : INotifyPropertyChanged
   {
-    private readonly AdapterEnvironmentSchema _schema;
+    private AdapterEnvironmentSchema _schema;
     private SchemaActionEditorMode _mode = SchemaActionEditorMode.RecipeHandler;
     private bool _isEditingEnabled = true;
     private string _catalogSearchText = string.Empty;
@@ -30,6 +32,12 @@ namespace AIStudio.ViewModels.SymbiontEnv
       Parameters = new ObservableCollection<SchemaParamRow>();
       ApplyCatalogFilterCommand = new RelayCommand(_ => ApplyCatalogFilter());
       ShowHelpCommand = new RelayCommand(_ => { });
+    }
+
+    /// <summary>Подменяет schema после загрузки пакета адаптера.</summary>
+    public void ReplaceSchema(AdapterEnvironmentSchema schema)
+    {
+      _schema = schema ?? new AdapterEnvironmentSchema();
     }
 
     public ObservableCollection<SchemaCatalogItemRow> CatalogItems { get; }
@@ -222,6 +230,58 @@ namespace AIStudio.ViewModels.SymbiontEnv
       TryCommit(out _);
     }
 
+    /// <summary>Вставляет плейсхолдер в поле template (дописывает к текущему значению).</summary>
+    public void PickTemplatePlaceholder(Window owner, SchemaParamRow row)
+    {
+      if (!IsEditingEnabled || row == null || !row.IsTemplateField)
+        return;
+
+      IReadOnlyList<RecipeStepCatalogPickItem> items = BuildTemplatePlaceholderPickItems(_schema);
+      if (items == null || items.Count == 0)
+        return;
+
+      var dialog = new RecipeStepValueSelectionDialog(
+          "Плейсхолдер шаблона",
+          "Выберите маску для вставки. Между масками вводите разделитель вручную (пробел, дефис и т.д.).",
+          items,
+          row.Value)
+      {
+        Owner = owner
+      };
+      if (dialog.ShowDialog() != true || string.IsNullOrWhiteSpace(dialog.SelectedValue))
+        return;
+
+      row.Value = string.IsNullOrWhiteSpace(row.Value)
+          ? dialog.SelectedValue
+          : row.Value + dialog.SelectedValue;
+      NotifyParameterChanged();
+    }
+
+    /// <summary>Выбирает имя свойства документа из справочника КБ.</summary>
+    public void PickPropertyName(Window owner, SchemaParamRow row)
+    {
+      if (!IsEditingEnabled || row == null || !row.IsPropertyNameField)
+        return;
+
+      IReadOnlyList<RecipeStepCatalogPickItem> items = BuildPropertyNamePickItems(_schema);
+      if (items == null || items.Count == 0)
+        return;
+
+      var dialog = new RecipeStepValueSelectionDialog(
+          "Имя свойства",
+          "Выберите имя пользовательского свойства документа:",
+          items,
+          row.Value)
+      {
+        Owner = owner
+      };
+      if (dialog.ShowDialog() != true || string.IsNullOrWhiteSpace(dialog.SelectedValue))
+        return;
+
+      row.Value = dialog.SelectedValue;
+      NotifyParameterChanged();
+    }
+
     public void ReloadCurrentCatalogParameters(IDictionary<string, string> args)
     {
       _suppressSideEffects = true;
@@ -314,8 +374,9 @@ namespace AIStudio.ViewModels.SymbiontEnv
           Key = arg.Key,
           Label = string.IsNullOrWhiteSpace(arg.Label) ? arg.Key : arg.Label,
           Type = arg.Type ?? string.Empty,
+          EditorHint = arg.EditorHint ?? string.Empty,
           Required = arg.Required,
-          AllowedValues = arg.Values,
+          AllowedValueOptions = BuildAllowedValueOptions(arg.Values),
           Value = value
         };
         row.PropertyChanged += OnParameterRowChanged;
@@ -346,7 +407,7 @@ namespace AIStudio.ViewModels.SymbiontEnv
           Label = string.IsNullOrWhiteSpace(param.Label) ? param.Key : param.Label,
           Type = param.Type ?? string.Empty,
           Required = param.Required,
-          AllowedValues = param.Values,
+          AllowedValueOptions = BuildAllowedValueOptions(param.Values),
           Value = value
         };
         row.PropertyChanged += OnParameterRowChanged;
@@ -358,6 +419,76 @@ namespace AIStudio.ViewModels.SymbiontEnv
     {
       if (e.PropertyName == nameof(SchemaParamRow.Value) || e.PropertyName == nameof(SchemaParamRow.BoolValue))
         NotifyParameterChanged();
+    }
+
+    private static IList<KeyValuePair<string, string>> BuildAllowedValueOptions(
+        IList<AdapterSchemaArgValueOption> values)
+    {
+      if (values == null || values.Count == 0)
+        return null;
+
+      var options = new List<KeyValuePair<string, string>>();
+      foreach (AdapterSchemaArgValueOption option in values)
+      {
+        if (option == null || string.IsNullOrWhiteSpace(option.Key))
+          continue;
+        options.Add(new KeyValuePair<string, string>(option.Key, option.Display));
+      }
+
+      return options.Count > 0 ? options : null;
+    }
+
+    private static IReadOnlyList<RecipeStepCatalogPickItem> BuildTemplatePlaceholderPickItems(
+        AdapterEnvironmentSchema schema)
+    {
+      if (schema?.RecipeTemplateCatalog?.Placeholders == null || schema.RecipeTemplateCatalog.Placeholders.Count == 0)
+        return Array.Empty<RecipeStepCatalogPickItem>();
+
+      var items = new List<RecipeStepCatalogPickItem>();
+      foreach (AdapterSchemaTemplatePlaceholder placeholder in schema.RecipeTemplateCatalog.Placeholders)
+      {
+        if (placeholder == null || string.IsNullOrWhiteSpace(placeholder.Token))
+          continue;
+        items.Add(new RecipeStepCatalogPickItem
+        {
+          Value = placeholder.Token.Trim(),
+          Description = BuildCatalogPickerDescription(placeholder.Label, placeholder.Description)
+        });
+      }
+
+      return items;
+    }
+
+    private static IReadOnlyList<RecipeStepCatalogPickItem> BuildPropertyNamePickItems(
+        AdapterEnvironmentSchema schema)
+    {
+      if (schema?.RecipeTemplateCatalog?.PropertyNames == null || schema.RecipeTemplateCatalog.PropertyNames.Count == 0)
+        return Array.Empty<RecipeStepCatalogPickItem>();
+
+      var items = new List<RecipeStepCatalogPickItem>();
+      foreach (AdapterSchemaPropertyNameEntry entry in schema.RecipeTemplateCatalog.PropertyNames)
+      {
+        if (entry == null || string.IsNullOrWhiteSpace(entry.Name))
+          continue;
+        items.Add(new RecipeStepCatalogPickItem
+        {
+          Value = entry.Name.Trim(),
+          Description = BuildCatalogPickerDescription(entry.Label, entry.Description)
+        });
+      }
+
+      return items;
+    }
+
+    private static string BuildCatalogPickerDescription(string label, string description)
+    {
+      string labelText = (label ?? string.Empty).Trim();
+      string descriptionText = (description ?? string.Empty).Trim();
+      if (labelText.Length > 0 && descriptionText.Length > 0)
+        return labelText + " — " + descriptionText;
+      if (descriptionText.Length > 0)
+        return descriptionText;
+      return labelText;
     }
 
     private void OnPropertyChanged([CallerMemberName] string propertyName = null)

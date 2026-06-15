@@ -1,7 +1,8 @@
 <Window x:Class="AIStudio.Dialogs.RecipeStepValueSelectionDialog"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="Выбор значения" Height="420" Width="480"
+        Title="Выбор значения" Height="460" Width="720"
+        MinWidth="520" MinHeight="360"
         WindowStartupLocation="CenterOwner"
         PreviewKeyDown="Window_PreviewKeyDown">
 
@@ -17,7 +18,8 @@
               MouseDoubleClick="ValuesList_MouseDoubleClick">
       <ListView.View>
         <GridView>
-          <GridViewColumn Header="Значение" Width="420" DisplayMemberBinding="{Binding}"/>
+          <GridViewColumn Header="Значение" Width="200" DisplayMemberBinding="{Binding Value}"/>
+          <GridViewColumn Header="Описание" Width="480" DisplayMemberBinding="{Binding Description}"/>
         </GridView>
       </ListView.View>
     </ListView>

@@ -231,7 +231,7 @@ namespace AIStudio.ViewModels.SymbiontEnv
       _openEditor(editorVm);
     }
 
-    private void SaveAllFromEditor(EnvironmentRecipeEditorModel model, bool isNew)
+    private bool SaveAllFromEditor(EnvironmentRecipeEditorModel model, bool isNew)
     {
       EnvironmentRecipeData def = EnvironmentRecipeMapper.ToData(model);
       int duplicateIdx = _allRecipes.FindIndex(
@@ -239,25 +239,29 @@ namespace AIStudio.ViewModels.SymbiontEnv
       if (isNew && duplicateIdx >= 0)
       {
         MessageBox.Show("Рецепт с ID \"" + def.Id + "\" уже существует.", "Сохранение", MessageBoxButton.OK, MessageBoxImage.Warning);
-        return;
+        return false;
       }
       if (duplicateIdx >= 0)
         _allRecipes[duplicateIdx] = def;
       else
         _allRecipes.Add(def);
-      SaveAllToDisk();
+      if (!SaveAllToDisk())
+        return false;
       ReloadFromDisk();
+      return true;
     }
 
-    private void SaveAllToDisk()
+    private bool SaveAllToDisk()
     {
       try
       {
         EnvironmentCatalogStorage.SaveRecipes(_allRecipes);
+        return true;
       }
       catch (Exception ex)
       {
         MessageBox.Show("Ошибка сохранения: " + ex.Message, "Рецепты среды", MessageBoxButton.OK, MessageBoxImage.Error);
+        return false;
       }
     }
 

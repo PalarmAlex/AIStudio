@@ -478,6 +478,7 @@ triggers:
 | `trigger-catalog.json` | Каталог `id` триггеров |
 | `recipe-catalog.json` | Каталог `id` рецептов |
 | `expression-pattern-catalog.json` | **Новый:** `expr:velum.*` / `expr:env.*` — id, token, label для редакторов |
+| `recipe-template-catalog.json` | **Опционально:** маски `{PLACEHOLDER}` и имена свойств для редактора шагов рецепта |
 | `metric-probes.json` | ProbeKey в `EnvironmentPressureRules.dat` |
 
 ### 10.2. `expression-pattern-catalog.json` (фрагмент)
@@ -508,7 +509,79 @@ triggers:
 
 Формат без изменений принципа (см. contract 2.0); `schemaVersion`: `"3.0"`.
 
-### 10.4. ProbeKey и оператор
+В `argsSchema[]` опционально поле **`editorHint`** — подсказка UI студии (не влияет на runtime):
+
+| `editorHint` | Редактор в `SchemaActionPanel` |
+|--------------|--------------------------------|
+| `template_placeholder` | Кнопка «Вставить…» — справочник из `recipe-template-catalog.json` → `placeholders[]` |
+| `property_name` | Кнопка «Справочник…» — `recipe-template-catalog.json` → `propertyNames[]` |
+
+Если `editorHint` не задан, студия использует эвристику по ключу: `template` → маски, `name` → имена свойств.
+
+Пример фрагмента `handlers-catalog.json`:
+
+```json
+{
+  "schemaVersion": "3.0",
+  "handlers": [
+    {
+      "id": "set_custom_property",
+      "argsSchema": [
+        { "key": "name", "label": "Имя свойства", "type": "string", "required": true, "editorHint": "property_name" },
+        { "key": "template", "label": "Шаблон значения", "type": "string", "editorHint": "template_placeholder" }
+      ]
+    }
+  ]
+}
+```
+
+### 10.4. `recipe-template-catalog.json`
+
+**Назначение:** машиночитаемый справочник для редактора шагов рецепта (кнопки «Вставить…» / «Справочник…»). Студия читает файл из `schema\`; **runtime host не обязан** загружать его — подстановка в SW выполняется кодом host (например `VelumRecipeTemplateResolver` в Velum).
+
+**Не путать:** каталог schema описывает *допустимые маски в UI*; runtime строит *контекст значений* из сессии и документа и разрешает шаблон по синтаксису `{NAME}` / `{SEQ:n}`.
+
+```json
+{
+  "schemaVersion": "3.0",
+  "placeholders": [
+    {
+      "token": "{PROJECT}",
+      "label": "Каталог проекта",
+      "description": "Имя родительского каталога пути документа"
+    },
+    {
+      "token": "{SEQ:4}",
+      "label": "Порядковый номер (4 цифры)",
+      "description": "SEQ с ведущими нулями, ширина n в фигурных скобках"
+    }
+  ],
+  "propertyNames": [
+    {
+      "name": "Обозначение",
+      "label": "Обозначение",
+      "description": "Пользовательское свойство документа КБ"
+    }
+  ]
+}
+```
+
+Составной шаблон в YAML: пользователь вставляет маски из справочника и вручную добавляет разделители (пробел, дефис) в поле «Шаблон значения».
+
+В диалоге «Вставить…» / «Справочник…» студия показывает колонки **Значение** (token или name) и **Описание** (текст из `label` и `description` каталога).
+
+| Поле | Обязательно | Описание |
+|------|-----------|----------|
+| `placeholders[].token` | да | Строка маски, как в YAML (`{PROJECT}`, `{SEQ:4}`) |
+| `placeholders[].label` | нет | Краткая подпись; в UI объединяется с `description` |
+| `placeholders[].description` | рекомендуется | Пояснение для пользователя в справочнике студии |
+| `propertyNames[].name` | да | Имя свойства для записи в host |
+| `propertyNames[].label` | нет | Краткая подпись в справочнике |
+| `propertyNames[].description` | рекомендуется | Пояснение назначения свойства в справочнике |
+
+Файл **опционален** для «Проверить»; без него кнопки справочника скрыты или неактивны (пустой список).
+
+### 10.5. ProbeKey и оператор
 
 Студия заполняет combobox **ProbeKey** в `EnvironmentPressureRules.dat` из `probes[].key` (плюс «оператор, не среда»).
 
@@ -612,6 +685,7 @@ AIStudio и host **должны** использовать одну `SymbiontEnv
 | Версия | Дата | Изменения |
 |--------|------|-----------|
 | 3.0 | 2026-06-13 | Синхронизация со Spec v2.2: `expression_pattern_id`, `homeostasis_deltas`, `reflex_trigger_expression_pattern_id`; удалены `adaptive_action_id`, `influence_action_id`; `expression-pattern-catalog.json`; operator/mechanical path §0.6; `IHostMotorDispatcher`; миграция §16 |
+| 3.0.1 | 2026-06-15 | `recipe-template-catalog.json` (маски шаблона и имена свойств); `editorHint` в `argsSchema` |
 | 2.0 | 2026-06-09 | `invoke`/`comment`; `event`; schema 2.0 (**устарел**) |
 | 1.0 | 2026-06-03 | Первый release (**устарел**) |
 

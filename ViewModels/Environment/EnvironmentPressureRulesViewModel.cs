@@ -174,6 +174,11 @@ namespace AIStudio.ViewModels.SymbiontEnv
         }
 
         EnvironmentPressureRulesStorage.Save(_allRows);
+        MessageBox.Show(
+            "Правила давления среды сохранены.",
+            "Сохранение",
+            MessageBoxButton.OK,
+            MessageBoxImage.Information);
         ReloadFromDisk();
       }
       catch (Exception ex)
