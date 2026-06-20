@@ -80,7 +80,7 @@ namespace AIStudio.Pages
           maxId = Math.Max(maxId, gridMaxId);
         }
       }
-      return maxId + 1;
+      return InfluenceActionIdPolicy.AllocateNextId(maxId);
     }
 
     private void DataGrid_PreviewKeyDown(object sender, KeyEventArgs e)

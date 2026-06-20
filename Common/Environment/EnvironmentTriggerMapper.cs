@@ -1,12 +1,13 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using AIStudio.ViewModels.SymbiontEnv;
 using ISIDA.SymbiontEnv.Contract;
 
 namespace AIStudio.Common.SymbiontEnv
 {
   /// <summary>
-  /// Преобразование триггеров среды.
+  /// Преобразование триггеров среды (contract 3.1).
   /// </summary>
   public static class EnvironmentTriggerMapper
   {
@@ -20,9 +21,19 @@ namespace AIStudio.Common.SymbiontEnv
       {
         Id = trigger.Id,
         DisplayName = trigger.DisplayName,
-        InfluenceActionId = trigger.InfluenceActionId,
+        ReflexTriggerCommandPatternId = trigger.ReflexTriggerCommandPatternId,
         EventKind = trigger.EventKind ?? string.Empty
       };
+
+      if (trigger.HomeostasisDeltas != null)
+      {
+        foreach (HomeostasisDeltaEntry delta in trigger.HomeostasisDeltas)
+        {
+          if (delta == null || delta.ParameterId <= 0 || delta.Delta == 0)
+            continue;
+          row.HomeostasisDeltas[delta.ParameterId] = (int)delta.Delta;
+        }
+      }
 
       if (trigger.EventParameters != null)
       {
@@ -43,9 +54,20 @@ namespace AIStudio.Common.SymbiontEnv
       {
         Id = row.Id?.Trim() ?? string.Empty,
         DisplayName = row.DisplayName ?? string.Empty,
-        InfluenceActionId = row.InfluenceActionId,
+        ReflexTriggerCommandPatternId = row.ReflexTriggerCommandPatternId,
         EventKind = row.EventKind?.Trim() ?? string.Empty
       };
+
+      foreach (KeyValuePair<int, int> kv in row.HomeostasisDeltas.OrderBy(k => k.Key))
+      {
+        if (kv.Key <= 0 || kv.Value == 0)
+          continue;
+        data.HomeostasisDeltas.Add(new HomeostasisDeltaEntry
+        {
+          ParameterId = kv.Key,
+          Delta = kv.Value
+        });
+      }
 
       if (row.EventParameters != null)
       {

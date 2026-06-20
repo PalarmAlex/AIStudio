@@ -676,7 +676,7 @@ namespace AIStudio
     private void ShowEnvironmentTriggers()
     {
       var view = new Pages.SymbiontEnv.EnvironmentTriggersView();
-      var vm = new EnvironmentTriggersViewModel(_gomeostas, _geneticReflexesSystem);
+      var vm = new EnvironmentTriggersViewModel(_gomeostas, _geneticReflexesSystem, _sensorySystem);
       view.DataContext = vm;
       CurrentContent = view;
     }

@@ -56,7 +56,7 @@
               <TextBlock Grid.Column="2" Text="{Binding DataContext.AdaptiveActionDescription, RelativeSource={RelativeSource AncestorType=UserControl}}" VerticalAlignment="Center" TextWrapping="Wrap" Foreground="#FF555555"/>
             </Grid>
             <CheckBox Content="reactive_eligible" IsChecked="{Binding ReactiveEligible}" Margin="0,0,0,8" Checked="ModelField_Changed" Unchecked="ModelField_Changed"/>
-            <TextBlock Text="Рекомендуемый триггер (EA)" FontWeight="SemiBold"/>
+            <TextBlock Text="recommended_trigger_keys" FontWeight="SemiBold"/>
             <Grid Margin="0,4,0,0">
               <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="120"/>

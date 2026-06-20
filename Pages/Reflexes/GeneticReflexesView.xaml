@@ -139,9 +139,9 @@
                     Height="25"/>
         </StackPanel>
 
-        <!-- Фильтр по внешним воздействиям -->
+        <!-- Фильтр по EA (пульт) -->
         <StackPanel Orientation="Vertical" Margin="0,0,15,0" Width="160">
-          <TextBlock Text="Внешние воздействия" FontSize="12" Margin="0,0,0,2"/>
+          <TextBlock Text="EA (пульт)" FontSize="12" Margin="0,0,0,2"/>
           <ComboBox Style="{StaticResource AgentComboBoxStyle}"
                     ItemsSource="{Binding Level3FilterOptions}"
                     SelectedValue="{Binding SelectedLevel3Filter}"
@@ -256,25 +256,48 @@
             </DataGridTemplateColumn.CellStyle>
           </DataGridTemplateColumn>
 
-          <!-- Внешние стимулы -->
-          <DataGridTemplateColumn Header="Внешние стимулы" Width="250" 
-                       CanUserSort="True" SortMemberPath="Level3">
+          <!-- EA (пульт) -->
+          <DataGridTemplateColumn Header="EA (пульт)" Width="200"
+                       CanUserSort="True" SortMemberPath="InfluenceActionIds">
 
             <DataGridTemplateColumn.HeaderStyle>
               <Style TargetType="DataGridColumnHeader">
-                <Setter Property="ToolTip" 
-                Value="Третий уровень дерева триггера рефлекса: Гомеостатические воздействия.&#x0a;ДБ клик открывает окно ввода."/>
+                <Setter Property="ToolTip"
+                Value="Level3: воздействия с пульта оператора (InfluenceActions.dat).&#x0a;ДБ клик открывает окно ввода."/>
               </Style>
             </DataGridTemplateColumn.HeaderStyle>
 
             <DataGridTemplateColumn.CellTemplate>
               <DataTemplate>
-                <TextBlock Text="{Binding Level3, Converter={StaticResource IdListToNamesConverter}, ConverterParameter='Level3'}"/>
+                <TextBlock Text="{Binding InfluenceActionIds, Converter={StaticResource IdListToNamesConverter}, ConverterParameter='InfluenceActionIds'}"/>
               </DataTemplate>
             </DataGridTemplateColumn.CellTemplate>
             <DataGridTemplateColumn.CellStyle>
               <Style TargetType="DataGridCell" BasedOn="{StaticResource {x:Type DataGridCell}}">
-                <EventSetter Event="MouseDoubleClick" Handler="Level3Cell_DoubleClick"/>
+                <EventSetter Event="MouseDoubleClick" Handler="InfluenceActionIdsCell_DoubleClick"/>
+              </Style>
+            </DataGridTemplateColumn.CellStyle>
+          </DataGridTemplateColumn>
+
+          <!-- Command (среда) -->
+          <DataGridTemplateColumn Header="Command (среда)" Width="220"
+                       CanUserSort="True" SortMemberPath="CommandPatternIds">
+
+            <DataGridTemplateColumn.HeaderStyle>
+              <Style TargetType="DataGridColumnHeader">
+                <Setter Property="ToolTip"
+                Value="Level3: паттерны Command-канала (CommandPhrases.dat); порядок важен.&#x0a;ДБ клик открывает окно ввода."/>
+              </Style>
+            </DataGridTemplateColumn.HeaderStyle>
+
+            <DataGridTemplateColumn.CellTemplate>
+              <DataTemplate>
+                <TextBlock Text="{Binding CommandPatternIds, Converter={StaticResource IdListToNamesConverter}, ConverterParameter='CommandPatternIds'}"/>
+              </DataTemplate>
+            </DataGridTemplateColumn.CellTemplate>
+            <DataGridTemplateColumn.CellStyle>
+              <Style TargetType="DataGridCell" BasedOn="{StaticResource {x:Type DataGridCell}}">
+                <EventSetter Event="MouseDoubleClick" Handler="CommandPatternIdsCell_DoubleClick"/>
               </Style>
             </DataGridTemplateColumn.CellStyle>
           </DataGridTemplateColumn>

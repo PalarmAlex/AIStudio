@@ -6,6 +6,7 @@ using ISIDA.SymbiontEnv.Contract;
 using ISIDA.Common;
 using ISIDA.Gomeostas;
 using ISIDA.Reflexes;
+using ISIDA.Sensors;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -27,6 +28,7 @@ namespace AIStudio.ViewModels.SymbiontEnv
   {
     private readonly GomeostasSystem _gomeostas;
     private readonly GeneticReflexesSystem _geneticReflexes;
+    private readonly SensorySystem _sensorySystem;
     private readonly List<EnvironmentTriggerRow> _allRows = new List<EnvironmentTriggerRow>();
     private AdapterEnvironmentSchema _schema = AdapterSchemaLoader.LoadForCurrentProject() ?? new AdapterEnvironmentSchema();
     private EnvironmentTriggerRow _selectedTrigger;
@@ -35,11 +37,16 @@ namespace AIStudio.ViewModels.SymbiontEnv
     private string _filterId = string.Empty;
     private string _filterTitle = string.Empty;
     private int _validationIssueCount;
+    private bool _showValidationErrors;
 
-    public EnvironmentTriggersViewModel(GomeostasSystem gomeostas, GeneticReflexesSystem geneticReflexes)
+    public EnvironmentTriggersViewModel(
+        GomeostasSystem gomeostas,
+        GeneticReflexesSystem geneticReflexes,
+        SensorySystem sensorySystem = null)
     {
       _gomeostas = gomeostas ?? throw new ArgumentNullException(nameof(gomeostas));
       _geneticReflexes = geneticReflexes;
+      _sensorySystem = sensorySystem;
       Triggers = new ObservableCollection<EnvironmentTriggerRow>();
       TriggerIdCatalog = new ObservableCollection<AdapterSchemaTriggerCatalogEntry>();
       Links = new ObservableCollection<EnvironmentLinkItem>();
@@ -54,7 +61,8 @@ namespace AIStudio.ViewModels.SymbiontEnv
       ResetFiltersCommand = new RelayCommand(_ => ResetFilters());
       RemoveAllCommand = new RelayCommand(RemoveAllTriggers, _ => IsEditingEnabled);
       PickTriggerIdFromCatalogCommand = new RelayCommand(_ => PickTriggerIdFromCatalog(), _ => IsEditingEnabled && SelectedTrigger != null);
-      PickInfluenceActionCommand = new RelayCommand(_ => PickInfluenceAction(), _ => IsEditingEnabled && SelectedTrigger != null);
+      PickCommandPatternCommand = new RelayCommand(_ => PickCommandPattern(), _ => IsEditingEnabled && SelectedTrigger != null);
+      EditHomeostasisDeltasCommand = new RelayCommand(_ => EditHomeostasisDeltas(), _ => IsEditingEnabled && SelectedTrigger != null);
 
       GlobalTimer.PulsationStateChanged += OnPulsationStateChanged;
       Reload();
@@ -102,13 +110,50 @@ namespace AIStudio.ViewModels.SymbiontEnv
     public ICommand ResetFiltersCommand { get; }
     public ICommand RemoveAllCommand { get; }
     public ICommand PickTriggerIdFromCatalogCommand { get; }
-    public ICommand PickInfluenceActionCommand { get; }
+    public ICommand PickCommandPatternCommand { get; }
+    public ICommand EditHomeostasisDeltasCommand { get; }
 
     public event PropertyChangedEventHandler PropertyChanged;
 
     public bool IsStageZero => _currentAgentStage == 0;
     public bool HasAdapter => SymbiontEnvironmentGate.IsEnvironmentEditingAllowed();
     public bool IsEditingEnabled => HasAdapter && IsStageZero && !GlobalTimer.IsPulsationRunning;
+
+    public bool ShowValidationErrors
+    {
+      get => _showValidationErrors;
+      private set
+      {
+        if (_showValidationErrors == value)
+          return;
+        _showValidationErrors = value;
+        OnPropertyChanged();
+        OnPropertyChanged(nameof(EventKindValidationMessage));
+        OnPropertyChanged(nameof(HomeostasisDeltasValidationMessage));
+        OnPropertyChanged(nameof(CommandPatternValidationMessage));
+        OnPropertyChanged(nameof(HomeostasisOrCommandValidationMessage));
+      }
+    }
+
+    public string EventKindValidationMessage =>
+        ShowValidationErrors && SelectedTrigger != null && string.IsNullOrWhiteSpace(SelectedTrigger.EventKind)
+            ? "Не заполнено поле"
+            : string.Empty;
+
+    public string HomeostasisDeltasValidationMessage =>
+        ShowValidationErrors && SelectedTrigger != null && !HasHomeostasisDeltas(SelectedTrigger)
+            ? "Не заполнено поле"
+            : string.Empty;
+
+    public string CommandPatternValidationMessage =>
+        ShowValidationErrors && SelectedTrigger != null && (SelectedTrigger.ReflexTriggerCommandPatternId <= 0)
+            ? "Не заполнено поле"
+            : string.Empty;
+
+    public string HomeostasisOrCommandValidationMessage =>
+        ShowValidationErrors && SelectedTrigger != null && !HasHomeostasisOrCommand(SelectedTrigger)
+            ? "Не заполнено поле"
+            : string.Empty;
 
     public string PulseWarningMessage =>
         !HasAdapter
@@ -130,11 +175,38 @@ namespace AIStudio.ViewModels.SymbiontEnv
       _allRows.Clear();
       var errors = new List<string>();
       List<EnvironmentTriggerData> loaded = EnvironmentCatalogStorage.LoadTriggers(errors);
+
+      // Если в YAML есть "битые" триггеры, строгий codec contract 3.1 их отбрасывает,
+      // из-за чего редактор остаётся без SelectedTrigger и блокирует команды справочников.
+      // Для UI поднимаем такие записи "мягко", чтобы их можно было исправить.
+      var relaxedInvalidErrors = errors
+          .Where(e => (e ?? string.Empty).IndexOf("нужен homeostasis_deltas", StringComparison.OrdinalIgnoreCase) >= 0)
+          .ToList();
+      if (relaxedInvalidErrors.Count > 0)
+      {
+        var relaxed = EnvironmentTriggersRelaxedReader.Read(EnvironmentPaths.TriggersFilePath);
+        if (relaxed.Count > 0)
+        {
+          var known = new HashSet<string>(loaded.Select(t => t?.Id ?? string.Empty), StringComparer.OrdinalIgnoreCase);
+          foreach (EnvironmentTriggerData t in relaxed)
+          {
+            if (t == null || string.IsNullOrWhiteSpace(t.Id))
+              continue;
+            if (!known.Contains(t.Id))
+              loaded.Add(t);
+          }
+
+          // Эти проблемы показываем inline, без MessageBox.
+          errors = errors.Except(relaxedInvalidErrors).ToList();
+          ShowValidationErrors = true;
+        }
+      }
       RefreshSchema();
       foreach (EnvironmentTriggerData trigger in loaded)
       {
         EnvironmentTriggerRow row = EnvironmentTriggerMapper.ToRow(trigger);
         row.EventSummary = BuildEventSummary(row);
+        ResolveCommandPatternText(row);
         _allRows.Add(row);
       }
       if (errors.Count > 0)
@@ -148,6 +220,17 @@ namespace AIStudio.ViewModels.SymbiontEnv
       RefreshTriggerIdCatalog();
       ApplyFilters();
       SelectedTrigger = Triggers.FirstOrDefault();
+      // Показываем inline-валидацию сразу при открытии страницы,
+      // чтобы пользователь видел незаполненные поля без "Сохранить" и без переоткрытия справочников.
+      ShowValidationErrors = true;
+      if (SelectedTrigger == null)
+      {
+        // Не оставляем UI без контекста: иначе команды справочников будут неактивны.
+        EnvironmentTriggerRow row = CreateNewRow();
+        _allRows.Add(row);
+        ApplyFilters();
+        SelectedTrigger = row;
+      }
       RecalculateValidation();
     }
 
@@ -155,20 +238,21 @@ namespace AIStudio.ViewModels.SymbiontEnv
     {
       try
       {
+        ShowValidationErrors = true;
+
+        EnvironmentTriggerRow firstInvalid = _allRows.FirstOrDefault(r => r != null && !IsValidForSave(r));
+        if (firstInvalid != null)
+        {
+          SelectedTrigger = firstInvalid;
+          RefreshTriggerLinks();
+          return;
+        }
+
         var definitions = new List<EnvironmentTriggerData>();
         foreach (EnvironmentTriggerRow row in _allRows)
         {
-          if (string.IsNullOrWhiteSpace(row?.Id))
+          if (row == null || string.IsNullOrWhiteSpace(row.Id))
             continue;
-          if (string.IsNullOrWhiteSpace(row.EventKind))
-          {
-            MessageBox.Show(
-                "Укажите событие для триггера \"" + row.DisplayName + "\".",
-                "Сохранение",
-                MessageBoxButton.OK,
-                MessageBoxImage.Warning);
-            return;
-          }
           definitions.Add(EnvironmentTriggerMapper.ToData(row));
         }
         EnvironmentCatalogStorage.SaveTriggers(definitions);
@@ -216,7 +300,6 @@ namespace AIStudio.ViewModels.SymbiontEnv
       {
         Id = defaultId,
         DisplayName = catalogEntry?.Label ?? "Новый триггер",
-        InfluenceActionId = 0,
         EventKind = defaultEvent
       };
       row.EventSummary = BuildEventSummary(row);
@@ -278,19 +361,77 @@ namespace AIStudio.ViewModels.SymbiontEnv
       if (!string.IsNullOrWhiteSpace(dialog.SelectedDisplayName))
         SelectedTrigger.DisplayName = dialog.SelectedDisplayName;
       MarkDirty();
+      ShowValidationErrors = true;
       RefreshTriggerIdCatalog();
     }
 
-    private void PickInfluenceAction()
+    public void EditHomeostasisDeltas(Window owner = null)
     {
       if (SelectedTrigger == null || !IsEditingEnabled)
         return;
-      var dialog = new InfluenceActionRadioSelectionDialog(SelectedTrigger.InfluenceActionId);
-      if (dialog.ShowDialog() != true || dialog.SelectedInfluenceActionId <= 0)
+      var editor = new ActionInfluencesEditor(
+          "homeostasis_deltas: " + (SelectedTrigger.DisplayName ?? SelectedTrigger.Id),
+          _gomeostas.GetAllParameters().ToList(),
+          new Dictionary<int, int>(SelectedTrigger.HomeostasisDeltas))
+      {
+        Owner = owner ?? Application.Current?.MainWindow
+      };
+      if (editor.ShowDialog() != true)
         return;
-      SelectedTrigger.InfluenceActionId = dialog.SelectedInfluenceActionId;
+
+      SelectedTrigger.HomeostasisDeltas.Clear();
+      foreach (KeyValuePair<int, int> kv in editor.SelectedInfluences)
+        SelectedTrigger.HomeostasisDeltas[kv.Key] = GomeostasSystem.ClampInt(kv.Value, -10, 10);
+      SelectedTrigger.NotifyHomeostasisDeltasChanged();
       MarkDirty();
+      ShowValidationErrors = true;
+      OnPropertyChanged(nameof(HomeostasisDeltasValidationMessage));
+      OnPropertyChanged(nameof(HomeostasisOrCommandValidationMessage));
       RefreshTriggerLinks();
+    }
+
+    public void PickCommandPattern(Window owner = null)
+    {
+      if (SelectedTrigger == null || !IsEditingEnabled)
+        return;
+      var dialog = new CommandPatternRadioSelectionDialog(SelectedTrigger.ReflexTriggerCommandPatternId)
+      {
+        Owner = owner ?? Application.Current?.MainWindow
+      };
+      if (dialog.ShowDialog() != true)
+        return;
+      SelectedTrigger.ReflexTriggerCommandPatternId = dialog.SelectedCommandPatternId;
+      ResolveCommandPatternText(SelectedTrigger);
+      MarkDirty();
+      ShowValidationErrors = true;
+      OnPropertyChanged(nameof(CommandPatternValidationMessage));
+      OnPropertyChanged(nameof(HomeostasisOrCommandValidationMessage));
+      RefreshTriggerLinks();
+    }
+
+    private void PickCommandPattern() => PickCommandPattern(null);
+
+    private void EditHomeostasisDeltas() => EditHomeostasisDeltas(null);
+
+    private void ResolveCommandPatternText(EnvironmentTriggerRow row)
+    {
+      if (row == null)
+        return;
+
+      if (row.ReflexTriggerCommandPatternId <= 0)
+      {
+        row.ReflexTriggerCommandPatternText = string.Empty;
+        return;
+      }
+
+      if (_sensorySystem?.CommandChannel != null)
+      {
+        row.ReflexTriggerCommandPatternText =
+            _sensorySystem.CommandChannel.GetPhraseFromPhraseId(row.ReflexTriggerCommandPatternId) ?? string.Empty;
+        return;
+      }
+
+      row.ReflexTriggerCommandPatternText = string.Empty;
     }
 
     private void OnEventSchemaCommitted(Dictionary<string, string> values)
@@ -306,6 +447,8 @@ namespace AIStudio.ViewModels.SymbiontEnv
       }
       SelectedTrigger.EventSummary = BuildEventSummary(SelectedTrigger);
       MarkDirty();
+      ShowValidationErrors = true;
+      OnPropertyChanged(nameof(EventKindValidationMessage));
     }
 
     private void OnEventSchemaCatalogChanged()
@@ -330,6 +473,39 @@ namespace AIStudio.ViewModels.SymbiontEnv
       }
       EventSchema.LoadFromEvent(SelectedTrigger.EventKind, SelectedTrigger.EventParameters);
       RefreshTriggerLinks();
+      OnPropertyChanged(nameof(EventKindValidationMessage));
+      OnPropertyChanged(nameof(HomeostasisDeltasValidationMessage));
+      OnPropertyChanged(nameof(CommandPatternValidationMessage));
+      OnPropertyChanged(nameof(HomeostasisOrCommandValidationMessage));
+    }
+
+    private static bool HasHomeostasisDeltas(EnvironmentTriggerRow row)
+    {
+      if (row?.HomeostasisDeltas == null || row.HomeostasisDeltas.Count == 0)
+        return false;
+      return row.HomeostasisDeltas.Any(kv => kv.Key > 0 && kv.Value != 0);
+    }
+
+    private static bool HasHomeostasisOrCommand(EnvironmentTriggerRow row)
+    {
+      if (row == null)
+        return false;
+      if (row.ReflexTriggerCommandPatternId > 0)
+        return true;
+      return HasHomeostasisDeltas(row);
+    }
+
+    private static bool IsValidForSave(EnvironmentTriggerRow row)
+    {
+      if (row == null)
+        return false;
+      if (string.IsNullOrWhiteSpace(row.Id))
+        return false;
+      if (string.IsNullOrWhiteSpace(row.EventKind))
+        return false;
+      if (!HasHomeostasisOrCommand(row))
+        return false;
+      return true;
     }
 
     private void RefreshTriggerLinks()
@@ -424,7 +600,7 @@ namespace AIStudio.ViewModels.SymbiontEnv
 
     private void RecalculateValidation()
     {
-      int count = _allRows.Count(r => string.IsNullOrWhiteSpace(r?.Id) || string.IsNullOrWhiteSpace(r?.EventKind) || r.InfluenceActionId <= 0);
+      int count = _allRows.Count(r => string.IsNullOrWhiteSpace(r?.Id) || string.IsNullOrWhiteSpace(r?.EventKind));
       if (_validationIssueCount != count)
       {
         _validationIssueCount = count;
@@ -474,7 +650,7 @@ namespace AIStudio.ViewModels.SymbiontEnv
     /// </summary>
     public class DescriptionWithLink
     {
-      public string Text { get; set; } = "Триггеры событий среды и их связь с воздействиями и рецептами поведения.";
+      public string Text { get; set; } = "Триггеры событий среды: mechanical path (homeostasis_deltas), Command pattern для genetic reflex и связь с рецептами. В Velum runtime SW-события идут через Command idle-flush, не через EA.";
       public string LinkText { get; set; } = "Подробнее...";
       public string Url { get; set; } = "https://scorcher.ru/isida/iadaptive_agents_guide.php#ref_9";
       public ICommand OpenLinkCommand { get; }

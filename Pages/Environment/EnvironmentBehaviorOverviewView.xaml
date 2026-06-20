@@ -65,7 +65,7 @@
       <DataGrid.Columns>
         <DataGridTextColumn Header="Триггер" Binding="{Binding TriggerId}" Width="160"/>
         <DataGridTextColumn Header="Событие" Binding="{Binding EventKind}" Width="140"/>
-        <DataGridTextColumn Header="EA" Binding="{Binding InfluenceActionId}" Width="50"/>
+        <DataGridTextColumn Header="Cmd" Binding="{Binding ReflexTriggerCommandPatternId}" Width="50"/>
         <DataGridTextColumn Header="G_AD" Binding="{Binding AdaptiveActionId}" Width="50"/>
         <DataGridTextColumn Header="Рецепт" Binding="{Binding RecipeId}" Width="160"/>
         <DataGridTextColumn Header="Шагов" Binding="{Binding StepCount}" Width="60"/>

@@ -62,10 +62,11 @@ namespace AIStudio.Dialogs
         // Открываем редактор цепочки
         var chainEditor = new ReflexChainEditorDialog(
             _reflexId,
-            0, // Базовое состояние не используется в этом контексте
-            new List<int>(), // Стили не используются
-            new List<int>(), // Стимулы не используются
-            new List<int>(), // Действия не используются
+            0,
+            new List<int>(),
+            new List<int>(),
+            new List<int>(),
+            new List<int>(),
             viewModel.SelectedChain.ID,
             _chainsSystem,
             AdaptiveActionsSystem.Instance

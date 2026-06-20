@@ -37,7 +37,8 @@ namespace AIStudio.Dialogs
     public int ReflexId { get; }
     public int ReflexLevel1 { get; }
     public string ReflexLevel2Text { get; }
-    public string ReflexLevel3Text { get; }
+    public string ReflexInfluenceActionIdsText { get; }
+    public string ReflexCommandPatternIdsText { get; }
     public string ReflexAdaptiveActionsText { get; }
     public string ChainName
     {
@@ -87,7 +88,7 @@ namespace AIStudio.Dialogs
     public bool CanSave => !string.IsNullOrWhiteSpace(ChainName) && ChainLinks.Any();
     public List<KeyValuePair<int, string>> ActionOptions { get; private set; }
     public ReflexChainEditorDialog(int reflexId, int reflexLevel1,
-    List<int> reflexLevel2, List<int> reflexLevel3,
+    List<int> reflexLevel2, List<int> influenceActionIds, List<int> commandPatternIds,
     List<int> reflexAdaptiveActions, int chainId,
     ReflexChainsSystem reflexChainsSystem,
     AdaptiveActionsSystem actionsSystem)
@@ -99,7 +100,8 @@ namespace AIStudio.Dialogs
       ReflexId = reflexId;
       ReflexLevel1 = reflexLevel1;
       ReflexLevel2Text = ConvertIdsToText(reflexLevel2, "Level2");
-      ReflexLevel3Text = ConvertIdsToText(reflexLevel3, "Level3");
+      ReflexInfluenceActionIdsText = ConvertIdsToText(influenceActionIds, "InfluenceActionIds");
+      ReflexCommandPatternIdsText = ConvertIdsToText(commandPatternIds, "CommandPatternIds");
       _reflexAdaptiveActions = reflexAdaptiveActions ?? new List<int>();
       ReflexAdaptiveActionsText = string.Join(", ", _reflexAdaptiveActions);
       _initialChainId = chainId;

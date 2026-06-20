@@ -183,16 +183,24 @@ namespace AIStudio.ViewModels.SymbiontEnv
     {
       if (!IsEditingEnabled)
         return;
-      int currentId = Model.RecommendedTriggerInfluenceIds != null && Model.RecommendedTriggerInfluenceIds.Count > 0
-          ? Model.RecommendedTriggerInfluenceIds[0]
-          : 0;
-      var dialog = new InfluenceActionRadioSelectionDialog(currentId) { Owner = owner };
-      if (dialog.ShowDialog() == true && dialog.SelectedInfluenceActionId > 0)
-      {
-        Model.RecommendedTriggerInfluenceIds = new List<int> { dialog.SelectedInfluenceActionId };
-        UpdateRecommendedTriggerDisplay();
-        MarkDirty();
-      }
+      var errors = new List<string>();
+      List<EnvironmentTriggerData> triggers = EnvironmentCatalogStorage.LoadTriggers(errors);
+      var options = triggers
+          .Where(t => t != null && !string.IsNullOrWhiteSpace(t.Id))
+          .Select(t => new TriggerCatalogItem
+          {
+            Id = t.Id,
+            Label = t.DisplayName ?? t.Id,
+            Description = t.EventKind ?? string.Empty
+          })
+          .ToList();
+      string current = Model.RecommendedTriggerKeys?.FirstOrDefault() ?? string.Empty;
+      var dialog = new TriggerIdSelectionDialog(current, options) { Owner = owner };
+      if (dialog.ShowDialog() != true || string.IsNullOrWhiteSpace(dialog.SelectedTriggerId))
+        return;
+      Model.RecommendedTriggerKeys = new List<string> { dialog.SelectedTriggerId };
+      UpdateRecommendedTriggerDisplay();
+      MarkDirty();
     }
 
     public void PickAdaptiveAction(Window owner)
@@ -368,18 +376,20 @@ namespace AIStudio.ViewModels.SymbiontEnv
 
     private void UpdateRecommendedTriggerDisplay()
     {
-      if (Model.RecommendedTriggerInfluenceIds == null || Model.RecommendedTriggerInfluenceIds.Count == 0)
+      if (Model.RecommendedTriggerKeys == null || Model.RecommendedTriggerKeys.Count == 0)
       {
         RecommendedTriggerDisplay = string.Empty;
         RecommendedTriggerDescription = string.Empty;
         return;
       }
-      int id = Model.RecommendedTriggerInfluenceIds[0];
-      RecommendedTriggerDisplay = id.ToString(CultureInfo.InvariantCulture);
-      if (!InfluenceActionSystem.IsInitialized) { RecommendedTriggerDescription = string.Empty; return; }
-      var action = InfluenceActionSystem.Instance.GetAllInfluenceActions()?.FirstOrDefault(a => a.Id == id);
-      RecommendedTriggerDescription = action != null
-          ? (action.Name ?? string.Empty) + (string.IsNullOrWhiteSpace(action.Description) ? string.Empty : " — " + action.Description)
+      string key = Model.RecommendedTriggerKeys[0];
+      RecommendedTriggerDisplay = key;
+      var errors = new List<string>();
+      EnvironmentTriggerData trigger = EnvironmentCatalogStorage.LoadTriggers(errors)
+          .FirstOrDefault(t => string.Equals(t?.Id, key, StringComparison.OrdinalIgnoreCase));
+      RecommendedTriggerDescription = trigger != null
+          ? (trigger.DisplayName ?? string.Empty)
+            + (string.IsNullOrWhiteSpace(trigger.EventKind) ? string.Empty : " — " + trigger.EventKind)
           : string.Empty;
     }
 

@@ -97,6 +97,7 @@
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
           </Grid.RowDefinitions>
           <Grid.ColumnDefinitions>
             <ColumnDefinition Width="Auto"/>
@@ -132,13 +133,24 @@
                  Margin="5,5,0,0"
                  TextWrapping="Wrap"/>
 
-          <!-- Внешние стимулы -->
-          <TextBlock Grid.Row="3" Grid.Column="0" 
-                 Text="Внешние стимулы:"
+          <!-- EA (пульт) -->
+          <TextBlock Grid.Row="3" Grid.Column="0"
+                 Text="EA (пульт):"
                  Style="{StaticResource InfoTitleStyle}"
                  Margin="0,5,0,0"/>
-          <TextBlock Grid.Row="3" Grid.Column="1" 
-                 Text="{Binding ReflexLevel3Text}"
+          <TextBlock Grid.Row="3" Grid.Column="1"
+                 Text="{Binding ReflexInfluenceActionIdsText}"
+                 Style="{StaticResource InfoValueStyle}"
+                 Margin="5,5,0,0"
+                 TextWrapping="Wrap"/>
+
+          <!-- Command (среда) -->
+          <TextBlock Grid.Row="4" Grid.Column="0"
+                 Text="Command (среда):"
+                 Style="{StaticResource InfoTitleStyle}"
+                 Margin="0,5,0,0"/>
+          <TextBlock Grid.Row="4" Grid.Column="1"
+                 Text="{Binding ReflexCommandPatternIdsText}"
                  Style="{StaticResource InfoValueStyle}"
                  Margin="5,5,0,0"
                  TextWrapping="Wrap"/>

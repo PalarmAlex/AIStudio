@@ -1,5 +1,6 @@
 using ISIDA.Actions;
 using ISIDA.Gomeostas;
+using ISIDA.Sensors;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
@@ -32,6 +33,7 @@ namespace AIStudio.Converters
               }
               break;
             case "Level3":
+            case "InfluenceActionIds":
               if (InfluenceActionSystem.IsInitialized)
               {
                 var influenceSystem = InfluenceActionSystem.Instance;
@@ -41,6 +43,24 @@ namespace AIStudio.Converters
                     .Select(id => allActions.First(a => a.Id == id).Name)
                     .ToList();
                 return string.Join(", ", names);
+              }
+              break;
+            case "CommandPatternIds":
+              if (SensorySystem.IsInitialized)
+              {
+                VerbalSensorChannel commandChannel = SensorySystem.Instance.CommandChannel;
+                if (commandChannel != null)
+                {
+                  var parts = idList
+                      .Where(id => id > 0)
+                      .Select(id =>
+                      {
+                        string text = commandChannel.GetPhraseFromPhraseId(id);
+                        return string.IsNullOrWhiteSpace(text) ? id.ToString(CultureInfo.InvariantCulture) : id + ":" + text;
+                      })
+                      .ToList();
+                  return string.Join(" → ", parts);
+                }
               }
               break;
             case "AdaptiveActions":

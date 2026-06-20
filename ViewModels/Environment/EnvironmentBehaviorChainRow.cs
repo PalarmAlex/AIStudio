@@ -6,7 +6,7 @@ namespace AIStudio.ViewModels.SymbiontEnv
     public string TriggerId { get; set; }
     public string TriggerTitle { get; set; }
     public string EventKind { get; set; }
-    public int InfluenceActionId { get; set; }
+    public int ReflexTriggerCommandPatternId { get; set; }
     public int AdaptiveActionId { get; set; }
     public string RecipeId { get; set; }
     public string RecipeTitle { get; set; }

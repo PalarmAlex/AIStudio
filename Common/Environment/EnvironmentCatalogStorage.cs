@@ -55,17 +55,17 @@ namespace AIStudio.Common.SymbiontEnv
     }
 
     /// <summary>
-    /// Возвращает множество ID стимулов (<see cref="EnvironmentTriggerData.InfluenceActionId"/>), на которые ссылаются триггеры YAML.
+    /// Возвращает множество Command pattern id, указанных в триггерах YAML (справочная связь с genetic reflex).
     /// </summary>
-    public static HashSet<int> GetReferencedInfluenceActionIds()
+    public static HashSet<int> GetReferencedCommandPatternIds()
     {
       var errors = new List<string>();
       List<EnvironmentTriggerData> triggers = LoadTriggers(errors);
       var ids = new HashSet<int>();
       foreach (EnvironmentTriggerData trigger in triggers)
       {
-        if (trigger != null && trigger.InfluenceActionId > 0)
-          ids.Add(trigger.InfluenceActionId);
+        if (trigger != null && trigger.ReflexTriggerCommandPatternId > 0)
+          ids.Add(trigger.ReflexTriggerCommandPatternId);
       }
       return ids;
     }

@@ -702,12 +702,11 @@ namespace AIStudio.ViewModels
       try
       {
         var allActions = _influenceActionSystem.GetAllInfluenceActions().ToList();
-        var yamlReferencedIds = EnvironmentCatalogStorage.GetReferencedInfluenceActionIds();
         var operatorSource = allActions
-            .Where(a => !yamlReferencedIds.Contains(a.Id))
+            .Where(a => !InfluenceActionIdPolicy.IsDeprecatedEnvironmentProxyRange(a.Id))
             .ToList();
         var environmentSource = allActions
-            .Where(a => yamlReferencedIds.Contains(a.Id))
+            .Where(a => InfluenceActionIdPolicy.IsDeprecatedEnvironmentProxyRange(a.Id))
             .ToList();
         AddInfluenceActionItems(operatorSource, operatorActions);
         AddInfluenceActionItems(environmentSource, environmentActions);

@@ -103,7 +103,8 @@ namespace AIStudio.Pages.Reflexes
         Id = nextId,
         Level1 = 0,
         Level2 = new List<int>(),
-        Level3 = new List<int>(),
+        InfluenceActionIds = new List<int>(),
+        CommandPatternIds = new List<int>(),
         AdaptiveActions = new List<int>()
       };
     }
@@ -140,7 +141,7 @@ namespace AIStudio.Pages.Reflexes
       }
     }
 
-    private void Level3Cell_DoubleClick(object sender, MouseButtonEventArgs e)
+    private void InfluenceActionIdsCell_DoubleClick(object sender, MouseButtonEventArgs e)
     {
       if (!IsFormEnabled)
       {
@@ -149,10 +150,35 @@ namespace AIStudio.Pages.Reflexes
       }
       if (sender is DataGridCell cell && cell.DataContext is GeneticReflexesSystem.GeneticReflex reflex)
       {
-        var dialog = new InfluenceActionsSelectionDialog(reflex.Level3);
+        var dialog = new InfluenceActionsSelectionDialog(reflex.InfluenceActionIds ?? new List<int>())
+        {
+          Owner = Window.GetWindow(this)
+        };
         if (dialog.ShowDialog() == true)
         {
-          reflex.Level3 = dialog.SelectedInfluenceActions;
+          reflex.InfluenceActionIds = dialog.SelectedInfluenceActions ?? new List<int>();
+          GeneticReflexesGrid.CommitEdit(DataGridEditingUnit.Row, true);
+          GeneticReflexesGrid.Items.Refresh();
+        }
+      }
+    }
+
+    private void CommandPatternIdsCell_DoubleClick(object sender, MouseButtonEventArgs e)
+    {
+      if (!IsFormEnabled)
+      {
+        e.Handled = true;
+        return;
+      }
+      if (sender is DataGridCell cell && cell.DataContext is GeneticReflexesSystem.GeneticReflex reflex)
+      {
+        var dialog = new CommandPatternsSelectionDialog(reflex.CommandPatternIds ?? new List<int>())
+        {
+          Owner = Window.GetWindow(this)
+        };
+        if (dialog.ShowDialog() == true)
+        {
+          reflex.CommandPatternIds = dialog.SelectedCommandPatternIds ?? new List<int>();
           GeneticReflexesGrid.CommitEdit(DataGridEditingUnit.Row, true);
           GeneticReflexesGrid.Items.Refresh();
         }
@@ -270,7 +296,8 @@ namespace AIStudio.Pages.Reflexes
           reflex.Id,
           reflex.Level1,
           reflex.Level2 ?? new List<int>(),
-          reflex.Level3 ?? new List<int>(),
+          reflex.InfluenceActionIds ?? new List<int>(),
+          reflex.CommandPatternIds ?? new List<int>(),
           reflex.AdaptiveActions ?? new List<int>(),
           0,
           ReflexChainsSystem.Instance,
@@ -391,7 +418,8 @@ namespace AIStudio.Pages.Reflexes
             reflex.Id,
             reflex.Level1,
             reflex.Level2 ?? new List<int>(),
-            reflex.Level3 ?? new List<int>(),
+            reflex.InfluenceActionIds ?? new List<int>(),
+            reflex.CommandPatternIds ?? new List<int>(),
             reflex.AdaptiveActions ?? new List<int>(),
             reflex.ReflexChainID,
             ReflexChainsSystem.Instance,

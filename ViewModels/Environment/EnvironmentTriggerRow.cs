@@ -4,14 +4,15 @@ using System.Runtime.CompilerServices;
 
 namespace AIStudio.ViewModels.SymbiontEnv
 {
-  /// <summary>Строка таблицы триггеров среды.</summary>
+  /// <summary>Строка таблицы триггеров среды (contract 3.1).</summary>
   public sealed class EnvironmentTriggerRow : INotifyPropertyChanged
   {
     private string _id = string.Empty;
     private string _displayName = string.Empty;
-    private int _influenceActionId;
     private string _eventKind = string.Empty;
     private string _eventSummary = string.Empty;
+    private int _reflexTriggerCommandPatternId;
+    private string _reflexTriggerCommandPatternText = string.Empty;
 
     /// <summary>
     /// Создаёт пустую строку.
@@ -19,6 +20,7 @@ namespace AIStudio.ViewModels.SymbiontEnv
     public EnvironmentTriggerRow()
     {
       EventParameters = new Dictionary<string, string>();
+      HomeostasisDeltas = new Dictionary<int, int>();
     }
 
     /// <summary>Уникальный ID триггера.</summary>
@@ -49,15 +51,39 @@ namespace AIStudio.ViewModels.SymbiontEnv
       }
     }
 
-    /// <summary>ID воздействия (InfluenceAction).</summary>
-    public int InfluenceActionId
+    /// <summary>Mechanical path: дельты параметров гомеostasis (<c>homeostasis_deltas</c>).</summary>
+    public Dictionary<int, int> HomeostasisDeltas { get; }
+
+    public void NotifyHomeostasisDeltasChanged()
     {
-      get => _influenceActionId;
+      OnPropertyChanged(nameof(HomeostasisDeltas));
+    }
+
+    /// <summary>
+    /// Command pattern для genetic reflex (справочно; 0 = не задан).
+    /// </summary>
+    public int ReflexTriggerCommandPatternId
+    {
+      get => _reflexTriggerCommandPatternId;
       set
       {
-        if (_influenceActionId == value)
+        if (_reflexTriggerCommandPatternId == value)
           return;
-        _influenceActionId = value;
+        _reflexTriggerCommandPatternId = value;
+        OnPropertyChanged();
+      }
+    }
+
+    /// <summary>Текст паттерна Command (для UI).</summary>
+    public string ReflexTriggerCommandPatternText
+    {
+      get => _reflexTriggerCommandPatternText;
+      set
+      {
+        string normalized = value ?? string.Empty;
+        if (_reflexTriggerCommandPatternText == normalized)
+          return;
+        _reflexTriggerCommandPatternText = normalized;
         OnPropertyChanged();
       }
     }

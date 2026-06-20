@@ -181,26 +181,30 @@ namespace AIStudio.ViewModels
           }
         }
 
-        // Находим ID образа пусковых стимулов
+        // Находим ID образа пусковых стимулов (EA + Command)
         int actionImageId = 0;
-        if (reflex.Level3 != null && reflex.Level3.Any())
+        bool hasInfluence = reflex.InfluenceActionIds != null && reflex.InfluenceActionIds.Any();
+        bool hasCommand = reflex.CommandPatternIds != null && reflex.CommandPatternIds.Any();
+        if (hasInfluence || hasCommand)
         {
           if (PerceptionImagesSystem.IsInitialized)
           {
             try
             {
-              // фразу не передаем - рефлексы не учитывают вербальное воздействие
-              actionImageId = PerceptionImagesSystem.Instance.AddPerceptionImage(reflex.Level3, new List<int>());
+              actionImageId = PerceptionImagesSystem.Instance.AddPerceptionImage(
+                  reflex.InfluenceActionIds ?? new List<int>(),
+                  new List<int>(),
+                  commandPatternIdList: reflex.CommandPatternIds ?? new List<int>());
             }
             catch (Exception ex)
             {
               Logger.Error(ex.Message);
-              actionImageId = GetHashForList(reflex.Level3);
+              actionImageId = GetHashForCompositeTrigger(reflex.InfluenceActionIds, reflex.CommandPatternIds);
             }
           }
           else
           {
-            actionImageId = GetHashForList(reflex.Level3);
+            actionImageId = GetHashForCompositeTrigger(reflex.InfluenceActionIds, reflex.CommandPatternIds);
           }
         }
         int[] conditionArr = new int[] { reflex.Level1, styleImageId, actionImageId };
@@ -259,6 +263,15 @@ namespace AIStudio.ViewModels
             MessageBoxButton.OK,
             MessageBoxImage.Error);
       }
+    }
+
+    private int GetHashForCompositeTrigger(List<int> influenceActionIds, List<int> commandPatternIds)
+    {
+      var influence = influenceActionIds?.Where(id => id > 0).OrderBy(x => x).ToList() ?? new List<int>();
+      var command = commandPatternIds?.Where(id => id > 0).ToList() ?? new List<int>();
+      if (!influence.Any() && !command.Any())
+        return 0;
+      return ("EA:" + string.Join(",", influence) + "|CMD:" + string.Join(",", command)).GetHashCode();
     }
 
     /// <summary>
@@ -346,13 +359,14 @@ namespace AIStudio.ViewModels
         return false;
       if (IsPendingReflex(reflex))
         return true;
-      bool level3Match = !SelectedLevel3Filter.HasValue
+      bool influenceMatch = !SelectedLevel3Filter.HasValue
         || (SelectedLevel3Filter.Value == -1
-          ? (reflex.Level3 == null || !reflex.Level3.Any())
-          : (reflex.Level3 != null && reflex.Level3.Contains(SelectedLevel3Filter.Value)));
+          ? ((reflex.InfluenceActionIds == null || !reflex.InfluenceActionIds.Any())
+             && (reflex.CommandPatternIds == null || !reflex.CommandPatternIds.Any()))
+          : (reflex.InfluenceActionIds != null && reflex.InfluenceActionIds.Contains(SelectedLevel3Filter.Value)));
       return (!SelectedLevel1Filter.HasValue || reflex.Level1 == SelectedLevel1Filter.Value) &&
              (!SelectedLevel2Filter.HasValue || (reflex.Level2 != null && reflex.Level2.Contains(SelectedLevel2Filter.Value))) &&
-             level3Match &&
+             influenceMatch &&
              (!SelectedAdaptiveActionsFilter.HasValue || (reflex.AdaptiveActions != null && reflex.AdaptiveActions.Contains(SelectedAdaptiveActionsFilter.Value)));
     }
 
@@ -515,7 +529,8 @@ namespace AIStudio.ViewModels
           Id = reflex.Id,
           Level1 = reflex.Level1,
           Level2 = new List<int>(reflex.Level2),
-          Level3 = new List<int>(reflex.Level3),
+          InfluenceActionIds = new List<int>(reflex.InfluenceActionIds ?? new List<int>()),
+          CommandPatternIds = new List<int>(reflex.CommandPatternIds ?? new List<int>()),
           AdaptiveActions = new List<int>(reflex.AdaptiveActions),
           ReflexChainID = reflex.ReflexChainID
         };
@@ -593,7 +608,7 @@ namespace AIStudio.ViewModels
         var currentReflexes = _geneticReflexesSystem.GetAllGeneticReflexes().ToDictionary(a => a.Id);
         foreach (var reflex in _allGeneticReflexes)
         {
-          var pressureRuleCheck = EnvironmentPressureRulesValidation.ValidateLevel3NotPressureRuleIds(reflex.Level3);
+          var pressureRuleCheck = EnvironmentPressureRulesValidation.ValidateLevel3NotPressureRuleIds(reflex.InfluenceActionIds);
           if (!pressureRuleCheck.IsValid)
           {
             MessageBox.Show($"Ошибка валидации рефлекса '{reflex.Id}':\n{pressureRuleCheck.ErrorMessage}",
@@ -632,7 +647,8 @@ namespace AIStudio.ViewModels
             var originalReflex = currentReflexes[reflex.Id];
             originalReflex.Level1 = reflex.Level1;
             originalReflex.Level2 = new List<int>(reflex.Level2);
-            originalReflex.Level3 = new List<int>(reflex.Level3);
+            originalReflex.InfluenceActionIds = new List<int>(reflex.InfluenceActionIds ?? new List<int>());
+            originalReflex.CommandPatternIds = new List<int>(reflex.CommandPatternIds ?? new List<int>());
             originalReflex.AdaptiveActions = new List<int>(reflex.AdaptiveActions);
             originalReflex.ReflexChainID = reflex.ReflexChainID;
             var warnings = _geneticReflexesSystem.UpdateGeneticReflex(originalReflex);
@@ -649,7 +665,8 @@ namespace AIStudio.ViewModels
             var (newId, warnings) = _geneticReflexesSystem.AddGeneticReflex(
                 reflex.Level1,
                 new List<int>(reflex.Level2),
-                new List<int>(reflex.Level3),
+                new List<int>(reflex.InfluenceActionIds ?? new List<int>()),
+                new List<int>(reflex.CommandPatternIds ?? new List<int>()),
                 new List<int>(reflex.AdaptiveActions)
             );
             if (warnings != null && warnings.Length > 0)

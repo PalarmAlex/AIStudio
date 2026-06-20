@@ -14,7 +14,7 @@ namespace AIStudio.ViewModels.SymbiontEnv
     public EnvironmentRecipeEditorModel()
     {
       Steps = new ObservableCollection<EnvironmentRecipeStepRow>();
-      RecommendedTriggerInfluenceIds = new List<int>();
+      RecommendedTriggerKeys = new List<string>();
       ReactiveEligible = true;
     }
 
@@ -28,8 +28,8 @@ namespace AIStudio.ViewModels.SymbiontEnv
     public int AdaptiveActionId { get; set; }
     /// <summary>Допускается реактивное исполнение.</summary>
     public bool ReactiveEligible { get; set; }
-    /// <summary>Рекомендуемые ID воздействий (подсказка для настройки рефлексов).</summary>
-    public List<int> RecommendedTriggerInfluenceIds { get; set; }
+    /// <summary>Рекомендуемые ключи триггеров (<c>EnvironmentTriggers.yaml</c>).</summary>
+    public List<string> RecommendedTriggerKeys { get; set; }
     /// <summary>Шаги рецепта.</summary>
     public ObservableCollection<EnvironmentRecipeStepRow> Steps { get; }
   }

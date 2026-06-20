@@ -28,6 +28,7 @@ namespace AIStudio.ViewModels
 
     private readonly GomeostasSystem _gomeostas;
     private readonly InfluenceActionSystem _influenceActionSystem;
+    private readonly HashSet<int> _legacyEnvironmentProxyIds = new HashSet<int>();
     private string _currentAgentName;
     private int _currentAgentStage;
     public bool IsStageZero => _currentAgentStage == 0;
@@ -84,8 +85,11 @@ namespace AIStudio.ViewModels
       _currentAgentStage = _gomeostas?.GetAgentState()?.EvolutionStage ?? 0;
       _currentAgentName = agentInfo.Name;
       InfluenceActions.Clear();
+      _legacyEnvironmentProxyIds.Clear();
       foreach (var action in _influenceActionSystem.GetAllInfluenceActions().OrderBy(a => a.Id))
       {
+        if (InfluenceActionIdPolicy.IsDeprecatedEnvironmentProxyRange(action.Id))
+          _legacyEnvironmentProxyIds.Add(action.Id);
         InfluenceActions.Add(new InfluenceActionSystem.GomeostasisInfluenceAction
         {
           Id = action.Id,
@@ -338,21 +342,41 @@ namespace AIStudio.ViewModels
 
     private bool ValidateStimulusIdRangesBeforeSave()
     {
-      HashSet<int> yamlReferencedIds = EnvironmentCatalogStorage.GetReferencedInfluenceActionIds();
+      var errors = new List<string>();
       var warnings = new List<string>();
       foreach (var action in InfluenceActions)
       {
         if (action == null)
           continue;
-        if (yamlReferencedIds.Contains(action.Id))
+        if (InfluenceActionIdPolicy.IsDeprecatedEnvironmentProxyRange(action.Id))
         {
-          if (action.Id < 101 || action.Id > 1000)
-            warnings.Add($"ID {action.Id} («{action.Name}»): прокси для YAML-триггеров рекомендуется в диапазоне 101–1000.");
+          if (!_legacyEnvironmentProxyIds.Contains(action.Id))
+          {
+            errors.Add(
+                $"ID {action.Id} («{action.Name}»): диапазон 101–1000 (EA-прокси среды) снят в contract 3.1. " +
+                "Новые записи не создавайте — события среды через Command и pressure rules.");
+          }
+          else
+          {
+            warnings.Add(
+                $"ID {action.Id} («{action.Name}»): устаревший EA-прокси (101–1000); только ручной вирт. тест на пульте AIStudio.");
+          }
         }
-        else if (action.Id < 1 || action.Id > 100)
+        else if (action.Id < 1 || action.Id > InfluenceActionIdPolicy.OperatorMaxId)
         {
-          warnings.Add($"ID {action.Id} («{action.Name}»): операторский стимул рекомендуется в диапазоне 1–100.");
+          warnings.Add(
+              $"ID {action.Id} («{action.Name}»): операторский стимул рекомендуется в диапазоне 1–{InfluenceActionIdPolicy.OperatorMaxId}.");
         }
+      }
+
+      if (errors.Count > 0)
+      {
+        MessageBox.Show(
+            string.Join(Environment.NewLine, errors),
+            "Диапазоны ID стимулов",
+            MessageBoxButton.OK,
+            MessageBoxImage.Error);
+        return false;
       }
 
       if (warnings.Count == 0)
@@ -392,7 +416,7 @@ namespace AIStudio.ViewModels
       {
         return new DescriptionWithLink
         {
-          Text = "Справочник дискретных стимулов: воздействия оператора с пульта и прокси для событий среды (YAML-триггеры). Давление метрик на виталы — в «Давление среды на виталы»."
+          Text = "Справочник дискретных стимулов оператора с пульта (ID 1–100). Диапазон 101–1000 (EA-прокси среды) снят в contract 3.1 — новые записи не создавайте. Давление метрик — «Давление среды на виталы»; в Velum события SW — Command idle-flush."
         };
       }
     }

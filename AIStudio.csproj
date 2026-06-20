@@ -111,6 +111,7 @@
     <Compile Include="Common\SymbiontEnv\SymbiontEnvironmentGate.cs" />
     <Compile Include="Common\SymbiontProjectCreateWizard.cs" />
     <Compile Include="Common\ProjectFolderPicker.cs" />
+    <Compile Include="Common\InfluenceActionIdPolicy.cs" />
     <Compile Include="Common\ProjectBootstrap.cs" />
     <Compile Include="Common\AntagonistItem.cs" />
     <Compile Include="Common\AntagonistManager.cs" />
@@ -398,6 +399,7 @@
     <Compile Include="Common\AgentLogCellTooltipProvider.cs" />
     <Compile Include="Common\ScenarioReportHtmlBuilder.cs" />
     <Compile Include="Common\ScenarioReportLogDisplay.cs" />
+    <Compile Include="Common\Environment\EnvironmentTriggersRelaxedReader.cs" />
     <Compile Include="ViewModels\Environment\EnvironmentBehaviorChainRow.cs" />
     <Compile Include="ViewModels\Environment\EnvironmentBehaviorOverviewViewModel.cs" />
     <Compile Include="ViewModels\Environment\EnvironmentLinkItem.cs" />
@@ -427,6 +429,12 @@
     </Compile>
     <Compile Include="Dialogs\AdaptiveActionRadioSelectionDialog.xaml.cs">
       <DependentUpon>AdaptiveActionRadioSelectionDialog.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Dialogs\CommandPatternsSelectionDialog.xaml.cs">
+      <DependentUpon>CommandPatternsSelectionDialog.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Dialogs\CommandPatternRadioSelectionDialog.xaml.cs">
+      <DependentUpon>CommandPatternRadioSelectionDialog.xaml</DependentUpon>
     </Compile>
     <Compile Include="Dialogs\InfluenceActionRadioSelectionDialog.xaml.cs">
       <DependentUpon>InfluenceActionRadioSelectionDialog.xaml</DependentUpon>
@@ -743,6 +751,14 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="Dialogs\AdaptiveActionRadioSelectionDialog.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Dialogs\CommandPatternsSelectionDialog.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Dialogs\CommandPatternRadioSelectionDialog.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

@@ -8,7 +8,7 @@ using ISIDA.SymbiontEnv.Contract;
 
 namespace AIStudio.Common.SymbiontEnv
 {
-  /// <summary>Read-only сборка связей триггеров, рефлексов и рецептов.</summary>
+  /// <summary>Read-only сборка связей триггеров, рефлексов и рецептов (contract 3.1).</summary>
   public static class EnvironmentLinksService
   {
     public static IList<EnvironmentBehaviorChainRow> BuildChains(
@@ -41,8 +41,8 @@ namespace AIStudio.Common.SymbiontEnv
         if (trigger == null || string.IsNullOrWhiteSpace(trigger.Id))
           continue;
 
-        int eaId = trigger.InfluenceActionId;
-        var adaptiveIds = FindAdaptiveActionIds(geneticReflexes, eaId);
+        int commandPatternId = trigger.ReflexTriggerCommandPatternId;
+        var adaptiveIds = FindAdaptiveActionIds(geneticReflexes, commandPatternId);
         EnvironmentRecipeData linkedRecipe = FindRecipe(recipesByAdaptive, adaptiveIds, trigger, recipes);
         bool hasGap = linkedRecipe == null;
         int stepCount = linkedRecipe?.Steps?.Count ?? 0;
@@ -52,7 +52,7 @@ namespace AIStudio.Common.SymbiontEnv
           TriggerId = trigger.Id,
           TriggerTitle = trigger.DisplayName ?? trigger.Id,
           EventKind = trigger.EventKind ?? string.Empty,
-          InfluenceActionId = eaId,
+          ReflexTriggerCommandPatternId = commandPatternId,
           AdaptiveActionId = linkedRecipe?.AdaptiveActionId ?? (adaptiveIds.Count > 0 ? adaptiveIds[0] : 0),
           RecipeId = linkedRecipe?.Id ?? string.Empty,
           RecipeTitle = linkedRecipe?.DisplayName ?? string.Empty,
@@ -79,17 +79,29 @@ namespace AIStudio.Common.SymbiontEnv
       {
         Category = "Триггер",
         Title = trigger.DisplayName ?? trigger.Id,
-        Detail = "EA " + trigger.InfluenceActionId.ToString(CultureInfo.InvariantCulture)
+        Detail = FormatMechanicalPath(trigger.HomeostasisDeltas)
       });
 
-      var adaptiveIds = FindAdaptiveActionIds(geneticReflexes, trigger.InfluenceActionId);
+      if (trigger.ReflexTriggerCommandPatternId > 0)
+      {
+        links.Add(new EnvironmentLinkItem
+        {
+          Category = "Command",
+          Title = trigger.ReflexTriggerCommandPatternId.ToString(CultureInfo.InvariantCulture),
+          Detail = string.IsNullOrWhiteSpace(trigger.ReflexTriggerCommandPatternText)
+              ? "паттерн genetic reflex (справочно)"
+              : trigger.ReflexTriggerCommandPatternText
+        });
+      }
+
+      var adaptiveIds = FindAdaptiveActionIds(geneticReflexes, trigger.ReflexTriggerCommandPatternId);
       foreach (int adaptiveId in adaptiveIds)
       {
         links.Add(new EnvironmentLinkItem
         {
           Category = "G_AD",
           Title = adaptiveId.ToString(CultureInfo.InvariantCulture),
-          Detail = "через рефлекс",
+          Detail = "через genetic reflex (command_pattern_ids)",
           TargetKind = "adaptive_action",
           TargetId = adaptiveId.ToString(CultureInfo.InvariantCulture)
         });
@@ -102,8 +114,9 @@ namespace AIStudio.Common.SymbiontEnv
           if (recipe == null)
             continue;
           bool byReflex = adaptiveIds.Contains(recipe.AdaptiveActionId);
-          bool byRecommended = recipe.RecommendedTriggerInfluenceIds != null
-              && recipe.RecommendedTriggerInfluenceIds.Contains(trigger.InfluenceActionId);
+          bool byRecommended = recipe.RecommendedTriggerKeys != null
+              && recipe.RecommendedTriggerKeys.Any(k =>
+                  string.Equals(k, trigger.Id, StringComparison.OrdinalIgnoreCase));
           if (!byReflex && !byRecommended)
             continue;
 
@@ -124,7 +137,7 @@ namespace AIStudio.Common.SymbiontEnv
         {
           Category = "Разрыв",
           Title = "Нет рецепта",
-          Detail = "EA " + trigger.InfluenceActionId + " не связан с G_AD через рефлекс",
+          Detail = "Триггер не связан с G_AD через genetic reflex или recommended_trigger_keys",
           HasGap = true
         });
       }
@@ -132,15 +145,15 @@ namespace AIStudio.Common.SymbiontEnv
       return links;
     }
 
-    private static List<int> FindAdaptiveActionIds(GeneticReflexesSystem geneticReflexes, int influenceActionId)
+    private static List<int> FindAdaptiveActionIds(GeneticReflexesSystem geneticReflexes, int commandPatternId)
     {
       var result = new List<int>();
-      if (geneticReflexes == null || influenceActionId <= 0)
+      if (geneticReflexes == null || commandPatternId <= 0)
         return result;
 
       foreach (GeneticReflexesSystem.GeneticReflex reflex in geneticReflexes.GetAllGeneticReflexes())
       {
-        if (reflex?.Level3 == null || !reflex.Level3.Contains(influenceActionId))
+        if (reflex?.CommandPatternIds == null || !reflex.CommandPatternIds.Contains(commandPatternId))
           continue;
         if (reflex.AdaptiveActions == null)
           continue;
@@ -174,8 +187,9 @@ namespace AIStudio.Common.SymbiontEnv
 
       return recipes.FirstOrDefault(r =>
           r != null
-          && r.RecommendedTriggerInfluenceIds != null
-          && r.RecommendedTriggerInfluenceIds.Contains(trigger.InfluenceActionId));
+          && r.RecommendedTriggerKeys != null
+          && r.RecommendedTriggerKeys.Any(k =>
+              string.Equals(k, trigger.Id, StringComparison.OrdinalIgnoreCase)));
     }
 
     private static string BuildDetailText(
@@ -184,14 +198,46 @@ namespace AIStudio.Common.SymbiontEnv
         List<int> adaptiveIds)
     {
       string eventText = trigger.EventKind ?? "?";
-      string eaText = "EA " + trigger.InfluenceActionId.ToString(CultureInfo.InvariantCulture);
+      string mechanicalText = FormatMechanicalPath(trigger.HomeostasisDeltas);
+      string commandText = trigger.ReflexTriggerCommandPatternId > 0
+          ? "cmd:" + trigger.ReflexTriggerCommandPatternId.ToString(CultureInfo.InvariantCulture)
+          : string.Empty;
+
+      string path = eventText;
+      if (!string.IsNullOrWhiteSpace(mechanicalText))
+        path += " → Δ[" + mechanicalText + "]";
+      if (!string.IsNullOrWhiteSpace(commandText))
+        path += " → " + commandText;
+
       if (recipe != null)
-        return eventText + " → " + eaText + " → G_AD " + recipe.AdaptiveActionId + " → " + recipe.Id;
+        return path + " → G_AD " + recipe.AdaptiveActionId + " → " + recipe.Id;
 
       if (adaptiveIds.Count > 0)
-        return eventText + " → " + eaText + " → G_AD " + adaptiveIds[0] + " → (нет рецепта)";
+        return path + " → G_AD " + adaptiveIds[0] + " → (нет рецепта)";
 
-      return eventText + " → " + eaText + " → (нет рефлекса/рецепта)";
+      return path + " → (нет genetic reflex / рецепта)";
+    }
+
+    private static string FormatMechanicalPath(IList<HomeostasisDeltaEntry> deltas)
+    {
+      if (deltas == null || deltas.Count == 0)
+        return string.Empty;
+
+      return string.Join("; ", deltas
+          .Where(d => d != null && d.ParameterId > 0 && d.Delta != 0)
+          .OrderBy(d => d.ParameterId)
+          .Select(d => d.ParameterId + ":" + d.Delta.ToString(CultureInfo.InvariantCulture)));
+    }
+
+    private static string FormatMechanicalPath(IDictionary<int, int> deltas)
+    {
+      if (deltas == null || deltas.Count == 0)
+        return string.Empty;
+
+      return string.Join("; ", deltas
+          .Where(kv => kv.Key > 0 && kv.Value != 0)
+          .OrderBy(kv => kv.Key)
+          .Select(kv => kv.Key + ":" + kv.Value.ToString(CultureInfo.InvariantCulture)));
     }
   }
 }

@@ -4,7 +4,7 @@
              xmlns:converters="clr-namespace:AIStudio.Converters"
              xmlns:controls="clr-namespace:AIStudio.Controls.Environment">
   <UserControl.Resources>
-    <converters:InfluenceActionIdDescriptionConverter x:Key="InfluenceActionIdDescriptionConverter"/>
+    <converters:IntDictionaryToStringConverter x:Key="IntDictionaryToStringConverter"/>
     <converters:InverseBooleanToVisibilityConverter x:Key="InverseBooleanToVisibilityConverter"/>
   </UserControl.Resources>
 
@@ -99,7 +99,48 @@
           </Grid>
           <TextBlock Text="Название" FontWeight="SemiBold"/>
           <TextBox Text="{Binding DisplayName, UpdateSourceTrigger=PropertyChanged}" Margin="0,4,0,8"/>
-          <TextBlock Text="Воздействие (EA)" FontWeight="SemiBold"/>
+
+          <TextBlock Text="homeostasis_deltas (mechanical path)" FontWeight="SemiBold"/>
+          <TextBlock Margin="0,0,0,4" Foreground="#FF666666" TextWrapping="Wrap"
+                     Text="Дельты параметров гомеostasis при срабатывании pressure rules. Двойной щелчок или «Изменить…»."/>
+          <Grid Margin="0,4,0,8">
+            <Grid.ColumnDefinitions>
+              <ColumnDefinition Width="*"/>
+              <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+            <TextBlock Grid.Column="0"
+                       Text="{Binding HomeostasisDeltas, Converter={StaticResource IntDictionaryToStringConverter}}"
+                       VerticalAlignment="Center"
+                       TextWrapping="Wrap"
+                       MouseDown="HomeostasisDeltas_MouseDown"/>
+            <Button Grid.Column="1" Content="Изменить…" Margin="8,0,0,0" Padding="10,4"
+                    Command="{Binding DataContext.EditHomeostasisDeltasCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"/>
+          </Grid>
+          <TextBlock Margin="0,0,0,8"
+                     Foreground="#FFD32F2F"
+                     FontSize="12"
+                     Text="{Binding DataContext.HomeostasisDeltasValidationMessage, RelativeSource={RelativeSource AncestorType=UserControl}}">
+            <TextBlock.Style>
+              <Style TargetType="TextBlock">
+                <Setter Property="Visibility" Value="Collapsed"/>
+                <Style.Triggers>
+                  <DataTrigger Binding="{Binding DataContext.HomeostasisDeltasValidationMessage, RelativeSource={RelativeSource AncestorType=UserControl}}" Value="">
+                    <Setter Property="Visibility" Value="Collapsed"/>
+                  </DataTrigger>
+                  <DataTrigger Binding="{Binding DataContext.HomeostasisDeltasValidationMessage, RelativeSource={RelativeSource AncestorType=UserControl}}" Value="{x:Null}">
+                    <Setter Property="Visibility" Value="Collapsed"/>
+                  </DataTrigger>
+                  <DataTrigger Binding="{Binding DataContext.HomeostasisDeltasValidationMessage, RelativeSource={RelativeSource AncestorType=UserControl}}" Value="Не заполнено поле">
+                    <Setter Property="Visibility" Value="Visible"/>
+                  </DataTrigger>
+                </Style.Triggers>
+              </Style>
+            </TextBlock.Style>
+          </TextBlock>
+
+          <TextBlock Text="reflex_trigger_command_pattern_id" FontWeight="SemiBold"/>
+          <TextBlock Margin="0,0,0,4" Foreground="#FF666666" TextWrapping="Wrap"
+                     Text="Справочная связь с genetic reflex (CommandPhrases.dat). Не запускает runtime-flush в Velum."/>
           <Grid Margin="0,4,0,8">
             <Grid.ColumnDefinitions>
               <ColumnDefinition Width="120"/>
@@ -107,17 +148,48 @@
               <ColumnDefinition Width="*"/>
             </Grid.ColumnDefinitions>
             <TextBox Grid.Column="0"
-                     Text="{Binding InfluenceActionId}"
+                     Text="{Binding ReflexTriggerCommandPatternId}"
                      IsReadOnly="True"/>
             <Button Grid.Column="1" Content="Выбрать…" Margin="8,0,8,0" Padding="10,4"
-                    Command="{Binding DataContext.PickInfluenceActionCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"/>
+                    Command="{Binding DataContext.PickCommandPatternCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"/>
             <TextBlock Grid.Column="2"
-                       Text="{Binding InfluenceActionId, Converter={StaticResource InfluenceActionIdDescriptionConverter}}"
+                       Text="{Binding ReflexTriggerCommandPatternText}"
                        VerticalAlignment="Center"
                        TextWrapping="Wrap"/>
           </Grid>
+          <TextBlock Margin="0,0,0,8"
+                     Foreground="#FFD32F2F"
+                     FontSize="12"
+                     Text="{Binding DataContext.CommandPatternValidationMessage, RelativeSource={RelativeSource AncestorType=UserControl}}">
+            <TextBlock.Style>
+              <Style TargetType="TextBlock">
+                <Setter Property="Visibility" Value="Collapsed"/>
+                <Style.Triggers>
+                  <DataTrigger Binding="{Binding DataContext.CommandPatternValidationMessage, RelativeSource={RelativeSource AncestorType=UserControl}}" Value="Не заполнено поле">
+                    <Setter Property="Visibility" Value="Visible"/>
+                  </DataTrigger>
+                </Style.Triggers>
+              </Style>
+            </TextBlock.Style>
+          </TextBlock>
+
           <TextBlock Text="Событие" FontWeight="SemiBold" Margin="0,0,0,6"/>
           <controls:SchemaActionPanel DataContext="{Binding DataContext.EventSchema, RelativeSource={RelativeSource AncestorType=UserControl}}" MinHeight="220"/>
+          <TextBlock Margin="0,6,0,0"
+                     Foreground="#FFD32F2F"
+                     FontSize="12"
+                     Text="{Binding DataContext.EventKindValidationMessage, RelativeSource={RelativeSource AncestorType=UserControl}}">
+            <TextBlock.Style>
+              <Style TargetType="TextBlock">
+                <Setter Property="Visibility" Value="Collapsed"/>
+                <Style.Triggers>
+                  <DataTrigger Binding="{Binding DataContext.EventKindValidationMessage, RelativeSource={RelativeSource AncestorType=UserControl}}" Value="Не заполнено поле">
+                    <Setter Property="Visibility" Value="Visible"/>
+                  </DataTrigger>
+                </Style.Triggers>
+              </Style>
+            </TextBlock.Style>
+          </TextBlock>
           <TextBlock Text="Связи" FontWeight="SemiBold" Margin="0,8,0,4"/>
           <ItemsControl ItemsSource="{Binding DataContext.Links, RelativeSource={RelativeSource AncestorType=UserControl}}">
             <ItemsControl.ItemTemplate>

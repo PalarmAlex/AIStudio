@@ -1,0 +1,61 @@
+<Window x:Class="AIStudio.Dialogs.CommandPatternRadioSelectionDialog"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Выбор Command pattern" Height="500" Width="700"
+        WindowStartupLocation="CenterOwner"
+        PreviewKeyDown="Window_PreviewKeyDown">
+
+  <Grid Margin="10">
+    <Grid.RowDefinitions>
+      <RowDefinition Height="Auto"/>
+      <RowDefinition Height="Auto"/>
+      <RowDefinition Height="Auto"/>
+      <RowDefinition Height="*"/>
+      <RowDefinition Height="Auto"/>
+    </Grid.RowDefinitions>
+
+    <TextBlock Grid.Row="0"
+               Text="Выберите паттерн Command-канала (CommandPhrases.dat) для связи с genetic reflex:"
+               Margin="0,0,0,10"
+               TextWrapping="Wrap"
+               FontWeight="Bold"/>
+    <TextBlock Grid.Row="1" Text="Фильтр:" Margin="0,0,0,4"/>
+    <TextBox x:Name="FilterTextBox" Grid.Row="2"
+             Margin="0,0,0,8"
+             TextChanged="FilterTextBox_TextChanged"
+             ToolTip="Подстрока в ID или тексте паттерна"/>
+
+    <ListView x:Name="PatternsList" Grid.Row="3" SelectionMode="Single"
+              MouseDoubleClick="PatternsList_MouseDoubleClick">
+      <ListView.View>
+        <GridView>
+          <GridViewColumn Header="Выбрать" Width="60">
+            <GridViewColumn.CellTemplate>
+              <DataTemplate>
+                <RadioButton IsChecked="{Binding IsSelected}"
+                             GroupName="CommandPatternRadioSelection"
+                             HorizontalAlignment="Center"
+                             VerticalAlignment="Center"
+                             Click="RadioButton_Click"/>
+              </DataTemplate>
+            </GridViewColumn.CellTemplate>
+          </GridViewColumn>
+          <GridViewColumn Header="ID" Width="60" DisplayMemberBinding="{Binding Id}"/>
+          <GridViewColumn Header="Паттерн" Width="480">
+            <GridViewColumn.CellTemplate>
+              <DataTemplate>
+                <TextBlock Text="{Binding Text}" TextWrapping="Wrap"/>
+              </DataTemplate>
+            </GridViewColumn.CellTemplate>
+          </GridViewColumn>
+        </GridView>
+      </ListView.View>
+    </ListView>
+
+    <StackPanel Grid.Row="4" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,10,0,0">
+      <Button Content="Очистить" Width="90" Margin="0,0,10,0" Click="ClearButton_Click"/>
+      <Button Content="OK" Width="80" Margin="0,0,10,0" Click="OkButton_Click"/>
+      <Button Content="Отмена" Width="80" Click="CancelButton_Click"/>
+    </StackPanel>
+  </Grid>
+</Window>

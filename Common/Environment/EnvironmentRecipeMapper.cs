@@ -57,7 +57,7 @@ namespace AIStudio.Common.SymbiontEnv
         Description = recipe.Description,
         AdaptiveActionId = recipe.AdaptiveActionId,
         ReactiveEligible = recipe.ReactiveEligible,
-        RecommendedTriggerInfluenceIds = new List<int>(recipe.RecommendedTriggerInfluenceIds)
+        RecommendedTriggerKeys = new List<string>(recipe.RecommendedTriggerKeys ?? new List<string>())
       };
       foreach (EnvironmentRecipeStepData step in recipe.Steps)
       {
@@ -80,7 +80,7 @@ namespace AIStudio.Common.SymbiontEnv
         DisplayName = model.DisplayName ?? string.Empty,
         Description = model.Description ?? string.Empty,
         ReactiveEligible = model.ReactiveEligible,
-        RecommendedTriggerInfluenceIds = model.RecommendedTriggerInfluenceIds?.ToList() ?? new List<int>()
+        RecommendedTriggerKeys = model.RecommendedTriggerKeys?.ToList() ?? new List<string>()
       };
       foreach (EnvironmentRecipeStepRow row in model.Steps)
         data.Steps.Add(EnvironmentRecipeStepSchemaHelper.ToStepData(row));
