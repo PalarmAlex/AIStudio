@@ -38,9 +38,6 @@ namespace AIStudio.Pages.SymbiontEnv
         ShowTab(Vm.SelectedTab);
     }
 
-    private void PickRecommendedTriggers_Click(object sender, RoutedEventArgs e) =>
-        Vm?.PickRecommendedTriggers(Window.GetWindow(this));
-
     private void PickRecipeId_Click(object sender, RoutedEventArgs e) =>
         Vm?.PickRecipeId(Window.GetWindow(this));
 

@@ -56,17 +56,6 @@
               <TextBlock Grid.Column="2" Text="{Binding DataContext.AdaptiveActionDescription, RelativeSource={RelativeSource AncestorType=UserControl}}" VerticalAlignment="Center" TextWrapping="Wrap" Foreground="#FF555555"/>
             </Grid>
             <CheckBox Content="reactive_eligible" IsChecked="{Binding ReactiveEligible}" Margin="0,0,0,8" Checked="ModelField_Changed" Unchecked="ModelField_Changed"/>
-            <TextBlock Text="recommended_trigger_keys" FontWeight="SemiBold"/>
-            <Grid Margin="0,4,0,0">
-              <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="120"/>
-                <ColumnDefinition Width="Auto"/>
-                <ColumnDefinition Width="*"/>
-              </Grid.ColumnDefinitions>
-              <TextBox Grid.Column="0" Text="{Binding DataContext.RecommendedTriggerDisplay, RelativeSource={RelativeSource AncestorType=UserControl}, Mode=OneWay}" IsReadOnly="True"/>
-              <Button Grid.Column="1" Content="Выбрать…" Margin="8,0,8,0" Padding="10,4" Click="PickRecommendedTriggers_Click"/>
-              <TextBlock Grid.Column="2" Text="{Binding DataContext.RecommendedTriggerDescription, RelativeSource={RelativeSource AncestorType=UserControl}}" VerticalAlignment="Center" TextWrapping="Wrap" Foreground="#FF555555"/>
-            </Grid>
           </StackPanel>
         </StackPanel>
 

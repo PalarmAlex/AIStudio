@@ -517,16 +517,8 @@ namespace AIStudio
           case "42": // Ментальные цепочки (эпизодика ИФ)
             ShowMentalEpisodicTree();
             break;
-          case "49": // Обзор поведения среды
-            if (TryShowEnvironmentPage(() => ShowEnvironmentOverview()))
-              break;
-            break;
           case "45": // Рецепты среды
             if (TryShowEnvironmentPage(() => ShowEnvironmentRecipes()))
-              break;
-            break;
-          case "46": // Триггеры среды
-            if (TryShowEnvironmentPage(() => ShowEnvironmentTriggers()))
               break;
             break;
           case "48": // Давление среды на виталы
@@ -657,26 +649,10 @@ namespace AIStudio
       return false;
     }
 
-    private void ShowEnvironmentOverview()
-    {
-      var view = new Pages.SymbiontEnv.EnvironmentBehaviorOverviewView();
-      var vm = new EnvironmentBehaviorOverviewViewModel(_gomeostas, _geneticReflexesSystem);
-      view.DataContext = vm;
-      CurrentContent = view;
-    }
-
     private void ShowEnvironmentRecipes()
     {
       var view = new Pages.SymbiontEnv.EnvironmentRecipesRegistryView();
       var vm = new EnvironmentRecipesRegistryViewModel(_gomeostas, OpenRecipeEditor);
-      view.DataContext = vm;
-      CurrentContent = view;
-    }
-
-    private void ShowEnvironmentTriggers()
-    {
-      var view = new Pages.SymbiontEnv.EnvironmentTriggersView();
-      var vm = new EnvironmentTriggersViewModel(_gomeostas, _geneticReflexesSystem, _sensorySystem);
       view.DataContext = vm;
       CurrentContent = view;
     }
@@ -705,20 +681,6 @@ namespace AIStudio
           view.DataContext is EnvironmentRecipesRegistryViewModel vm)
       {
         vm.SelectAndOpen(recipeId);
-      }
-    }
-
-    public void NavigateToTrigger(string triggerId)
-    {
-      ShowEnvironmentTriggers();
-      if (CurrentContent is Pages.SymbiontEnv.EnvironmentTriggersView view &&
-          view.DataContext is EnvironmentTriggersViewModel vm)
-      {
-        // Выбрать триггер по ID
-        var trigger = vm.Triggers.FirstOrDefault(t =>
-            string.Equals(t.Id, triggerId, StringComparison.OrdinalIgnoreCase));
-        if (trigger != null)
-          vm.SelectedTrigger = trigger;
       }
     }
 

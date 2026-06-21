@@ -123,24 +123,6 @@ namespace AIStudio.Common.Adapters
     }
   }
 
-  /// <summary>Параметр события из trigger-detect.json.</summary>
-  public sealed class AdapterSchemaEventParameter
-  {
-    public string Key { get; set; }
-    public string Label { get; set; }
-    public string Type { get; set; }
-    public bool Required { get; set; }
-    public IList<AdapterSchemaArgValueOption> Values { get; set; }
-  }
-
-  /// <summary>Тип события из trigger-detect.json.</summary>
-  public sealed class AdapterSchemaDetectKind
-  {
-    public string Kind { get; set; }
-    public string Label { get; set; }
-    public IList<AdapterSchemaEventParameter> Parameters { get; set; } = new List<AdapterSchemaEventParameter>();
-  }
-
   /// <summary>Ключ пробы метрики среды из metric-probes.json.</summary>
   public sealed class AdapterSchemaMetricProbe
   {
@@ -169,34 +151,12 @@ namespace AIStudio.Common.Adapters
     };
   }
 
-  /// <summary>Запись каталога триггеров из trigger-catalog.json.</summary>
-  public sealed class AdapterSchemaTriggerCatalogEntry
-  {
-    public string Id { get; set; }
-    public string Label { get; set; }
-    public string Description { get; set; }
-
-    public string DisplayText
-    {
-      get
-      {
-        if (string.IsNullOrWhiteSpace(Id))
-          return Label ?? string.Empty;
-        if (string.IsNullOrWhiteSpace(Label))
-          return Id;
-        return Label + " (" + Id + ")";
-      }
-    }
-  }
-
   /// <summary>Schema пакета адаптера для редакторов среды.</summary>
   public sealed class AdapterEnvironmentSchema
   {
     public IList<AdapterSchemaHandler> Handlers { get; set; } = new List<AdapterSchemaHandler>();
-    public IList<AdapterSchemaDetectKind> TriggerDetectKinds { get; set; } = new List<AdapterSchemaDetectKind>();
     public IList<AdapterSchemaMetricProbe> MetricProbes { get; set; } = new List<AdapterSchemaMetricProbe>();
     public IList<AdapterSchemaRecipeCatalogEntry> RecipeCatalog { get; set; } = new List<AdapterSchemaRecipeCatalogEntry>();
-    public IList<AdapterSchemaTriggerCatalogEntry> TriggerCatalog { get; set; } = new List<AdapterSchemaTriggerCatalogEntry>();
     public AdapterSchemaRecipeTemplateCatalog RecipeTemplateCatalog { get; set; } =
         new AdapterSchemaRecipeTemplateCatalog();
   }

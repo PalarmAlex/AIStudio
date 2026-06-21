@@ -39,7 +39,5 @@ namespace AIStudio.Common.SymbiontEnv
     public static string EnvironmentFolder => Path.Combine(GetBootDataFolder(), "Environment");
     /// <summary>Файл рецептов среды.</summary>
     public static string RecipesFilePath => Path.Combine(EnvironmentFolder, "EnvironmentRecipes.yaml");
-    /// <summary>Файл триггеров среды.</summary>
-    public static string TriggersFilePath => Path.Combine(EnvironmentFolder, "EnvironmentTriggers.yaml");
   }
 }

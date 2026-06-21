@@ -30,10 +30,8 @@ namespace AIStudio.Common.Adapters
         return schema;
 
       LoadHandlersCatalog(Path.Combine(schemaDir, "handlers-catalog.json"), schema.Handlers);
-      LoadDetectKinds(Path.Combine(schemaDir, "trigger-detect.json"), schema.TriggerDetectKinds);
       LoadMetricProbes(Path.Combine(schemaDir, "metric-probes.json"), schema.MetricProbes);
       LoadRecipeCatalog(Path.Combine(schemaDir, "recipe-catalog.json"), schema.RecipeCatalog);
-      LoadTriggerCatalog(Path.Combine(schemaDir, "trigger-catalog.json"), schema.TriggerCatalog);
       LoadRecipeTemplateCatalog(Path.Combine(schemaDir, "recipe-template-catalog.json"), schema.RecipeTemplateCatalog);
       return schema;
     }
@@ -55,32 +53,6 @@ namespace AIStudio.Common.Adapters
       if (!SymbiontProjectAdapterSettings.TryGetValidatedCurrentAdapterId(out string adapterId))
         return new AdapterSchemaMetricProbe[0];
       return LoadMetricProbesForAdapter(adapterId);
-    }
-
-    /// <summary>
-    /// Каталог триггеров из <c>schema\trigger-catalog.json</c> для текущего проекта.
-    /// </summary>
-    public static IReadOnlyList<AdapterSchemaTriggerCatalogEntry> LoadTriggerCatalogForCurrentProject()
-    {
-      if (!SymbiontProjectAdapterSettings.TryGetValidatedCurrentAdapterId(out string adapterId))
-        return new AdapterSchemaTriggerCatalogEntry[0];
-      return LoadTriggerCatalogForAdapter(adapterId);
-    }
-
-    /// <summary>
-    /// Каталог триггеров из <c>schema\trigger-catalog.json</c> зарегистрированного пакета.
-    /// </summary>
-    public static IReadOnlyList<AdapterSchemaTriggerCatalogEntry> LoadTriggerCatalogForAdapter(string adapterId)
-    {
-      if (string.IsNullOrWhiteSpace(adapterId))
-        return new AdapterSchemaTriggerCatalogEntry[0];
-      AdapterManifest manifest = AdapterRegistry.TryGetById(adapterId);
-      if (manifest == null || string.IsNullOrWhiteSpace(manifest.PackageRootPath))
-        return new AdapterSchemaTriggerCatalogEntry[0];
-      string path = Path.Combine(manifest.PackageRootPath, "schema", "trigger-catalog.json");
-      var entries = new List<AdapterSchemaTriggerCatalogEntry>();
-      LoadTriggerCatalog(path, entries);
-      return entries;
     }
 
     /// <summary>
@@ -237,88 +209,6 @@ namespace AIStudio.Common.Adapters
       catch
       {
         // ignore broken schema
-      }
-    }
-
-    private static void LoadTriggerCatalog(string path, IList<AdapterSchemaTriggerCatalogEntry> target)
-    {
-      if (!File.Exists(path))
-        return;
-      try
-      {
-        JObject jo = JObject.Parse(File.ReadAllText(path));
-        JArray arr = jo["triggers"] as JArray;
-        if (arr == null)
-          return;
-        foreach (JToken token in arr)
-        {
-          if (!(token is JObject item))
-            continue;
-          string id = item["id"]?.ToString();
-          if (string.IsNullOrWhiteSpace(id))
-            continue;
-          target.Add(new AdapterSchemaTriggerCatalogEntry
-          {
-            Id = id.Trim(),
-            Label = item["label"]?.ToString(),
-            Description = item["description"]?.ToString()
-          });
-        }
-      }
-      catch
-      {
-        // ignore broken schema
-      }
-    }
-
-    private static void LoadDetectKinds(string path, IList<AdapterSchemaDetectKind> target)
-    {
-      if (!File.Exists(path))
-        return;
-      try
-      {
-        JObject jo = JObject.Parse(File.ReadAllText(path));
-        JArray arr = jo["detectKinds"] as JArray;
-        if (arr == null)
-          return;
-        foreach (JToken token in arr)
-        {
-          if (!(token is JObject item))
-            continue;
-          string kind = item["kind"]?.ToString();
-          if (string.IsNullOrWhiteSpace(kind))
-            continue;
-          var detectKind = new AdapterSchemaDetectKind
-          {
-            Kind = kind,
-            Label = item["label"]?.ToString() ?? kind
-          };
-          if (item["parameters"] is JArray paramsArr)
-          {
-            foreach (JToken paramToken in paramsArr)
-            {
-              if (!(paramToken is JObject paramItem))
-                continue;
-              string key = paramItem["key"]?.ToString();
-              if (string.IsNullOrWhiteSpace(key))
-                continue;
-              var param = new AdapterSchemaEventParameter
-              {
-                Key = key.Trim(),
-                Label = paramItem["label"]?.ToString(),
-                Type = paramItem["type"]?.ToString(),
-                Required = paramItem["required"]?.Value<bool>() ?? false,
-                Values = ParseArgValueOptions(paramItem)
-              };
-              detectKind.Parameters.Add(param);
-            }
-          }
-          target.Add(detectKind);
-        }
-      }
-      catch
-      {
-        // ignore
       }
     }
 

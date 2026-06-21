@@ -1,10 +1,10 @@
 {
-  "schemaVersion": "3.0",
+  "schemaVersion": "3.2",
   "recipes": [
     {
       "id": "doc_props_on_save",
       "label": "Свойства документа при сохранении",
-      "description": "expression_pattern_id 201 → expr:demo.recipe.doc_props_on_save"
+      "description": "adaptive_action_id → G_AD dispatch на OnPulseCompleted"
     },
     {
       "id": "host.view.fit_document",

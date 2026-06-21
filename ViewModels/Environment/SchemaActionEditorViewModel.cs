@@ -12,11 +12,10 @@ using System.Windows.Input;
 
 namespace AIStudio.ViewModels.SymbiontEnv
 {
-  /// <summary>Редактор действия + параметров по schema (handler или event).</summary>
+  /// <summary>Редактор handler + параметров по schema (шаги рецепта).</summary>
   public sealed class SchemaActionEditorViewModel : INotifyPropertyChanged
   {
     private AdapterEnvironmentSchema _schema;
-    private SchemaActionEditorMode _mode = SchemaActionEditorMode.RecipeHandler;
     private bool _isEditingEnabled = true;
     private string _catalogSearchText = string.Empty;
     private string _selectedCatalogId = string.Empty;
@@ -42,18 +41,6 @@ namespace AIStudio.ViewModels.SymbiontEnv
 
     public ObservableCollection<SchemaCatalogItemRow> CatalogItems { get; }
     public ObservableCollection<SchemaParamRow> Parameters { get; }
-
-    public SchemaActionEditorMode Mode
-    {
-      get => _mode;
-      private set
-      {
-        if (_mode == value)
-          return;
-        _mode = value;
-        OnPropertyChanged();
-      }
-    }
 
     public bool IsEditingEnabled
     {
@@ -135,7 +122,6 @@ namespace AIStudio.ViewModels.SymbiontEnv
       _suppressSideEffects = true;
       try
       {
-        Mode = SchemaActionEditorMode.RecipeHandler;
         _allCatalogItems.Clear();
         foreach (AdapterSchemaHandler handler in EnvironmentRecipeStepSchemaHelper.GetHandlers(_schema))
         {
@@ -151,40 +137,6 @@ namespace AIStudio.ViewModels.SymbiontEnv
         string normalizedHandlerId = handlerId ?? string.Empty;
         SelectedCatalogId = normalizedHandlerId;
         LoadHandlerParameters(normalizedHandlerId, argsSnapshot);
-        ValidationError = string.Empty;
-      }
-      finally
-      {
-        _suppressSideEffects = false;
-      }
-    }
-
-    public void LoadFromEvent(string eventKind, IDictionary<string, string> parameters)
-    {
-      _suppressSideEffects = true;
-      try
-      {
-        Mode = SchemaActionEditorMode.TriggerEvent;
-        _allCatalogItems.Clear();
-        if (_schema.TriggerDetectKinds != null)
-        {
-          foreach (AdapterSchemaDetectKind kind in _schema.TriggerDetectKinds)
-          {
-            if (kind == null || string.IsNullOrWhiteSpace(kind.Kind))
-              continue;
-            _allCatalogItems.Add(new SchemaCatalogItemRow
-            {
-              Id = kind.Kind,
-              Label = kind.Label,
-              Description = kind.Kind
-            });
-          }
-        }
-        ApplyCatalogFilter();
-        var paramsSnapshot = SnapshotArgs(parameters);
-        string normalizedEventKind = eventKind ?? string.Empty;
-        SelectedCatalogId = normalizedEventKind;
-        LoadEventParameters(normalizedEventKind, paramsSnapshot);
         ValidationError = string.Empty;
       }
       finally
@@ -230,7 +182,6 @@ namespace AIStudio.ViewModels.SymbiontEnv
       TryCommit(out _);
     }
 
-    /// <summary>Вставляет плейсхолдер в поле template (дописывает к текущему значению).</summary>
     public void PickTemplatePlaceholder(Window owner, SchemaParamRow row)
     {
       if (!IsEditingEnabled || row == null || !row.IsTemplateField)
@@ -257,7 +208,6 @@ namespace AIStudio.ViewModels.SymbiontEnv
       NotifyParameterChanged();
     }
 
-    /// <summary>Выбирает имя свойства документа из справочника КБ.</summary>
     public void PickPropertyName(Window owner, SchemaParamRow row)
     {
       if (!IsEditingEnabled || row == null || !row.IsPropertyNameField)
@@ -287,29 +237,13 @@ namespace AIStudio.ViewModels.SymbiontEnv
       _suppressSideEffects = true;
       try
       {
-        var argsSnapshot = SnapshotArgs(args);
-        if (Mode == SchemaActionEditorMode.RecipeHandler)
-          LoadHandlerParameters(_selectedCatalogId, argsSnapshot);
-        else
-          LoadEventParameters(_selectedCatalogId, argsSnapshot);
+        LoadHandlerParameters(_selectedCatalogId, SnapshotArgs(args));
         ValidationError = string.Empty;
       }
       finally
       {
         _suppressSideEffects = false;
       }
-    }
-
-    private Dictionary<string, string> BuildCurrentValues()
-    {
-      var values = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
-      foreach (SchemaParamRow row in Parameters)
-      {
-        if (row == null || string.IsNullOrWhiteSpace(row.Key) || string.IsNullOrWhiteSpace(row.Value))
-          continue;
-        values[row.Key] = row.Value.Trim();
-      }
-      return values;
     }
 
     private void ApplyCatalogFilter()
@@ -377,37 +311,6 @@ namespace AIStudio.ViewModels.SymbiontEnv
           EditorHint = arg.EditorHint ?? string.Empty,
           Required = arg.Required,
           AllowedValueOptions = BuildAllowedValueOptions(arg.Values),
-          Value = value
-        };
-        row.PropertyChanged += OnParameterRowChanged;
-        Parameters.Add(row);
-      }
-    }
-
-    private void LoadEventParameters(string eventKind, IDictionary<string, string> existingParams)
-    {
-      ClearParameters();
-      AdapterSchemaDetectKind detectKind = _schema.TriggerDetectKinds?.FirstOrDefault(
-          k => string.Equals(k?.Kind, eventKind, StringComparison.OrdinalIgnoreCase));
-      SelectedDescription = detectKind?.Label ?? eventKind ?? string.Empty;
-      var existing = existingParams ?? new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
-      if (detectKind?.Parameters == null)
-        return;
-
-      foreach (AdapterSchemaEventParameter param in detectKind.Parameters)
-      {
-        if (param == null || string.IsNullOrWhiteSpace(param.Key))
-          continue;
-        string value = string.Empty;
-        if (existing.TryGetValue(param.Key, out string existingValue))
-          value = existingValue ?? string.Empty;
-        var row = new SchemaParamRow
-        {
-          Key = param.Key,
-          Label = string.IsNullOrWhiteSpace(param.Label) ? param.Key : param.Label,
-          Type = param.Type ?? string.Empty,
-          Required = param.Required,
-          AllowedValueOptions = BuildAllowedValueOptions(param.Values),
           Value = value
         };
         row.PropertyChanged += OnParameterRowChanged;
@@ -495,12 +398,5 @@ namespace AIStudio.ViewModels.SymbiontEnv
     {
       PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
     }
-  }
-
-  /// <summary>Режим SchemaActionPanel.</summary>
-  public enum SchemaActionEditorMode
-  {
-    RecipeHandler,
-    TriggerEvent
   }
 }

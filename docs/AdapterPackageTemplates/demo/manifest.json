@@ -2,10 +2,9 @@
   "id": "my-adapter",
   "displayName": "Мой адаптер (замените id и название)",
   "version": "0.1.0",
-  "contractVersion": "3.0",
-  "schemaVersion": "3.0",
-  "architectureSpecVersion": "2.2",
+  "contractVersion": "3.2",
+  "schemaVersion": "3.2",
   "author": "",
   "bootDataRelativePath": "BootData",
-  "description": "Каркас пакета contract 3.0. Задайте уникальный id, заполните schema (incl. expression-pattern-catalog) и runtime, затем «Зарегистрировать пакет»."
+  "description": "Каркас пакета contract 3.2: рецепты + pressure rules; без EnvironmentTriggers.yaml."
 }

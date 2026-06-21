@@ -1,4 +1,4 @@
-Каталог BootData\Environment\ — образцы YAML каталогов среды для нового проекта симбионта (contract 3.0).
+Каталог BootData\Environment\ — образцы YAML каталогов среды для нового проекта симбионта (contract 3.2).
 
 При создании проекта или «дополнить BootData из пакета» студия копирует файлы в BootData проекта
 (без перезаписи уже существующих). Дальше редакторы «Среда» работают с YAML проекта, не с пакетом.
@@ -8,61 +8,44 @@
 
 EnvironmentRecipes.yaml
 
-  Каталог рецептов: исполняемая моторика host, привязка expression_pattern_id (Expression channel).
+  Каталог рецептов: моторика host по adaptive_action_id (G_AD из AdaptiveActions.dat).
 
-  Корневой ключ recipes: — массив рецептов. Запуск — Genetic L3 + IHostMotorDispatcher.
+  Корневой ключ schema: environment-recipes/3.2 и recipes: — массив рецептов.
+  Dispatch — rising edge ActiveAdaptiveActions на OnPulseCompleted.
 
   Минимальный каркас:
 
+    schema: environment-recipes/3.2
     recipes: []
 
   Пример (demo):
 
+    schema: environment-recipes/3.2
     recipes:
       - id: doc_props_on_save
         display_name: Демо рецепт
-        expression_pattern_id: 201
+        adaptive_action_id: 1
         reactive_eligible: true
-        recommended_trigger_keys: [demo.on_save]
         steps:
           - type: invoke
             handler: demo_log
             message: ok
 
-  Удалено (contract 3.0): adaptive_action_id, recommended_trigger_influence_ids.
+  Запрещено (contract 3.2): expression_pattern_id, recommended_trigger_keys,
+  genetic_reflex_id, influence_action_id, EnvironmentTriggers.yaml.
 
-EnvironmentTriggers.yaml
-
-  Каталог триггеров: mechanical path (homeostasis_deltas) + expr:env.* (reflex_trigger_expression_pattern_id).
-
-  Корневой ключ triggers: — массив. На триггер — одно поле event и опциональные параметры.
-
-  Минимальный каркас:
-
-    triggers: []
-
-  Пример (demo):
-
-    triggers:
-      - id: demo.on_save
-        display_name: После сохранения
-        event: document_saved
-        homeostasis_deltas:
-          - parameter_id: 3
-            delta: 1.0
-        reflex_trigger_expression_pattern_id: 101
-
-  Удалено (contract 3.0): influence_action_id.
-
-  command_before — только Command buffer host; mechanical deltas — на отдельных event (например document_saved).
+Mechanical path и Command-пуск — не в этом YAML:
+  - EnvironmentPressureRules.dat (ProbeKey, homeostasis_deltas)
+  - GeneticReflexes.dat (command_pattern_ids)
 
 Формат
 ------
 
-SymbiontEnv.Contract (EnvironmentYamlCodec), contractVersion 3.0 в manifest.json.
-Норма полей — docs/AdapterContract.md, docs/AdapterAuthorGuide.md (v1.0).
-Архитектура — SymbiontArchitecture_OperatorEnvironment_Spec.md v2.2 (Velum docs).
+SymbiontEnv.Contract (EnvironmentYamlCodec), contractVersion 3.2 в manifest.json.
+Норма полей — docs/AdapterContract.md, docs/AdapterAuthorGuide.md (v2.0).
 
 Шаги invoke: handler + flat-ключи argsSchema (строковый args не поддерживается).
+Маски шаблона значения — schema\recipe-template-catalog.json (справочник в UI студии).
 
-«Проверить»: разбор YAML; legacy ключи adaptive_action_id / influence_action_id — Error.
+«Проверить»: разбор YAML; отсутствие schema: environment-recipes/3.2 или legacy ключи — Error.
+Наличие EnvironmentTriggers.yaml в пакете — Error.

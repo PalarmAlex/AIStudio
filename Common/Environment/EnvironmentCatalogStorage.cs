@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using System.Linq;
 using ISIDA.SymbiontEnv.Contract;
 
 namespace AIStudio.Common.SymbiontEnv
@@ -38,36 +37,6 @@ namespace AIStudio.Common.SymbiontEnv
     {
       EnsureCatalog();
       EnvironmentYamlCodec.WriteRecipes(EnvironmentPaths.RecipesFilePath, recipes);
-    }
-
-    /// <summary>Загружает триггеры.</summary>
-    public static List<EnvironmentTriggerData> LoadTriggers(IList<string> errors)
-    {
-      EnsureCatalog();
-      return EnvironmentYamlCodec.ReadTriggers(EnvironmentPaths.TriggersFilePath, errors);
-    }
-
-    /// <summary>Сохраняет триггеры.</summary>
-    public static void SaveTriggers(IReadOnlyList<EnvironmentTriggerData> triggers)
-    {
-      EnsureCatalog();
-      EnvironmentYamlCodec.WriteTriggers(EnvironmentPaths.TriggersFilePath, triggers);
-    }
-
-    /// <summary>
-    /// Возвращает множество Command pattern id, указанных в триггерах YAML (справочная связь с genetic reflex).
-    /// </summary>
-    public static HashSet<int> GetReferencedCommandPatternIds()
-    {
-      var errors = new List<string>();
-      List<EnvironmentTriggerData> triggers = LoadTriggers(errors);
-      var ids = new HashSet<int>();
-      foreach (EnvironmentTriggerData trigger in triggers)
-      {
-        if (trigger != null && trigger.ReflexTriggerCommandPatternId > 0)
-          ids.Add(trigger.ReflexTriggerCommandPatternId);
-      }
-      return ids;
     }
   }
 }

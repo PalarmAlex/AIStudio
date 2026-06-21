@@ -64,14 +64,6 @@ namespace AIStudio.Common.Adapters
     }
 
     /// <summary>
-    /// <c>BootData\Environment\EnvironmentTriggers.yaml</c>.
-    /// </summary>
-    public static string GetBootDataTriggersPath(AdapterManifest manifest)
-    {
-      return AdapterPackageLayout.GetBootDataTriggersPath(manifest);
-    }
-
-    /// <summary>
     /// Каталог <c>runtime\</c> пакета.
     /// </summary>
     public static string GetRuntimePath(string adapterDirectory)

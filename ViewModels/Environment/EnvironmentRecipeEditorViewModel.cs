@@ -30,8 +30,6 @@ namespace AIStudio.ViewModels.SymbiontEnv
     private int _currentAgentStage;
     private string _adaptiveActionDisplay;
     private string _adaptiveActionDescription;
-    private string _recommendedTriggerDisplay;
-    private string _recommendedTriggerDescription;
     private string _recipeIdDescription;
     private RecipeEditorTab _selectedTab = RecipeEditorTab.General;
     private EnvironmentRecipeStepRow _selectedStep;
@@ -62,7 +60,6 @@ namespace AIStudio.ViewModels.SymbiontEnv
       RefreshRecipeIdOptions();
       UpdateRecipeIdDescription();
       UpdateAdaptiveActionDisplay();
-      UpdateRecommendedTriggerDisplay();
       EnvironmentRecipeStepSchemaHelper.InitializeAllSteps(Model.Steps, _schema);
       SelectedStep = Model.Steps.FirstOrDefault();
     }
@@ -158,18 +155,6 @@ namespace AIStudio.ViewModels.SymbiontEnv
       private set { _adaptiveActionDescription = value; OnPropertyChanged(); }
     }
 
-    public string RecommendedTriggerDisplay
-    {
-      get => _recommendedTriggerDisplay;
-      private set { _recommendedTriggerDisplay = value; OnPropertyChanged(); }
-    }
-
-    public string RecommendedTriggerDescription
-    {
-      get => _recommendedTriggerDescription;
-      private set { _recommendedTriggerDescription = value; OnPropertyChanged(); }
-    }
-
     public void PickRecipeId(Window owner)
     {
       if (!IsEditingEnabled)
@@ -177,30 +162,6 @@ namespace AIStudio.ViewModels.SymbiontEnv
       var dialog = new RecipeIdSelectionDialog(Model.Id, RecipeIdOptions) { Owner = owner };
       if (dialog.ShowDialog() == true && !string.IsNullOrWhiteSpace(dialog.SelectedRecipeId))
         RecipeId = dialog.SelectedRecipeId;
-    }
-
-    public void PickRecommendedTriggers(Window owner)
-    {
-      if (!IsEditingEnabled)
-        return;
-      var errors = new List<string>();
-      List<EnvironmentTriggerData> triggers = EnvironmentCatalogStorage.LoadTriggers(errors);
-      var options = triggers
-          .Where(t => t != null && !string.IsNullOrWhiteSpace(t.Id))
-          .Select(t => new TriggerCatalogItem
-          {
-            Id = t.Id,
-            Label = t.DisplayName ?? t.Id,
-            Description = t.EventKind ?? string.Empty
-          })
-          .ToList();
-      string current = Model.RecommendedTriggerKeys?.FirstOrDefault() ?? string.Empty;
-      var dialog = new TriggerIdSelectionDialog(current, options) { Owner = owner };
-      if (dialog.ShowDialog() != true || string.IsNullOrWhiteSpace(dialog.SelectedTriggerId))
-        return;
-      Model.RecommendedTriggerKeys = new List<string> { dialog.SelectedTriggerId };
-      UpdateRecommendedTriggerDisplay();
-      MarkDirty();
     }
 
     public void PickAdaptiveAction(Window owner)
@@ -371,25 +332,6 @@ namespace AIStudio.ViewModels.SymbiontEnv
       var action = AdaptiveActionsSystem.Instance.GetAllAdaptiveActions()?.FirstOrDefault(a => a.Id == Model.AdaptiveActionId);
       AdaptiveActionDescription = action != null
           ? (action.Name ?? string.Empty) + (string.IsNullOrWhiteSpace(action.Description) ? string.Empty : " — " + action.Description)
-          : string.Empty;
-    }
-
-    private void UpdateRecommendedTriggerDisplay()
-    {
-      if (Model.RecommendedTriggerKeys == null || Model.RecommendedTriggerKeys.Count == 0)
-      {
-        RecommendedTriggerDisplay = string.Empty;
-        RecommendedTriggerDescription = string.Empty;
-        return;
-      }
-      string key = Model.RecommendedTriggerKeys[0];
-      RecommendedTriggerDisplay = key;
-      var errors = new List<string>();
-      EnvironmentTriggerData trigger = EnvironmentCatalogStorage.LoadTriggers(errors)
-          .FirstOrDefault(t => string.Equals(t?.Id, key, StringComparison.OrdinalIgnoreCase));
-      RecommendedTriggerDescription = trigger != null
-          ? (trigger.DisplayName ?? string.Empty)
-            + (string.IsNullOrWhiteSpace(trigger.EventKind) ? string.Empty : " — " + trigger.EventKind)
           : string.Empty;
     }
 

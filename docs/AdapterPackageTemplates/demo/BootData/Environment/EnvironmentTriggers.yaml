@@ -1,9 +1,0 @@
-# Триггеры среды: mechanical path + expr:env.* (contract 3.0). Не influence_action_id.
-triggers:
-  - id: demo.on_save
-    display_name: После сохранения
-    event: document_saved
-    homeostasis_deltas:
-      - parameter_id: 3
-        delta: 1.0
-    reflex_trigger_expression_pattern_id: 101
