@@ -29,14 +29,17 @@
       <StackPanel>
         <StackPanel x:Name="GeneralPanel">
           <StackPanel DataContext="{Binding Model}" IsEnabled="{Binding DataContext.IsEditingEnabled, RelativeSource={RelativeSource AncestorType=UserControl}}">
-            <TextBlock Text="ID" FontWeight="SemiBold"/>
+            <TextBlock Text="ID" FontWeight="SemiBold"
+                       ToolTip="Внутреннее имя рецепта. У каждого рецепта должно быть своё, без повторов."/>
             <Grid Margin="0,4,0,8">
               <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="280"/>
                 <ColumnDefinition Width="Auto"/>
                 <ColumnDefinition Width="*"/>
               </Grid.ColumnDefinitions>
-              <TextBox Grid.Column="0" Text="{Binding DataContext.RecipeId, RelativeSource={RelativeSource AncestorType=UserControl}, UpdateSourceTrigger=PropertyChanged}"/>
+              <TextBox Grid.Column="0"
+                       Text="{Binding DataContext.RecipeId, RelativeSource={RelativeSource AncestorType=UserControl}, UpdateSourceTrigger=PropertyChanged}"
+                       ToolTip="Внутреннее имя рецепта. У каждого рецепта должно быть своё, без повторов."/>
               <Button Grid.Column="1" Content="Выбрать…" Margin="8,0,8,0" Padding="10,4" Click="PickRecipeId_Click"/>
               <TextBlock Grid.Column="2" Text="{Binding DataContext.RecipeIdDescription, RelativeSource={RelativeSource AncestorType=UserControl}}" VerticalAlignment="Center" TextWrapping="Wrap" Foreground="#FF555555"/>
             </Grid>
@@ -44,18 +47,27 @@
             <TextBox Text="{Binding DisplayName, UpdateSourceTrigger=PropertyChanged}" Margin="0,4,0,8" TextChanged="ModelField_TextChanged"/>
             <TextBlock Text="Описание" FontWeight="SemiBold"/>
             <TextBox Text="{Binding Description, UpdateSourceTrigger=PropertyChanged}" AcceptsReturn="True" Height="48" Margin="0,4,0,8" TextChanged="ModelField_TextChanged"/>
-            <TextBlock Text="Моторное действие (G_AD)" FontWeight="SemiBold"/>
+            <TextBlock Text="Моторное действие (G_AD)" FontWeight="SemiBold"
+                       ToolTip="Действие симбионта, которое запускает этот рецепт.&#x0a;Когда симбион его выполняет, среда делает шаги рецепта."/>
             <Grid Margin="0,4,0,8">
               <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="120"/>
                 <ColumnDefinition Width="Auto"/>
                 <ColumnDefinition Width="*"/>
               </Grid.ColumnDefinitions>
-              <TextBox Grid.Column="0" Text="{Binding DataContext.AdaptiveActionDisplay, RelativeSource={RelativeSource AncestorType=UserControl}, Mode=OneWay}" IsReadOnly="True"/>
+              <TextBox Grid.Column="0"
+                       Text="{Binding DataContext.AdaptiveActionDisplay, RelativeSource={RelativeSource AncestorType=UserControl}, Mode=OneWay}"
+                       IsReadOnly="True"
+                       ToolTip="Действие симбионта, которое запускает этот рецепт.&#x0a;Когда симбион его выполняет, среда делает шаги рецепта."/>
               <Button Grid.Column="1" Content="Выбрать…" Margin="8,0,8,0" Padding="10,4" Click="PickAdaptiveAction_Click"/>
               <TextBlock Grid.Column="2" Text="{Binding DataContext.AdaptiveActionDescription, RelativeSource={RelativeSource AncestorType=UserControl}}" VerticalAlignment="Center" TextWrapping="Wrap" Foreground="#FF555555"/>
             </Grid>
-            <CheckBox Content="reactive_eligible" IsChecked="{Binding ReactiveEligible}" Margin="0,0,0,8" Checked="ModelField_Changed" Unchecked="ModelField_Changed"/>
+            <CheckBox Content="Реактивное исполнение"
+                      IsChecked="{Binding ReactiveEligible}"
+                      Margin="0,0,0,8"
+                      Checked="ModelField_Changed"
+                      Unchecked="ModelField_Changed"
+                      ToolTip="Если включено — рецепт выполняется сам, когда симбион делает выбранное действие.&#x0a;Если выключено — рецепт только хранится, автоматически не запускается."/>
           </StackPanel>
         </StackPanel>
 

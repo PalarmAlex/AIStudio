@@ -60,6 +60,7 @@ Source: "{#DocsDir}\Data\Sensors\*"; DestDir: "{commonappdata}\ISIDA\Data\Sensor
 Source: "{#DocsDir}\Data\Psychic\*"; DestDir: "{commonappdata}\ISIDA\Data\Psychic"; Flags: recursesubdirs createallsubdirs onlyifdoesntexist uninsneveruninstall
 Source: "{#DocsDir}\Scenarios\*"; DestDir: "{commonappdata}\ISIDA\Scenarios"; Flags: recursesubdirs createallsubdirs onlyifdoesntexist uninsneveruninstall
 Source: "{#DocsDir}\BootData\*"; DestDir: "{commonappdata}\ISIDA\BootData"; Flags: recursesubdirs createallsubdirs onlyifdoesntexist uninsneveruninstall
+Source: "{#DocsDir}\Adapters\*"; DestDir: "{commonappdata}\ISIDA\Adapters"; Flags: recursesubdirs createallsubdirs onlyifdoesntexist uninsneveruninstall
 
 ; Каркасы пакетов адаптеров («Создать пакет…» читает %ProgramData%\ISIDA\AdapterPackageTemplates\demo\)
 ; Исходник: docs\AdapterPackageTemplates\ (manifest, schema 2.0, BootData, README; runtime\ — только README до установки SDK)

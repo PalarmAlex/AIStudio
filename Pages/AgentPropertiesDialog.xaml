@@ -13,7 +13,6 @@
       <RowDefinition Height="Auto"/>
       <RowDefinition Height="Auto"/>
       <RowDefinition Height="Auto"/>
-      <RowDefinition Height="*"/>
       <RowDefinition Height="Auto"/>
     </Grid.RowDefinitions>
     <Grid.ColumnDefinitions>
@@ -23,7 +22,7 @@
     </Grid.ColumnDefinitions>
 
     <Grid x:Name="ClearingOverlay"
-          Grid.RowSpan="11"
+          Grid.RowSpan="10"
           Background="#80FFFFFF"
           Visibility="Collapsed"
           Panel.ZIndex="1000">
@@ -215,7 +214,7 @@
     </Grid>
 
     <!-- Кнопки и предупреждение -->
-    <Grid Grid.Row="9" Grid.ColumnSpan="3" Margin="0,12,0,0">
+    <Grid Grid.Row="9" Grid.ColumnSpan="3" Margin="0,12,0,0" VerticalAlignment="Top">
       <!-- Предупреждение в первой колонке -->
       <TextBlock x:Name="StageWarningText"
                Grid.Column="0"
@@ -230,9 +229,9 @@
       <StackPanel Grid.Column="2" 
                 HorizontalAlignment="Right"
                 Orientation="Horizontal">
-        <Button x:Name="ButtonCreatePrompt" Content="Создать промпт для ИИ" Margin="0,0,10,0" Padding="12,6" Click="ButtonCreatePrompt_Click"/>
-        <Button x:Name="ButtonSave" Content="Сохранить" Margin="0,0,10,0" Padding="12,6" IsDefault="True" Click="ButtonSave_Click"/>
-        <Button x:Name="ButtonClose" Content="Закрыть" Padding="12,6" IsCancel="True" Click="ButtonClose_Click"/>
+        <Button x:Name="ButtonCreatePrompt" Content="Создать промпт для ИИ" Margin="0,0,10,0" Padding="12,0" Height="28" VerticalAlignment="Top" Click="ButtonCreatePrompt_Click"/>
+        <Button x:Name="ButtonSave" Content="Сохранить" Margin="0,0,10,0" Padding="12,0" Height="28" VerticalAlignment="Top" IsDefault="True" Click="ButtonSave_Click"/>
+        <Button x:Name="ButtonClose" Content="Закрыть" Padding="12,0" Height="28" VerticalAlignment="Top" IsCancel="True" Click="ButtonClose_Click"/>
       </StackPanel>
     </Grid>
   </Grid>

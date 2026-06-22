@@ -18,18 +18,18 @@ EnvironmentRecipes.yaml
     schema: environment-recipes/3.2
     recipes: []
 
-  Пример (demo):
+  Пример (sldworks_19 / Velum):
 
     schema: environment-recipes/3.2
     recipes:
-      - id: doc_props_on_save
-        display_name: Демо рецепт
-        adaptive_action_id: 1
+      - id: kb_name_on_save
+        display_name: Наименование по КБ после Save
+        adaptive_action_id: 37
         reactive_eligible: true
         steps:
           - type: invoke
-            handler: demo_log
-            message: ok
+            handler: save_file_name
+            template: '$PRP:"SW-Folder Name"-{DISCIPLINE}-{SEQ:4}'
 
   Запрещено (contract 3.2): expression_pattern_id, recommended_trigger_keys,
   genetic_reflex_id, influence_action_id, EnvironmentTriggers.yaml.
@@ -42,7 +42,7 @@ Mechanical path и Command-пуск — не в этом YAML:
 ------
 
 SymbiontEnv.Contract (EnvironmentYamlCodec), contractVersion 3.2 в manifest.json.
-Норма полей — docs/AdapterContract.md, docs/AdapterAuthorGuide.md (v2.0).
+Норма полей — AdapterContract.md в корне пакета.
 
 Шаги invoke: handler + flat-ключи argsSchema (строковый args не поддерживается).
 Маски шаблона значения — schema\recipe-template-catalog.json (справочник в UI студии).

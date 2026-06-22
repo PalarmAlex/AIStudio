@@ -18,7 +18,7 @@ namespace AIStudio.Dialogs
       InitializeComponent();
       Title = title ?? "Выбор значения";
       PromptText.Text = prompt ?? string.Empty;
-      SelectedValue = initiallySelected ?? string.Empty;
+      string preselect = initiallySelected ?? string.Empty;
 
       var list = (items ?? Enumerable.Empty<RecipeStepCatalogPickItem>())
           .Where(i => i != null && !string.IsNullOrWhiteSpace(i.Value))
@@ -28,10 +28,10 @@ namespace AIStudio.Dialogs
           .ToList();
       ValuesList.ItemsSource = list;
 
-      if (!string.IsNullOrWhiteSpace(SelectedValue))
+      if (!string.IsNullOrWhiteSpace(preselect))
       {
         RecipeStepCatalogPickItem match = list.FirstOrDefault(
-            i => string.Equals(i.Value, SelectedValue, System.StringComparison.OrdinalIgnoreCase));
+            i => string.Equals(i.Value, preselect, System.StringComparison.OrdinalIgnoreCase));
         if (match != null)
           ValuesList.SelectedItem = match;
       }
@@ -51,8 +51,14 @@ namespace AIStudio.Dialogs
     private void OkButton_Click(object sender, RoutedEventArgs e)
     {
       if (ValuesList.SelectedItem is RecipeStepCatalogPickItem item)
+      {
         SelectedValue = item.Value;
-      DialogResult = true;
+        DialogResult = true;
+        Close();
+        return;
+      }
+
+      DialogResult = false;
       Close();
     }
 
@@ -70,7 +76,7 @@ namespace AIStudio.Dialogs
         Close();
         e.Handled = true;
       }
-      else if (e.Key == Key.Enter)
+      else if (e.Key == Key.Enter && ValuesList.SelectedItem != null)
       {
         OkButton_Click(sender, e);
         e.Handled = true;
