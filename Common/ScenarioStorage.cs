@@ -186,6 +186,9 @@ namespace AIStudio.Common
         if (p.Length > 8 && int.TryParse(p[8].Trim(), NumberStyles.Integer, CultureInfo.InvariantCulture, out int vc)
             && AgentVisualColor.IsValidCode(vc))
           visualColor = vc;
+        var environmentProbes = p.Length > 9
+            ? ScenarioEnvironmentProbeFormat.Parse(p[9])
+            : new List<ScenarioEnvironmentProbeEntry>();
         return new ScenarioLineRow
         {
           StepIndex = step,
@@ -195,6 +198,7 @@ namespace AIStudio.Common
           MoodId = mood,
           VisualColorId = visualColor,
           ActionIds = actions,
+          EnvironmentProbes = environmentProbes,
           Phrase = phrase,
           ResetWaitingPeriod = rw != 0
         };
@@ -231,6 +235,8 @@ namespace AIStudio.Common
         sk.SkipAutomatizmUsefulness = Skip(13);
       if (p.Length >= 15)
         sk.SkipBackgroundCycles = Skip(14);
+      if (p.Length >= 16)
+        sk.SkipEnvironmentProbes = Skip(15);
     }
 
     /// <summary>Делит строку ожиданий по «|», не экранированным обратным слэшем (поля могут содержать \| после записи Escape).</summary>
@@ -290,7 +296,8 @@ namespace AIStudio.Common
         AutomatizmChainText = Unescape(p[13]),
         MainCycleText = Unescape(p[14]),
         AutomatizmUsefulnessText = p.Count >= 16 ? Unescape(p[15]) : "-",
-        BackgroundCyclesText = p.Count >= 17 ? Unescape(p[16]) : "-"
+        BackgroundCyclesText = p.Count >= 17 ? Unescape(p[16]) : "-",
+        EnvironmentProbesText = p.Count >= 18 ? Unescape(p[17]) : "-"
       });
     }
 
@@ -340,8 +347,8 @@ namespace AIStudio.Common
         "# Строки сценария оператора",
         $"{LinesFormatHeader}{ScenarioDocument.LinesFileFormatVersion}",
         $"# SCENARIO_META|{Escape(doc.Header.Title ?? "")}|{Escape(doc.Header.Description ?? "")}|{Escape(doc.Header.InitialHomeostasisValues ?? "")}|{doc.Header.PreRunTargetStage.ToString(CultureInfo.InvariantCulture)}|{(doc.Header.PreRunClearAgentData ? "1" : "0")}|{(doc.Header.ScenarioObservationMode ? "1" : "0")}|{(doc.Header.ScenarioAuthoritativeRecording ? "1" : "0")}|{(doc.Header.PreRunNormalHomeostasisState ? "1" : "0")}|{doc.Header.PulseStepIncrement.ToString(CultureInfo.InvariantCulture)}|{doc.Header.RunPulseTimingCoefficient.ToString(CultureInfo.InvariantCulture)}|{(doc.Header.ReportHideEmptyComparisonColumns ? "1" : "0")}|{(doc.Header.ReportHideExpectedWhenNoMismatch ? "1" : "0")}",
-        "# Step|Pulse|Kind(P|W)|ToneId|MoodId|ActionIds|Phrase|ResetWait|VisualColorId",
-        "# Kind=W — только клик по плашке ожидания; P — воздействия с пульта. Пульс — по шагам и режиму приращения из метаданных (см. настройки проекта). VisualColorId — код зрительного канала (0…8), см. AgentVisualColor."
+        "# Step|Pulse|Kind(P|W)|ToneId|MoodId|ActionIds|Phrase|ResetWait|VisualColorId|EnvProbeSpecs",
+        "# Kind=W — только клик по плашке ожидания; P — воздействия с пульта. Пульс — по шагам и режиму приращения из метаданных (см. настройки проекта). VisualColorId — код зрительного канала (0…8), см. AgentVisualColor. EnvProbeSpecs — воздействия среды: +id (давление), -id (отпускание), через запятую."
       };
       foreach (var row in doc.Lines.OrderBy(r => r.StepIndex))
       {
@@ -350,6 +357,7 @@ namespace AIStudio.Common
             ? ""
             : string.Join(",", row.ActionIds.Select(i => i.ToString(CultureInfo.InvariantCulture)));
         int visualSave = AgentVisualColor.IsValidCode(row.VisualColorId) ? row.VisualColorId : AgentVisualColor.White;
+        var envSpecs = ScenarioEnvironmentProbeFormat.Serialize(row.EnvironmentProbes);
         lines.Add(string.Join("|",
             row.StepIndex.ToString(CultureInfo.InvariantCulture),
             row.PulseWithinScenario.ToString(CultureInfo.InvariantCulture),
@@ -359,7 +367,8 @@ namespace AIStudio.Common
             ids,
             Escape(row.Phrase ?? ""),
             row.ResetWaitingPeriod ? "1" : "0",
-            visualSave.ToString(CultureInfo.InvariantCulture)));
+            visualSave.ToString(CultureInfo.InvariantCulture),
+            envSpecs));
       }
       var skc = doc.LogExpectationColumnSkips ?? new ScenarioLogExpectationColumnSkips();
       lines.Add("# SCENARIO_LOG_EXPECTATIONS|1");
@@ -378,8 +387,9 @@ namespace AIStudio.Common
           skc.SkipDanger ? "1" : "0",
           skc.SkipVeryActual ? "1" : "0",
           skc.SkipAutomatizmUsefulness ? "1" : "0",
-          skc.SkipBackgroundCycles ? "1" : "0"));
-      lines.Add("# Step|Pulse|State|Style|Theme|Trigger|OrUm|Opasno|Actualno|GenRef|CondRef|Aut|RefChain|AutChain|Cycle|Use|CycleF");
+          skc.SkipBackgroundCycles ? "1" : "0",
+          skc.SkipEnvironmentProbes ? "1" : "0"));
+      lines.Add("# Step|Pulse|State|Style|Theme|Trigger|OrUm|Opasno|Actualno|GenRef|CondRef|Aut|RefChain|AutChain|Cycle|Use|CycleF|EnvProbe");
       foreach (var exp in (doc.LogExpectations ?? new List<ScenarioLogExpectationRow>()).OrderBy(e => e.StepIndex))
       {
         lines.Add(string.Join("|",
@@ -399,7 +409,8 @@ namespace AIStudio.Common
             Escape(exp.AutomatizmChainText ?? ""),
             Escape(exp.MainCycleText ?? ""),
             Escape(exp.AutomatizmUsefulnessText ?? ""),
-            Escape(exp.BackgroundCyclesText ?? "")));
+            Escape(exp.BackgroundCyclesText ?? ""),
+            Escape(exp.EnvironmentProbesText ?? "")));
       }
       var path = ScenarioPaths.LinesPath(doc.Header.Id);
       return FileValidator.SafeSaveFile(

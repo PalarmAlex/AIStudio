@@ -312,7 +312,7 @@
                                   IsReadOnly="True">
                 <DataGridTextColumn.HeaderStyle>
                   <Style TargetType="DataGridColumnHeader">
-                    <Setter Property="ToolTip" Value="Двойной щелчок — выбор воздействий из справочника"/>
+                    <Setter Property="ToolTip" Value="Двойной щелчок — выбор воздействий с пульта (без метрик среды)"/>
                     <Setter Property="FontSize" Value="12"/>
                     <Setter Property="FontWeight" Value="SemiBold"/>
                   </Style>
@@ -321,6 +321,24 @@
                   <Style TargetType="TextBlock">
                     <Setter Property="TextTrimming" Value="CharacterEllipsis"/>
                     <Setter Property="ToolTip" Value="{Binding ActionNamesDisplay}"/>
+                  </Style>
+                </DataGridTextColumn.ElementStyle>
+              </DataGridTextColumn>
+              <DataGridTextColumn Header="Воздействие от среды"
+                                  Binding="{Binding EnvironmentProbesDisplay}"
+                                  Width="2*"
+                                  IsReadOnly="True">
+                <DataGridTextColumn.HeaderStyle>
+                  <Style TargetType="DataGridColumnHeader">
+                    <Setter Property="ToolTip" Value="Двойной щелчок — выбор воздействий метрик среды: + давление, − отпускание"/>
+                    <Setter Property="FontSize" Value="12"/>
+                    <Setter Property="FontWeight" Value="SemiBold"/>
+                  </Style>
+                </DataGridTextColumn.HeaderStyle>
+                <DataGridTextColumn.ElementStyle>
+                  <Style TargetType="TextBlock">
+                    <Setter Property="TextTrimming" Value="CharacterEllipsis"/>
+                    <Setter Property="ToolTip" Value="{Binding EnvironmentProbesDisplay}"/>
                   </Style>
                 </DataGridTextColumn.ElementStyle>
               </DataGridTextColumn>

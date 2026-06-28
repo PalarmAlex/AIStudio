@@ -3,6 +3,7 @@ using AIStudio.Common.SymbiontEnv;
 using ISIDA.Actions;
 using ISIDA.Gomeostas;
 using ISIDA.Reflexes;
+using ISIDA.Scenarios;
 using ISIDA.Sensors;
 using System;
 using System.Collections.Generic;
@@ -18,7 +19,6 @@ using System.Windows.Media;
 using System.Windows.Threading;
 using ISIDA.Psychic.Automatism;
 using ISIDA.Common;
-using ISIDA.Scenarios;
 
 namespace AIStudio.ViewModels
 {
@@ -34,11 +34,12 @@ namespace AIStudio.ViewModels
     private readonly SensorySystem _sensorySystem;
     private readonly InfluenceActionSystem _influenceActionSystem;
     private readonly ReflexesActivator _reflexesActivator;
+    private readonly VirtualProbePressureApplier _virtualProbePressureApplier;
     private AntagonistManager _antagonistManager;
     private DispatcherTimer _chainStatusTimer;
     private ObservableCollection<InfluenceActionItem> _influenceActions;
     private ObservableCollection<InfluenceActionItem> _operatorActions;
-    private ObservableCollection<InfluenceActionItem> _environmentActions;
+    private ObservableCollection<EnvironmentProbeActionItem> _environmentActions;
     private bool _isAgentDead;
     private bool _authoritativeMode;
     private string _messageText;
@@ -408,9 +409,10 @@ namespace AIStudio.ViewModels
       _sensorySystem = SensorySystem.Instance;
       _influenceActionSystem = InfluenceActionSystem.Instance;
       _reflexesActivator = ReflexesActivator.Instance;
+      _virtualProbePressureApplier = new VirtualProbePressureApplier(_gomeostas, _influenceActionSystem);
       _influenceActions = new ObservableCollection<InfluenceActionItem>();
       _operatorActions = new ObservableCollection<InfluenceActionItem>();
-      _environmentActions = new ObservableCollection<InfluenceActionItem>();
+      _environmentActions = new ObservableCollection<EnvironmentProbeActionItem>();
       _recognitionDisplayText = "";
       MessageText = "";
       LoadInfluenceActions();
@@ -683,7 +685,7 @@ namespace AIStudio.ViewModels
       }
     }
 
-    public ObservableCollection<InfluenceActionItem> EnvironmentActions
+    public ObservableCollection<EnvironmentProbeActionItem> EnvironmentActions
     {
       get => _environmentActions;
       set
@@ -698,18 +700,20 @@ namespace AIStudio.ViewModels
       _antagonistManager?.Dispose();
       _influenceActions.Clear();
       var operatorActions = new ObservableCollection<InfluenceActionItem>();
-      var environmentActions = new ObservableCollection<InfluenceActionItem>();
+      var environmentActions = new ObservableCollection<EnvironmentProbeActionItem>();
       try
       {
         var allActions = _influenceActionSystem.GetAllInfluenceActions().ToList();
         var operatorSource = allActions
-            .Where(a => !InfluenceActionIdPolicy.IsDeprecatedEnvironmentProxyRange(a.Id))
+            .Where(a => !a.IsEnvironmentProbeAction &&
+                        !InfluenceActionIdPolicy.IsDeprecatedEnvironmentProxyRange(a.Id))
             .ToList();
         var environmentSource = allActions
-            .Where(a => InfluenceActionIdPolicy.IsDeprecatedEnvironmentProxyRange(a.Id))
+            .Where(a => a.IsEnvironmentProbeAction ||
+                        InfluenceActionIdPolicy.IsDeprecatedEnvironmentProxyRange(a.Id))
             .ToList();
         AddInfluenceActionItems(operatorSource, operatorActions);
-        AddInfluenceActionItems(environmentSource, environmentActions);
+        AddEnvironmentProbeItems(environmentSource, environmentActions);
         _antagonistManager = new AntagonistManager(_influenceActions.Cast<AntagonistItem>().ToList());
         OperatorActions = operatorActions;
         EnvironmentActions = environmentActions;
@@ -739,6 +743,63 @@ namespace AIStudio.ViewModels
       }
     }
 
+    private void AddEnvironmentProbeItems(
+        IList<InfluenceActionSystem.GomeostasisInfluenceAction> actions,
+        ObservableCollection<EnvironmentProbeActionItem> targetColumn)
+    {
+      foreach (var action in actions)
+      {
+        targetColumn.Add(new EnvironmentProbeActionItem
+        {
+          Id = action.Id,
+          Name = action.Name,
+          Description = action.Description,
+          IsPressure = false,
+          IsRelease = false
+        });
+      }
+    }
+
+    private void CollectEnvironmentProbeSelection(
+        out List<int> pressureActionIds,
+        out List<int> releaseActionIds)
+    {
+      pressureActionIds = new List<int>();
+      releaseActionIds = new List<int>();
+      if (_environmentActions == null)
+        return;
+      foreach (var item in _environmentActions)
+      {
+        if (item.IsPressure)
+          pressureActionIds.Add(item.Id);
+        else if (item.IsRelease)
+          releaseActionIds.Add(item.Id);
+      }
+    }
+
+    private static void CollectScenarioEnvironmentProbes(
+        IReadOnlyList<ScenarioEnvironmentProbeEntry> environmentProbes,
+        ICollection<int> legacyPressureIds,
+        out List<int> pressureActionIds,
+        out List<int> releaseActionIds)
+    {
+      pressureActionIds = legacyPressureIds?.ToList() ?? new List<int>();
+      releaseActionIds = new List<int>();
+      if (environmentProbes == null)
+        return;
+      foreach (var ep in environmentProbes)
+      {
+        if (ep.ActionId <= 0)
+          continue;
+        if (ep.IsPressure)
+          pressureActionIds.Add(ep.ActionId);
+        else
+          releaseActionIds.Add(ep.ActionId);
+      }
+      pressureActionIds = pressureActionIds.Distinct().ToList();
+      releaseActionIds = releaseActionIds.Distinct().ToList();
+    }
+
     public List<int> GetSelectedInfluenceActions()
     {
       return _influenceActions
@@ -748,10 +809,37 @@ namespace AIStudio.ViewModels
     }
 
     /// <summary>
+    /// Делит выбранные EA: ProbeKey — только давление на параметры (как фаза A Velum),
+    /// остальные — операторский стимул с пульта.
+    /// </summary>
+    private void SplitSelectedActions(
+        IReadOnlyList<int> selectedActionIds,
+        out List<int> operatorStimulusIds,
+        out List<int> probePressureIds)
+    {
+      operatorStimulusIds = new List<int>();
+      probePressureIds = new List<int>();
+      if (selectedActionIds == null || selectedActionIds.Count == 0)
+        return;
+
+      var byId = _influenceActionSystem.GetAllInfluenceActions().ToDictionary(a => a.Id);
+      foreach (int id in selectedActionIds.Where(i => i > 0).Distinct())
+      {
+        if (!byId.TryGetValue(id, out InfluenceActionSystem.GomeostasisInfluenceAction action))
+          continue;
+        if (action.IsEnvironmentProbeAction)
+          probePressureIds.Add(id);
+        else
+          operatorStimulusIds.Add(id);
+      }
+    }
+
+    /// <summary>
     /// Применяет воздействия с пульта для сценария без диалогов (ошибка — строка, успех — null).
     /// </summary>
     public string TryApplyScenarioStimulus(
         IReadOnlyList<int> actionIds,
+        IReadOnlyList<ScenarioEnvironmentProbeEntry> environmentProbes,
         string phraseText,
         int toneId,
         int moodId,
@@ -762,8 +850,18 @@ namespace AIStudio.ViewModels
       if (!GlobalTimer.IsPulsationRunning)
         return "Пульсация выключена";
       var ids = actionIds == null ? new List<int>() : actionIds.Where(id => id > 0).Distinct().ToList();
+      SplitSelectedActions(ids, out List<int> operatorStimulusIds, out List<int> legacyProbePressureIds);
+      CollectScenarioEnvironmentProbes(
+          environmentProbes,
+          legacyProbePressureIds,
+          out List<int> probePressureIds,
+          out List<int> probeReleaseIds);
       int colorForStep = AgentVisualColor.IsValidCode(visualColorId) ? visualColorId : AgentVisualColor.White;
-      if (ids.Count == 0 && string.IsNullOrWhiteSpace(phraseText) && colorForStep == AgentVisualColor.White)
+      bool hasOperatorStimulus = operatorStimulusIds.Count > 0
+          || !string.IsNullOrWhiteSpace(phraseText)
+          || colorForStep != AgentVisualColor.White;
+      bool hasProbeAction = probePressureIds.Count > 0 || probeReleaseIds.Count > 0;
+      if (!hasOperatorStimulus && !hasProbeAction)
         return "Пустой шаг сценария";
       int prevTone = SelectedToneId;
       int prevMood = SelectedMoodId;
@@ -778,21 +876,28 @@ namespace AIStudio.ViewModels
               phraseText,
               authoritativeWrite: true);
         }
-        var (success, errorMessage) = _influenceActionSystem.ApplyMultipleInfluenceActions(
-            ids,
-            phraseIds,
-            commandPatternIdList: null,
-            authoritativeMode: AuthoritativeMode,
-            toneId: SelectedToneId,
-            moodId: SelectedMoodId,
-            visualColorId: colorForStep);
-        if (!success)
+        if (hasOperatorStimulus)
         {
-          if (errorMessage != null && errorMessage.Contains("Симбионт мертв"))
-            IsAgentDead = true;
-          return errorMessage ?? "Ошибка применения воздействий";
+          var (success, errorMessage) = _influenceActionSystem.ApplyMultipleInfluenceActions(
+              operatorStimulusIds,
+              phraseIds,
+              commandPatternIdList: null,
+              authoritativeMode: AuthoritativeMode,
+              toneId: SelectedToneId,
+              moodId: SelectedMoodId,
+              visualColorId: colorForStep);
+          if (!success)
+          {
+            if (errorMessage != null && errorMessage.Contains("Симбионт мертв"))
+              IsAgentDead = true;
+            return errorMessage ?? "Ошибка применения воздействий";
+          }
         }
-        if (AppGlobalState.IsAutomatizmChainActive && AutomatismExecutionService.IsInitialized)
+
+        if (hasProbeAction)
+          _virtualProbePressureApplier.ApplyExplicit(probePressureIds, probeReleaseIds);
+
+        if (hasOperatorStimulus && AppGlobalState.IsAutomatizmChainActive && AutomatismExecutionService.IsInitialized)
           AutomatismExecutionService.Instance.ApplyStimulusEffectAndAdvanceChain();
         UpdateAgentState();
         return null;
@@ -829,7 +934,10 @@ namespace AIStudio.ViewModels
         return;
       }
       var selectedActions = GetSelectedInfluenceActions();
-      if (selectedActions.Count == 0 && string.IsNullOrWhiteSpace(MessageText) &&
+      SplitSelectedActions(selectedActions, out List<int> operatorStimulusIds, out _);
+      CollectEnvironmentProbeSelection(out List<int> probePressureIds, out List<int> probeReleaseIds);
+      bool hasProbeAction = probePressureIds.Count > 0 || probeReleaseIds.Count > 0;
+      if (selectedActions.Count == 0 && !hasProbeAction && string.IsNullOrWhiteSpace(MessageText) &&
           string.IsNullOrWhiteSpace(CommandMessageText) &&
           SelectedVisualColorId == AgentVisualColor.White)
       {
@@ -861,40 +969,48 @@ namespace AIStudio.ViewModels
         }
         UpdateRecognitionDisplay();
 
-        // Применяем воздействия, если есть выбранные действия, фраза или команды
-        if (selectedActions.Any() || phraseIds.Any() || commandPatternIds.Any() || SelectedVisualColorId != AgentVisualColor.White)
+        bool hasOperatorStimulus = operatorStimulusIds.Any() || phraseIds.Any() || commandPatternIds.Any()
+            || SelectedVisualColorId != AgentVisualColor.White;
+
+        if (hasOperatorStimulus || hasProbeAction)
         {
-          var (success, errorMessage) = _influenceActionSystem.ApplyMultipleInfluenceActions(
-              selectedActions,
-              phraseIds,
-              commandPatternIdList: commandPatternIds,
-              authoritativeMode: AuthoritativeMode,
-              toneId: SelectedToneId,
-              moodId: SelectedMoodId,
-              visualColorId: SelectedVisualColorId);
-          if (!success)
+          if (hasOperatorStimulus)
           {
-            if (errorMessage.Contains("Симбионт мертв"))
+            var (success, errorMessage) = _influenceActionSystem.ApplyMultipleInfluenceActions(
+                operatorStimulusIds,
+                phraseIds,
+                commandPatternIdList: commandPatternIds,
+                authoritativeMode: AuthoritativeMode,
+                toneId: SelectedToneId,
+                moodId: SelectedMoodId,
+                visualColorId: SelectedVisualColorId);
+            if (!success)
             {
-              IsAgentDead = true;
-              MessageBox.Show("Симбионт умер во время применения воздействий",
-                  "Симбионт мертв",
+              if (errorMessage.Contains("Симбионт мертв"))
+              {
+                IsAgentDead = true;
+                MessageBox.Show("Симбионт умер во время применения воздействий",
+                    "Симбионт мертв",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Warning);
+                return;
+              }
+              MessageBox.Show($"Не удалось применить воздействия: {errorMessage}",
+                  "Ошибка",
                   MessageBoxButton.OK,
-                  MessageBoxImage.Warning);
+                  MessageBoxImage.Error);
               return;
             }
-            MessageBox.Show($"Не удалось применить воздействия: {errorMessage}",
-                "Ошибка",
-                MessageBoxButton.OK,
-                MessageBoxImage.Error);
-            return;
           }
-          // Оценка активного звена цепочки автоматизмов по эффекту стимула (в период ожидания)
-          if (AppGlobalState.IsAutomatizmChainActive && AutomatismExecutionService.IsInitialized)
+
+          if (hasProbeAction)
+            _virtualProbePressureApplier.ApplyExplicit(probePressureIds, probeReleaseIds);
+
+          if (hasOperatorStimulus && AppGlobalState.IsAutomatizmChainActive && AutomatismExecutionService.IsInitialized)
             AutomatismExecutionService.Instance.ApplyStimulusEffectAndAdvanceChain();
-          // Обновляем состояние симбионта после воздействий
           UpdateAgentState();
-          SelectedVisualColorId = AgentVisualColor.White;
+          if (hasOperatorStimulus)
+            SelectedVisualColorId = AgentVisualColor.White;
         }
       }
       catch (Exception ex)

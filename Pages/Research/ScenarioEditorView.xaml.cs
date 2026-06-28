@@ -5,6 +5,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
+using AIStudio.Common;
 using AIStudio.Dialogs;
 using AIStudio.ViewModels.Research;
 using ISIDA.Scenarios;
@@ -65,28 +66,81 @@ namespace AIStudio.Pages.Research
         return;
       if (!(cell.Column is DataGridTextColumn col))
         return;
-      if (col.Header?.ToString() != "Воздействия")
-        return;
       if (!(cell.DataContext is ScenarioLineRow row))
         return;
+
+      var header = col.Header?.ToString();
       var owner = Window.GetWindow(this);
-      var dlg = new ScenarioInfluenceActionsEditor(
-          "Воздействия по шагу",
-          vm.InfluenceActions.GetAllInfluenceActions(),
-          row.ActionIds)
-      { Owner = owner };
-      if (dlg.ShowDialog() != true)
+      var allActions = vm.InfluenceActions.GetAllInfluenceActions().ToList();
+
+      if (header == "Воздействия")
+      {
+        var operatorActions = allActions
+            .Where(a => !a.IsEnvironmentProbeAction
+                        && !InfluenceActionIdPolicy.IsDeprecatedEnvironmentProxyRange(a.Id))
+            .ToList();
+        var dlg = new ScenarioInfluenceActionsEditor(
+            "Воздействия с пульта",
+            operatorActions,
+            row.ActionIds)
+        { Owner = owner };
+        if (dlg.ShowDialog() != true)
+          return;
+        var newIds = dlg.SelectedActionIds != null
+            ? new List<int>(dlg.SelectedActionIds)
+            : new List<int>();
+        bool same = row.ActionIds != null && row.ActionIds.Count == newIds.Count
+            && !row.ActionIds.Except(newIds).Any();
+        if (same)
+          return;
+        row.ActionIds = newIds;
+        row.RefreshActionNames(vm.InfluenceActions);
+        vm.MarkDirty();
         return;
-      var newIds = dlg.SelectedActionIds != null
-          ? new List<int>(dlg.SelectedActionIds)
-          : new List<int>();
-      bool same = row.ActionIds != null && row.ActionIds.Count == newIds.Count
-          && !row.ActionIds.Except(newIds).Any();
-      if (same)
-        return;
-      row.ActionIds = newIds;
-      row.RefreshActionNames(vm.InfluenceActions);
-      vm.MarkDirty();
+      }
+
+      if (header == "Воздействие от среды")
+      {
+        var environmentActions = allActions
+            .Where(a => a.IsEnvironmentProbeAction
+                        || InfluenceActionIdPolicy.IsDeprecatedEnvironmentProxyRange(a.Id))
+            .ToList();
+        var envDlg = new ScenarioEnvironmentProbesEditor(
+            "Воздействие от среды",
+            environmentActions,
+            row.EnvironmentProbes)
+        { Owner = owner };
+        if (envDlg.ShowDialog() != true)
+          return;
+        var newProbes = envDlg.SelectedProbes != null
+            ? envDlg.SelectedProbes.Select(p => p.Clone()).ToList()
+            : new List<ScenarioEnvironmentProbeEntry>();
+        bool sameProbes = ProbesEqual(row.EnvironmentProbes, newProbes);
+        if (sameProbes)
+          return;
+        row.EnvironmentProbes = newProbes;
+        row.RefreshEnvironmentProbeNames(vm.InfluenceActions);
+        vm.MarkDirty();
+      }
+    }
+
+    private static bool ProbesEqual(
+        IList<ScenarioEnvironmentProbeEntry> a,
+        IList<ScenarioEnvironmentProbeEntry> b)
+    {
+      if (a == null || a.Count == 0)
+        return b == null || b.Count == 0;
+      if (b == null || a.Count != b.Count)
+        return false;
+      var orderedA = a.OrderBy(x => x.ActionId).ThenBy(x => x.IsPressure).ToList();
+      var orderedB = b.OrderBy(x => x.ActionId).ThenBy(x => x.IsPressure).ToList();
+      for (int i = 0; i < orderedA.Count; i++)
+      {
+        if (orderedA[i].ActionId != orderedB[i].ActionId
+            || orderedA[i].IsPressure != orderedB[i].IsPressure)
+          return false;
+      }
+      return true;
     }
 
     private void LinesGrid_OnCellEditEnding(object sender, DataGridCellEditEndingEventArgs e)

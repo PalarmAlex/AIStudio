@@ -147,7 +147,7 @@
 <ul>
 <li>доступность редакторов меню «Среда»;</li>
 <li>seed BootData при <strong>создании</strong> проекта (если тип среды выбран);</li>
-<li>combobox и подсказки из <code>schema\</code> — ProbeKey в <code>EnvironmentPressureRules.dat</code>, каталог рецептов из <code>recipe-catalog.json</code>.</li>
+<li>combobox и подсказки из <code>schema\</code> — <strong>ProbeKey</strong> в <code>InfluenceActions.dat</code> (редактор «Метрики среды (EA)»), каталог рецептов из <code>recipe-catalog.json</code>.</li>
 </ul>
 <h3>0.5. Когда нужен пакет для студии</h3>
 <p>Ядро платформы для host — <strong><code>isida.dll</code></strong>, runtime contract YAML (§ 5–7), Command idle-flush, pressure rules. Формат <strong>пакета</strong> обязателен <strong>только</strong> при использовании AIStudio.</p>
@@ -202,9 +202,9 @@
 </tr>
 <tr>
 <td><strong>Mechanical (среда)</strong></td>
-<td>Pressure rules, SessionHealth</td>
-<td><code>homeostasis_deltas</code> в triggers; <strong>не</strong> EA-прокси</td>
-<td><strong>Нет</strong> (прямая запись P_i)</td>
+<td>Метрики host, SessionHealth</td>
+<td><code>InfluenceActions.dat</code> (ProbeKey, ID ≥ 50) → фаза A/B на пульсе Velum</td>
+<td><strong>Нет</strong> (фаза B через EA skip influences)</td>
 </tr>
 <tr>
 <td><strong>Наблюдаемая команда SW</strong></td>
@@ -215,7 +215,7 @@
 </tbody>
 </table>
 <ul>
-<li>Событие SW → гомеostasis — <strong>только</strong> <code>homeostasis_deltas</code> через pressure rules / mechanical path; <strong>не</strong> <code>InfluenceActions.dat</code> и <strong>не</strong> auto EA.</li>
+<li>Событие SW → гомеостаз — <strong>фаза A</strong> (composer по ProbeKey) и <strong>фаза B</strong> (триггер рефлекса через EA с ProbeKey, influences skip в ISIDA); <strong>не</strong> auto EA оператора.</li>
 <li>Рецепт исполняется по <strong><code>adaptive_action_id</code></strong> (G_AD из <code>AdaptiveActions.dat</code>) на <code>OnPulseCompleted</code>, <strong>не</strong> по <code>expression_pattern_id</code>.</li>
 <li><strong><code>reflex_trigger_command_pattern_id</code></strong> в триггерах — <strong>только</strong> редактор / обучение / связи genetic Level3; <strong>не</strong> runtime-flush и <strong>не</strong> отдельный канал «Save → стимул». Save попадает в образ <strong>только</strong> через Command-буфер (<code>sw:*</code>) + idle / max / «Отправить».</li>
 <li><strong>Double dispatch запрещён:</strong> одно SW-событие — Command buffer <strong>или</strong> mechanical delta, не оба с одной семантикой через EA auto.</li>
@@ -309,7 +309,7 @@
 </tr>
 <tr>
 <td><strong>Runtime host</strong></td>
-<td>Command idle-flush; pressure rules; G_AD → рецепт на <code>OnPulseCompleted</code></td>
+<td>Command idle-flush; metric probe orchestrator (A/B); G_AD → рецепт на <code>OnPulseCompleted</code></td>
 </tr>
 <tr>
 <td><strong>Проект симбионта</strong></td>
@@ -389,7 +389,7 @@
   Data\Gomeostas\AgentProperties.dat
   BootData\Environment\
     EnvironmentRecipes.yaml
-  Data\                       — ISIDA (.dat), incl. AdaptiveActions.dat, CommandPhrases.dat, EnvironmentPressureRules.dat
+  Data\                       — ISIDA (.dat), incl. AdaptiveActions.dat, CommandPhrases.dat, InfluenceActions.dat (ProbeKey)
 </code></pre>
 <h3>3.3. AdapterId</h3>
 <pre><code>AdapterId|my-adapter
@@ -498,7 +498,7 @@ recipes:
 </tr>
 </tbody>
 </table>
-<p>Пуск по Command SW — <code>GeneticReflexes.dat</code> → <code>command_pattern_ids</code>; mechanical path — <code>EnvironmentPressureRules.dat</code>.</p>
+<p>Пуск по Command SW — <code>GeneticReflexes.dat</code> → <code>command_pattern_ids</code>; mechanical path — <code>InfluenceActions.dat</code> (строки с <strong>ProbeKey</strong> из <code>metric-probes.json</code>).</p>
 <p>Runtime <strong>не</strong> проверяет существование G_AD в boot при чтении YAML; валидация — студия (§ 12) и smoke-тесты host.</p>
 <h3>6.3. Блок <code>steps</code></h3>
 <p>Без изменений принципа: <code>invoke</code> (host) и <code>comment</code> (пропуск).</p>
@@ -522,7 +522,7 @@ recipes:
 </code></pre>
 <hr>
 <h2>7. Удалено в contract 3.2</h2>
-<p>Слой <strong><code>EnvironmentTriggers.yaml</code></strong> удалён. Mechanical path — только <strong><code>EnvironmentPressureRules.dat</code></strong>. Пуск Command — <strong><code>GeneticReflexes.dat</code></strong> → <code>command_pattern_ids</code>. Файлы <code>schema/trigger-detect.json</code> и <code>schema/trigger-catalog.json</code> <strong>запрещены</strong> в пакете.</p>
+<p>Слой <strong><code>EnvironmentTriggers.yaml</code></strong> удалён. Mechanical path — <strong><code>InfluenceActions.dat</code></strong> (ProbeKey, EA ≥ 50). Файл <strong><code>EnvironmentPressureRules.dat</code></strong> снят (legacy). Пуск Command — <strong><code>GeneticReflexes.dat</code></strong> → <code>command_pattern_ids</code>. Файлы <code>schema/trigger-detect.json</code> и <code>schema/trigger-catalog.json</code> <strong>запрещены</strong> в пакете.</p>
 <hr>
 <h2>8. Schema JSON (<code>schema\</code>)</h2>
 <p>Каталог <code>schema\</code> обязателен для регистрации в AIStudio. <strong>Запрещены</strong> в v3.2: <code>trigger-detect.json</code>, <code>trigger-catalog.json</code>.</p>
@@ -638,7 +638,7 @@ recipes:
 </tr>
 <tr>
 <td><code>metric-probes.json</code></td>
-<td>ProbeKey в <code>EnvironmentPressureRules.dat</code></td>
+<td>ProbeKey в <code>InfluenceActions.dat</code> (метрики среды)</td>
 </tr>
 <tr>
 <td><code>command-buffer-policy.json</code></td>
@@ -685,8 +685,16 @@ recipes:
 <p><strong>Назначение:</strong> машиночитаемый справочник для редактора шагов рецепта. Студия читает файл из <code>schema\</code>; <strong>runtime host не обязан</strong> загружать его.</p>
 <p>Файл <strong>опционален</strong> для «Проверить»; без него кнопки справочника скрыты или неактивны.</p>
 <h3>10.5. ProbeKey и оператор</h3>
-<p>Студия заполняет combobox <strong>ProbeKey</strong> в <code>EnvironmentPressureRules.dat</code> из <code>probes[].key</code> (плюс «оператор, не среда»).</p>
-<p><strong>Operator path:</strong> дискретные стимулы оператора — каналы Verbal/Command/Visual + EA. Mechanical path — только <code>EnvironmentPressureRules.dat</code> → <code>homeostasis_deltas</code>.</p>
+<p>Студия заполняет combobox <strong>ProbeKey</strong> в <code>InfluenceActions.dat</code> из <code>probes[].key</code> (редактор <strong>«Метрики среды (EA)»</strong>; плюс «оператор, не среда» в полном справочнике стимулов).</p>
+<p><strong>Operator path:</strong> дискретные стимулы оператора — каналы Verbal/Command/Visual + EA без ProbeKey. <strong>Mechanical path:</strong> строки EA с ProbeKey (ID ≥ 50) — шаблон давления на виталы (фаза A) и триггер рефлекса (фаза B); runtime Velum orchestrator.</p>
+<h3>10.6. Фаза A: независимое давление probe (без gating)</h3>
+<p><strong>Норма:</strong> каждая плохая метрика с ProbeKey <strong>независимо</strong> давит на свои параметры виталов по шаблону EA (<code>influences</code> в <code>InfluenceActions.dat</code>). Runtime <strong>не</strong> подавляет давление одной probe, пока другая связанная probe плохая.</p>
+<p><strong>Обоснование:</strong> ранее в Velum использовалось скрытое gating (например, Material не давил, пока UnsavedNew плохой) — для уменьшения комбинаций стилей Level2. Это <strong>снято</strong>: конфликтующие реакции разводятся через <strong>антагонисты</strong> в <code>InfluenceActions.dat</code> (<code>AntagonistInfluences</code>), а не через подавление в orchestrator. Одновременное давление нескольких метрик — штатная ситуация и может требовать <strong>специфического</strong> genetic/conditioned рефлекса на комбинацию параметров.</p>
+<p><strong>Запрещено в runtime:</strong> правила вида «probe X не давит, пока probe Y плохая», если это не зафиксировано явно в данных проекта (антагонисты, отдельные рефлексы на комбинации).</p>
+<h3>10.7. Cooldown давления фазы A (на одну probe)</h3>
+<p>Оркестратор Velum не применяет давление по <strong>той же</strong> ProbeKey чаще одного раза за <code>ReflexActionDisplayDuration</code> тактов пульса (вкладка «Адаптер» / <code>Velum.Settings.xml</code>, то же значение передаётся в ISIDA). <strong>Разные</strong> плохие probe на одном такте могут давить <strong>одновременно</strong> — cooldown не разводит метрики между собой.</p>
+<p><strong>Зачем:</strong> не долбить один витал по одной метрике на каждом пульсе, пока probe остаётся плохой; ритм согласован с минимальным интервалом рефлексов в движке (тот же параметр). Разведение контекстов Level2 при нескольких метриках — через <strong>доминантный параметр</strong> ISIDA (§10.6), не через адаптерный throttle между probe.</p>
+<p><strong>Не путать с:</strong> <code>RecipeDispatchCooldownPulses</code> (моторика рецептов), снятым gating связанных probe (§10.6).</p>
 <hr>
 <h2>11. Согласование парсеров (AIStudio ↔ runtime host)</h2>
 <p>AIStudio и host <strong>должны</strong> использовать одну <code>SymbiontEnv.Contract.dll</code> (codec contract <strong>3.2</strong>).</p>
@@ -806,8 +814,8 @@ recipes:
 </tr>
 <tr>
 <td>Mechanical path (метрики → P_i)</td>
-<td>ISIDA / AIStudio</td>
-<td><code>EnvironmentPressureRules.dat</code></td>
+<td>ISIDA / AIStudio / Velum</td>
+<td><code>InfluenceActions.dat</code> (ProbeKey)</td>
 </tr>
 <tr>
 <td>Operator stimulus</td>
@@ -837,7 +845,7 @@ recipes:
 <li>[ ] YAML v3.2 через <code>EnvironmentYamlCodec</code> (<code>schema: environment-recipes/3.2</code>)</li>
 <li>[ ] G_AD dispatch на <code>OnPulseCompleted</code>; <code>RecipeCatalog.FindByAdaptiveActionId</code></li>
 <li>[ ] Command idle-flush; <strong>без</strong> auto EA для SW-событий</li>
-<li>[ ] Mechanical path → <code>EnvironmentPressureRules.dat</code> → P_i</li>
+<li>[ ] Mechanical path → <code>InfluenceActions.dat</code> (ProbeKey) → P_i</li>
 </ul>
 <p><strong>Автор пакета для AIStudio:</strong></p>
 <ul>
@@ -877,7 +885,7 @@ recipes:
 </tr>
 <tr>
 <td><code>homeostasis_deltas</code> в trigger</td>
-<td>перенести нужные эффекты в <code>EnvironmentPressureRules.dat</code></td>
+<td>перенести в <code>InfluenceActions.dat</code> (ProbeKey, influences)</td>
 </tr>
 <tr>
 <td><code>reflex_trigger_command_pattern_id</code></td>

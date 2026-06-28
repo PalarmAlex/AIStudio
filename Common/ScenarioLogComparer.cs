@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Text;
+using ISIDA.Actions;
 using ISIDA.Scenarios;
 using Newtonsoft.Json;
 
@@ -347,11 +348,17 @@ namespace AIStudio.Common
         ScenarioDocument doc,
         int anchorGlobalPulse,
         IReadOnlyDictionary<int, AggregatedLogSnapshot> byGlobalPulse,
-        CompareMessageFormatting messageFormatting = null)
+        CompareMessageFormatting messageFormatting = null,
+        InfluenceActionSystem influenceActions = null)
     {
       var list = new List<StepCompareResult>();
       if (doc?.Lines == null)
         return list;
+      if (influenceActions != null)
+      {
+        foreach (var line in doc.Lines)
+          line.RefreshEnvironmentProbeNames(influenceActions);
+      }
       var expectations = doc.LogExpectations ?? new List<ScenarioLogExpectationRow>();
       foreach (var line in doc.Lines.OrderBy(l => l.StepIndex))
       {

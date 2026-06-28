@@ -39,6 +39,64 @@
       <Setter Property="VerticalAlignment" Value="Top"/>
     </Style>
 
+    <Style x:Key="ProbePressureToggleStyle" TargetType="ToggleButton">
+      <Setter Property="Width" Value="18"/>
+      <Setter Property="Height" Value="16"/>
+      <Setter Property="Padding" Value="0"/>
+      <Setter Property="FontSize" Value="11"/>
+      <Setter Property="FontWeight" Value="Bold"/>
+      <Setter Property="Margin" Value="0"/>
+      <Setter Property="VerticalAlignment" Value="Center"/>
+      <Setter Property="Background" Value="#FFECEFF1"/>
+      <Setter Property="BorderBrush" Value="#FF90A4AE"/>
+      <Setter Property="BorderThickness" Value="1"/>
+      <Style.Triggers>
+        <Trigger Property="IsChecked" Value="True">
+          <Setter Property="Background" Value="#FF2E7D32"/>
+          <Setter Property="Foreground" Value="White"/>
+          <Setter Property="BorderBrush" Value="#FF1B5E20"/>
+        </Trigger>
+      </Style.Triggers>
+    </Style>
+    <Style x:Key="ProbeReleaseToggleStyle" TargetType="ToggleButton">
+      <Setter Property="Width" Value="18"/>
+      <Setter Property="Height" Value="16"/>
+      <Setter Property="Padding" Value="0"/>
+      <Setter Property="FontSize" Value="11"/>
+      <Setter Property="FontWeight" Value="Bold"/>
+      <Setter Property="Margin" Value="1,0,0,0"/>
+      <Setter Property="VerticalAlignment" Value="Center"/>
+      <Setter Property="Background" Value="#FFECEFF1"/>
+      <Setter Property="BorderBrush" Value="#FF90A4AE"/>
+      <Setter Property="BorderThickness" Value="1"/>
+      <Style.Triggers>
+        <Trigger Property="IsChecked" Value="True">
+          <Setter Property="Background" Value="#FFD32F2F"/>
+          <Setter Property="Foreground" Value="White"/>
+          <Setter Property="BorderBrush" Value="#FFB71C1C"/>
+        </Trigger>
+      </Style.Triggers>
+    </Style>
+    <Style x:Key="ProbeResetButtonStyle" TargetType="Button">
+      <Setter Property="Width" Value="16"/>
+      <Setter Property="Height" Value="16"/>
+      <Setter Property="Padding" Value="0"/>
+      <Setter Property="Margin" Value="1,0,0,0"/>
+      <Setter Property="Foreground" Value="#FFD32F2F"/>
+      <Setter Property="Background" Value="Transparent"/>
+      <Setter Property="BorderThickness" Value="0"/>
+      <Setter Property="FontWeight" Value="Bold"/>
+      <Setter Property="FontSize" Value="10"/>
+      <Setter Property="VerticalAlignment" Value="Center"/>
+      <Setter Property="Cursor" Value="Hand"/>
+      <Setter Property="ToolTip" Value="Сбросить выбор"/>
+    </Style>
+    <Style x:Key="ProbeSelectionRowBorderCompactStyle" TargetType="Border" BasedOn="{StaticResource ProbeSelectionRowBorderStyle}">
+      <Setter Property="CornerRadius" Value="2"/>
+      <Setter Property="Padding" Value="2,0"/>
+      <Setter Property="Margin" Value="0,1"/>
+    </Style>
+
   </UserControl.Resources>
 
   <Grid PreviewKeyDown="OnRootPreviewKeyDown">
@@ -47,7 +105,7 @@
       <ColumnDefinition Width="130.14"/>
       <ColumnDefinition Width="111.86"/>
       <ColumnDefinition Width="*"/>
-      <ColumnDefinition Width="*"/>
+      <ColumnDefinition Width="1.55*"/>
     </Grid.ColumnDefinitions>
     <Grid.RowDefinitions>
       <RowDefinition Height="Auto"/>
@@ -69,8 +127,7 @@
                Text="Через среду (вирт. тест)"
                Style="{StaticResource PropertyNameStyle}"
                Margin="10,0,0,5"
-               Width="200"
-               ToolTip="Ручная имитация событий среды в AIStudio (EA ID 101–1000). В Velum runtime события SolidWorks попадают в Command-буфер (sw:*) и уходят в ISIDA только idle-flush или по «Отправить» — без EA-прокси среды."/>
+               ToolTip="Имитация метрики среды (как Velum): «+» — давление (фаза A), «−» — отпускание (возврат к норме). Без стимула с пульта."/>
 
     <!-- Окно речевого сообщения -->
     <TextBox x:Name="MessageToAgentTextBox" Grid.Row="1"
@@ -242,8 +299,8 @@
                     MaxHeight="280">
         <Grid>
           <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="*"/>
-            <ColumnDefinition Width="*"/>
+            <ColumnDefinition Width="0.9*"/>
+            <ColumnDefinition Width="1.1*" MinWidth="210"/>
           </Grid.ColumnDefinitions>
 
           <ItemsControl Grid.Column="0" ItemsSource="{Binding OperatorActions}">
@@ -258,14 +315,39 @@
             </ItemsControl.ItemTemplate>
           </ItemsControl>
 
-          <ItemsControl Grid.Column="1" ItemsSource="{Binding EnvironmentActions}" Margin="10,0,0,0">
+          <ItemsControl Grid.Column="1" ItemsSource="{Binding EnvironmentActions}" Margin="8,0,0,0">
             <ItemsControl.ItemTemplate>
               <DataTemplate>
-                <CheckBox Content="{Binding Name}"
-                          IsChecked="{Binding IsSelected}"
-                          IsEnabled="{Binding IsEnabled}"
-                          Margin="0,2"
-                          ToolTip="{Binding Description}"/>
+                <Border Style="{StaticResource ProbeSelectionRowBorderCompactStyle}">
+                  <Grid MinHeight="18">
+                    <Grid.ColumnDefinitions>
+                      <ColumnDefinition Width="*"/>
+                      <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+                    <TextBlock Grid.Column="0"
+                               Text="{Binding Name}"
+                               VerticalAlignment="Center"
+                               TextTrimming="CharacterEllipsis"
+                               FontSize="12"
+                               Margin="0,0,4,0"
+                               ToolTip="{Binding Description}"/>
+                    <StackPanel Grid.Column="1"
+                                Orientation="Horizontal"
+                                VerticalAlignment="Center">
+                      <ToggleButton Content="+"
+                                    Style="{StaticResource ProbePressureToggleStyle}"
+                                    IsChecked="{Binding IsPressure, Mode=TwoWay}"
+                                    ToolTip="Давление метрики (+): сдвиг параметров, как при плохой метрике в Velum"/>
+                      <ToggleButton Content="−"
+                                    Style="{StaticResource ProbeReleaseToggleStyle}"
+                                    IsChecked="{Binding IsRelease, Mode=TwoWay}"
+                                    ToolTip="Отпускание метрики (−): возврат параметров к норме, как при улучшении метрики в Velum"/>
+                      <Button Content="✕"
+                              Style="{StaticResource ProbeResetButtonStyle}"
+                              Click="ProbeReset_Click"/>
+                    </StackPanel>
+                  </Grid>
+                </Border>
               </DataTemplate>
             </ItemsControl.ItemTemplate>
           </ItemsControl>

@@ -165,6 +165,8 @@ namespace AIStudio.ViewModels
       {
         if (IsEnvironmentScope && !action.IsEnvironmentProbeAction)
           continue;
+        if (!IsEnvironmentScope && action.IsEnvironmentProbeAction)
+          continue;
 
         if (InfluenceActionIdPolicy.IsDeprecatedEnvironmentProxyRange(action.Id))
           _legacyEnvironmentProxyIds.Add(action.Id);
@@ -296,7 +298,10 @@ namespace AIStudio.ViewModels
           else
           {
             foreach (var action in _influenceActionSystem.GetAllInfluenceActions().ToList())
-              _influenceActionSystem.RemoveAction(action.Id);
+            {
+              if (!action.IsEnvironmentProbeAction)
+                _influenceActionSystem.RemoveAction(action.Id);
+            }
           }
 
           InfluenceActions.Clear();
@@ -422,9 +427,14 @@ namespace AIStudio.ViewModels
 
       if (!IsEnvironmentScope)
       {
-        var actionsToRemove = currentActions.Keys.Except(InfluenceActions.Select(a => a.Id)).ToList();
-        foreach (var actionId in actionsToRemove)
-          _influenceActionSystem.RemoveAction(actionId);
+        var tableIds = new HashSet<int>(InfluenceActions.Select(a => a.Id));
+        foreach (var kv in currentActions)
+        {
+          if (kv.Value.IsEnvironmentProbeAction)
+            continue;
+          if (!tableIds.Contains(kv.Key))
+            _influenceActionSystem.RemoveAction(kv.Key);
+        }
       }
       else
       {
@@ -492,16 +502,6 @@ namespace AIStudio.ViewModels
               MessageBoxImage.Error);
           return false;
         }
-
-        if (!InfluenceActionIdPolicy.IsEnvironmentRange(action.Id))
-        {
-          MessageBox.Show(
-              $"EA {action.Id}: для метрик среды рекомендуется ID ≥ {InfluenceActionIdPolicy.EnvironmentMinId}.",
-              "Ошибка сохранения",
-              MessageBoxButton.OK,
-              MessageBoxImage.Error);
-          return false;
-        }
       }
 
       return true;
@@ -527,14 +527,6 @@ namespace AIStudio.ViewModels
           {
             warnings.Add(
                 $"ID {action.Id} («{action.Name}»): устаревший EA-прокси (101–1000); только ручной вирт. тест на пульте AIStudio.");
-          }
-        }
-        else if (action.IsEnvironmentProbeAction)
-        {
-          if (action.Id < InfluenceActionIdPolicy.EnvironmentMinId)
-          {
-            warnings.Add(
-                $"ID {action.Id} («{action.Name}»): EA с ProbeKey рекомендуется с ID ≥ {InfluenceActionIdPolicy.EnvironmentMinId}.");
           }
         }
         else if (action.Id < 1 || action.Id > InfluenceActionIdPolicy.OperatorMaxId)
@@ -592,8 +584,8 @@ namespace AIStudio.ViewModels
         return new DescriptionWithLink
         {
           Text = IsEnvironmentScope
-              ? "Строки EA среды (ID ≥ 50) в InfluenceActions.dat: ключ метрики из schema/metric-probes.json и величина давления на виталы (колонка «Воздействие»). Антагонисты запрещены. Runtime: Velum фаза A на пульсе."
-              : "Справочник InfluenceActions.dat: операторские стимулы (без ключа метрики) и строки среды (редактируются на странице «Метрики среды»)."
+              ? "Строки EA среды в InfluenceActions.dat: ключ метрики из schema/metric-probes.json и величина давления на виталы (колонка «Воздействие»). Антагонисты запрещены. Runtime: Velum фаза A на пульсе."
+              : "Справочник InfluenceActions.dat: операторские стимулы без ключа метрики. Строки с ProbeKey редактируются в меню «Среда» → «Метрики среды»."
         };
       }
     }

@@ -12,6 +12,7 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
+using AIStudio.Common.SymbiontEnv;
 using AIStudio.ViewModels;
 
 namespace AIStudio.Pages
@@ -63,5 +64,8 @@ namespace AIStudio.Pages
       }
       return false;
     }
+
+    private void ProbeReset_Click(object sender, RoutedEventArgs e) =>
+        EnvironmentProbeSelectionUi.ResetRowClick(sender, e);
   }
 }

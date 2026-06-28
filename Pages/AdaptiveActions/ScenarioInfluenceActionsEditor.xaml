@@ -41,7 +41,7 @@
     </Border>
 
     <TextBlock Grid.Row="1"
-               Text="Отметьте воздействия с пульта для этого шага:"
+               Text="Отметьте воздействия с пульта (без метрик среды) для этого шага:"
                Margin="0,0,0,8"
                Style="{StaticResource InfoTitleStyle}"
                Foreground="#FF0D47A1"/>

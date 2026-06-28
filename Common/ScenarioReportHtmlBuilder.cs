@@ -182,7 +182,8 @@ namespace AIStudio.Common
     private static List<ScenarioLogComparer.StepCompareResult> BuildCompareResultsForReport(
         ScenarioDocument doc,
         OperatorScenarioCompletedEventArgs completion,
-        PerceptionImagesSystem perceptionImages)
+        PerceptionImagesSystem perceptionImages,
+        InfluenceActionSystem influenceActions)
     {
       if (doc == null)
         return new List<ScenarioLogComparer.StepCompareResult>();
@@ -193,7 +194,8 @@ namespace AIStudio.Common
           new ScenarioLogComparer.CompareMessageFormatting
           {
             FormatStateFact = ScenarioReportLogDisplay.FormatStateCell
-          });
+          },
+          influenceActions);
     }
 
     private static string BuildGroupBatchHtmlCompact(
@@ -208,7 +210,7 @@ namespace AIStudio.Common
       for (int i = 0; i < orderedMembers.Count; i++)
       {
         if (i < runs.Count && runs[i].Item1 != null)
-          compareByIndex.Add(BuildCompareResultsForReport(runs[i].Item1, runs[i].Item2, perceptionImages));
+          compareByIndex.Add(BuildCompareResultsForReport(runs[i].Item1, runs[i].Item2, perceptionImages, _influenceActions));
         else
           compareByIndex.Add(null);
       }
@@ -429,18 +431,21 @@ namespace AIStudio.Common
       AppendMetaRow(sb, "Фактическая скорость", Escape(FormatActualPulseSpeedText(completion)));
       sb.AppendLine("</table>");
       sb.AppendLine("<h2>Шаги</h2>");
-      sb.AppendLine("<table class=\"steps-zebra\"><tr><th>Шаг</th><th>№ пульса</th><th>Тип</th><th>Воздействия</th><th>Фраза</th><th>Тон</th><th>Настр.</th><th>Цвет</th><th>Сброс ожид.</th></tr>");
+      sb.AppendLine("<table class=\"steps-zebra\"><tr><th>Шаг</th><th>№ пульса</th><th>Тип</th><th>Воздействия</th><th>Воздействие от среды</th><th>Фраза</th><th>Тон</th><th>Настр.</th><th>Цвет</th><th>Сброс ожид.</th></tr>");
       if (doc.Lines != null)
       {
         foreach (var line in doc.Lines.OrderBy(l => l.StepIndex))
         {
           line.RefreshActionNames(influenceActions);
+          line.RefreshEnvironmentProbeNames(influenceActions);
           var actions = string.IsNullOrEmpty(line.ActionNamesDisplay) ? line.ActionIdsText : line.ActionNamesDisplay;
+          var envProbes = FormatEnvironmentProbesReportCell(line.EnvironmentProbesDisplay);
           sb.AppendLine("<tr>");
           sb.Append("<td>").Append(Escape(line.StepIndex.ToString(CultureInfo.InvariantCulture))).Append("</td>");
           sb.Append("<td>").Append(Escape(line.PulseWithinScenario.ToString(CultureInfo.InvariantCulture))).Append("</td>");
           sb.Append("<td>").Append(Escape(line.Kind == ScenarioLineKind.WaitClick ? "Ожидание" : "Пульт")).Append("</td>");
           sb.Append("<td>").Append(Escape(actions)).Append("</td>");
+          sb.Append("<td>").Append(Escape(envProbes)).Append("</td>");
           sb.Append("<td>").Append(Escape(line.Phrase ?? "")).Append("</td>");
           sb.Append("<td>").Append(Escape(FormatToneCell(line.ToneId))).Append("</td>");
           sb.Append("<td>").Append(Escape(FormatMoodCell(line.MoodId))).Append("</td>");
@@ -460,6 +465,7 @@ namespace AIStudio.Common
           .Append(". Глобальный пульс шага = якорь + № пульса внутри сценария. ");
       bool hideEmptyCols = doc.Header?.ReportHideEmptyComparisonColumns ?? true;
       bool hideExpectedWhenNoMismatch = doc.Header?.ReportHideExpectedWhenNoMismatch ?? true;
+      RefreshScenarioLineDisplayNames(doc, influenceActions);
       var comparisonSpecs = BuildVisibleComparisonColumnSpecs(doc, anchor, agg, hideEmptyCols);
       var showExpectedColumn = ComputeShowExpectedComparisonColumns(
           doc, anchor, agg, comparisonSpecs, hideExpectedWhenNoMismatch);
@@ -476,7 +482,8 @@ namespace AIStudio.Common
           new ScenarioLogComparer.CompareMessageFormatting
           {
             FormatStateFact = ScenarioReportLogDisplay.FormatStateCell
-          });
+          },
+          influenceActions);
       if (doc.Lines != null)
       {
         foreach (var line in doc.Lines.OrderBy(l => l.StepIndex))
@@ -492,7 +499,7 @@ namespace AIStudio.Common
           {
             var col = comparisonSpecs[ci];
             var expRaw = col.GetExpectedMain(exp);
-            var actRaw = col.GetActual(snap);
+            var actRaw = ResolveComparisonActual(col, line, snap);
             var expDisp = expRaw;
             var actDisp = actRaw;
             var factCellHtmlRaw = false;
@@ -595,11 +602,24 @@ namespace AIStudio.Common
         for (int i = 0; i < comparisonSpecs.Length; i++)
         {
           var col = comparisonSpecs[i];
-          if (IsFieldMismatch(col.GetExpectedMain(exp), col.GetActual(snap), col.Label))
+          if (IsFieldMismatch(col.GetExpectedMain(exp), ResolveComparisonActual(col, line, snap), col.Label))
             showExpected[i] = true;
         }
       }
       return showExpected;
+    }
+
+    private static void RefreshScenarioLineDisplayNames(
+        ScenarioDocument doc,
+        InfluenceActionSystem influenceActions)
+    {
+      if (doc?.Lines == null)
+        return;
+      foreach (var line in doc.Lines)
+      {
+        line.RefreshActionNames(influenceActions);
+        line.RefreshEnvironmentProbeNames(influenceActions);
+      }
     }
 
     private static void AppendComparisonSummary(StringBuilder sb, List<ScenarioLogComparer.StepCompareResult> compareList)
@@ -674,7 +694,7 @@ namespace AIStudio.Common
         {
           var col = all[i];
           var expRaw = col.GetExpectedMain(exp);
-          var actRaw = col.GetActual(snap);
+          var actRaw = ResolveComparisonActual(col, line, snap);
           if (!ComparisonPairIsVisuallyAllDash(col.Label, expRaw, actRaw))
             used[i] = true;
         }
@@ -688,11 +708,30 @@ namespace AIStudio.Common
       return list.ToArray();
     }
 
+    private static string ResolveComparisonActual(
+        ComparisonColumnSpec col,
+        ScenarioLineRow line,
+        ScenarioLogComparer.AggregatedLogSnapshot snap)
+    {
+      if (col.GetActualFromLine != null)
+        return col.GetActualFromLine(line);
+      return col.GetActual(snap);
+    }
+
+    private static string FormatEnvironmentProbesReportCell(string raw)
+    {
+      if (string.IsNullOrWhiteSpace(raw))
+        return "-";
+      var n = ScenarioLogComparer.NormalizeDisplay(raw);
+      return n == "-" ? "-" : raw.Trim();
+    }
+
     private sealed class ComparisonColumnSpec
     {
       public string Label { get; set; }
       public Func<ScenarioLogExpectationRow, string> GetExpectedMain { get; set; }
       public Func<ScenarioLogComparer.AggregatedLogSnapshot, string> GetActual { get; set; }
+      public Func<ScenarioLineRow, string> GetActualFromLine { get; set; }
     }
 
     private static readonly ComparisonColumnSpec[] ComparisonColumnSpecs =

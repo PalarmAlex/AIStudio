@@ -85,6 +85,9 @@
     </ApplicationDefinition>
     <Compile Include="Common\Environment\EnvironmentCatalogStorage.cs" />
     <Compile Include="Common\Environment\EnvironmentInfluenceValidation.cs" />
+    <Compile Include="Common\Environment\EnvironmentProbeActionItem.cs" />
+    <Compile Include="Common\Environment\EnvironmentProbeSelectionUi.cs" />
+    <Compile Include="Common\Environment\VirtualProbePressureApplier.cs" />
     <Compile Include="Common\Environment\EnvironmentPaths.cs" />
     <Compile Include="Common\Environment\EnvironmentRecipeMapper.cs" />
     <Compile Include="Common\Environment\SchemaCatalogItemRow.cs" />
@@ -200,6 +203,9 @@
     </Compile>
     <Compile Include="Pages\AdaptiveActions\ScenarioInfluenceActionsEditor.xaml.cs">
       <DependentUpon>ScenarioInfluenceActionsEditor.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Pages\AdaptiveActions\ScenarioEnvironmentProbesEditor.xaml.cs">
+      <DependentUpon>ScenarioEnvironmentProbesEditor.xaml</DependentUpon>
     </Compile>
     <Compile Include="Pages\AdaptiveActions\TargetParametersEditor.xaml.cs">
       <DependentUpon>TargetParametersEditor.xaml</DependentUpon>
@@ -523,6 +529,10 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
+    <Page Include="Pages\AdaptiveActions\ScenarioEnvironmentProbesEditor.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="Pages\AdaptiveActions\TargetParametersEditor.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
@@ -704,6 +714,10 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="Styles\ComboBoxStiles.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Styles\EnvironmentProbeSelectionStyles.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

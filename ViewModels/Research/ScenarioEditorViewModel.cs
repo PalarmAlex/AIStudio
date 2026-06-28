@@ -103,11 +103,15 @@ namespace AIStudio.ViewModels.Research
         var row = l.Clone();
         Lines.Add(row);
         row.RefreshActionNames(_influenceActions);
+        row.RefreshEnvironmentProbeNames(_influenceActions);
       }
       Lines.RaiseListChangedEvents = true;
       ScenarioPulseSchedule.EnsureSequentialStepIndices(Lines);
       foreach (var l in Lines)
+      {
         l.RefreshActionNames(_influenceActions);
+        l.RefreshEnvironmentProbeNames(_influenceActions);
+      }
       if (Document.LogExpectationColumnSkips == null)
         Document.LogExpectationColumnSkips = new ScenarioLogExpectationColumnSkips();
       ExpectationRows = new ObservableCollection<ScenarioLogExpectationRow>();
@@ -249,12 +253,18 @@ namespace AIStudio.ViewModels.Research
       {
         case ListChangedType.ItemAdded:
           if (e.NewIndex >= 0 && e.NewIndex < Lines.Count)
+          {
             Lines[e.NewIndex].RefreshActionNames(_influenceActions);
+            Lines[e.NewIndex].RefreshEnvironmentProbeNames(_influenceActions);
+          }
           goto case ListChangedType.ItemDeleted;
         case ListChangedType.ItemDeleted:
           ScenarioPulseSchedule.EnsureSequentialStepIndices(Lines);
           foreach (var l in Lines)
+          {
             l.RefreshActionNames(_influenceActions);
+            l.RefreshEnvironmentProbeNames(_influenceActions);
+          }
           SyncExpectationRowsWithLines();
           HasUnsavedChanges = true;
           CommandManager.InvalidateRequerySuggested();
@@ -584,6 +594,7 @@ namespace AIStudio.ViewModels.Research
             ExpectationRows.Insert(insertAfter + 1 + k, expClone);
             AttachExpectationRow(expClone);
             lineClone.RefreshActionNames(_influenceActions);
+            lineClone.RefreshEnvironmentProbeNames(_influenceActions);
           }
           insertAfter += blockLen;
         }
@@ -605,7 +616,10 @@ namespace AIStudio.ViewModels.Research
       }
       ScenarioPulseSchedule.EnsureSequentialStepIndices(Lines);
       foreach (var l in Lines)
+      {
         l.RefreshActionNames(_influenceActions);
+        l.RefreshEnvironmentProbeNames(_influenceActions);
+      }
       SyncExpectationRowsWithLines();
       if (blockEnd + 1 < Lines.Count)
         SelectedLine = Lines[blockEnd + 1];
@@ -644,6 +658,7 @@ namespace AIStudio.ViewModels.Research
         VisualColorId = AgentVisualColor.White
       };
       row.RefreshActionNames(_influenceActions);
+      row.RefreshEnvironmentProbeNames(_influenceActions);
       return row;
     }
 
@@ -689,7 +704,10 @@ namespace AIStudio.ViewModels.Research
       }
       ScenarioPulseSchedule.EnsureSequentialStepIndices(Lines);
       foreach (var l in Lines)
+      {
         l.RefreshActionNames(_influenceActions);
+        l.RefreshEnvironmentProbeNames(_influenceActions);
+      }
       SyncExpectationRowsWithLines();
       SelectedLine = Lines.FirstOrDefault();
       HasUnsavedChanges = true;
