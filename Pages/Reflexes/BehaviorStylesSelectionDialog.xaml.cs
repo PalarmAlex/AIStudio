@@ -2,6 +2,7 @@ using AIStudio.Common;
 using ISIDA.Gomeostas;
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
 using System.Windows;
 using System.Windows.Input;
@@ -12,7 +13,7 @@ namespace AIStudio.Dialogs
   public partial class BehaviorStylesSelectionDialog : Window
   {
     public List<int> SelectedBehaviorStyles { get; private set; }
-    private List<BehaviorStyleItem> _behaviorStyles;
+    private ObservableCollection<BehaviorStyleItem> _behaviorStyles;
     private readonly GomeostasSystem _gomeostasSystem;
     private bool _combinationsLoaded = false;
     private int _totalPossibleCombinations = 0;
@@ -41,42 +42,22 @@ namespace AIStudio.Dialogs
 
     private void LoadBehaviorStyles(List<int> initiallySelected)
     {
-      _behaviorStyles = new List<BehaviorStyleItem>();
       try
       {
         if (_gomeostasSystem == null) return;
 
-        // Пытаемся загрузить существующие комбинации
         var combinations = _gomeostasSystem.LoadStyleCombinations();
-        if (combinations.Any())
-        {
-          LoadCombinationsIntoList(combinations, initiallySelected);
-          _combinationsLoaded = true;
-          _actualCombinations = combinations.Count;
+        _combinationsLoaded = combinations.Any();
+        _actualCombinations = combinations.Count;
 
-          // Рассчитываем общее количество возможных комбинаций
+        if (_combinationsLoaded)
+        {
           var allStyles = _gomeostasSystem.GetAllBehaviorStyles();
           _totalPossibleCombinations = CalculateTotalCombinations(allStyles.Count);
-          UpdateStatusText();
-        }
-        else
-        {
-          _behaviorStyles.Clear();
-          _combinationsLoaded = false;
-          UpdateStatusText();
         }
 
-        // Устанавливаем источник данных для ComboBox
-        BehaviorStylesComboBox.ItemsSource = _behaviorStyles;
-
-        // Выбираем изначально выбранный элемент
-        if (initiallySelected != null && initiallySelected.Any())
-        {
-          var selectedItem = _behaviorStyles.FirstOrDefault(item =>
-              item.StyleIds.SequenceEqual(initiallySelected.OrderBy(id => id)));
-          if (selectedItem != null)
-            BehaviorStylesComboBox.SelectedValue = selectedItem.StyleIds;
-        }
+        ApplyCombinationsToComboBox(combinations, initiallySelected);
+        UpdateStatusText();
         UpdateGenerateButtonState();
       }
       catch (Exception ex)
@@ -93,25 +74,46 @@ namespace AIStudio.Dialogs
       return styleCount + (styleCount * (styleCount - 1)) / 2 + (styleCount * (styleCount - 1) * (styleCount - 2)) / 6;
     }
 
-    private void LoadCombinationsIntoList(List<List<BehaviorStyle>> combinations, List<int> initiallySelected)
+    private void ApplyCombinationsToComboBox(List<List<BehaviorStyle>> combinations, List<int> initiallySelected)
     {
-      _behaviorStyles.Clear();
+      _behaviorStyles = BuildBehaviorStyleItems(combinations, initiallySelected);
 
-      // Добавляем пустой элемент для возможности сброса выбора
-      _behaviorStyles.Add(new BehaviorStyleItem
+      BehaviorStylesComboBox.SelectedItem = null;
+      BehaviorStylesComboBox.SelectedValue = null;
+      BehaviorStylesComboBox.ItemsSource = null;
+      BehaviorStylesComboBox.ItemsSource = _behaviorStyles;
+
+      if (initiallySelected != null && initiallySelected.Any())
       {
-        Id = 0,
-        Name = "[Не выбрано]",
-        Description = "Сбросить выбор комбинации стилей",
-        StyleIds = new List<int>(),
-        IsCombination = false,
-        IsSelected = initiallySelected == null || !initiallySelected.Any()
-      });
+        var orderedSelection = initiallySelected.OrderBy(id => id).ToList();
+        var selectedItem = _behaviorStyles.FirstOrDefault(item =>
+            item.StyleIds.SequenceEqual(orderedSelection));
+        if (selectedItem != null)
+          BehaviorStylesComboBox.SelectedItem = selectedItem;
+      }
+    }
+
+    private static ObservableCollection<BehaviorStyleItem> BuildBehaviorStyleItems(
+        List<List<BehaviorStyle>> combinations, List<int> initiallySelected)
+    {
+      var items = new ObservableCollection<BehaviorStyleItem>
+      {
+        new BehaviorStyleItem
+        {
+          Id = 0,
+          Name = "[Не выбрано]",
+          Description = "Сбросить выбор комбинации стилей",
+          StyleIds = new List<int>(),
+          IsCombination = false,
+          IsSelected = initiallySelected == null || !initiallySelected.Any()
+        }
+      };
+
       foreach (var combination in combinations.OrderBy(c => c.Count))
       {
         var styleIds = combination.Select(s => s.Id).OrderBy(id => id).ToList();
         var styleNames = combination.Select(s => s.Name).ToList();
-        _behaviorStyles.Add(new BehaviorStyleItem
+        items.Add(new BehaviorStyleItem
         {
           Id = GetCombinationHashCode(styleIds),
           Name = $"Комбинация [{combination.Count}]: {string.Join(" + ", styleNames)}",
@@ -121,11 +123,12 @@ namespace AIStudio.Dialogs
           IsSelected = initiallySelected != null && initiallySelected.SequenceEqual(styleIds)
         });
       }
+
+      return items;
     }
 
-    private int GetCombinationHashCode(List<int> styleIds)
+    private static int GetCombinationHashCode(List<int> styleIds)
     {
-      // Создаем уникальную строку и берем ее хэш-код
       string combinedString = string.Join(",", styleIds.OrderBy(id => id));
       return combinedString.GetHashCode();
     }
@@ -153,29 +156,16 @@ namespace AIStudio.Dialogs
             MessageBoxButton.YesNo, MessageBoxImage.Question);
         if (result != MessageBoxResult.Yes) return;
 
-        // Генерируем комбинации
         var combinations = _gomeostasSystem.GenerateStyleCombinations(true);
+        combinations = _gomeostasSystem.LoadStyleCombinations();
 
-        // Загружаем в список
-        LoadCombinationsIntoList(combinations, _initiallySelected);
-        _combinationsLoaded = true;
+        _combinationsLoaded = combinations.Any();
         _actualCombinations = combinations.Count;
 
-        // Рассчитываем общее количество возможных комбинаций
         var allStyles = _gomeostasSystem.GetAllBehaviorStyles();
         _totalPossibleCombinations = CalculateTotalCombinations(allStyles.Count);
 
-        // Обновляем источник данных ComboBox
-        BehaviorStylesComboBox.ItemsSource = null;
-        BehaviorStylesComboBox.ItemsSource = _behaviorStyles;
-
-        // Восстанавливаем выбор
-        if (_initiallySelected != null && _initiallySelected.Any())
-        {
-          var selectedItem = _behaviorStyles.FirstOrDefault(item =>
-              item.StyleIds.SequenceEqual(_initiallySelected.OrderBy(id => id)));
-          BehaviorStylesComboBox.SelectedItem = selectedItem;
-        }
+        ApplyCombinationsToComboBox(combinations, _initiallySelected);
         UpdateGenerateButtonState();
         UpdateStatusText();
         MessageBox.Show($"Сгенерировано {combinations.Count} валидных комбинаций стилей",
@@ -198,13 +188,11 @@ namespace AIStudio.Dialogs
 
     private void OkButton_Click(object sender, RoutedEventArgs e)
     {
-      // Получаем выбранный элемент из ComboBox
       var selectedItem = BehaviorStylesComboBox.SelectedItem as BehaviorStyleItem;
       if (selectedItem != null)
         SelectedBehaviorStyles = selectedItem.StyleIds;
       else
       {
-        // Также можно попробовать получить через SelectedValue
         var selectedValue = BehaviorStylesComboBox.SelectedValue as List<int>;
         if (selectedValue != null)
           SelectedBehaviorStyles = selectedValue;
@@ -225,7 +213,7 @@ namespace AIStudio.Dialogs
     {
       if (e.Key == Key.Escape)
       {
-        Close(); // Закрываем окно при нажатии Esc
+        Close();
         e.Handled = true;
       }
     }

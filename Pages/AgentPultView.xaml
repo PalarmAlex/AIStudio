@@ -236,14 +236,6 @@
         <RowDefinition Height="Auto"/>
       </Grid.RowDefinitions>
 
-      <TextBlock Grid.Row="0"
-                 Text="Velum: Command idle-flush (sw:*), не EA «Через среду»."
-                 FontStyle="Italic"
-                 Foreground="#FF666666"
-                 FontSize="11"
-                 TextWrapping="Wrap"
-                 Margin="0,0,0,6"/>
-
       <ScrollViewer Grid.Row="1"
                     VerticalScrollBarVisibility="Auto"
                     HorizontalScrollBarVisibility="Disabled"

@@ -9,7 +9,6 @@ recipes:
     steps:
       - type: invoke
         handler: save_file_name
-        template: '$PRP:"SW-Folder Name"-{DISCIPLINE}-{SEQ:4}'
 
   - id: kb_apply_properties_saved
     display_name: "Свойства КБ после сохранения"

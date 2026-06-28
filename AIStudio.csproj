@@ -84,8 +84,7 @@
       <SubType>Designer</SubType>
     </ApplicationDefinition>
     <Compile Include="Common\Environment\EnvironmentCatalogStorage.cs" />
-    <Compile Include="Common\Environment\EnvironmentPressureRulesStorage.cs" />
-    <Compile Include="Common\Environment\EnvironmentPressureRulesValidation.cs" />
+    <Compile Include="Common\Environment\EnvironmentInfluenceValidation.cs" />
     <Compile Include="Common\Environment\EnvironmentPaths.cs" />
     <Compile Include="Common\Environment\EnvironmentRecipeMapper.cs" />
     <Compile Include="Common\Environment\SchemaCatalogItemRow.cs" />
@@ -408,7 +407,6 @@
     <Compile Include="ViewModels\Adapters\AdaptersViewModel.cs" />
     <Compile Include="ViewModels\Environment\EnvironmentRecipesRegistryViewModel.cs" />
     <Compile Include="ViewModels\Environment\EnvironmentRecipeEditorViewModel.cs" />
-    <Compile Include="ViewModels\Environment\EnvironmentPressureRulesViewModel.cs" />
     <Compile Include="Dialogs\MetricProbeKeySelectionDialog.xaml.cs">
       <DependentUpon>MetricProbeKeySelectionDialog.xaml</DependentUpon>
     </Compile>
@@ -442,9 +440,6 @@
     </Compile>
     <Compile Include="Pages\Environment\EnvironmentRecipeEditorView.xaml.cs">
       <DependentUpon>EnvironmentRecipeEditorView.xaml</DependentUpon>
-    </Compile>
-    <Compile Include="Pages\Environment\EnvironmentPressureRulesView.xaml.cs">
-      <DependentUpon>EnvironmentPressureRulesView.xaml</DependentUpon>
     </Compile>
     <Compile Include="ViewModels\Research\ScenarioEditorViewModel.cs" />
     <Compile Include="ViewModels\Research\ScenarioToneMoodChoiceItem.cs" />
@@ -761,10 +756,6 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="Pages\Environment\EnvironmentRecipeEditorView.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="Pages\Environment\EnvironmentPressureRulesView.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

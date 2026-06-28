@@ -47,8 +47,8 @@ Source: "{#SymbiontEnvContractDll}"; DestDir: "{app}"; Flags: ignoreversion
 Source: "{#DocsDir}\AdapterAuthorGuide.html"; DestDir: "{app}\docs"; Flags: ignoreversion
 Source: "{#DocsDir}\AdapterContract.html"; DestDir: "{app}\docs"; Flags: ignoreversion
 
-; Настройки (файл Settings.xml; ранее использовалось имя AIStudio.Settings.xml)
-Source: "{#DocsDir}\Settings\Settings.xml"; DestDir: "{commonappdata}\ISIDA\Settings"; Flags: ignoreversion onlyifdoesntexist uninsneveruninstall
+; Хаб настроек студии (читает AppConfig при запуске; профили проектов — {корень}\Settings\Settings.xml)
+Source: "{#DocsDir}\Settings\Settings.xml"; DestDir: "{commonappdata}\ISIDA\Settings"; DestName: "AIStudioHub.xml"; Flags: ignoreversion onlyifdoesntexist uninsneveruninstall
 
 ; Данные
 ; Важно: для Psychic нужен recursesubdirs — иначе не копируются Understanding\, Memory\Episodic\ и др.,

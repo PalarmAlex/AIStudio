@@ -3,13 +3,12 @@ schema: environment-recipes/3.2
 recipes:
   - id: kb_prefill_designation
     display_name: "Подготовить имя по КБ"
-    description: "Подставить обозначение в имя файла до Save (SetTitle2); Save не вызывается"
+    description: "Следующее имя по схеме последнего Save (префикс + цифровой суффикс); SetTitle2, Save не вызывается"
     adaptive_action_id: 38
     reactive_eligible: true
     steps:
       - type: invoke
         handler: save_file_name
-        template: '$PRP:"SW-Folder Name"-{DISCIPLINE}-{SEQ:4}'
 
   - id: kb_apply_properties_saved
     display_name: "Свойства КБ после сохранения"

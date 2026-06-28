@@ -1,4 +1,5 @@
 using AIStudio.Common;
+using AIStudio.Common.Adapters;
 using AIStudio.Common.SymbiontEnv;
 using ISIDA.Actions;
 using ISIDA.Common;
@@ -18,6 +19,12 @@ using static ISIDA.Gomeostas.GomeostasSystem;
 
 namespace AIStudio.ViewModels
 {
+  public enum InfluenceActionsEditorScope
+  {
+    All,
+    EnvironmentOnly
+  }
+
   public class ExterInalInfluencesViewModel : INotifyPropertyChanged
   {
     public event PropertyChangedEventHandler PropertyChanged;
@@ -28,22 +35,29 @@ namespace AIStudio.ViewModels
 
     private readonly GomeostasSystem _gomeostas;
     private readonly InfluenceActionSystem _influenceActionSystem;
+    private readonly InfluenceActionsEditorScope _scope;
     private readonly HashSet<int> _legacyEnvironmentProxyIds = new HashSet<int>();
     private string _currentAgentName;
     private int _currentAgentStage;
+    public bool IsEnvironmentScope => _scope == InfluenceActionsEditorScope.EnvironmentOnly;
+    public bool HasAdapter => !IsEnvironmentScope || SymbiontEnvironmentGate.IsEnvironmentEditingAllowed();
     public bool IsStageZero => _currentAgentStage == 0;
     public ObservableCollection<InfluenceActionSystem.GomeostasisInfluenceAction> InfluenceActions { get; } = new ObservableCollection<InfluenceActionSystem.GomeostasisInfluenceAction>();
-    public string CurrentAgentTitle =>
-        SymbiontPageTitleFormatter.Format("Стимулы (воздействия на агента)", _currentAgentName, _currentAgentStage);
+    public ObservableCollection<AdapterSchemaMetricProbe> ProbeKeyOptions { get; } = new ObservableCollection<AdapterSchemaMetricProbe>();
+    public string CurrentAgentTitle => IsEnvironmentScope
+        ? SymbiontPageTitleFormatter.Format("Метрики среды (InfluenceActions)", _currentAgentName, _currentAgentStage)
+        : SymbiontPageTitleFormatter.Format("Стимулы (воздействия на агента)", _currentAgentName, _currentAgentStage);
     public ICommand SaveCommand { get; }
     public ICommand RemoveActionCommand { get; }
     public ICommand RemoveAllCommand { get; }
     public ExterInalInfluencesViewModel(
         GomeostasSystem gomeostas,
-        InfluenceActionSystem influence)
+        InfluenceActionSystem influence,
+        InfluenceActionsEditorScope scope = InfluenceActionsEditorScope.All)
     {
       _gomeostas = gomeostas;
       _influenceActionSystem = influence ?? throw new ArgumentNullException(nameof(influence));
+      _scope = scope;
       SaveCommand = new RelayCommand(SaveData);
       RemoveActionCommand = new RelayCommand(RemoveSelectedInfluence);
       RemoveAllCommand = new RelayCommand(RemoveAllInfluences);
@@ -51,21 +65,82 @@ namespace AIStudio.ViewModels
       LoadAgentData();
     }
     #region Блокировка страницы в зависимости от стажа
-    public bool IsEditingEnabled => IsStageZero && !GlobalTimer.IsPulsationRunning;
+    public bool IsEditingEnabled =>
+        IsStageZero && !GlobalTimer.IsPulsationRunning && HasAdapter;
     public bool IsReadOnlyMode => !IsEditingEnabled;
+    public bool ShowAntagonistColumn => !IsEnvironmentScope;
+    public bool ShowProbeKeyColumn => IsEnvironmentScope;
     public string PulseWarningMessage =>
-        !IsStageZero
+        IsEnvironmentScope && !HasAdapter
+            ? "Укажите тип среды в свойствах симбионта"
+            : !IsStageZero
             ? "[КРИТИЧНО] Редактирование параметров доступно только в стадии 0"
             : GlobalTimer.IsPulsationRunning
                 ? "Редактирование параметров доступно только при выключенной пульсации"
                 : string.Empty;
     public Brush WarningMessageColor =>
-        !IsStageZero ? Brushes.Red :
+        (IsEnvironmentScope && !HasAdapter) || !IsStageZero ? Brushes.Red :
         Brushes.Gray;
     #endregion
     public List<ParameterData> GetAllParameters()
     {
       return _gomeostas.GetAllParameters().ToList();
+    }
+
+    public bool IsEnvironmentAction(InfluenceActionSystem.GomeostasisInfluenceAction action) =>
+        action != null && !string.IsNullOrWhiteSpace(action.ProbeKey);
+
+    public int AllocateNextRowId()
+    {
+      int maxId = InfluenceActions.Count == 0 ? 0 : InfluenceActions.Max(a => a.Id);
+      return IsEnvironmentScope
+          ? InfluenceActionIdPolicy.AllocateNextEnvironmentId(maxId)
+          : InfluenceActionIdPolicy.AllocateNextId(maxId);
+    }
+
+    public InfluenceActionSystem.GomeostasisInfluenceAction CreateNewRow()
+    {
+      int nextId = AllocateNextRowId();
+      string defaultProbeKey = string.Empty;
+      if (IsEnvironmentScope)
+      {
+        defaultProbeKey = ProbeKeyOptions
+            .FirstOrDefault(p => !string.IsNullOrWhiteSpace(p?.Key))?.Key ?? string.Empty;
+      }
+
+      return new InfluenceActionSystem.GomeostasisInfluenceAction
+      {
+        Id = nextId,
+        Name = IsEnvironmentScope ? "Среда: новая метрика" : $"Новое действие {nextId}",
+        Description = string.Empty,
+        Influences = new Dictionary<int, int>(),
+        AntagonistInfluences = new List<int>(),
+        ProbeKey = defaultProbeKey
+      };
+    }
+
+    private void RefreshProbeKeyOptions()
+    {
+      ProbeKeyOptions.Clear();
+      if (!IsEnvironmentScope)
+        ProbeKeyOptions.Add(AdapterSchemaMetricProbe.OperatorOnly);
+      var knownKeys = new HashSet<string>(StringComparer.Ordinal);
+      IReadOnlyList<AdapterSchemaMetricProbe> schemaProbes = AdapterSchemaLoader.LoadMetricProbesForCurrentProject();
+      for (int i = 0; i < schemaProbes.Count; i++)
+      {
+        AdapterSchemaMetricProbe probe = schemaProbes[i];
+        if (probe == null || string.IsNullOrWhiteSpace(probe.Key) || !knownKeys.Add(probe.Key))
+          continue;
+        ProbeKeyOptions.Add(probe);
+      }
+
+      foreach (var action in InfluenceActions)
+      {
+        string key = (action?.ProbeKey ?? string.Empty).Trim();
+        if (key.Length == 0 || !knownKeys.Add(key))
+          continue;
+        ProbeKeyOptions.Add(new AdapterSchemaMetricProbe { Key = key, Label = key });
+      }
     }
 
     private void OnPulsationStateChanged()
@@ -88,6 +163,9 @@ namespace AIStudio.ViewModels
       _legacyEnvironmentProxyIds.Clear();
       foreach (var action in _influenceActionSystem.GetAllInfluenceActions().OrderBy(a => a.Id))
       {
+        if (IsEnvironmentScope && !action.IsEnvironmentProbeAction)
+          continue;
+
         if (InfluenceActionIdPolicy.IsDeprecatedEnvironmentProxyRange(action.Id))
           _legacyEnvironmentProxyIds.Add(action.Id);
         InfluenceActions.Add(new InfluenceActionSystem.GomeostasisInfluenceAction
@@ -96,15 +174,19 @@ namespace AIStudio.ViewModels
           Name = action.Name,
           Description = action.Description,
           Influences = new Dictionary<int, int>(action.Influences),
-          AntagonistInfluences = new List<int>(action.AntagonistInfluences)
+          AntagonistInfluences = new List<int>(action.AntagonistInfluences),
+          ProbeKey = action.ProbeKey ?? string.Empty
         });
       }
+      RefreshProbeKeyOptions();
       OnPropertyChanged(nameof(IsStageZero));
       OnPropertyChanged(nameof(IsEditingEnabled));
       OnPropertyChanged(nameof(PulseWarningMessage));
       OnPropertyChanged(nameof(WarningMessageColor));
       OnPropertyChanged(nameof(CurrentAgentTitle));
       OnPropertyChanged(nameof(IsReadOnlyMode));
+      OnPropertyChanged(nameof(ShowAntagonistColumn));
+      OnPropertyChanged(nameof(ShowProbeKeyColumn));
     }
 
     private void LoadAgentData()
@@ -202,14 +284,21 @@ namespace AIStudio.ViewModels
       {
         try
         {
-          // Удаляем все действия из системы
-          var allActions = _influenceActionSystem.GetAllInfluenceActions().ToList();
-          foreach (var action in allActions)
+          if (IsEnvironmentScope)
           {
-            _influenceActionSystem.RemoveAction(action.Id);
+            foreach (var action in _influenceActionSystem.GetAllInfluenceActions()
+                .Where(a => a.IsEnvironmentProbeAction)
+                .ToList())
+            {
+              _influenceActionSystem.RemoveAction(action.Id);
+            }
+          }
+          else
+          {
+            foreach (var action in _influenceActionSystem.GetAllInfluenceActions().ToList())
+              _influenceActionSystem.RemoveAction(action.Id);
           }
 
-          // Очищаем коллекцию представления
           InfluenceActions.Clear();
           var (success, error) = _influenceActionSystem.SaveInfluenceActions(false); // все удалено - не надо валидаций 
           if (success)
@@ -241,6 +330,24 @@ namespace AIStudio.ViewModels
     {
       if (!ValidateStimulusIdRangesBeforeSave())
         return false;
+
+      if (IsEnvironmentScope && !ValidateEnvironmentRowsBeforeSave())
+        return false;
+
+      if (SymbiontEnvironmentGate.IsEnvironmentEditingAllowed())
+      {
+        var coverage = EnvironmentInfluenceValidation.ValidateProbeCoverage(InfluenceActions);
+        if (!coverage.IsValid)
+        {
+          var answer = MessageBox.Show(
+              coverage.ErrorMessage + Environment.NewLine + Environment.NewLine + "Сохранить всё равно?",
+              "Покрытие ProbeKey",
+              MessageBoxButton.YesNo,
+              MessageBoxImage.Warning);
+          if (answer != MessageBoxResult.Yes)
+            return false;
+        }
+      }
 
       bool needRevalidation = false;
       if (!_influenceActionSystem.ValidateAllInfluenceActions(InfluenceActions, out string errorMsg))
@@ -312,13 +419,28 @@ namespace AIStudio.ViewModels
     private void ApplyLocalInfluencesToSystem()
     {
       var currentActions = _influenceActionSystem.GetAllInfluenceActions().ToDictionary(a => a.Id);
-      var actionsToRemove = currentActions.Keys.Except(InfluenceActions.Select(a => a.Id)).ToList();
-      foreach (var actionId in actionsToRemove)
+
+      if (!IsEnvironmentScope)
       {
-        _influenceActionSystem.RemoveAction(actionId);
+        var actionsToRemove = currentActions.Keys.Except(InfluenceActions.Select(a => a.Id)).ToList();
+        foreach (var actionId in actionsToRemove)
+          _influenceActionSystem.RemoveAction(actionId);
       }
+      else
+      {
+        var envIdsInTable = new HashSet<int>(InfluenceActions.Select(a => a.Id));
+        foreach (var kv in currentActions)
+        {
+          if (kv.Value.IsEnvironmentProbeAction && !envIdsInTable.Contains(kv.Key))
+            _influenceActionSystem.RemoveAction(kv.Key);
+        }
+      }
+
       foreach (var action in InfluenceActions)
       {
+        if (action.IsEnvironmentProbeAction)
+          action.AntagonistInfluences = new List<int>();
+
         if (currentActions.ContainsKey(action.Id))
         {
           var existingAction = currentActions[action.Id];
@@ -326,6 +448,7 @@ namespace AIStudio.ViewModels
           existingAction.Description = action.Description;
           existingAction.Influences = new Dictionary<int, int>(action.Influences);
           existingAction.AntagonistInfluences = new List<int>(action.AntagonistInfluences);
+          existingAction.ProbeKey = action.ProbeKey ?? string.Empty;
         }
         else
         {
@@ -336,8 +459,52 @@ namespace AIStudio.ViewModels
               new List<int>(action.AntagonistInfluences)
           );
           action.Id = newId;
+          var created = _influenceActionSystem.GetAllInfluenceActions().FirstOrDefault(a => a.Id == newId);
+          if (created != null)
+            created.ProbeKey = action.ProbeKey ?? string.Empty;
         }
       }
+    }
+
+    private bool ValidateEnvironmentRowsBeforeSave()
+    {
+      foreach (var action in InfluenceActions)
+      {
+        if (action == null)
+          continue;
+        if (string.IsNullOrWhiteSpace(action.ProbeKey))
+        {
+          MessageBox.Show(
+              $"EA {action.Id} («{action.Name}»): ProbeKey обязателен для метрик среды.",
+              "Ошибка сохранения",
+              MessageBoxButton.OK,
+              MessageBoxImage.Error);
+          return false;
+        }
+
+        var probeCheck = SettingsValidator.ValidateEnvironmentProbeKey(action.ProbeKey);
+        if (!probeCheck.isValid)
+        {
+          MessageBox.Show(
+              $"EA {action.Id}: {probeCheck.errorMessage}",
+              "Ошибка сохранения",
+              MessageBoxButton.OK,
+              MessageBoxImage.Error);
+          return false;
+        }
+
+        if (!InfluenceActionIdPolicy.IsEnvironmentRange(action.Id))
+        {
+          MessageBox.Show(
+              $"EA {action.Id}: для метрик среды рекомендуется ID ≥ {InfluenceActionIdPolicy.EnvironmentMinId}.",
+              "Ошибка сохранения",
+              MessageBoxButton.OK,
+              MessageBoxImage.Error);
+          return false;
+        }
+      }
+
+      return true;
     }
 
     private bool ValidateStimulusIdRangesBeforeSave()
@@ -360,6 +527,14 @@ namespace AIStudio.ViewModels
           {
             warnings.Add(
                 $"ID {action.Id} («{action.Name}»): устаревший EA-прокси (101–1000); только ручной вирт. тест на пульте AIStudio.");
+          }
+        }
+        else if (action.IsEnvironmentProbeAction)
+        {
+          if (action.Id < InfluenceActionIdPolicy.EnvironmentMinId)
+          {
+            warnings.Add(
+                $"ID {action.Id} («{action.Name}»): EA с ProbeKey рекомендуется с ID ≥ {InfluenceActionIdPolicy.EnvironmentMinId}.");
           }
         }
         else if (action.Id < 1 || action.Id > InfluenceActionIdPolicy.OperatorMaxId)
@@ -416,7 +591,9 @@ namespace AIStudio.ViewModels
       {
         return new DescriptionWithLink
         {
-          Text = "Справочник дискретных стимулов оператора с пульта (ID 1–100). Диапазон 101–1000 (EA-прокси среды) снят в contract 3.1 — новые записи не создавайте. Давление метрик — «Давление среды на виталы»; в Velum события SW — Command idle-flush."
+          Text = IsEnvironmentScope
+              ? "Строки EA среды (ID ≥ 50) в InfluenceActions.dat: ключ метрики из schema/metric-probes.json и величина давления на виталы (колонка «Воздействие»). Антагонисты запрещены. Runtime: Velum фаза A на пульсе."
+              : "Справочник InfluenceActions.dat: операторские стимулы (без ключа метрики) и строки среды (редактируются на странице «Метрики среды»)."
         };
       }
     }

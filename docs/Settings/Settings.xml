@@ -24,7 +24,7 @@
     <ScenarioReportsFolderPath>C:\ProgramData\ISIDA\Scenarios\Reports</ScenarioReportsFolderPath>
     <HomeostasisPulseSpeedDriftEnabled>true</HomeostasisPulseSpeedDriftEnabled>
     <DataFolderPath>C:\ProgramData\ISIDA\Data</DataFolderPath>
-    <ProjectsFolderPath>C:\ProgramData\ISIDA\Projects</ProjectsFolderPath>
-    <AdaptersFolderPath>C:\ProgramData\ISIDA\Adapters</AdaptersFolderPath>
+    <ProjectsFolderPath>C:\ProgramData\VELUM\Projects</ProjectsFolderPath>
+    <AdaptersFolderPath>C:\ProgramData\VELUM\Adapters</AdaptersFolderPath>
   </AppSettings>
 </Configuration>

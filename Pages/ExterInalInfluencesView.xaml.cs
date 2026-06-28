@@ -6,18 +6,9 @@ using ISIDA.Gomeostas;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
 using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
-using System.Windows.Threading;
 
 namespace AIStudio.Pages
 {
@@ -29,58 +20,46 @@ namespace AIStudio.Pages
     public ExterInalInfluencesView()
     {
       InitializeComponent();
+      DataContextChanged += OnDataContextChanged;
       Loaded += OnLoaded;
       Unloaded += OnUnloaded;
     }
 
+    private ExterInalInfluencesViewModel Vm => DataContext as ExterInalInfluencesViewModel;
+
+    private void OnDataContextChanged(object sender, DependencyPropertyChangedEventArgs e)
+    {
+      UpdateColumnVisibility();
+    }
+
+    private void UpdateColumnVisibility()
+    {
+      if (AntagonistColumn == null || ProbeKeyColumn == null)
+        return;
+      bool showAntagonists = Vm == null || Vm.ShowAntagonistColumn;
+      AntagonistColumn.Visibility = showAntagonists ? Visibility.Visible : Visibility.Collapsed;
+      bool showProbeKey = Vm != null && Vm.ShowProbeKeyColumn;
+      ProbeKeyColumn.Visibility = showProbeKey ? Visibility.Visible : Visibility.Collapsed;
+    }
+
     private void OnLoaded(object sender, RoutedEventArgs e)
     {
+      UpdateColumnVisibility();
       if (DataContext is IDisposable disposable)
-      {
         disposable.Dispose();
-      }
     }
 
     private void OnUnloaded(object sender, RoutedEventArgs e)
     {
       if (DataContext is IDisposable disposable)
-      {
         disposable.Dispose();
-      }
     }
 
     private void DataGrid_AddingNewItem(object sender, AddingNewItemEventArgs e)
     {
-      int nextId = GetNextId();
-      e.NewItem = new InfluenceActionSystem.GomeostasisInfluenceAction
-      {
-        Id = nextId,
-        Name = $"Новое действие {nextId}",
-        Description = string.Empty,
-        Influences = new Dictionary<int, int>()
-      };
-    }
-
-    private int GetNextId()
-    {
-      var viewModel = DataContext as ExterInalInfluencesViewModel;
-      if (viewModel == null) return 1;
-      int maxId = 0;
-      if (viewModel.InfluenceActions != null && viewModel.InfluenceActions.Any())
-      {
-        maxId = viewModel.InfluenceActions.Max(a => a.Id);
-      }
-      var grid = ExternInfluencesGrid;
-      if (grid?.ItemsSource != null)
-      {
-        var items = grid.ItemsSource.Cast<InfluenceActionSystem.GomeostasisInfluenceAction>();
-        if (items.Any())
-        {
-          int gridMaxId = items.Max(a => a.Id);
-          maxId = Math.Max(maxId, gridMaxId);
-        }
-      }
-      return InfluenceActionIdPolicy.AllocateNextId(maxId);
+      if (Vm == null)
+        return;
+      e.NewItem = Vm.CreateNewRow();
     }
 
     private void DataGrid_PreviewKeyDown(object sender, KeyEventArgs e)
@@ -95,7 +74,7 @@ namespace AIStudio.Pages
         var grid = (DataGrid)sender;
         if (grid.IsEditing())
           return;
-        if (grid.SelectedItems.Count > 0 && DataContext is ExterInalInfluencesViewModel viewModel)
+        if (grid.SelectedItems.Count > 0 && Vm != null)
         {
           var actions = grid.SelectedItems
             .Cast<object>()
@@ -110,9 +89,7 @@ namespace AIStudio.Pages
           if (result == MessageBoxResult.Yes)
           {
             foreach (var action in actions)
-            {
-              viewModel.RemoveSelectedInfluence(action);
-            }
+              Vm.RemoveSelectedInfluence(action);
           }
           e.Handled = true;
         }
@@ -128,9 +105,38 @@ namespace AIStudio.Pages
       }
     }
 
+    private void ProbeKeyCell_MouseDown(object sender, MouseButtonEventArgs e)
+    {
+      if (e.ClickCount != 2 || Vm == null)
+        return;
+      if (!IsFormEnabled)
+      {
+        e.Handled = true;
+        return;
+      }
+      if (!(sender is FrameworkElement element) ||
+          !(element.DataContext is InfluenceActionSystem.GomeostasisInfluenceAction action))
+        return;
+
+      var editor = new MetricProbeKeySelectionDialog(action.ProbeKey, Vm.ProbeKeyOptions)
+      {
+        Owner = Window.GetWindow(this),
+        Title = $"ProbeKey: {action.Name} (ID {action.Id})"
+      };
+      if (editor.ShowDialog() == true)
+      {
+        action.ProbeKey = editor.SelectedProbeKey ?? string.Empty;
+        if (Vm.IsEnvironmentAction(action))
+          action.AntagonistInfluences = new List<int>();
+        ExternInfluencesGrid.CommitEdit(DataGridEditingUnit.Row, true);
+        ExternInfluencesGrid.Items.Refresh();
+      }
+      e.Handled = true;
+    }
+
     private void InfluencesCell_MouseDown(object sender, MouseButtonEventArgs e)
     {
-      if (e.ClickCount == 2 && DataContext is ExterInalInfluencesViewModel vm)
+      if (e.ClickCount == 2 && Vm != null)
       {
         if (!IsFormEnabled)
         {
@@ -142,7 +148,7 @@ namespace AIStudio.Pages
         {
           var editor = new ActionInfluencesEditor(
               $"Влияния гомеостатического воздействия: {action.Name} (ID: {action.Id})",
-              vm.GetAllParameters(),
+              Vm.GetAllParameters(),
               action.Influences);
           if (editor.ShowDialog() == true)
           {
@@ -159,7 +165,7 @@ namespace AIStudio.Pages
 
     private void AntagonistCell_MouseDown(object sender, MouseButtonEventArgs e)
     {
-      if (e.ClickCount == 2 && DataContext is ExterInalInfluencesViewModel vm)
+      if (e.ClickCount == 2 && Vm != null)
       {
         if (!IsFormEnabled)
         {
@@ -169,8 +175,19 @@ namespace AIStudio.Pages
         if (sender is FrameworkElement element &&
             element.DataContext is InfluenceActionSystem.GomeostasisInfluenceAction action)
         {
-          var availableActions = vm.InfluenceActions
-            .Where(a => a.Id != action.Id)
+          if (Vm.IsEnvironmentAction(action))
+          {
+            MessageBox.Show(
+                "Для EA с ProbeKey (метрика среды) антагонисты запрещены.",
+                "Редактирование недоступно",
+                MessageBoxButton.OK,
+                MessageBoxImage.Information);
+            e.Handled = true;
+            return;
+          }
+
+          var availableActions = Vm.InfluenceActions
+            .Where(a => a.Id != action.Id && !Vm.IsEnvironmentAction(a))
             .Select(a => new InfluenceActionSystem.GomeostasisInfluenceAction
             {
               Id = a.Id,
@@ -217,10 +234,10 @@ namespace AIStudio.Pages
     {
       get
       {
-        if (DataContext is ExterInalInfluencesViewModel viewModel && !viewModel.IsEditingEnabled)
+        if (Vm != null && !Vm.IsEditingEnabled)
         {
           MessageBox.Show(
-              viewModel.PulseWarningMessage,
+              Vm.PulseWarningMessage,
               "Редактирование недоступно",
               MessageBoxButton.OK,
               MessageBoxImage.Warning);

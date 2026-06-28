@@ -608,10 +608,12 @@ namespace AIStudio.ViewModels
         var currentReflexes = _geneticReflexesSystem.GetAllGeneticReflexes().ToDictionary(a => a.Id);
         foreach (var reflex in _allGeneticReflexes)
         {
-          var pressureRuleCheck = EnvironmentPressureRulesValidation.ValidateLevel3NotPressureRuleIds(reflex.InfluenceActionIds);
-          if (!pressureRuleCheck.IsValid)
+          var level3Check = EnvironmentInfluenceValidation.ValidateLevel3InfluenceActionIds(
+              reflex.InfluenceActionIds,
+              _influenceActionSystem.GetAllInfluenceActions());
+          if (!level3Check.IsValid)
           {
-            MessageBox.Show($"Ошибка валидации рефлекса '{reflex.Id}':\n{pressureRuleCheck.ErrorMessage}",
+            MessageBox.Show($"Ошибка валидации рефлекса '{reflex.Id}':\n{level3Check.ErrorMessage}",
                 "Ошибка сохранения",
                 MessageBoxButton.OK,
                 MessageBoxImage.Error);

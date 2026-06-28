@@ -3,16 +3,9 @@
   "handlers": [
     {
       "id": "save_file_name",
-      "label": "Имя файла по шаблону",
-      "description": "Подстановка предлагаемого имени файла перед Save (SetTitle2); Save не вызывается",
-      "argsSchema": [
-        {
-          "key": "template",
-          "label": "Шаблон имени файла",
-          "type": "string",
-          "editorHint": "template_placeholder"
-        }
-      ]
+      "label": "Имя файла по счётчику",
+      "description": "Следующее имя по обученной на Save схеме (префикс + цифровой суффикс); SetTitle2, Save не вызывается",
+      "argsSchema": []
     },
     {
       "id": "set_custom_property",
@@ -49,7 +42,7 @@
           "values": [
             { "key": "always", "label": "Всегда" },
             { "key": "if_empty", "label": "Только если пусто" },
-            { "key": "never", "label": "Никогда" }
+            { "key": "never", "label": "Временно отключить запись" }
           ]
         }
       ]

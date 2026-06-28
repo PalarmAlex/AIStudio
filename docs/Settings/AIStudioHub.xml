@@ -10,7 +10,7 @@
     <DynamicTime>7</DynamicTime>
     <DefaultGeneticReflexId>0</DefaultGeneticReflexId>
     <FirstRun>1</FirstRun>
-    <LogEnabled>true</LogEnabled>
+    <LogEnabled>false</LogEnabled>
     <DefaultFormatLog>All</DefaultFormatLog>
     <LogsFolderPath>C:\ProgramData\VELUM\Logs</LogsFolderPath>
     <BootDataFolderPath>C:\ProgramData\VELUM\BootData</BootDataFolderPath>

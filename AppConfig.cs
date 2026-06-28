@@ -33,18 +33,6 @@ public static class AppConfig
   /// <summary>Корневой каталог данных ISIDA (<c>Data</c>).</summary>
   public static string DataFolderPath => ResolveDataFolderPath();
 
-  /// <summary>Путь к файлу правил давления среды (ProbeKey → виталы).</summary>
-  public static string EnvironmentPressureRulesFilePath
-  {
-    get
-    {
-      var path = GetSetting("EnvironmentPressureRulesFilePath");
-      if (string.IsNullOrWhiteSpace(path))
-        path = Path.Combine(IsidaDataPaths.ResolveActionsFolder(DataFolderPath), "EnvironmentPressureRules.dat");
-      return path;
-    }
-  }
-
   public static string SettingsPath => GetSetting("SettingsPath");
   public static string LogsFolderPath => GetSetting("LogsFolderPath");
   public static string BootDataFolderPath => GetSetting("BootDataFolderPath");
@@ -216,7 +204,6 @@ public static class AppConfig
       new XElement("Configuration",
         new XElement("AppSettings",
           new XElement("DataFolderPath", Path.Combine(appDataPath, "Data")),
-          new XElement("EnvironmentPressureRulesFilePath", Path.Combine(appDataPath, "Data", "Actions", "EnvironmentPressureRules.dat")),
           new XElement("SettingsPath", Path.Combine(appDataPath, "Settings")),
           new XElement("LogsFolderPath", Path.Combine(appDataPath, "Logs")),
           new XElement("BootDataFolderPath", Path.Combine(appDataPath, "BootData")),

@@ -24,7 +24,7 @@
 |-------------|-----------------|
 | Регистрация в **Зарегистрированные пакеты…** | Список типов среды при создании проекта |
 | `BootData\Environment\` | Seed `EnvironmentRecipes.yaml` в новый проект |
-| `schema\` | Поля в редакторах «Рецепты среды» и «Давление среды» |
+| `schema\` | Поля в редакторах «Рецепты среды» и «Метрики среды (EA)» |
 | `runtime\` | DLL для дистрибуции (**`isida.dll`** обязателен) |
 | `manifest.json` | `id`, версия, `contractVersion: "3.2"` |
 
@@ -42,7 +42,7 @@
 | Путь | Источник | Где настраивается |
 |------|----------|-------------------|
 | **Operator** | Пульт: Verbal, Command, Visual, EA | каналы + EA в ISIDA |
-| **Mechanical** | Pressure rules, SessionHealth | `EnvironmentPressureRules.dat` → `homeostasis_deltas` |
+| **Mechanical** | Метрики host, SessionHealth | `InfluenceActions.dat` (ProbeKey, ID ≥ 50) |
 | **Command SW** | Command buffer host | `GeneticReflexes.dat` → `command_pattern_ids`; idle-flush |
 
 **Удалено в v3.2:** `EnvironmentTriggers.yaml`, `recommended_trigger_keys`, `expression_pattern_id`, `IHostMotorDispatcher`.
@@ -54,10 +54,10 @@
 | Роль | Типичные задачи |
 |------|-----------------|
 | **Разработчик адаптера** | Host DLL, «Создать пакет…», «Проверить», ZIP |
-| **Настройщик симбионта** | Регистрация пакета, проект, рецепты, pressure rules |
+| **Настройщик симбионта** | Регистрация пакета, проект, рецепты, EA с ProbeKey |
 | **Разработчик симбионта** | Гомеостаз, genetic reflexes (Command pattern), G_AD |
 
-Меню: **Проект → Зарегистрированные пакеты…**; **Среда → Рецепты / Давление**.
+Меню: **Проект → Зарегистрированные пакеты…**; **Среда → Рецепты / Метрики среды (EA)**.
 
 ---
 
@@ -85,7 +85,7 @@
 2. **Создать пакет…** (§ 5.1) или ручная сборка (§ 7).
 3. **Проверить** — `contractVersion` должен быть **3.2**.
 4. **Создать проект симбионта** с типом среды.
-5. Рецепты, pressure rules, genetic Level3 (Command).
+5. Рецепты, EA с ProbeKey, genetic Level3 (Command).
 
 ### Сценарий B — пакет передали коллеге
 
@@ -160,7 +160,7 @@ recipes:
 
 **Запрещено:** `expression_pattern_id`, `recommended_trigger_keys`, `genetic_reflex_id`, `influence_action_id`.
 
-Mechanical path и Command-пуск настраиваются **не** в YAML triggers, а в `EnvironmentPressureRules.dat` и `GeneticReflexes.dat`.
+Mechanical path и Command-пуск настраиваются **не** в YAML triggers, а в `InfluenceActions.dat` (ProbeKey) и `GeneticReflexes.dat`.
 
 Формат — [`AdapterContract.md`](AdapterContract.md) § 6–7.
 
@@ -170,7 +170,7 @@ Mechanical path и Command-пуск настраиваются **не** в YAML 
 |------|------------|
 | `handlers-catalog.json` | Handler'ы `invoke` |
 | `recipe-catalog.json` | ID рецептов для редактора |
-| `metric-probes.json` | ProbeKey для `EnvironmentPressureRules.dat` |
+| `metric-probes.json` | ProbeKey для `InfluenceActions.dat` |
 | `command-buffer-policy.json` | Defaults idle-flush: `idle_flush_ms`, `max_tokens`, `max_age_ms` |
 | `recipe-template-catalog.json` | **Опционально:** маски `{PLACEHOLDER}` и имена свойств |
 
@@ -252,7 +252,7 @@ Mechanical path и Command-пуск настраиваются **не** в YAML 
 | Вкладка | Поля v3.2 |
 |---------|-----------|
 | Рецепты | `adaptive_action_id`, `steps` |
-| Давление среды | `EnvironmentPressureRules.dat` (ProbeKey из `metric-probes.json`) |
+| Метрики среды | `InfluenceActions.dat` (ProbeKey из `metric-probes.json`, ID ≥ 50) |
 
 Цепочка runtime: **SW Command → idle-flush → genetic Level3 → G_AD → рецепт**; **метрика → pressure rule → P_i** (mechanical path).
 
@@ -296,7 +296,7 @@ Picker `adaptive_action_id` — из `AdaptiveActions.dat` проекта; id р
 | `recommended_trigger_keys` | **удалить ключ** |
 | `schema/trigger-detect.json` | удалить из пакета |
 | `schema/trigger-catalog.json` | удалить из пакета |
-| `homeostasis_deltas` в trigger | перенести в `EnvironmentPressureRules.dat` (если нужны) |
+| `homeostasis_deltas` в trigger | перенести в `InfluenceActions.dat` (ProbeKey, influences) |
 | `reflex_trigger_command_pattern_id` | `GeneticReflexes.dat` → `command_pattern_ids` |
 
 Подробнее — [`AdapterContract.md`](AdapterContract.md) § 16.
@@ -331,7 +331,7 @@ Picker `adaptive_action_id` — из `AdaptiveActions.dat` проекта; id р
 1. Host: dispatch на `OnPulseCompleted` по `adaptive_action_id`.
 2. **Создать пакет…** → `contractVersion: "3.2"`.
 3. Boot: рецепты с G_AD из `AdaptiveActions.dat`.
-4. Mechanical: `EnvironmentPressureRules.dat` (ProbeKey из `metric-probes.json`).
+4. Mechanical: `InfluenceActions.dat` (ProbeKey из `metric-probes.json`).
 5. Command Save: `GeneticReflexes.dat` → `command_pattern_ids` (`sw:*`); idle-flush из `command-buffer-policy.json`.
 
 ---

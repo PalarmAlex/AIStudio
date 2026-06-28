@@ -659,8 +659,11 @@ namespace AIStudio
 
     private void ShowEnvironmentPressure()
     {
-      var view = new Pages.SymbiontEnv.EnvironmentPressureRulesView();
-      var vm = new EnvironmentPressureRulesViewModel(_gomeostas);
+      var view = new ExterInalInfluencesView();
+      var vm = new ExterInalInfluencesViewModel(
+          _gomeostas,
+          _influenceActionSystem,
+          InfluenceActionsEditorScope.EnvironmentOnly);
       view.DataContext = vm;
       CurrentContent = view;
     }

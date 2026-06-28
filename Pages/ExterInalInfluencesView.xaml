@@ -10,6 +10,7 @@
 
   <UserControl.Resources>
     <converters:IntDictionaryToStringConverter x:Key="IntDictionaryToStringConverter"/>
+    <converters:ProbeKeyDescriptionConverter x:Key="ProbeKeyDescriptionConverter"/>
     <converters:InverseBooleanConverter x:Key="InverseBooleanConverter"/>
     <converters:InverseBooleanToVisibilityConverter x:Key="InverseBooleanToVisibilityConverter"/>
     <converters:ValidationErrorToVisibilityConverter x:Key="ValidationErrorToVisibilityConverter"/>
@@ -120,6 +121,26 @@
             </DataGridTextColumn.CellStyle>
           </DataGridTextColumn>
 
+          <DataGridTextColumn x:Name="ProbeKeyColumn"
+                              Header="Ключ метрики"
+                              Binding="{Binding ProbeKey}"
+                              IsReadOnly="True"
+                              Width="220">
+            <DataGridTextColumn.ElementStyle>
+              <Style TargetType="TextBlock">
+                <Setter Property="ToolTip"
+                        Value="{Binding ProbeKey, Converter={StaticResource ProbeKeyDescriptionConverter}}"/>
+                <EventSetter Event="MouseDown" Handler="ProbeKeyCell_MouseDown"/>
+              </Style>
+            </DataGridTextColumn.ElementStyle>
+            <DataGridTextColumn.HeaderStyle>
+              <Style TargetType="DataGridColumnHeader">
+                <Setter Property="ToolTip"
+                        Value="Ключ из schema/metric-probes.json — связь строки EA с опросом SW.&#x0a;Двойной клик — выбор метрики. Величина давления — в колонке «Воздействие на гомеостаз»."/>
+              </Style>
+            </DataGridTextColumn.HeaderStyle>
+          </DataGridTextColumn>
+
           <DataGridTextColumn Header="Воздействие на гомеостаз" 
                               Binding="{Binding Influences, Converter={StaticResource IntDictionaryToStringConverter}}" 
                               IsReadOnly="True" 
@@ -133,13 +154,14 @@
             <DataGridTextColumn.HeaderStyle>
               <Style TargetType="DataGridColumnHeader">
                 <Setter Property="ToolTip" 
-                    Value="Влияние воздействия на параметры гомеостаза (положительное или отрицательное).&#x0a;Ключ - ID параметра, значение - величина воздействия.&#x0a;ДБ клик открывает окно ввода."/>
+                    Value="Шаблон давления на виталы при плохой метрике (±10 за пульс).&#x0a;ID параметра → величина. Двойной клик — редактор."/>
               </Style>
             </DataGridTextColumn.HeaderStyle>
 
           </DataGridTextColumn>
 
-          <DataGridTextColumn Header="Антагонисты" 
+          <DataGridTextColumn x:Name="AntagonistColumn"
+                              Header="Антагонисты" 
                               Binding="{Binding AntagonistInfluences, Converter={StaticResource ListToStringConverter}}" 
                               IsReadOnly="True" 
                               Width="*">
