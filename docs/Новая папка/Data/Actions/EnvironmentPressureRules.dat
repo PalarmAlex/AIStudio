@@ -1,0 +1,3 @@
+# Формат: RuleId|ProbeKey|Имя|Описание|Influences
+# ProbeKey: ключ пробы метрики среды (сопоставление с contour InputSnapshot)
+# Influences: paramId1:effect1;paramId2:effect2

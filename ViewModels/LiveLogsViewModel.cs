@@ -200,6 +200,8 @@ namespace AIStudio.ViewModels
     public string GetStyleTooltip(string displayBaseStyleID) => _tooltipProvider.GetStyleTooltip(displayBaseStyleID);
     public string GetTriggerTooltip(string displayTriggerStimulusID) =>
         _tooltipProvider.GetTriggerTooltip(displayTriggerStimulusID);
+    public string GetEnvironmentPressureTooltip(string cellRaw, string storedTooltip) =>
+        _tooltipProvider.GetEnvironmentPressureTooltip(cellRaw, storedTooltip);
     public string GetActionsForGeneticReflex(string displayReflexID) =>
         _tooltipProvider.GetActionsForGeneticReflex(displayReflexID);
     public string GetActionsForConditionReflex(string displayReflexID) =>

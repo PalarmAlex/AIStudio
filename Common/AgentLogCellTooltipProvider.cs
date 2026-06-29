@@ -187,6 +187,7 @@ namespace AIStudio.Common
           {
             var allInfluences = _influenceActionSystem.GetAllInfluenceActions();
             var influenceNames = perceptionImage.InfluenceActionsList
+                .Where(actionId => !_influenceActionSystem.IsEnvironmentProbeActionId(actionId))
                 .Select(actionId => allInfluences.FirstOrDefault(a => a.Id == actionId)?.Name ?? $"Воздействие {actionId}")
                 .Where(name => !string.IsNullOrEmpty(name));
             influenceLine = influenceNames.Any() ? string.Join(", ", influenceNames) : "нет";
@@ -233,6 +234,40 @@ namespace AIStudio.Common
         return $"Ошибка загрузки триггера: {ex.Message}";
       }
       return "Нет данных о триггере";
+    }
+
+    /// <summary>Подсказка для колонки «Среда»: описания метрик из справочника.</summary>
+    public string GetEnvironmentPressureTooltip(string cellRaw, string storedTooltip)
+    {
+      if (string.IsNullOrWhiteSpace(cellRaw) || cellRaw.Trim() == "-")
+      {
+        if (!string.IsNullOrWhiteSpace(storedTooltip))
+          return TooltipMultilineText.FormatEnvironmentPressureTooltip(storedTooltip.Trim());
+        return "На этом пульсе давление метрик среды не применялось";
+      }
+      return BuildEnvironmentTooltipFromCell(cellRaw);
+    }
+
+    private string BuildEnvironmentTooltipFromCell(string cellRaw)
+    {
+      var segments = AgentLogEnvironmentPressureSegment.ParseCell(cellRaw);
+      if (segments.Count == 0)
+        return "На этом пульсе давление метрик среды не применялось";
+      var all = _influenceActionSystem.GetAllInfluenceActions();
+      var sb = new StringBuilder();
+      foreach (var seg in segments)
+      {
+        var action = all.FirstOrDefault(a => a.Id == seg.ActionId);
+        string block = TooltipMultilineText.FormatEnvironmentMetricBlock(
+            seg.ActionId,
+            seg.SignedMagnitudeText,
+            action?.Name,
+            action?.Description);
+        if (sb.Length > 0)
+          sb.AppendLine();
+        sb.Append(block);
+      }
+      return sb.ToString().TrimEnd();
     }
 
     public string GetActionsForGeneticReflex(string displayReflexID)

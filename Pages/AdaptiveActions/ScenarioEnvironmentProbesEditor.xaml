@@ -148,12 +148,10 @@
                   <StackPanel Grid.Column="1" Orientation="Horizontal">
                     <ToggleButton Content="+"
                                   Style="{StaticResource ProbePressureToggleStyle}"
-                                  IsChecked="{Binding IsPressure, Mode=TwoWay}"
-                                  ToolTip="Давление метрики (+)"/>
+                                  IsChecked="{Binding IsPressure, Mode=TwoWay}"/>
                     <ToggleButton Content="−"
                                   Style="{StaticResource ProbeReleaseToggleStyle}"
-                                  IsChecked="{Binding IsRelease, Mode=TwoWay}"
-                                  ToolTip="Отпускание метрики (−)"/>
+                                  IsChecked="{Binding IsRelease, Mode=TwoWay}"/>
                   </StackPanel>
                   <Button Grid.Column="2"
                           Content="✕"

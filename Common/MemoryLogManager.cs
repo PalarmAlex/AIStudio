@@ -174,7 +174,9 @@ namespace AIStudio.Common
                        bool informationEnvironmentDanger = false,
                        bool informationEnvironmentVeryActual = false,
                        int? automatizmUsefulnessAtSnapshot = null,
-                       string backgroundThinkingCyclesJson = null)
+                       string backgroundThinkingCyclesJson = null,
+                       string environmentPressureCell = null,
+                       string environmentPressureTooltip = null)
     {
       if (_disposed) return;
       var entry = CreateAgentLogEntry(className, method, pulse, baseId, baseStyleId, triggerStimulusId,
@@ -182,7 +184,7 @@ namespace AIStudio.Common
           automatizmChainInfo, thinkingLevel, thinkingLevelSuccess, thinkingThemeTypeId,
           thinkingThemeTooltip, mainThinkingCycleId, mainThinkingCycleTooltip, mainThinkingCycleTaskStatus,
           informationEnvironmentDanger, informationEnvironmentVeryActual, automatizmUsefulnessAtSnapshot,
-          backgroundThinkingCyclesJson);
+          backgroundThinkingCyclesJson, environmentPressureCell, environmentPressureTooltip);
       AddLogEntry(entry);
     }
 
@@ -198,9 +200,10 @@ namespace AIStudio.Common
         int? thinkingLevel, bool? thinkingLevelSuccess, int? thinkingThemeTypeId, string thinkingThemeTooltip,
         int? mainThinkingCycleId, string mainThinkingCycleTooltip, string mainThinkingCycleTaskStatus,
         bool informationEnvironmentDanger, bool informationEnvironmentVeryActual,
-        int? automatizmUsefulnessAtSnapshot = null, string backgroundThinkingCyclesJson = null)
+        int? automatizmUsefulnessAtSnapshot = null, string backgroundThinkingCyclesJson = null,
+        string environmentPressureCell = null, string environmentPressureTooltip = null)
     {
-      return new LogEntry
+      var entry = new LogEntry
       {
         ClassName = className ?? string.Empty,
         Method = method ?? string.Empty,
@@ -227,8 +230,12 @@ namespace AIStudio.Common
         InformationEnvironmentDanger = informationEnvironmentDanger,
         InformationEnvironmentVeryActual = informationEnvironmentVeryActual,
         AutomatizmUsefulnessAtSnapshot = automatizmUsefulnessAtSnapshot,
+        EnvironmentPressureCell = string.IsNullOrWhiteSpace(environmentPressureCell) ? null : environmentPressureCell.Trim(),
+        EnvironmentPressureTooltip = string.IsNullOrWhiteSpace(environmentPressureTooltip) ? null : environmentPressureTooltip.Trim(),
         Timestamp = DateTime.Now
       };
+      entry.RefreshEnvironmentPressureSegments();
+      return entry;
     }
 
     private sealed class AgentDisplayLogSink : ILogWriter
@@ -246,7 +253,8 @@ namespace AIStudio.Common
           string thinkingThemeTooltip = null, int? mainThinkingCycleId = null,
           string mainThinkingCycleTooltip = null, string mainThinkingCycleTaskStatus = null,
           bool informationEnvironmentDanger = false, bool informationEnvironmentVeryActual = false,
-          int? automatizmUsefulnessAtSnapshot = null, string backgroundThinkingCyclesJson = null)
+          int? automatizmUsefulnessAtSnapshot = null, string backgroundThinkingCyclesJson = null,
+          string environmentPressureCell = null, string environmentPressureTooltip = null)
       {
         if (_owner._disposed)
           return;
@@ -255,7 +263,7 @@ namespace AIStudio.Common
             automatizmChainInfo, thinkingLevel, thinkingLevelSuccess, thinkingThemeTypeId,
             thinkingThemeTooltip, mainThinkingCycleId, mainThinkingCycleTooltip, mainThinkingCycleTaskStatus,
             informationEnvironmentDanger, informationEnvironmentVeryActual, automatizmUsefulnessAtSnapshot,
-            backgroundThinkingCyclesJson);
+            backgroundThinkingCyclesJson, environmentPressureCell, environmentPressureTooltip);
         _owner.UpsertAgentDisplayLogEntry(entry);
       }
 
@@ -1098,6 +1106,25 @@ namespace AIStudio.Common
       public string DisplayVeryActual => InformationEnvironmentVeryActual ? "1" : "0";
       /// <summary>Текст ячейки живых логов: «!» если актуально, иначе «-».</summary>
       public string DisplayVeryActualCell => InformationEnvironmentVeryActual ? "!" : "-";
+      /// <summary>Ячейка «Среда» (id:величина) из лога.</summary>
+      public string EnvironmentPressureCell { get; set; }
+      /// <summary>Подсказка ячейки «Среда».</summary>
+      public string EnvironmentPressureTooltip { get; set; }
+      /// <summary>Отображение колонки «Среда».</summary>
+      public string DisplayEnvironmentPressure =>
+          string.IsNullOrWhiteSpace(EnvironmentPressureCell) ? "-" : EnvironmentPressureCell;
+      /// <summary>Сегменты колонки «Среда» для раскраски по знаку давления.</summary>
+      public ObservableCollection<AgentLogEnvironmentPressureSegment> EnvironmentPressureSegments { get; } =
+          new ObservableCollection<AgentLogEnvironmentPressureSegment>();
+      public int EnvironmentPressureSegmentCount => EnvironmentPressureSegments.Count;
+      internal void RefreshEnvironmentPressureSegments()
+      {
+        EnvironmentPressureSegments.Clear();
+        foreach (var seg in AgentLogEnvironmentPressureSegment.ParseCell(EnvironmentPressureCell))
+          EnvironmentPressureSegments.Add(seg);
+        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(EnvironmentPressureSegmentCount)));
+        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(DisplayEnvironmentPressure)));
+      }
       /// <summary>
       /// Строковое представление результата УМ для привязок в шаблоне (избегаем bool? в XAML): "True", "False" или ""
       /// </summary>

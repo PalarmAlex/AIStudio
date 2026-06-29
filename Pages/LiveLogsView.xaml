@@ -11,6 +11,7 @@
   <UserControl.Resources>
     <converters:StyleTooltipMultiConverter x:Key="StyleTooltipConverter"/>
     <converters:TriggerTooltipMultiConverter x:Key="TriggerTooltipConverter"/>
+    <converters:EnvironmentPressureTooltipMultiConverter x:Key="EnvironmentPressureTooltipConverter"/>
     <converters:ActionsForGeneticReflexConverter x:Key="ActionsForGeneticReflexConverter"/>
     <converters:ActionsForConditionReflexConverter x:Key="ActionsForConditionReflexConverter"/>
     <converters:AutomatizmTooltipMultiConverter x:Key="AutomatizmTooltipConverter"/>
@@ -206,6 +207,27 @@
             <Binding Path="LogsViewModel" RelativeSource="{RelativeSource AncestorType={x:Type pages:LiveLogsToolTipScope}}"/>
             <Binding Path="DisplayTriggerStimulusID"/>
           </MultiBinding>
+        </Setter.Value>
+      </Setter>
+    </Style>
+
+    <!-- Стиль для ячейки Среда -->
+    <Style x:Key="EnvironmentPressureCellStyle" TargetType="DataGridCell" BasedOn="{StaticResource MatrixCellStyle}">
+      <Setter Property="ToolTip">
+        <Setter.Value>
+          <ToolTip MaxWidth="420">
+            <TextBlock TextWrapping="Wrap"
+                       FontFamily="Consolas, Courier New"
+                       FontSize="12">
+              <TextBlock.Text>
+                <MultiBinding Converter="{StaticResource EnvironmentPressureTooltipConverter}">
+                  <Binding Path="LogsViewModel" RelativeSource="{RelativeSource AncestorType={x:Type pages:LiveLogsToolTipScope}}"/>
+                  <Binding Path="EnvironmentPressureCell"/>
+                  <Binding Path="EnvironmentPressureTooltip"/>
+                </MultiBinding>
+              </TextBlock.Text>
+            </TextBlock>
+          </ToolTip>
         </Setter.Value>
       </Setter>
     </Style>
@@ -465,9 +487,64 @@
             <DataGridTextColumn.Header>
               <DataGridColumnHeader Style="{StaticResource MatrixHeaderStyle}" 
                             Content="Триггер"
-                            ToolTip="ID образа пускового стимула"/>
+                            ToolTip="ID образа пускового стимула (без метрик среды)"/>
             </DataGridTextColumn.Header>
           </DataGridTextColumn>
+
+          <DataGridTemplateColumn Width="92" CellStyle="{StaticResource EnvironmentPressureCellStyle}">
+            <DataGridTemplateColumn.Header>
+              <DataGridColumnHeader Style="{StaticResource MatrixHeaderStyle}" Content="Среда">
+                <DataGridColumnHeader.ToolTip>
+                  <ToolTip MaxWidth="380">
+                    <TextBlock TextWrapping="Wrap" FontFamily="Consolas, Courier New" FontSize="12"
+                               Text="Давление метрик внешней среды на пульсе: id:величина из справочника. «+» — давление, «−» — отпускание."/>
+                  </ToolTip>
+                </DataGridColumnHeader.ToolTip>
+              </DataGridColumnHeader>
+            </DataGridTemplateColumn.Header>
+            <DataGridTemplateColumn.CellTemplate>
+              <DataTemplate>
+                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                  <TextBlock Text="-"
+                    FontFamily="Consolas, Courier New"
+                    FontSize="12"
+                    VerticalAlignment="Center"
+                    Visibility="{Binding EnvironmentPressureSegmentCount, Converter={StaticResource MainCycleSegmentCountVisibility}}"/>
+                  <ItemsControl ItemsSource="{Binding EnvironmentPressureSegments}"
+                    Visibility="{Binding EnvironmentPressureSegmentCount, Converter={StaticResource MainCycleSegmentCountVisibility}, ConverterParameter=Invert}">
+                    <ItemsControl.ItemsPanel>
+                      <ItemsPanelTemplate>
+                        <StackPanel Orientation="Horizontal"/>
+                      </ItemsPanelTemplate>
+                    </ItemsControl.ItemsPanel>
+                    <ItemsControl.ItemTemplate>
+                      <DataTemplate>
+                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                          <TextBlock Text=", "
+                            FontFamily="Consolas, Courier New"
+                            FontSize="12"
+                            Foreground="#FFB8FFB8"
+                            VerticalAlignment="Center"
+                            Visibility="{Binding ShowLeadingComma, Converter={StaticResource BooleanToVisibilityConverter}}"/>
+                          <Border Background="{Binding CellBackground}"
+                                  Padding="3,1"
+                                  CornerRadius="1"
+                                  VerticalAlignment="Center">
+                            <TextBlock Text="{Binding DisplayText}"
+                              FontFamily="Consolas, Courier New"
+                              FontSize="12"
+                              FontWeight="Bold"
+                              Foreground="#FF00FF00"
+                              VerticalAlignment="Center"/>
+                          </Border>
+                        </StackPanel>
+                      </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                  </ItemsControl>
+                </StackPanel>
+              </DataTemplate>
+            </DataGridTemplateColumn.CellTemplate>
+          </DataGridTemplateColumn>
 
           <DataGridTextColumn Binding="{Binding DisplayOrUm}" 
                     Width="56"

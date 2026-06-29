@@ -244,7 +244,7 @@ namespace AIStudio.Common
               ? ((bool)umOkToken).ToString()
               : (string)umOkToken;
         ParseOrUm(or, um, umOk, out int? ort, out int? tl, out bool? tls);
-        return new LogEntry
+        var entry = new LogEntry
         {
           Timestamp = timestamp,
           ClassName = (string)jo["Объект"] ?? "ResearchLogger",
@@ -266,8 +266,12 @@ namespace AIStudio.Common
           BackgroundThinkingCyclesJson = (string)jo["ЦиклыФ_json"],
           InformationEnvironmentDanger = (string)jo["Опасно"] == "1",
           InformationEnvironmentVeryActual = (string)jo["Актуально"] == "1",
-          AutomatizmUsefulnessAtSnapshot = ParseNullableInt((string)jo["Полезность"])
+          AutomatizmUsefulnessAtSnapshot = ParseNullableInt((string)jo["Полезность"]),
+          EnvironmentPressureCell = NullIfEmpty((string)jo["Среда"]),
+          EnvironmentPressureTooltip = NullIfEmpty((string)jo["Среда_подсказка"])
         };
+        entry.RefreshEnvironmentPressureSegments();
+        return entry;
       }
       catch
       {
@@ -314,12 +318,15 @@ namespace AIStudio.Common
         BackgroundThinkingCyclesJson = NullIfEmpty(Get("ЦиклыФ_json")),
         InformationEnvironmentDanger = Get("Опасно") == "1",
         InformationEnvironmentVeryActual = Get("Актуально") == "1",
-        AutomatizmUsefulnessAtSnapshot = ParseNullableInt(Get("Полезность"))
+        AutomatizmUsefulnessAtSnapshot = ParseNullableInt(Get("Полезность")),
+        EnvironmentPressureCell = NullIfEmpty(Get("Среда")),
+        EnvironmentPressureTooltip = NullIfEmpty(Get("Среда_подсказка"))
       };
       if (string.IsNullOrEmpty(entry.ClassName))
         entry.ClassName = "ResearchLogger";
       if (string.IsNullOrEmpty(entry.Method))
         entry.Method = "LogSystemState";
+      entry.RefreshEnvironmentPressureSegments();
       return entry;
     }
 

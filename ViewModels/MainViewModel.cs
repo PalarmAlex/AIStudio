@@ -342,6 +342,7 @@ namespace AIStudio
       if (CurrentContent is AgentView agentView)
       {
         _agentViewModel = new AgentViewModel(_gomeostas, () => _isidaContext.CancelWaitingPeriodAndResetMirror(), UpdateAgentState);
+        WireEnvironmentProbeLogCallback();
         agentView.DataContext = _agentViewModel;
       }
     }
@@ -2095,6 +2096,7 @@ namespace AIStudio
     {
       var agentView = new AgentView();
       _agentViewModel = new AgentViewModel(_gomeostas, () => _isidaContext.CancelWaitingPeriodAndResetMirror(), UpdateAgentState);
+      WireEnvironmentProbeLogCallback();
       agentView.DataContext = _agentViewModel;
       CurrentContent = agentView;
       UpdateAgentState();
@@ -2385,6 +2387,22 @@ namespace AIStudio
     {
       SetupPulseHandlers();
       GlobalTimer.PulsationStateChanged += OnPulsationStateChangedForScenario;
+    }
+
+    private void WireEnvironmentProbeLogCallback()
+    {
+      _agentViewModel?.AgentPultViewModel?.SetEnvironmentProbeLogCallback(FlushEnvironmentProbeLogNow);
+    }
+
+    private void FlushEnvironmentProbeLogNow()
+    {
+      if (IsAgentDead || _researchLogger == null)
+        return;
+      int pulse = GlobalTimer.GlobalPulsCount;
+      if (pulse <= 0)
+        return;
+      _researchLogger.LogSystemState(pulse);
+      _researchLogger.FlushBufferedAgentRowToMemoryNow();
     }
 
     private void SetupPulseHandlers()

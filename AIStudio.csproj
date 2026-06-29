@@ -116,6 +116,7 @@
     <Compile Include="Common\AntagonistItem.cs" />
     <Compile Include="Common\AntagonistManager.cs" />
     <Compile Include="Common\DataGridExtensions.cs" />
+    <Compile Include="Common\AgentLogEnvironmentPressureSegment.cs" />
     <Compile Include="Common\AgentLogMainCycleLiveSegment.cs" />
     <Compile Include="Common\AgentLogFileSessions.cs" />
     <Compile Include="Common\CsvLogFileSessionReader.cs" />
@@ -180,6 +181,7 @@
     <Compile Include="Converters\PerceptionImageIdToTextConverter.cs" />
     <Compile Include="Converters\StyleBackgroundConverter.cs" />
     <Compile Include="Converters\StyleTooltipMultiConverter.cs" />
+    <Compile Include="Converters\EnvironmentPressureTooltipMultiConverter.cs" />
     <Compile Include="Converters\TriggerTooltipMultiConverter.cs" />
     <Compile Include="Converters\UsefulnessToColorConverter.cs" />
     <Compile Include="Converters\WordIdToTextConverter.cs" />

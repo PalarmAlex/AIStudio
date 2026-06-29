@@ -1,0 +1,55 @@
+{
+  "schemaVersion": "3.2",
+  "probes": [
+    {
+      "key": "Velum.Solid.Material",
+      "label": "Материал",
+      "description": "Деталь: материал активной конфигурации. Сборка: доля деталей с заданным материалом (шкала 50…100)."
+    },
+    {
+      "key": "Velum.Solid.Sketch.NoBadIntersections",
+      "label": "Эскиз: пересечение и стыки сущностей",
+      "description": "Среднее по эскизам детали: нет плохих пересечений и стыков сущностей (CheckSketchFeatureStatus)."
+    },
+    {
+      "key": "Velum.Solid.Sketch.NoDisjointContours",
+      "label": "Эскиз: разрозненные контуры",
+      "description": "Среднее по эскизам детали: нет разрозненных контуров."
+    },
+    {
+      "key": "Velum.Solid.Sketch.ContourProfile",
+      "label": "Эскиз: замыкание и профиль контура",
+      "description": "Среднее по эскизам детали: контур замкнут, профиль корректен."
+    },
+    {
+      "key": "Velum.Solid.Sketch.FullyDefined",
+      "label": "Эскиз: полная фиксация (ограничения)",
+      "description": "Среднее по эскизам детали: эскиз полностью определён (Fully Defined)."
+    },
+    {
+      "key": "Velum.Solid.Sketch.NoZeroLength",
+      "label": "Эскиз: сегменты без нулевой длины",
+      "description": "Среднее по эскизам детали: нет сегментов нулевой длины."
+    },
+    {
+      "key": "Velum.Solid.Assembly.WhatsWrong.Critical",
+      "label": "Сборка: критические «Что не так»",
+      "description": "Активная сборка: штраф по критическим строкам списка GetWhatsWrong SolidWorks."
+    },
+    {
+      "key": "Velum.Solid.Assembly.WhatsWrong.Warnings",
+      "label": "Сборка: предупреждения «Что не так»",
+      "description": "Активная сборка: штраф по строкам-предупреждениям GetWhatsWrong SolidWorks."
+    },
+    {
+      "key": "Velum.Solid.Assembly.Resolve",
+      "label": "Сборка: разрешение компонентов",
+      "description": "Активная сборка: статус разрешения компонентов (GetResolveStatus)."
+    },
+    {
+      "key": "Velum.Solid.Document.UnsavedNew",
+      "label": "Документ: несохранённый Part/Assembly",
+      "description": "100 — путь на диске задан (сохранён); 50 — Part/Assembly без пути; иначе 100 (нейтрально)."
+    }
+  ]
+}

@@ -1,0 +1,10 @@
+{
+  "schemaVersion": "2.0",
+  "triggers": [
+    {
+      "id": "demo.on_save",
+      "label": "После сохранения",
+      "description": "Событие document_saved → EA 2"
+    }
+  ]
+}

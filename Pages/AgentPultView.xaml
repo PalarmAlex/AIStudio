@@ -309,8 +309,15 @@
                 <CheckBox Content="{Binding Name}"
                           IsChecked="{Binding IsSelected}"
                           IsEnabled="{Binding IsEnabled}"
-                          Margin="0,2"
-                          ToolTip="{Binding Description}"/>
+                          Margin="0,2">
+                  <CheckBox.ToolTip>
+                    <ToolTip MaxWidth="420">
+                      <TextBlock Text="{Binding Description}"
+                                 TextWrapping="Wrap"
+                                 FontSize="11"/>
+                    </ToolTip>
+                  </CheckBox.ToolTip>
+                </CheckBox>
               </DataTemplate>
             </ItemsControl.ItemTemplate>
           </ItemsControl>
@@ -329,19 +336,24 @@
                                VerticalAlignment="Center"
                                TextTrimming="CharacterEllipsis"
                                FontSize="12"
-                               Margin="0,0,4,0"
-                               ToolTip="{Binding Description}"/>
+                               Margin="0,0,4,0">
+                      <TextBlock.ToolTip>
+                        <ToolTip MaxWidth="420">
+                          <TextBlock Text="{Binding Description}"
+                                     TextWrapping="Wrap"
+                                     FontSize="11"/>
+                        </ToolTip>
+                      </TextBlock.ToolTip>
+                    </TextBlock>
                     <StackPanel Grid.Column="1"
                                 Orientation="Horizontal"
                                 VerticalAlignment="Center">
                       <ToggleButton Content="+"
                                     Style="{StaticResource ProbePressureToggleStyle}"
-                                    IsChecked="{Binding IsPressure, Mode=TwoWay}"
-                                    ToolTip="Давление метрики (+): сдвиг параметров, как при плохой метрике в Velum"/>
+                                    IsChecked="{Binding IsPressure, Mode=TwoWay}"/>
                       <ToggleButton Content="−"
                                     Style="{StaticResource ProbeReleaseToggleStyle}"
-                                    IsChecked="{Binding IsRelease, Mode=TwoWay}"
-                                    ToolTip="Отпускание метрики (−): возврат параметров к норме, как при улучшении метрики в Velum"/>
+                                    IsChecked="{Binding IsRelease, Mode=TwoWay}"/>
                       <Button Content="✕"
                               Style="{StaticResource ProbeResetButtonStyle}"
                               Click="ProbeReset_Click"/>

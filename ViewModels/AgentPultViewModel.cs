@@ -1,6 +1,7 @@
 using AIStudio.Common;
 using AIStudio.Common.SymbiontEnv;
 using ISIDA.Actions;
+using ISIDA.Common;
 using ISIDA.Gomeostas;
 using ISIDA.Reflexes;
 using ISIDA.Scenarios;
@@ -18,7 +19,6 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Threading;
 using ISIDA.Psychic.Automatism;
-using ISIDA.Common;
 
 namespace AIStudio.ViewModels
 {
@@ -424,6 +424,12 @@ namespace AIStudio.ViewModels
       GlobalTimer.PulsationStateChanged += OnPulsationStateChanged;
     }
 
+    /// <summary>Сразу пишет строку лога с колонкой «Среда» на текущем пульсе (после клика по пульту).</summary>
+    public void SetEnvironmentProbeLogCallback(Action callback)
+    {
+      _virtualProbePressureApplier.AfterEnvironmentProbeRecorded = callback;
+    }
+
     private void OnPulsationStateChanged()
     {
       if (!GlobalTimer.IsPulsationRunning)
@@ -734,7 +740,7 @@ namespace AIStudio.ViewModels
         {
           Id = action.Id,
           Name = action.Name,
-          Description = action.Description,
+          Description = TooltipMultilineText.Format(action.Description),
           IsSelected = false,
           AntagonistIds = new List<int>(action.AntagonistInfluences ?? new List<int>())
         };
@@ -753,7 +759,7 @@ namespace AIStudio.ViewModels
         {
           Id = action.Id,
           Name = action.Name,
-          Description = action.Description,
+          Description = TooltipMultilineText.Format(action.Description),
           IsPressure = false,
           IsRelease = false
         });
