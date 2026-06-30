@@ -34,12 +34,14 @@ namespace AIStudio.Pages
 
     private void UpdateColumnVisibility()
     {
-      if (AntagonistColumn == null || ProbeKeyColumn == null)
+      if (AntagonistColumn == null || ProbeKeyColumn == null || ActiveColumn == null)
         return;
       bool showAntagonists = Vm == null || Vm.ShowAntagonistColumn;
       AntagonistColumn.Visibility = showAntagonists ? Visibility.Visible : Visibility.Collapsed;
       bool showProbeKey = Vm != null && Vm.ShowProbeKeyColumn;
       ProbeKeyColumn.Visibility = showProbeKey ? Visibility.Visible : Visibility.Collapsed;
+      bool showActive = Vm != null && Vm.ShowActiveColumn;
+      ActiveColumn.Visibility = showActive ? Visibility.Visible : Visibility.Collapsed;
     }
 
     private void OnLoaded(object sender, RoutedEventArgs e)

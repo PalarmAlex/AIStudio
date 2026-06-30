@@ -225,12 +225,12 @@ namespace AIStudio.Common.Adapters
           {
             if (!(token is JObject item))
               continue;
-            string placeholderToken = item["token"]?.ToString();
+            string placeholderToken = ReadJsonString(item["token"]);
             if (string.IsNullOrWhiteSpace(placeholderToken))
               continue;
             target.Placeholders.Add(new AdapterSchemaTemplatePlaceholder
             {
-              Token = placeholderToken.Trim(),
+              Token = RecipeTemplateTokenNormalizer.NormalizeForSolidWorks(placeholderToken.Trim()),
               Label = item["label"]?.ToString(),
               Description = item["description"]?.ToString()
             });
@@ -340,6 +340,15 @@ namespace AIStudio.Common.Adapters
       }
 
       return options.Count > 0 ? options : null;
+    }
+
+    private static string ReadJsonString(JToken token)
+    {
+      if (token == null)
+        return null;
+      if (token.Type == JTokenType.String)
+        return token.Value<string>();
+      return token.ToString();
     }
   }
 }

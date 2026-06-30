@@ -112,6 +112,19 @@
         <DataGrid.Columns>
           <DataGridTextColumn Header="ID" Binding="{Binding Id}" Width="50" IsReadOnly="True"/>
           <DataGridTextColumn Header="Наименование" Binding="{Binding Name}" Width="200"/>
+
+          <DataGridCheckBoxColumn x:Name="ActiveColumn"
+                                  Header="Активна"
+                                  Binding="{Binding IsActive, Mode=TwoWay}"
+                                  Width="70">
+            <DataGridCheckBoxColumn.HeaderStyle>
+              <Style TargetType="DataGridColumnHeader">
+                <Setter Property="ToolTip"
+                        Value="Включена ли опрос метрики и давление на виталы. Отключённые метрики не участвуют в runtime."/>
+              </Style>
+            </DataGridCheckBoxColumn.HeaderStyle>
+          </DataGridCheckBoxColumn>
+
           <DataGridTextColumn Header="Описание" Binding="{Binding Description, Mode=TwoWay}" Width="300">
             <DataGridTextColumn.CellStyle>
               <Style TargetType="DataGridCell" BasedOn="{StaticResource {x:Type DataGridCell}}">

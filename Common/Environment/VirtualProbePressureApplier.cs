@@ -132,7 +132,8 @@ namespace AIStudio.Common.SymbiontEnv
     }
 
     private IEnumerable<InfluenceActionSystem.GomeostasisInfluenceAction> EnumerateEnvironmentProbeActions() =>
-        _influenceActionSystem.GetAllInfluenceActions().Where(a => a.IsEnvironmentProbeAction);
+        _influenceActionSystem.GetAllInfluenceActions()
+            .Where(a => a.IsEnvironmentProbeAction && a.IsActive);
 
     private List<EnvironmentProbePressureRule> BuildPressureRules()
     {

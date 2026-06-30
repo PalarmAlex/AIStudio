@@ -104,6 +104,7 @@
     <Compile Include="Common\Adapters\AdapterPackageBuilder.cs" />
     <Compile Include="Common\Adapters\AdapterSdkRuntime.cs" />
     <Compile Include="Common\Adapters\AdapterSchemaLoader.cs" />
+    <Compile Include="Common\Adapters\RecipeTemplateTokenNormalizer.cs" />
     <Compile Include="Common\Adapters\AdapterSchemaModels.cs" />
     <Compile Include="Common\Adapters\AdapterSelectionItem.cs" />
     <Compile Include="Common\Adapters\EnvironmentPackageSelectionItem.cs" />
@@ -117,6 +118,7 @@
     <Compile Include="Common\AntagonistManager.cs" />
     <Compile Include="Common\DataGridExtensions.cs" />
     <Compile Include="Common\AgentLogEnvironmentPressureSegment.cs" />
+    <Compile Include="Common\AgentLogEnvironmentPressureTooltipBuilder.cs" />
     <Compile Include="Common\AgentLogMainCycleLiveSegment.cs" />
     <Compile Include="Common\AgentLogFileSessions.cs" />
     <Compile Include="Common\CsvLogFileSessionReader.cs" />

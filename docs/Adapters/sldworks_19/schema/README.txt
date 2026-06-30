@@ -1,7 +1,8 @@
 Каталог schema\ — машиночитаемое описание возможностей адаптера для AIStudio (contract 3.2).
 
 Студия читает эти JSON при редактировании проекта симбионта (редакторы «Среда», combobox ProbeKey
-в справочнике «Давление среды на виталы» — EnvironmentPressureRules.dat). Runtime host DLL для этого не нужен.
+в справочнике воздействий «Давление среды на виталы» — InfluenceActions.dat, поле ProbeKey для ID ≥ 50).
+Runtime host DLL для этого не нужен.
 
 Версия формата: schemaVersion 3.2 (совпадает с contractVersion 3.2 в manifest.json).
 
@@ -23,8 +24,22 @@ command-buffer-policy.json
   Поля: idle_flush_ms, max_tokens, max_age_ms.
 
 metric-probes.json
-  Ключи ProbeKey для EnvironmentPressureRules.dat.
+  Ключи ProbeKey для InfluenceActions.dat (Velum host, ID ≥ 50).
   Массив probes[]: key (обязателен), label, description.
+
+  Актуальные ключи (sldworks_19 / Velum):
+    Velum.Solid.Material
+    Velum.Solid.Sketch.NoBadIntersections
+    Velum.Solid.Sketch.NoDisjointContours
+    Velum.Solid.Sketch.ContourProfile
+    Velum.Solid.Sketch.FullyDefined
+    Velum.Solid.Sketch.NoZeroLength
+    Velum.Solid.Document.UnsavedNew
+
+  Удалены (runtime Velum их не опрашивает):
+    Velum.Solid.Assembly.WhatsWrong.Critical
+    Velum.Solid.Assembly.WhatsWrong.Warnings
+    Velum.Solid.Assembly.Resolve
 
 Опциональный файл:
 
@@ -37,9 +52,24 @@ recipe-template-catalog.json
   - type: invoke — handler + flat-ключи из argsSchema
   - type: comment — text (пропускается runtime)
 
+Поведение на сборке
+-------------------
+
+Метрики материала и эскизов — пробы уровня детали, не обход дерева сборки.
+
+  • Открытая деталь (SLDPRT) — опрашиваются материал, эскизы и «Документ не сохранён».
+  • Активна сборка без редактирования компонента — только «Документ не сохранён» для файла сборки;
+    материал и эскизы не дают значения (пропуск / нейтрально).
+  • Сборка с компонентом в режиме редактирования (Edit Target, правка из дерева сборки) —
+    материал и эскизы считаются по редактируемой детали (AssemblyDoc.GetEditTarget).
+
+Формулировки «проверяемая деталь» и «режим редактирования в сборке» в описаниях проб
+отражают это поведение. Агрегация по всем деталям сборки не выполняется.
+
 Удалено (contract 3.2):
   trigger-detect.json, trigger-catalog.json, expression-pattern-catalog.json.
   EnvironmentTriggers.yaml; expression_pattern_id; recommended_trigger_keys.
+  Velum.Solid.Assembly.* (метрики GetWhatsWrong / Resolve по дереву сборки).
 
 Правило
 -------

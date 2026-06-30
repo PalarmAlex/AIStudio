@@ -1016,7 +1016,10 @@ namespace AIStudio.Common
       /// <summary>
       /// Отформатированный идентификатор условного рефлекса для отображения в UI
       /// </summary>
-      public string DisplayConditionReflexID => ConditionReflexID?.ToString() ?? "-";
+      public string DisplayConditionReflexID =>
+          ConditionReflexID.HasValue && ConditionReflexID.Value > 0
+              ? ConditionReflexID.Value.ToString()
+              : "-";
       /// <summary>
       /// Отформатированный идентификатор автоматизма для отображения в UI
       /// </summary>
@@ -1117,13 +1120,31 @@ namespace AIStudio.Common
       public ObservableCollection<AgentLogEnvironmentPressureSegment> EnvironmentPressureSegments { get; } =
           new ObservableCollection<AgentLogEnvironmentPressureSegment>();
       public int EnvironmentPressureSegmentCount => EnvironmentPressureSegments.Count;
+      /// <summary>Подсветка ячейки «Среда»: None / Positive / Negative.</summary>
+      public string EnvironmentPressureHighlight { get; private set; } = "None";
+      /// <summary>Текст подсказки ячейки «Среда» (имя метрики, id:величина, описание).</summary>
+      public string EnvironmentPressureDisplayTooltip { get; private set; } = string.Empty;
       internal void RefreshEnvironmentPressureSegments()
       {
         EnvironmentPressureSegments.Clear();
+        bool hasPositive = false;
+        bool hasNegative = false;
         foreach (var seg in AgentLogEnvironmentPressureSegment.ParseCell(EnvironmentPressureCell))
+        {
           EnvironmentPressureSegments.Add(seg);
+          if (seg.SignedMagnitude > 0)
+            hasPositive = true;
+          else if (seg.SignedMagnitude < 0)
+            hasNegative = true;
+        }
+        EnvironmentPressureHighlight = hasPositive ? "Positive" : hasNegative ? "Negative" : "None";
+        EnvironmentPressureDisplayTooltip = AgentLogEnvironmentPressureTooltipBuilder.Build(
+            EnvironmentPressureCell,
+            EnvironmentPressureTooltip);
         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(EnvironmentPressureSegmentCount)));
         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(DisplayEnvironmentPressure)));
+        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(EnvironmentPressureHighlight)));
+        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(EnvironmentPressureDisplayTooltip)));
       }
       /// <summary>
       /// Строковое представление результата УМ для привязок в шаблоне (избегаем bool? в XAML): "True", "False" или ""

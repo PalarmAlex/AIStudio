@@ -161,7 +161,12 @@ namespace AIStudio.ViewModels.SymbiontEnv
           return false;
         }
         if (!string.IsNullOrWhiteSpace(row.Value))
-          values[row.Key] = row.Value.Trim();
+        {
+          string trimmed = row.Value.Trim();
+          if (row.IsTemplateField)
+            trimmed = RecipeTemplateTokenNormalizer.NormalizeForSolidWorks(trimmed);
+          values[row.Key] = trimmed;
+        }
       }
 
       ValuesCommitted?.Invoke(values);
@@ -202,9 +207,10 @@ namespace AIStudio.ViewModels.SymbiontEnv
       if (dialog.ShowDialog() != true || string.IsNullOrWhiteSpace(dialog.SelectedValue))
         return;
 
+      string inserted = RecipeTemplateTokenNormalizer.NormalizeForSolidWorks(dialog.SelectedValue);
       row.Value = string.IsNullOrWhiteSpace(row.Value)
-          ? dialog.SelectedValue
-          : row.Value + dialog.SelectedValue;
+          ? inserted
+          : row.Value + inserted;
       NotifyParameterChanged();
     }
 
@@ -303,6 +309,8 @@ namespace AIStudio.ViewModels.SymbiontEnv
         string value = string.Empty;
         if (existing.TryGetValue(arg.Key, out string existingValue))
           value = existingValue ?? string.Empty;
+        if (IsTemplateArg(arg))
+          value = RecipeTemplateTokenNormalizer.NormalizeForSolidWorks(value);
         var row = new SchemaParamRow
         {
           Key = arg.Key,
@@ -392,6 +400,16 @@ namespace AIStudio.ViewModels.SymbiontEnv
       if (descriptionText.Length > 0)
         return descriptionText;
       return labelText;
+    }
+
+    private static bool IsTemplateArg(AdapterSchemaHandlerArg arg)
+    {
+      if (arg == null)
+        return false;
+      if (string.Equals(arg.EditorHint, AdapterSchemaEditorHints.TemplatePlaceholder, StringComparison.OrdinalIgnoreCase))
+        return true;
+      return string.IsNullOrWhiteSpace(arg.EditorHint)
+          && string.Equals(arg.Key, "template", StringComparison.OrdinalIgnoreCase);
     }
 
     private void OnPropertyChanged([CallerMemberName] string propertyName = null)

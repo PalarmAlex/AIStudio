@@ -213,20 +213,22 @@
 
     <!-- Стиль для ячейки Среда -->
     <Style x:Key="EnvironmentPressureCellStyle" TargetType="DataGridCell" BasedOn="{StaticResource MatrixCellStyle}">
+      <Style.Triggers>
+        <DataTrigger Binding="{Binding EnvironmentPressureHighlight}" Value="Positive">
+          <Setter Property="Background" Value="#4000FF00"/>
+        </DataTrigger>
+        <DataTrigger Binding="{Binding EnvironmentPressureHighlight}" Value="Negative">
+          <Setter Property="Background" Value="#40FF0000"/>
+        </DataTrigger>
+      </Style.Triggers>
       <Setter Property="ToolTip">
         <Setter.Value>
-          <ToolTip MaxWidth="420">
-            <TextBlock TextWrapping="Wrap"
+          <ToolTip DataContext="{Binding PlacementTarget.DataContext, RelativeSource={RelativeSource Self}}"
+                   MaxWidth="420">
+            <TextBlock Text="{Binding EnvironmentPressureDisplayTooltip}"
+                       TextWrapping="Wrap"
                        FontFamily="Consolas, Courier New"
-                       FontSize="12">
-              <TextBlock.Text>
-                <MultiBinding Converter="{StaticResource EnvironmentPressureTooltipConverter}">
-                  <Binding Path="LogsViewModel" RelativeSource="{RelativeSource AncestorType={x:Type pages:LiveLogsToolTipScope}}"/>
-                  <Binding Path="EnvironmentPressureCell"/>
-                  <Binding Path="EnvironmentPressureTooltip"/>
-                </MultiBinding>
-              </TextBlock.Text>
-            </TextBlock>
+                       FontSize="12"/>
           </ToolTip>
         </Setter.Value>
       </Setter>
@@ -491,7 +493,7 @@
             </DataGridTextColumn.Header>
           </DataGridTextColumn>
 
-          <DataGridTemplateColumn Width="92" CellStyle="{StaticResource EnvironmentPressureCellStyle}">
+          <DataGridTemplateColumn Width="61" CellStyle="{StaticResource EnvironmentPressureCellStyle}">
             <DataGridTemplateColumn.Header>
               <DataGridColumnHeader Style="{StaticResource MatrixHeaderStyle}" Content="Среда">
                 <DataGridColumnHeader.ToolTip>
@@ -523,20 +525,13 @@
                           <TextBlock Text=", "
                             FontFamily="Consolas, Courier New"
                             FontSize="12"
-                            Foreground="#FFB8FFB8"
                             VerticalAlignment="Center"
                             Visibility="{Binding ShowLeadingComma, Converter={StaticResource BooleanToVisibilityConverter}}"/>
-                          <Border Background="{Binding CellBackground}"
-                                  Padding="3,1"
-                                  CornerRadius="1"
-                                  VerticalAlignment="Center">
-                            <TextBlock Text="{Binding DisplayText}"
+                          <TextBlock Text="{Binding DisplayText}"
                               FontFamily="Consolas, Courier New"
                               FontSize="12"
                               FontWeight="Bold"
-                              Foreground="#FF00FF00"
                               VerticalAlignment="Center"/>
-                          </Border>
                         </StackPanel>
                       </DataTemplate>
                     </ItemsControl.ItemTemplate>

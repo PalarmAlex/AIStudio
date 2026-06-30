@@ -37,22 +37,22 @@
       "description": "Ссылка на штатную переменную SolidWorks"
     },
     {
-      "token": "\"SW-Mass@$PRP:\\\"SW-File Name\\\".SLDPRT\"",
+      "token": "\"SW-Mass@$PRP:\"SW-File Name\".SLDPRT\"",
       "label": "Масса объекта",
       "description": "Масса активной конфигурации; SLDPRT замените на SLDASM для сборки"
     },
     {
-      "token": "\"SW-Volume@$PRP:\\\"SW-File Name\\\".SLDPRT\"",
+      "token": "\"SW-Volume@$PRP:\"SW-File Name\".SLDPRT\"",
       "label": "Объём объекта",
       "description": "Объём активной конфигурации; SLDPRT замените на SLDASM для сборки"
     },
     {
-      "token": "\"SW-SurfaceArea@$PRP:\\\"SW-File Name\\\".SLDPRT\"",
+      "token": "\"SW-SurfaceArea@$PRP:\"SW-File Name\".SLDPRT\"",
       "label": "Площадь поверхности",
       "description": "Площадь поверхности активной конфигурации; SLDPRT замените на SLDASM для сборки"
     },
     {
-      "token": "\"SW-Material@$PRP:\\\"SW-File Name\\\".SLDPRT\"",
+      "token": "\"SW-Material@$PRP:\"SW-File Name\".SLDPRT\"",
       "label": "Материал объекта",
       "description": "Материал активной конфигурации; SLDPRT замените на SLDASM для сборки"
     },

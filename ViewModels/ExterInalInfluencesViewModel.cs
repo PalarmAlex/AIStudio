@@ -70,6 +70,7 @@ namespace AIStudio.ViewModels
     public bool IsReadOnlyMode => !IsEditingEnabled;
     public bool ShowAntagonistColumn => !IsEnvironmentScope;
     public bool ShowProbeKeyColumn => IsEnvironmentScope;
+    public bool ShowActiveColumn => IsEnvironmentScope;
     public string PulseWarningMessage =>
         IsEnvironmentScope && !HasAdapter
             ? "Укажите тип среды в свойствах симбионта"
@@ -115,7 +116,8 @@ namespace AIStudio.ViewModels
         Description = string.Empty,
         Influences = new Dictionary<int, int>(),
         AntagonistInfluences = new List<int>(),
-        ProbeKey = defaultProbeKey
+        ProbeKey = defaultProbeKey,
+        IsActive = true
       };
     }
 
@@ -177,7 +179,8 @@ namespace AIStudio.ViewModels
           Description = action.Description,
           Influences = new Dictionary<int, int>(action.Influences),
           AntagonistInfluences = new List<int>(action.AntagonistInfluences),
-          ProbeKey = action.ProbeKey ?? string.Empty
+          ProbeKey = action.ProbeKey ?? string.Empty,
+          IsActive = action.IsActive
         });
       }
       RefreshProbeKeyOptions();
@@ -189,6 +192,7 @@ namespace AIStudio.ViewModels
       OnPropertyChanged(nameof(IsReadOnlyMode));
       OnPropertyChanged(nameof(ShowAntagonistColumn));
       OnPropertyChanged(nameof(ShowProbeKeyColumn));
+      OnPropertyChanged(nameof(ShowActiveColumn));
     }
 
     private void LoadAgentData()
@@ -459,6 +463,7 @@ namespace AIStudio.ViewModels
           existingAction.Influences = new Dictionary<int, int>(action.Influences);
           existingAction.AntagonistInfluences = new List<int>(action.AntagonistInfluences);
           existingAction.ProbeKey = action.ProbeKey ?? string.Empty;
+          existingAction.IsActive = action.IsActive;
         }
         else
         {
@@ -471,7 +476,10 @@ namespace AIStudio.ViewModels
           action.Id = newId;
           var created = _influenceActionSystem.GetAllInfluenceActions().FirstOrDefault(a => a.Id == newId);
           if (created != null)
+          {
             created.ProbeKey = action.ProbeKey ?? string.Empty;
+            created.IsActive = action.IsActive;
+          }
         }
       }
     }
