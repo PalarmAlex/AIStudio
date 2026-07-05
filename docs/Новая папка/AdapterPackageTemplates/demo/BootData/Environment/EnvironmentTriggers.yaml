@@ -1,6 +1,0 @@
-# Триггеры среды: событие host → influence_action_id.
-triggers:
-  - id: demo.on_save
-    display_name: После сохранения
-    influence_action_id: 2
-    event: document_saved

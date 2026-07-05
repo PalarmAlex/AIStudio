@@ -91,6 +91,26 @@ namespace AIStudio.ViewModels
     public bool IsEnvironmentAction(InfluenceActionSystem.GomeostasisInfluenceAction action) =>
         action != null && !string.IsNullOrWhiteSpace(action.ProbeKey);
 
+    public string GetProbeDescription(string probeKey)
+    {
+      string key = (probeKey ?? string.Empty).Trim();
+      if (key.Length == 0)
+        return string.Empty;
+
+      AdapterSchemaMetricProbe probe = ProbeKeyOptions.FirstOrDefault(p =>
+          string.Equals(p?.Key, key, StringComparison.Ordinal));
+      if (probe == null)
+        return string.Empty;
+
+      if (!string.IsNullOrWhiteSpace(probe.Description))
+        return probe.Description.Trim();
+
+      if (!string.IsNullOrWhiteSpace(probe.Label))
+        return probe.Label.Trim();
+
+      return key;
+    }
+
     public int AllocateNextRowId()
     {
       int maxId = InfluenceActions.Count == 0 ? 0 : InfluenceActions.Max(a => a.Id);
@@ -113,7 +133,7 @@ namespace AIStudio.ViewModels
       {
         Id = nextId,
         Name = IsEnvironmentScope ? "Среда: новая метрика" : $"Новое действие {nextId}",
-        Description = string.Empty,
+        Description = IsEnvironmentScope ? GetProbeDescription(defaultProbeKey) : string.Empty,
         Influences = new Dictionary<int, int>(),
         AntagonistInfluences = new List<int>(),
         ProbeKey = defaultProbeKey,
@@ -343,7 +363,7 @@ namespace AIStudio.ViewModels
       if (IsEnvironmentScope && !ValidateEnvironmentRowsBeforeSave())
         return false;
 
-      if (SymbiontEnvironmentGate.IsEnvironmentEditingAllowed())
+      if (IsEnvironmentScope && SymbiontEnvironmentGate.IsEnvironmentEditingAllowed())
       {
         var coverage = EnvironmentInfluenceValidation.ValidateProbeCoverage(InfluenceActions);
         if (!coverage.IsValid)

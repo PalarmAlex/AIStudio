@@ -27,6 +27,8 @@ namespace AIStudio.Common.Adapters
     public string Label { get; set; }
     public string Type { get; set; }
     public bool Required { get; set; }
+    /// <summary>Значение по умолчанию для нового шага (argsSchema defaultValue).</summary>
+    public string DefaultValue { get; set; }
     /// <summary>Опционально: template_placeholder, property_name (см. recipe-template-catalog.json).</summary>
     public string EditorHint { get; set; }
     public IList<AdapterSchemaArgValueOption> Values { get; set; }

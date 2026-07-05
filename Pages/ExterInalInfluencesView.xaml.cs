@@ -128,6 +128,7 @@ namespace AIStudio.Pages
       if (editor.ShowDialog() == true)
       {
         action.ProbeKey = editor.SelectedProbeKey ?? string.Empty;
+        action.Description = Vm.GetProbeDescription(action.ProbeKey);
         if (Vm.IsEnvironmentAction(action))
           action.AntagonistInfluences = new List<int>();
         ExternInfluencesGrid.CommitEdit(DataGridEditingUnit.Row, true);

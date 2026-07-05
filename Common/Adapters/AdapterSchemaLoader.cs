@@ -135,6 +135,7 @@ namespace AIStudio.Common.Adapters
                 Label = argItem["label"]?.ToString(),
                 Type = argItem["type"]?.ToString(),
                 Required = argItem["required"]?.Value<bool>() ?? false,
+                DefaultValue = argItem["defaultValue"]?.ToString(),
                 EditorHint = argItem["editorHint"]?.ToString(),
                 Values = ParseArgValueOptions(argItem)
               };

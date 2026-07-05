@@ -309,6 +309,8 @@ namespace AIStudio.ViewModels.SymbiontEnv
         string value = string.Empty;
         if (existing.TryGetValue(arg.Key, out string existingValue))
           value = existingValue ?? string.Empty;
+        if (string.IsNullOrWhiteSpace(value) && !string.IsNullOrWhiteSpace(arg.DefaultValue))
+          value = arg.DefaultValue.Trim();
         if (IsTemplateArg(arg))
           value = RecipeTemplateTokenNormalizer.NormalizeForSolidWorks(value);
         var row = new SchemaParamRow

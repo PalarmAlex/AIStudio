@@ -37,7 +37,9 @@ namespace AIStudio.Dialogs
           return;
         }
         var influenceSystem = InfluenceActionSystem.Instance;
-        var allActions = influenceSystem.GetAllInfluenceActions();
+        var allActions = influenceSystem.GetAllInfluenceActions()
+            .Where(a => !a.IsEnvironmentProbeAction
+                        && !InfluenceActionIdPolicy.IsDeprecatedEnvironmentProxyRange(a.Id));
         foreach (var action in allActions.OrderBy(a => a.Id))
         {
           _influenceActions.Add(new InfluenceActionItem

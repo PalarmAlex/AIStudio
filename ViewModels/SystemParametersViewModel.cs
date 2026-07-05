@@ -206,10 +206,13 @@ namespace AIStudio.ViewModels
         if (!TryValidateParametersWithStyleActivationAutofix())
           return;
 
-        // Сохраняем новые параметры
+        var persistedParameterIds = new HashSet<int>(
+            _gomeostas.GetAllParameters().Select(p => p.Id));
+
+        // Сохраняем новые и изменённые параметры
         foreach (var param in SystemParameters)
         {
-          if (param.Id == 0) // Новый параметр
+          if (!persistedParameterIds.Contains(param.Id))
           {
             var (paramId, warnings) = _gomeostas.AddParameter(
                 param.Name,
