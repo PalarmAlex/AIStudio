@@ -757,7 +757,9 @@ namespace AIStudio.ViewModels
           $"Вы действительно хотите удалить ВСЕ безусловные рефлексы симбионта?\n\n" +
           "Будут также полностью очищены:\n" +
           "• дерево рефлексов (все узлы);\n" +
-          "• все цепочки рефлексов (включая не привязанные).\n\n" +
+          "• все цепочки рефлексов (включая не привязанные);\n" +
+          "• образы стилей поведения (BehaviorStyleImages);\n" +
+          "• образы пусковых стимулов (PerceptionImages, action_images).\n\n" +
           "Это действие нельзя будет отменить.",
           "Подтверждение удаления",
           MessageBoxButton.YesNo,
@@ -769,17 +771,12 @@ namespace AIStudio.ViewModels
           var removeAll = _geneticReflexesSystem.RemoveAllGeneticReflex();
           if (removeAll)
           {
-            if (_reflexTreeSystem != null && _reflexChainsSystem != null)
-            {
-              _reflexTreeSystem.ClearReflexTreeCompletely();
-              _reflexChainsSystem.RemoveAllReflexChains();
-            }
             _allGeneticReflexes.Clear();
             RefreshDisplay();
             var (success, error) = _geneticReflexesSystem.SaveGeneticReflexes(false); // все удалено - не надо валидаций
             if (success)
             {
-              MessageBox.Show("Все безусловные рефлексы, дерево рефлексов и цепочки успешно удалены.",
+              MessageBox.Show("Все безусловные рефлексы и связанные данные успешно удалены.",
                   "Удаление завершено",
                   MessageBoxButton.OK,
                   MessageBoxImage.Information);
