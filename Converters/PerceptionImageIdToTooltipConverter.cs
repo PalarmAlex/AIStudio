@@ -99,6 +99,34 @@ namespace AIStudio.Converters
                 tooltip.Append("нет фраз");
               }
               tooltip.AppendLine();
+              tooltip.Append("Команды: ");
+              if (image.CommandPatternIdList != null && image.CommandPatternIdList.Any())
+              {
+                if (SensorySystem.IsInitialized && SensorySystem.Instance.CommandChannel != null)
+                {
+                  VerbalSensorChannel commandChannel = SensorySystem.Instance.CommandChannel;
+                  var commandTexts = image.CommandPatternIdList
+                      .Where(patternId => patternId > 0)
+                      .Select(patternId =>
+                      {
+                        string text = commandChannel.GetPhraseFromPhraseId(patternId);
+                        return string.IsNullOrWhiteSpace(text)
+                            ? $"[ID:{patternId}] (паттерн не найден)"
+                            : $"{patternId}:{text}";
+                      })
+                      .ToList();
+                  tooltip.Append(commandTexts.Any() ? string.Join(" → ", commandTexts) : "не найдены в системе");
+                }
+                else
+                {
+                  tooltip.Append("система сенсорики не инициализирована");
+                }
+              }
+              else
+              {
+                tooltip.Append("нет команд");
+              }
+              tooltip.AppendLine();
               // Тон и настроение: в образе восприятия рефлексов не хранятся, по умолчанию — нормальные
               string toneText = "Нормальный";
               string moodText = "Нормальное";

@@ -2,33 +2,33 @@
 schema: environment-recipes/3.2
 recipes:
   - id: kb_prefill_designation
-    display_name: Подготовить имя по КБ
-    description: Подставить обозначение в имя файла до Save (SetTitle2); Save не вызывается
+    display_name: "Подготовить имя по КБ, записать свойства"
+    description: Подставить обозначение в имя файла до Save (SetTitle2); Save не вызывается. Прописать  служебные свойства в доукменте
     adaptive_action_id: 38
     reactive_eligible: true
     steps:
       - type: invoke
         handler: save_file_name
-        template: "$PRP:\"SW-Folder Name\":3.{SEQ:4}"
-
-  - id: kb_apply_properties_saved
-    display_name: Свойства КБ после сохранения
-    description: Записать Обозначение и Наименование после успешного Save
-    adaptive_action_id: 39
-    reactive_eligible: true
-    steps:
       - type: invoke
-        handler: set_custom_property
+        handler: set_custom_property_if_part
         config: document
         name: Обозначение
         overwrite: if_empty
+        property_type: text
         template: "$PRP:\"SW-File Name\""
       - type: invoke
-        handler: set_custom_property
+        handler: set_custom_property_if_part
         config: document
-        name: Наименование
+        name: Нужен dxf
         overwrite: if_empty
-        template: "$PRP:\"SW-File Name\""
+        property_type: boolean
+        template: Yes
+      - type: invoke
+        handler: set_custom_property_if_part
+        config: document
+        name: Путь dxf
+        overwrite: if_empty
+        property_type: text
 
   - id: material_assign_session_learned
     display_name: Назначить выученный материал
@@ -38,4 +38,22 @@ recipes:
     steps:
       - type: invoke
         handler: assign_session_material
+
+  - id: export_documentation_dialog
+    display_name: Экспорт детали в dxf
+    description: Модальный диалог — выбор каталога и сохранение DXF
+    adaptive_action_id: 42
+    reactive_eligible: true
+    steps:
+      - type: invoke
+        handler: export_documentation_dialog
+
+  - id: export_drawing_pdf_dialog
+    display_name: Экспорт чертежа в PDF
+    description: Модальный диалог — выбор каталога и сохранение PDF
+    adaptive_action_id: 43
+    reactive_eligible: true
+    steps:
+      - type: invoke
+        handler: export_drawing_pdf_dialog
 

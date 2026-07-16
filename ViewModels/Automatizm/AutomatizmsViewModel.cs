@@ -655,12 +655,14 @@ namespace AIStudio.ViewModels
             ToneMoodID = treeNode?.ToneMoodID ?? 0,
             SimbolID = treeNode?.SimbolID ?? 0,
             VerbID = treeNode?.VerbID ?? 0,
+            CommandID = treeNode?.CommandID ?? 0,
             VisualID = treeNode?.VisualID ?? 0,
 
             // Текстовые описания для tooltip
             BaseConditionText = GetBaseConditionText(treeNode?.BaseID ?? 0),
             EmotionText = GetEmotionText(emotionIdList),
             InfluenceActionsText = GetInfluenceActionsText(influenceActionIds),
+            CommandText = GetCommandText(treeNode?.CommandID ?? 0),
             ToneMoodText = toneMoodText,
             VerbalText = verbalText,
             AutomatizmPhraseText = automatizmPhraseText,
@@ -771,6 +773,38 @@ namespace AIStudio.ViewModels
       return new List<int>();
     }
 
+    /// <summary>Расшифровка паттернов Command-канала по ID образа CommandBroca узла дерева.</summary>
+    private string GetCommandText(int commandBrocaImageId)
+    {
+      if (commandBrocaImageId <= 0)
+        return string.Empty;
+      try
+      {
+        if (!CommandBrocaImagesSystem.IsInitialized)
+          return $"образ CommandBroca ID:{commandBrocaImageId}";
+        var commandImage = CommandBrocaImagesSystem.Instance.GetCommandBrocaImage(commandBrocaImageId);
+        if (commandImage?.PatternIdList == null || !commandImage.PatternIdList.Any())
+          return string.Empty;
+        VerbalSensorChannel commandChannel = _sensorySystem?.CommandChannel;
+        if (commandChannel == null)
+          return string.Join(" → ", commandImage.PatternIdList);
+        var parts = commandImage.PatternIdList
+            .Where(patternId => patternId > 0)
+            .Select(patternId =>
+            {
+              string text = commandChannel.GetPhraseFromPhraseId(patternId);
+              return string.IsNullOrWhiteSpace(text) ? $"[ID:{patternId}]" : $"{patternId}:{text}";
+            })
+            .ToList();
+        return parts.Any() ? string.Join(" → ", parts) : string.Empty;
+      }
+      catch (Exception ex)
+      {
+        Logger.Error($"Ошибка расшифровки CommandID={commandBrocaImageId}: {ex.Message}");
+        return $"образ CommandBroca ID:{commandBrocaImageId}";
+      }
+    }
+
     private List<int> GetInfluenceActionIds(int activityId)
     {
       if (activityId <= 0)
@@ -853,6 +887,7 @@ namespace AIStudio.ViewModels
           BaseConditionText = GetBaseConditionText(treeNode.BaseID),
           EmotionText = GetEmotionText(emotionIdList),
           InfluenceActionsText = GetInfluenceActionsText(influenceActionIds),
+          CommandText = GetCommandText(treeNode.CommandID),
           ToneMoodText = toneMoodText,
           VerbalText = verbalText,
           SimbolID = treeNode.SimbolID,
@@ -862,6 +897,10 @@ namespace AIStudio.ViewModels
         sb.AppendLine($"Состояние: {displayItem.BaseConditionText}");
         sb.AppendLine($"Эмоции: {displayItem.EmotionText}");
         sb.AppendLine($"Воздействие с пульта: {displayItem.InfluenceActionsText}");
+        if (!string.IsNullOrEmpty(displayItem.CommandText))
+          sb.AppendLine($"Команды: {displayItem.CommandText}");
+        else
+          sb.AppendLine("Команды: нет");
         if (treeNode.ToneMoodID >= 100 && treeNode.ToneMoodID <= 307)
         {
           try
@@ -1250,6 +1289,8 @@ namespace AIStudio.ViewModels
       public int ToneMoodID { get; set; }
       public int SimbolID { get; set; }
       public int VerbID { get; set; }
+      /// <summary>ID образа команды (CommandBroca) узла дерева.</summary>
+      public int CommandID { get; set; }
       /// <summary>Код зрительного канала узла дерева (<see cref="AgentVisualColor"/>).</summary>
       public int VisualID { get; set; }
 
@@ -1257,6 +1298,8 @@ namespace AIStudio.ViewModels
       public string BaseConditionText { get; set; }
       public string EmotionText { get; set; }
       public string InfluenceActionsText { get; set; }
+      /// <summary>Расшифровка паттернов Command-канала из образа CommandBroca узла.</summary>
+      public string CommandText { get; set; }
       public string ToneMoodText { get; set; }
       public string VerbalText { get; set; }
       /// <summary>Текст фраз образа действия автоматизма (для фильтра «Фраза автоматизма»).</summary>

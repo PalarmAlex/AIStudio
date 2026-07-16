@@ -19,6 +19,10 @@ namespace AIStudio.Converters
       sb.AppendLine($"Состояние: {automatizm.BaseConditionText}");
       sb.AppendLine($"Эмоции (стили): {automatizm.EmotionText}");
       sb.AppendLine($"Воздействия с пульта: {automatizm.InfluenceActionsText}");
+      if (!string.IsNullOrEmpty(automatizm.CommandText))
+        sb.AppendLine($"Команды: {automatizm.CommandText}");
+      else
+        sb.AppendLine("Команды: нет");
       AppendToneAndMoodLines(sb, automatizm);
       if (!string.IsNullOrEmpty(automatizm.VerbalText))
         sb.AppendLine($"Вербальный образ: {automatizm.VerbalText}");

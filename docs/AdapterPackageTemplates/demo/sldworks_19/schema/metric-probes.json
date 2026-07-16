@@ -1,40 +1,70 @@
 {
+
   "schemaVersion": "3.2",
+
   "probes": [
+
     {
+
       "key": "Velum.Solid.Material",
+
       "label": "Материал",
+
       "description": "Назначен ли материал у открытой детали или у детали в режиме редактирования в сборке."
+
     },
+
     {
-      "key": "Velum.Solid.Sketch.NoBadIntersections",
-      "label": "Эскиз: пересечения и стыки",
-      "description": "В эскизах проверяемой детали нет лишних пересечений и стыков линий."
-    },
-    {
-      "key": "Velum.Solid.Sketch.NoDisjointContours",
-      "label": "Эскиз: разрозненные контуры",
-      "description": "В эскизах проверяемой детали нет разорванных контуров."
-    },
-    {
-      "key": "Velum.Solid.Sketch.ContourProfile",
-      "label": "Эскиз: замыкание и профиль",
-      "description": "Контуры эскиза замкнуты и пригодны для построения."
-    },
-    {
-      "key": "Velum.Solid.Sketch.FullyDefined",
-      "label": "Эскиз: полная фиксация",
-      "description": "Эскиз полностью зафиксирован ограничениями."
-    },
-    {
-      "key": "Velum.Solid.Sketch.NoZeroLength",
-      "label": "Эскиз: без нулевой длины",
-      "description": "Нет линий и дуг нулевой длины."
-    },
-    {
+
       "key": "Velum.Solid.Document.UnsavedNew",
+
       "label": "Документ не сохранён",
+
       "description": "Файл сохранён на диск — хорошо; новый без имени — нужно сохранить по правилам КБ."
+
+    },
+
+    {
+
+      "key": "Velum.Solid.Dxf.FileExists",
+
+      "label": "DXF: наличие файла",
+
+      "description": "Путь к DXF заполнен, но файл по нему не найден (детали с «Нужен dxf» = Да)."
+
+    },
+
+    {
+
+      "key": "Velum.Solid.Pdf.FileExists",
+
+      "label": "PDF: наличие файла",
+
+      "description": "Путь к PDF заполнен, но файл по нему не найден (чертежа с «Нужен pdf» = Да)."
+
+    },
+
+    {
+
+      "key": "Velum.Solid.Dxf.IsOutdated",
+
+      "label": "DXF: устарел",
+
+      "description": "DXF-файл не соответствует текущей геометрии детали (штамп GetUpdateStamp; при отсутствии штампа — сравнение дат файлов)."
+
+    },
+
+    {
+
+      "key": "Velum.Solid.Pdf.IsOutdated",
+
+      "label": "PDF: устарел",
+
+      "description": "PDF-файл не соответствует текущему чертежу (штамп GetUpdateStamp; при отсутствии штампа — сравнение дат файлов)."
+
     }
+
   ]
+
 }
+

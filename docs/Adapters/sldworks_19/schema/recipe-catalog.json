@@ -9,12 +9,22 @@
     {
       "id": "kb_apply_properties_saved",
       "label": "Свойства КБ после сохранения",
-      "description": "Записать Обозначение и Наименование после успешного Save"
+      "description": "Обозначение, Наименование и флаг «Нужен dxf» (только SLDPRT, if_empty)"
     },
     {
       "id": "material_assign_session_learned",
       "label": "Назначить выученный материал",
       "description": "Материал последнего Save Part в каталоге документа; только пустая конфигурация"
+    },
+    {
+      "id": "export_documentation_dialog",
+      "label": "Диагностика экспортной документации",
+      "description": "Модальный диалог экспорта детали в DXF"
+    },
+    {
+      "id": "export_drawing_pdf_dialog",
+      "label": "Экспорт чертежа в PDF",
+      "description": "Модальный диалог — выбор каталога и сохранение PDF чертежа"
     }
   ]
 }

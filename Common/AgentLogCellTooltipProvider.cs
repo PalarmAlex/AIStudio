@@ -204,6 +204,24 @@ namespace AIStudio.Common
           }
           else
             phrasesLine = "нет";
+          string commandsLine;
+          if (perceptionImage.CommandPatternIdList?.Any() == true)
+          {
+            VerbalSensorChannel commandChannel = SensorySystem.IsInitialized
+                ? SensorySystem.Instance.CommandChannel
+                : null;
+            var commandNames = perceptionImage.CommandPatternIdList
+                .Where(patternId => patternId > 0)
+                .Select(patternId =>
+                {
+                  string text = commandChannel?.GetPhraseFromPhraseId(patternId);
+                  return string.IsNullOrWhiteSpace(text) ? $"Команда {patternId}" : $"{patternId}:{text}";
+                })
+                .Where(name => !string.IsNullOrEmpty(name));
+            commandsLine = commandNames.Any() ? string.Join(" → ", commandNames) : "нет";
+          }
+          else
+            commandsLine = "нет";
           string toneLine = "—";
           string moodLine = "—";
           if (VerbalBrocaImagesSystem.IsInitialized && perceptionImage.PhraseIdList?.Any() == true)
@@ -224,6 +242,7 @@ namespace AIStudio.Common
           string colorLine = AgentVisualColor.GetDisplayName(colorCode);
           return "Воздействие: " + influenceLine
               + "\nФразы: " + phrasesLine
+              + "\nКоманды: " + commandsLine
               + "\nТон: " + toneLine
               + "\nНастроение: " + moodLine
               + "\nЦветовой фон: " + colorLine;

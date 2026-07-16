@@ -35,11 +35,17 @@ metric-probes.json
     Velum.Solid.Sketch.FullyDefined
     Velum.Solid.Sketch.NoZeroLength
     Velum.Solid.Document.UnsavedNew
+    Velum.Solid.Dxf.FileExists
+    Velum.Solid.Dxf.IsOutdated
+    Velum.Solid.Pdf.FileExists
+    Velum.Solid.Pdf.IsOutdated
 
-  Удалены (runtime Velum их не опрашивает):
-    Velum.Solid.Assembly.WhatsWrong.Critical
-    Velum.Solid.Assembly.WhatsWrong.Warnings
-    Velum.Solid.Assembly.Resolve
+  Handler'ы экспортной документации (sldworks_19 / Velum):
+    set_custom_property_if_part
+    export_documentation_log_issue
+    export_documentation_dialog
+    export_drawing_pdf_dialog
+    export_documentation_create_files
 
 Опциональный файл:
 
@@ -55,13 +61,14 @@ recipe-template-catalog.json
 Поведение на сборке
 -------------------
 
-Метрики материала и эскизов — пробы уровня детали, не обход дерева сборки.
+Метрики материала, эскизов и экспортной документации — не обход дерева сборки.
 
-  • Открытая деталь (SLDPRT) — опрашиваются материал, эскизы и «Документ не сохранён».
+  • Открытая деталь (SLDPRT) — опрашиваются материал, эскизы, DXF и «Документ не сохранён».
+  • Открытый чертёж (SLDDRW) — опрашиваются PDF и «Документ не сохранён».
   • Активна сборка без редактирования компонента — только «Документ не сохранён» для файла сборки;
-    материал и эскизы не дают значения (пропуск / нейтрально).
+    материал, эскизы, PDF и DXF не дают значения (пропуск / нейтрально).
   • Сборка с компонентом в режиме редактирования (Edit Target, правка из дерева сборки) —
-    материал и эскизы считаются по редактируемой детали (AssemblyDoc.GetEditTarget).
+    материал, эскизы и DXF считаются по редактируемой детали (AssemblyDoc.GetEditTarget).
 
 Формулировки «проверяемая деталь» и «режим редактирования в сборке» в описаниях проб
 отражают это поведение. Агрегация по всем деталям сборки не выполняется.

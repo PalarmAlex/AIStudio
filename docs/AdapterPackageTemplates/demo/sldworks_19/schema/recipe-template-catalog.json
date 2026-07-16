@@ -80,6 +80,16 @@
       "token": "{FILE_NAME}",
       "label": "Имя файла",
       "description": "Имя файла документа с расширением (например Корпус.SLDPRT); подставляется плагином Velum"
+    },
+    {
+      "token": "Yes",
+      "label": "Да",
+      "description": "Логическое True"
+    },
+    {
+      "token": "No",
+      "label": "Нет",
+      "description": "Логическое False"
     }
   ],
   "propertyNames": [
@@ -107,6 +117,26 @@
       "name": "Проверил",
       "label": "Проверил",
       "description": "ФИО или код проверяющего в штампе"
+    },
+    {
+      "name": "Нужен pdf",
+      "label": "Нужен pdf",
+      "description": "Флаг КБ: требуется сопроводительный PDF (Да/Нет); по умолчанию Да при Save Part"
+    },
+    {
+      "name": "Нужен dxf",
+      "label": "Нужен dxf",
+      "description": "Флаг КБ: требуется сопроводительный DXF (Да/Нет); по умолчанию Да при Save Part"
+    },
+    {
+      "name": "Путь pdf",
+      "label": "Путь pdf",
+      "description": "Путь к сопроводительному PDF на диске"
+    },
+    {
+      "name": "Путь dxf",
+      "label": "Путь dxf",
+      "description": "Путь к сопроводительному DXF на диске"
     }
   ]
 }

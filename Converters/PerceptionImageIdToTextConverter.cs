@@ -35,6 +35,10 @@ namespace AIStudio.Converters
               {
                 description += $", фраз: {image.PhraseIdList.Count}";
               }
+              if (image.CommandPatternIdList != null && image.CommandPatternIdList.Any())
+              {
+                description += $", команд: {image.CommandPatternIdList.Count}";
+              }
               return description;
             }
             return $"Образ #{imageId}";
