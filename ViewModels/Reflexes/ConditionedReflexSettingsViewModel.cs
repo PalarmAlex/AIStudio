@@ -65,6 +65,8 @@ namespace AIStudio.ViewModels
         TimeWindowPulses = _conditionedReflexesSystem.Settings.TimeWindowPulses,
         MinAssociationStrength = _conditionedReflexesSystem.Settings.MinAssociationStrength,
         MaxAssociationStrength = _conditionedReflexesSystem.Settings.MaxAssociationStrength,
+        InitialLifetimePulses = _conditionedReflexesSystem.Settings.InitialLifetimePulses,
+        ActiveExtinctionRate = _conditionedReflexesSystem.Settings.ActiveExtinctionRate,
         HigherOrderStrengthReductionCoefficient = _conditionedReflexesSystem.Settings.HigherOrderStrengthReductionCoefficient,
         CompetitionStrengthRatioThreshold = _conditionedReflexesSystem.Settings.CompetitionStrengthRatioThreshold,
         TieBreakPreferSmallerReflexId = _conditionedReflexesSystem.Settings.TieBreakPreferSmallerReflexId
@@ -127,37 +129,34 @@ namespace AIStudio.ViewModels
     {
       var errors = new List<string>();
 
-      // Валидация коэффициента обучения
       var learningRateValidation = SettingsValidator.ValidateLearningRate(Settings.LearningRate);
       if (!learningRateValidation.isValid)
         errors.Add(learningRateValidation.errorMessage);
 
-      // Валидация коэффициента затухания
-      var decayRateValidation = SettingsValidator.ValidateDecayRate(Settings.DecayRate);
-      if (!decayRateValidation.isValid)
-        errors.Add(decayRateValidation.errorMessage);
-
-      // Валидация порога активации
       var activationThresholdValidation = SettingsValidator.ValidateActivationThreshold(Settings.ActivationThreshold);
       if (!activationThresholdValidation.isValid)
         errors.Add(activationThresholdValidation.errorMessage);
 
-      // Валидация временного окна корреляции
+      var initialLifetimeValidation = SettingsValidator.ValidateInitialLifetimePulses(Settings.InitialLifetimePulses);
+      if (!initialLifetimeValidation.isValid)
+        errors.Add(initialLifetimeValidation.errorMessage);
+
+      var activeExtinctionValidation = SettingsValidator.ValidateActiveExtinctionRate(Settings.ActiveExtinctionRate);
+      if (!activeExtinctionValidation.isValid)
+        errors.Add(activeExtinctionValidation.errorMessage);
+
       var timeWindowValidation = SettingsValidator.ValidateTimeWindowPulses(Settings.TimeWindowPulses);
       if (!timeWindowValidation.isValid)
         errors.Add(timeWindowValidation.errorMessage);
 
-      // Валидация минимальной крепости связи
       var minStrengthValidation = SettingsValidator.ValidateMinAssociationStrength(Settings.MinAssociationStrength);
       if (!minStrengthValidation.isValid)
         errors.Add(minStrengthValidation.errorMessage);
 
-      // Валидация коэффициента понижения крепости вторичных
       var reductionCoeffValidation = SettingsValidator.ValidateHigherOrderStrengthReductionCoefficient(Settings.HigherOrderStrengthReductionCoefficient);
       if (!reductionCoeffValidation.isValid)
         errors.Add(reductionCoeffValidation.errorMessage);
 
-      // Дополнительная валидация для MaxAssociationStrength
       if (Settings.MaxAssociationStrength != 1.0f)
         errors.Add("Максимальная крепость связи (MaxAssociationStrength) должна быть равна 1.0");
       if (errors.Any())
@@ -172,8 +171,11 @@ namespace AIStudio.ViewModels
     private void ApplySettingsToSystem()
     {
       _conditionedReflexesSystem.Settings.LearningRate = Math.Max(0.1f, Math.Min(Settings.LearningRate, 0.3f));
-      _conditionedReflexesSystem.Settings.DecayRate = Math.Max(0.95f, Math.Min(Settings.DecayRate, 0.99f));
       _conditionedReflexesSystem.Settings.ActivationThreshold = Math.Max(0.5f, Math.Min(Settings.ActivationThreshold, 0.7f));
+      _conditionedReflexesSystem.Settings.InitialLifetimePulses =
+          Math.Max(3600, Math.Min(Settings.InitialLifetimePulses, 604800));
+      _conditionedReflexesSystem.Settings.ActiveExtinctionRate =
+          Math.Max(0.01f, Math.Min(Settings.ActiveExtinctionRate, 0.2f));
       _conditionedReflexesSystem.Settings.TimeWindowPulses = Math.Max(1, Math.Min(Settings.TimeWindowPulses, 20));
       _conditionedReflexesSystem.Settings.MinAssociationStrength = Math.Max(0.01f, Math.Min(Settings.MinAssociationStrength, 0.3f));
       _conditionedReflexesSystem.Settings.HigherOrderStrengthReductionCoefficient = Math.Max(1.2f, Math.Min(Settings.HigherOrderStrengthReductionCoefficient, 3.0f));

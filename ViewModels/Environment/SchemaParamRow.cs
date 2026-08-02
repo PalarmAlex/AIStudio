@@ -82,6 +82,9 @@ namespace AIStudio.ViewModels.SymbiontEnv
         || (string.IsNullOrWhiteSpace(EditorHint)
             && string.Equals(Key, "name", System.StringComparison.OrdinalIgnoreCase));
 
+    public bool IsMacroFileField =>
+        string.Equals(EditorHint, AdapterSchemaEditorHints.MacroFile, System.StringComparison.OrdinalIgnoreCase);
+
     public event PropertyChangedEventHandler PropertyChanged;
 
     internal void OnPropertyChanged([CallerMemberName] string propertyName = null)

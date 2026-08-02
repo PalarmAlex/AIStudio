@@ -118,6 +118,58 @@
       ]
     },
     {
+      "id": "set_custom_property_if_part_or_assembly",
+      "label": "Свойство документа (SLDPRT/SLDASM)",
+      "description": "Как set_custom_property, но только для детали или сборки (чертежи пропускаются)",
+      "argsSchema": [
+        {
+          "key": "config",
+          "label": "Конфигурация",
+          "type": "enum",
+          "values": [
+            { "key": "active", "label": "Активная конфигурация" },
+            { "key": "document", "label": "Свойство документа" },
+            { "key": "default", "label": "Конфигурация по умолчанию" }
+          ]
+        },
+        {
+          "key": "name",
+          "label": "Имя свойства",
+          "type": "string",
+          "required": true,
+          "editorHint": "property_name"
+        },
+        {
+          "key": "property_type",
+          "label": "Тип свойства",
+          "type": "enum",
+          "defaultValue": "text",
+          "values": [
+            { "key": "text", "label": "Текст" },
+            { "key": "number", "label": "Число" },
+            { "key": "date", "label": "Дата" },
+            { "key": "boolean", "label": "Логическое (Yes/No)" }
+          ]
+        },
+        {
+          "key": "template",
+          "label": "Шаблон значения",
+          "type": "string",
+          "editorHint": "template_placeholder"
+        },
+        {
+          "key": "overwrite",
+          "label": "Политика перезаписи",
+          "type": "enum",
+          "values": [
+            { "key": "always", "label": "Всегда" },
+            { "key": "if_empty", "label": "Только если пусто" },
+            { "key": "never", "label": "Временно отключить запись" }
+          ]
+        }
+      ]
+    },
+    {
       "id": "export_documentation_dialog",
       "label": "Диалог экспорта DXF",
       "description": "Модальная форма экспорта детали в DXF: каталог, шаблон имени, проекция",
@@ -128,6 +180,41 @@
       "label": "Диалог экспорта PDF",
       "description": "Модальная форма экспорта чертежа в PDF: выбор каталога, имя файла = имя чертежа",
       "argsSchema": []
+    },
+    {
+      "id": "finalize_dxf_metadata_dialog",
+      "label": "Диалог фиксации DXF",
+      "description": "Модальная форма фиксации метаданных после ручной выгрузки DXF: каталог, имя, вид, штамп, отпечаток файла",
+      "argsSchema": []
+    },
+    {
+      "id": "ensure_blank_size_property_links",
+      "label": "Ссылки Толщина/Длина/Ширина (листовая)",
+      "description": "Только SLDPRT с Sheet Metal + FlatPattern: выставляет или чинит живые ссылки свойств заготовки (не числа)",
+      "argsSchema": [
+        {
+          "key": "config",
+          "label": "Конфигурация",
+          "type": "enum",
+          "values": [
+            { "key": "document", "label": "Свойство документа" },
+            { "key": "active", "label": "Активная конфигурация" },
+            { "key": "default", "label": "Конфигурация по умолчанию" }
+          ]
+        },
+        {
+          "key": "overwrite",
+          "label": "Политика перезаписи",
+          "type": "enum",
+          "defaultValue": "repair",
+          "values": [
+            { "key": "repair", "label": "Пусто или битая ссылка" },
+            { "key": "if_empty", "label": "Только если пусто" },
+            { "key": "always", "label": "Всегда" },
+            { "key": "never", "label": "Не записывать" }
+          ]
+        }
+      ]
     },
     {
       "id": "export_documentation_create_files",
@@ -141,6 +228,32 @@
       "description": "Вызов RunCommand по command_id",
       "argsSchema": [
         { "key": "command_id", "label": "Command ID", "type": "int", "required": true }
+      ]
+    },
+    {
+      "id": "run_macro",
+      "label": "Выполнить макрос",
+      "description": "Запуск макроса SolidWorks через RunMacro2 (VBA .swp или VSTA .dll). Укажите файл, модуль и процедуру (для VBA обычно Module1 / main).",
+      "argsSchema": [
+        {
+          "key": "path",
+          "label": "Файл макроса",
+          "type": "string",
+          "required": true,
+          "editorHint": "macro_file"
+        },
+        {
+          "key": "module",
+          "label": "Модуль",
+          "type": "string",
+          "defaultValue": "Module1"
+        },
+        {
+          "key": "procedure",
+          "label": "Процедура",
+          "type": "string",
+          "defaultValue": "main"
+        }
       ]
     },
     {
@@ -166,6 +279,12 @@
           ]
         }
       ]
+    },
+    {
+      "id": "product_registry_show_problems",
+      "label": "Показать проблемы реестра",
+      "description": "Модальный список проблем целостности реестра изделий (битые ссылки / нет чертежей)",
+      "argsSchema": []
     }
   ]
 }

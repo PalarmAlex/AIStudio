@@ -13,7 +13,7 @@ Runtime host DLL для этого не нужен.
 handlers-catalog.json
   Handler'ы для шагов type: invoke в рецептах.
   Массив handlers[]: id, label, description, argsSchema[] (key, label, type, required, values, editorHint).
-  editorHint: template_placeholder | property_name — кнопки справочника в редакторе шагов.
+  editorHint: template_placeholder | property_name | macro_file — кнопки справочника / выбора файла в редакторе шагов.
 
 recipe-catalog.json
   Каталог допустимых ID рецептов для редактора рецептов среды.
@@ -46,6 +46,9 @@ metric-probes.json
     export_documentation_dialog
     export_drawing_pdf_dialog
     export_documentation_create_files
+
+  Handler макросов (sldworks_19 / Velum):
+    run_macro — RunMacro2; args: path (обязателен, editorHint macro_file), module (по умолчанию Module1), procedure (по умолчанию main)
 
 Опциональный файл:
 

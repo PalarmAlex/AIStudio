@@ -29,7 +29,7 @@ EnvironmentRecipes.yaml
         steps:
           - type: invoke
             handler: save_file_name
-            template: '$PRP:"SW-Folder Name"-{DISCIPLINE}-{SEQ:4}'
+            template: '{FOLDER:1}-{DISCIPLINE}-{SEQ:4}'
 
   Запрещено (contract 3.2): expression_pattern_id, recommended_trigger_keys,
   genetic_reflex_id, influence_action_id, EnvironmentTriggers.yaml.

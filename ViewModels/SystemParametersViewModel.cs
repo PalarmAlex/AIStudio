@@ -209,6 +209,12 @@ namespace AIStudio.ViewModels
         var persistedParameterIds = new HashSet<int>(
             _gomeostas.GetAllParameters().Select(p => p.Id));
 
+        var uiParameterIds = new HashSet<int>(SystemParameters.Select(p => p.Id));
+
+        // Удаляем из системы параметры, которых уже нет в таблице
+        foreach (var removedId in persistedParameterIds.Where(id => !uiParameterIds.Contains(id)))
+          _gomeostas.RemoveParameter(removedId);
+
         // Сохраняем новые и изменённые параметры
         foreach (var param in SystemParameters)
         {
@@ -279,12 +285,10 @@ namespace AIStudio.ViewModels
         var paramsList = parameters.ToList();
         foreach (var param in paramsList)
         {
-          // Удаляем из локальной коллекции
-          if (SystemParameters.Contains(param))
-            SystemParameters.Remove(param);
-          var existingParameter = _gomeostas.GetAllParameters().ToList();
-          bool parametrExistsInSystem = SystemParameters.Any(p => p.Id == param.Id);
-          if (parametrExistsInSystem)
+          bool existsInSystem = _gomeostas.GetAllParameters().Any(p => p.Id == param.Id);
+
+          // Сначала убираем из системы (пока Id ещё известен), затем из UI
+          if (existsInSystem)
           {
             try
             {
@@ -296,22 +300,16 @@ namespace AIStudio.ViewModels
                     "Ошибка сохранения",
                     MessageBoxButton.OK,
                     MessageBoxImage.Error);
+                continue;
               }
             }
             catch (InvalidOperationException ex) when (ex.Message.Contains("системным"))
             {
-              // Отлавливаем исключение о системном параметре
               MessageBox.Show($"Не удалось удалить параметр '{param.Name}':\n{ex.Message}",
                   "Системный параметр",
                   MessageBoxButton.OK,
                   MessageBoxImage.Warning);
-
-              // Возвращаем параметр обратно в коллекцию
-              if (!SystemParameters.Contains(param))
-              {
-                SystemParameters.Add(param);
-              }
-              continue; // Переходим к следующему параметру
+              continue;
             }
             catch (Exception ex)
             {
@@ -322,6 +320,9 @@ namespace AIStudio.ViewModels
               continue;
             }
           }
+
+          if (SystemParameters.Contains(param))
+            SystemParameters.Remove(param);
         }
       }
       catch (Exception ex)

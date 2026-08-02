@@ -16,19 +16,6 @@ recipes:
         overwrite: if_empty
         property_type: text
         template: "$PRP:\"SW-File Name\""
-      - type: invoke
-        handler: set_custom_property_if_part
-        config: document
-        name: Нужен dxf
-        overwrite: if_empty
-        property_type: boolean
-        template: Yes
-      - type: invoke
-        handler: set_custom_property_if_part
-        config: document
-        name: Путь dxf
-        overwrite: if_empty
-        property_type: text
 
   - id: material_assign_session_learned
     display_name: Назначить выученный материал
@@ -56,4 +43,33 @@ recipes:
     steps:
       - type: invoke
         handler: export_drawing_pdf_dialog
+
+  - id: finalize_dxf_metadata_dialog
+    display_name: Обновить штамп DXF
+    description: "Фиксация пути, имени, вида и штампа после ручной выгрузки DXF"
+    adaptive_action_id: 44
+    reactive_eligible: true
+    steps:
+      - type: invoke
+        handler: finalize_dxf_metadata_dialog
+
+  - id: ensure_blank_size_links
+    display_name: Ссылки Толщина/Длина/Ширина (лист)
+    description: >
+    adaptive_action_id: 45
+    reactive_eligible: true
+    steps:
+      - type: invoke
+        handler: ensure_blank_size_property_links
+        config: active
+        overwrite: repair
+
+  - id: product_registry_show_problems
+    display_name: Показать проблемы реестра
+    description: Список битых ссылок и отсутствующих чертежей из кэша целостности реестра
+    adaptive_action_id: 46
+    reactive_eligible: true
+    steps:
+      - type: invoke
+        handler: product_registry_show_problems
 

@@ -110,25 +110,6 @@
                          Text="(0.1 - 0.3)"/>
             </Grid>
 
-            <!-- Коэффициент затухания -->
-            <Grid Style="{StaticResource GridRowStyle}">
-              <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="*"/>
-                <ColumnDefinition Width="Auto"/>
-                <ColumnDefinition Width="Auto"/>
-              </Grid.ColumnDefinitions>
-
-              <TextBlock Grid.Column="0" Style="{StaticResource SettingsLabelStyle}"
-                         Text="Коэффициент затухания (η):"/>
-              <TextBox Grid.Column="1" Style="{StaticResource SettingsTextBoxStyle}"
-                       GotFocus="TextBox_GotFocus"
-                       PreviewMouseLeftButtonDown="TextBox_PreviewMouseLeftButtonDown"
-                       LostFocus="TextBox_LostFocus"
-                       Text="{Binding Settings.DecayRate, UpdateSourceTrigger=LostFocus, StringFormat=N2, ValidatesOnExceptions=True, NotifyOnValidationError=True}"/>
-              <TextBlock Grid.Column="2" Style="{StaticResource SettingsRangeTextStyle}"
-                         Text="(0.95 - 0.99)"/>
-            </Grid>
-
             <!-- Порог активации -->
             <Grid Style="{StaticResource GridRowStyle}">
               <Grid.ColumnDefinitions>
@@ -146,6 +127,46 @@
                        Text="{Binding Settings.ActivationThreshold, UpdateSourceTrigger=LostFocus, StringFormat=N2, ValidatesOnExceptions=True, NotifyOnValidationError=True}"/>
               <TextBlock Grid.Column="2" Style="{StaticResource SettingsRangeTextStyle}"
                          Text="(0.5 - 0.7)"/>
+            </Grid>
+
+            <!-- Начальный лимит простоя УР -->
+            <Grid Style="{StaticResource GridRowStyle}">
+              <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="Auto"/>
+              </Grid.ColumnDefinitions>
+
+              <TextBlock Grid.Column="0" Style="{StaticResource SettingsLabelStyle}"
+                         Text="Начальный лимит простоя (пульсы):"
+                         ToolTip="При создании УР: ExpiresAt = now + T0; при каждой активации T0 удваивается"/>
+              <TextBox Grid.Column="1" Style="{StaticResource SettingsTextBoxStyle}"
+                       GotFocus="TextBox_GotFocus"
+                       PreviewMouseLeftButtonDown="TextBox_PreviewMouseLeftButtonDown"
+                       LostFocus="TextBox_LostFocus"
+                       Text="{Binding Settings.InitialLifetimePulses, UpdateSourceTrigger=LostFocus, ValidatesOnExceptions=True, NotifyOnValidationError=True}"/>
+              <TextBlock Grid.Column="2" Style="{StaticResource SettingsRangeTextStyle}"
+                         Text="(3600 - 604800)"/>
+            </Grid>
+
+            <!-- Активное угасание -->
+            <Grid Style="{StaticResource GridRowStyle}">
+              <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="Auto"/>
+              </Grid.ColumnDefinitions>
+
+              <TextBlock Grid.Column="0" Style="{StaticResource SettingsLabelStyle}"
+                         Text="Активное угасание (α_ext):"
+                         ToolTip="Шаг RW при CS без US в окне τ; действует и на сильные УР"/>
+              <TextBox Grid.Column="1" Style="{StaticResource SettingsTextBoxStyle}"
+                       GotFocus="TextBox_GotFocus"
+                       PreviewMouseLeftButtonDown="TextBox_PreviewMouseLeftButtonDown"
+                       LostFocus="TextBox_LostFocus"
+                       Text="{Binding Settings.ActiveExtinctionRate, UpdateSourceTrigger=LostFocus, StringFormat=N2, ValidatesOnExceptions=True, NotifyOnValidationError=True}"/>
+              <TextBlock Grid.Column="2" Style="{StaticResource SettingsRangeTextStyle}"
+                         Text="(0.01 - 0.2)"/>
             </Grid>
 
             <!-- Временное окно корреляции -->

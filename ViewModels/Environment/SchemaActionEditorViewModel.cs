@@ -238,6 +238,44 @@ namespace AIStudio.ViewModels.SymbiontEnv
       NotifyParameterChanged();
     }
 
+    public void BrowseMacroFile(Window owner, SchemaParamRow row)
+    {
+      if (!IsEditingEnabled || row == null || !row.IsMacroFileField)
+        return;
+
+      var dialog = new Microsoft.Win32.OpenFileDialog
+      {
+        Title = "Выберите макрос SolidWorks",
+        Filter = "Макросы SolidWorks (*.swp;*.dll)|*.swp;*.dll|VBA (*.swp)|*.swp|VSTA / .NET (*.dll)|*.dll|Все файлы|*.*",
+        CheckFileExists = true,
+        Multiselect = false
+      };
+
+      string current = (row.Value ?? string.Empty).Trim().Trim('"');
+      if (!string.IsNullOrWhiteSpace(current))
+      {
+        try
+        {
+          string dir = System.IO.Path.GetDirectoryName(current);
+          if (!string.IsNullOrWhiteSpace(dir) && System.IO.Directory.Exists(dir))
+            dialog.InitialDirectory = dir;
+          if (System.IO.File.Exists(current))
+            dialog.FileName = current;
+        }
+        catch
+        {
+          // ignore invalid path in field
+        }
+      }
+
+      bool? accepted = owner != null ? dialog.ShowDialog(owner) : dialog.ShowDialog();
+      if (accepted != true || string.IsNullOrWhiteSpace(dialog.FileName))
+        return;
+
+      row.Value = dialog.FileName;
+      NotifyParameterChanged();
+    }
+
     public void ReloadCurrentCatalogParameters(IDictionary<string, string> args)
     {
       _suppressSideEffects = true;

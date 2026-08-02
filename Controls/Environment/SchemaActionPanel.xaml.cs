@@ -25,5 +25,11 @@ namespace AIStudio.Controls.Environment
       if (sender is FrameworkElement element && element.Tag is SchemaParamRow row)
         Vm?.PickPropertyName(Window.GetWindow(this), row);
     }
+
+    private void BrowseMacroFile_Click(object sender, RoutedEventArgs e)
+    {
+      if (sender is FrameworkElement element && element.Tag is SchemaParamRow row)
+        Vm?.BrowseMacroFile(Window.GetWindow(this), row);
+    }
   }
 }

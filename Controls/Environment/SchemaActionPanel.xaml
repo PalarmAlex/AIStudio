@@ -75,6 +75,9 @@
                           <DataTrigger Binding="{Binding IsPropertyNameField}" Value="True">
                             <Setter Property="Grid.ColumnSpan" Value="1"/>
                           </DataTrigger>
+                          <DataTrigger Binding="{Binding IsMacroFileField}" Value="True">
+                            <Setter Property="Grid.ColumnSpan" Value="1"/>
+                          </DataTrigger>
                         </Style.Triggers>
                       </Style>
                     </TextBox.Style>
@@ -109,6 +112,14 @@
                           ToolTip="Справочник имён свойств документа"
                           Visibility="{Binding IsPropertyNameField, Converter={StaticResource BoolToVisibilityConverter}}"
                           Click="PickPropertyName_Click"
+                          Tag="{Binding}"/>
+                  <Button Grid.Column="2"
+                          Content="Обзор…"
+                          Padding="8,3"
+                          HorizontalAlignment="Stretch"
+                          ToolTip="Выбрать файл макроса SolidWorks (.swp / .dll)"
+                          Visibility="{Binding IsMacroFileField, Converter={StaticResource BoolToVisibilityConverter}}"
+                          Click="BrowseMacroFile_Click"
                           Tag="{Binding}"/>
                 </Grid>
               </DataTemplate>
