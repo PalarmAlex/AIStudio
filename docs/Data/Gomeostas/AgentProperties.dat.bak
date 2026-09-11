@@ -4,7 +4,7 @@ Description|Автономный агент, чья нейросетевая а�
 IsSleeping|False
 IsDead|False
 Lifetime|213828
-EvolutionStage|4
+EvolutionStage|1
 PainValue|0
 JoyValue|0
 BaseArchetype|Цикличный меланхолик

@@ -7,7 +7,6 @@ namespace AIStudio.Common.Adapters
   {
     public const string TemplatePlaceholder = "template_placeholder";
     public const string PropertyName = "property_name";
-    /// <summary>Кнопка выбора файла макроса SolidWorks (.swp / .dll).</summary>
     public const string MacroFile = "macro_file";
   }
 
@@ -31,7 +30,7 @@ namespace AIStudio.Common.Adapters
     public bool Required { get; set; }
     /// <summary>Значение по умолчанию для нового шага (argsSchema defaultValue).</summary>
     public string DefaultValue { get; set; }
-    /// <summary>Опционально: template_placeholder, property_name, macro_file.</summary>
+    /// <summary>Опционально: template_placeholder, property_name (см. recipe-template-catalog.json).</summary>
     public string EditorHint { get; set; }
     public IList<AdapterSchemaArgValueOption> Values { get; set; }
   }

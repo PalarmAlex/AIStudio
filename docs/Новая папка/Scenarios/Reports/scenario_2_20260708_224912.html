@@ -1,0 +1,166 @@
+﻿<!DOCTYPE html>
+<html><head><meta charset="utf-8"/>
+<style>
+body{font-family:Segoe UI,Tahoma,sans-serif;margin:16px;color:#222;}
+h1{font-size:18px;color:#1565C0;}
+h2{font-size:15px;color:#37474F;margin-top:20px;border-bottom:1px solid #B0BEC5;padding-bottom:4px;}
+table{border-collapse:collapse;width:100%;margin:8px 0;font-size:12px;}
+th,td{border:1px solid #CFD8DC;padding:6px 8px;text-align:left;vertical-align:top;}
+th{background:#ECEFF1;font-weight:600;}
+table.steps-zebra tr:nth-child(even){background:#FAFAFA;}
+table.group-compose{table-layout:fixed;width:100%;}
+table.group-compose td:nth-child(1),table.group-compose th:nth-child(1){text-align:center;white-space:nowrap;}
+table.group-compose td:nth-child(2),table.group-compose th:nth-child(2){word-wrap:break-word;word-break:break-word;}
+table.group-compose:not(.group-compose-compact) td:nth-child(n+3),table.group-compose:not(.group-compose-compact) th:nth-child(n+3){text-align:center;white-space:nowrap;}
+table.group-compose.group-compose-compact td:nth-child(n+3):not(:last-child),table.group-compose.group-compose-compact th:nth-child(n+3):not(:last-child){text-align:center;white-space:nowrap;}
+table.group-compose.group-compose-compact td:last-child,table.group-compose.group-compose-compact th:last-child{white-space:nowrap;text-align:left;}
+.muted{color:#78909C;}
+table.meta-table{width:100%;table-layout:fixed;}
+table.meta-table th.meta-label{width:15%;min-width:100px;max-width:160px;font-size:11px;font-weight:600;padding:6px 8px;vertical-align:top;background:#ECEFF1;}
+table.meta-table td.meta-value{width:85%;font-size:13px;padding:8px 12px;line-height:1.45;word-wrap:break-word;}
+table.compare-table{font-size:11px;}
+table.compare-table th.col-exp-h{background:#E8F5E9;}
+table.compare-table td.col-exp{background:transparent;}
+table.compare-table th.col-fact-h,table.compare-table td.col-fact{background:#E3F2FD;}
+table.compare-table td.col-fact.fact-mismatch{background:#FFEBEE;color:#B71C1C;border-color:#FFCDD2;}
+table.compare-table td.col-fact span.um-ok{color:#2E7D32;font-weight:600;}
+table.compare-table td.col-fact span.um-bad{color:#C62828;font-weight:600;}
+table.compare-table td.col-fact.fact-mismatch span.um-ok{color:#2E7D32;}
+table.compare-table td.col-fact.fact-mismatch span.um-bad{color:#C62828;}
+table.compare-table td.col-fact span.mc-ns{color:#C62828;font-weight:600;}
+table.compare-table td.col-fact span.mc-await{color:#F9A825;font-weight:600;}
+table.compare-table td.col-fact span.mc-solved{color:#2E7D32;font-weight:600;}
+table.compare-table td.col-fact.fact-mismatch span.mc-ns{color:#C62828;}
+table.compare-table td.col-fact.fact-mismatch span.mc-await{color:#F9A825;}
+table.compare-table td.col-fact.fact-mismatch span.mc-solved{color:#2E7D32;}
+.summary-box{margin-top:20px;padding:14px 16px;border-radius:6px;border:1px solid #CFD8DC;background:#FAFAFA;}
+.summary-box h3{margin:0 0 10px 0;font-size:14px;color:#37474F;}
+.summary-ok{color:#2E7D32;font-size:13px;font-weight:600;margin:0;}
+.summary-bad{color:#C62828;font-size:13px;font-weight:600;margin:0 0 8px 0;}
+.summary-box ul{margin:6px 0 0 0;padding-left:20px;}
+.summary-box li{margin:8px 0;font-size:12px;line-height:1.45;}
+</style>
+</head><body>
+<h1>Отчёт по прогону сценария оператора</h1>
+<p>
+Сценарий завершён успешно. Последний выполненный № пульса: 90.</p>
+<h2>Данные сценария</h2>
+<table class="meta-table">
+<tr><th class="meta-label">
+ID</th><td class="meta-value">2</td></tr>
+<tr><th class="meta-label">
+Название</th><td class="meta-value">Формирование первичных и вторичных условных рефлексов.</td></tr>
+<tr><th class="meta-label">
+Описание</th><td class="meta-value">Тестируется формирование первичных и вторичных условных рефлексов на 1 стадии развития агента.<br/><br/>Образ восприятия агента включает вербальные (фразы с пульта), тактильные (воздействия с пульта) и зрительные (цвет фона сцены) компоненты; составной (компаундный) стимул может объединять любые из этих модальностей.<br/><br/>═══════════════════════════════════════════════════════════════<br/>I. Формирование первичного условного рефлекса<br/>═══════════════════════════════════════════════════════════════<br/><br/>Механизм:<br/>Первичный условный рефлекс (CR1) образуется путём многократного сочетания нейтрального стимула (CS) с безусловным стимулом (US), вызывающим безусловный ответ (UR). После достаточного числа повторений CS начинает самостоятельно вызывать условный ответ (CR), функционально эквивалентный UR. Нейтральный стимул может быть вербальным (фраза), зрительным (цвет фона) или составным (сочетание нескольких модальностей).<br/><br/>Математическая модель:<br/>Крепость ассоциативной связи C ∈ [0, 1] при повторных подкреплениях нарастает по модели Рескорла–Вагнера:<br/><br/>  C(k) = C(k−1) + α &#183; (β − C(k−1))<br/> <br/>где α ∈ (0, 1) — коэффициент обучения, β = 1.0 — асимптотический максимум. Периодически применяется адаптивное затухание: чем выше достигнутая крепость, тем медленнее ослабляется связь. Условный рефлекс активируется при C ≥ γ (порог активации, по умолчанию 0.6). При падении C ниже минимального порога C_min связь разрывается и рефлекс удаляется.<br/><br/>Протокол формирования:<br/><br/>Шаг 1. Предъявление CS: оператор посылает вербальный стимул с пульта (например, фраза &#171;Эх&#187;).<br/>Шаг 2. Предъявление US: оператор посылает гомеостатическое воздействие (например, [Огорчить]) в пределах временного окна τ. Агент отвечает безусловной реакцией [Грустит]. Побочный эффект US — временное изменение состояния гомеостаза (Плохо) и стилей реагирования.<br/>Шаг 3. Пауза: ожидание возврата гомеостаза в исходное состояние (Норма). Длительность определяется настройками удержания временного состояния.<br/>Шаг 4. Повторение пары CS → US (шаги 1–3) многократно. При каждом повторе крепость C нарастает по формуле Рескорла–Вагнера.<br/>Шаг 5. Тестовое предъявление CS без US. При C ≥ γ агент отвечает условной реакцией [Грустит] — первичный условный рефлекс сформирован.<br/><br/>Критерий успеха: нейтральный стимул (CS) без подкрепления вызывает реакцию безусловного рефлекса.<br/><br/>Экспериментальная база:<br/>— Pavlov I.P. (1927). Conditioned Reflexes: An Investigation of the Physiological Activity of the Cerebral Cortex. Oxford University Press.<br/>— Rescorla R.A., Wagner A.R. (1972). A theory of Pavlovian conditioning: Variations in the effectiveness of reinforcement and nonreinforcement. In: Classical Conditioning II. Appleton-Century-Crofts.<br/><br/>═══════════════════════════════════════════════════════════════<br/>II. Формирование вторичного условного рефлекса<br/>═══════════════════════════════════════════════════════════════<br/><br/>Механизм:<br/>Вторичный условный рефлекс (CR2) образуется на базе уже сформированного первичного. В роли безусловного стимула выступает условный стимул первичного рефлекса (CS1), а в роли нового условного — новый нейтральный стимул (CS2).<br/><br/>Особенности высших порядков:<br/>- Коэффициент понижения K ∈ [1.2, 3.0] (задаётся в настройках) замедляет обучение и ускоряет затухание: α&#39; = α/K, η&#39; = η^K.<br/>- Третичный рефлекс (от вторичного) использует удвоенный коэффициент: α&#39; = α/(K&#183;2), η&#39; = η^(K&#183;2) — такие рефлексы<br/>  формируются существенно медленнее и распадаются быстрее.<br/>- При усилении родительского рефлекса каскадно усиливаются дочерние.<br/><br/>Протокол формирования:<br/><br/>Шаг 1. Убедиться, что первичный CR1 сформирован и стабильно активируется на CS1.<br/>Шаг 2. Предъявление CS2: оператор посылает новый вербальный стимул (например, &#171;Ох&#187;).<br/>Шаг 3. Предъявление CS1: оператор посылает вербальный стимул первичного рефлекса (&#171;Эх&#187;), который вызывает условную реакцию CR1.<br/>Шаг 4. Повторение пары CS2 → CS1 многократно. Крепость вторичного рефлекса нарастает с понижающим коэффициентом.<br/>Шаг 5. Тестовое предъявление CS2 без CS1. При достаточной крепости агент отвечает реакцией, унаследованной от первичного рефлекса, — вторичный условный рефлекс сформирован.<br/><br/>Критерий успеха: CS2 без подкрепления вызывает реакцию, опосредованную через первичный условный рефлекс.<br/><br/>Экспериментальная база:<br/>— Rizley R.C., Rescorla R.A. (1972). Associations in second-order conditioning and sensory preconditioning. Journal of Comparative and Physiological Psychology, 81(1), 1–11.<br/>— Holland P.C., Rescorla R.A. (1975). Second-order conditioning with food unconditioned stimulus. Journal of Comparative and Physiological Psychology, 88(1), 459–467.<br/><br/>═══════════════════════════════════════════════════════════════<br/>Параметры модели<br/>═══════════════════════════════════════════════════════════════<br/><br/>  α       = 0.2   — коэффициент обучения<br/>  β       = 1.0   — асимптотический максимум крепости<br/>  η       = 0.98  — коэффициент затухания<br/>  γ       = 0.6   — порог активации<br/>  τ       = 5     — временное окно корреляции (в пульсах)<br/>  C_min   = 0.1   — минимальная крепость связи<br/>  K       = 1.5   — коэффициент понижения для вторичных рефлексов<br/>  θ_comp  = 0.8   — порог отношения крепостей для суммации / конкурентного подавления</td></tr>
+<tr><th class="meta-label">
+Переход перед запуском (стадия)</th><td class="meta-value">1</td></tr>
+<tr><th class="meta-label">
+Очистка данных при переходе</th><td class="meta-value">да</td></tr>
+<tr><th class="meta-label">
+Сброс параметров в &#171;норму&#187; перед запуском</th><td class="meta-value">да</td></tr>
+<tr><th class="meta-label">
+Режим наблюдения при прогоне</th><td class="meta-value">нет</td></tr>
+<tr><th class="meta-label">
+Авторитарная запись при прогоне</th><td class="meta-value">нет</td></tr>
+<tr><th class="meta-label">
+Коэфф. пульсации</th><td class="meta-value">20</td></tr>
+<tr><th class="meta-label">
+Фактическая скорость</th><td class="meta-value">22.5 пульсов/сек</td></tr>
+</table>
+<h2>Шаги</h2>
+<table class="steps-zebra"><tr><th>Шаг</th><th>№ пульса</th><th>Тип</th><th>Воздействия</th><th>Воздействие от среды</th><th>Фраза</th><th>Тон</th><th>Настр.</th><th>Цвет</th><th>Сброс ожид.</th></tr>
+<tr>
+<td>1</td><td>1</td><td>Пульт</td><td></td><td>-</td><td>Эх</td><td>Нормальный (0)</td><td>Нормальное (0)</td><td>Белый (0)</td><td>нет</td></tr>
+<tr>
+<td>2</td><td>2</td><td>Пульт</td><td>Огорчить</td><td>-</td><td></td><td>Нормальный (0)</td><td>Нормальное (0)</td><td>Белый (0)</td><td>нет</td></tr>
+<tr>
+<td>3</td><td>10</td><td>Пульт</td><td></td><td>-</td><td>Эх</td><td>Нормальный (0)</td><td>Нормальное (0)</td><td>Белый (0)</td><td>нет</td></tr>
+<tr>
+<td>4</td><td>11</td><td>Пульт</td><td>Огорчить</td><td>-</td><td></td><td>Нормальный (0)</td><td>Нормальное (0)</td><td>Белый (0)</td><td>нет</td></tr>
+<tr>
+<td>5</td><td>19</td><td>Пульт</td><td></td><td>-</td><td>Эх</td><td>Нормальный (0)</td><td>Нормальное (0)</td><td>Белый (0)</td><td>нет</td></tr>
+<tr>
+<td>6</td><td>20</td><td>Пульт</td><td>Огорчить</td><td>-</td><td></td><td>Нормальный (0)</td><td>Нормальное (0)</td><td>Белый (0)</td><td>нет</td></tr>
+<tr>
+<td>7</td><td>28</td><td>Пульт</td><td></td><td>-</td><td>Эх</td><td>Нормальный (0)</td><td>Нормальное (0)</td><td>Белый (0)</td><td>нет</td></tr>
+<tr>
+<td>8</td><td>29</td><td>Пульт</td><td>Огорчить</td><td>-</td><td></td><td>Нормальный (0)</td><td>Нормальное (0)</td><td>Белый (0)</td><td>нет</td></tr>
+<tr>
+<td>9</td><td>37</td><td>Пульт</td><td></td><td>-</td><td>Эх</td><td>Нормальный (0)</td><td>Нормальное (0)</td><td>Белый (0)</td><td>нет</td></tr>
+<tr>
+<td>10</td><td>38</td><td>Пульт</td><td>Огорчить</td><td>-</td><td></td><td>Нормальный (0)</td><td>Нормальное (0)</td><td>Белый (0)</td><td>нет</td></tr>
+<tr>
+<td>11</td><td>46</td><td>Пульт</td><td></td><td>-</td><td>Эх</td><td>Нормальный (0)</td><td>Нормальное (0)</td><td>Белый (0)</td><td>нет</td></tr>
+<tr>
+<td>12</td><td>54</td><td>Пульт</td><td></td><td>-</td><td>Ох</td><td>Нормальный (0)</td><td>Нормальное (0)</td><td>Белый (0)</td><td>нет</td></tr>
+<tr>
+<td>13</td><td>55</td><td>Пульт</td><td></td><td>-</td><td>Эх</td><td>Нормальный (0)</td><td>Нормальное (0)</td><td>Белый (0)</td><td>нет</td></tr>
+<tr>
+<td>14</td><td>63</td><td>Пульт</td><td></td><td>-</td><td>Ох</td><td>Нормальный (0)</td><td>Нормальное (0)</td><td>Белый (0)</td><td>нет</td></tr>
+<tr>
+<td>15</td><td>64</td><td>Пульт</td><td></td><td>-</td><td>Эх</td><td>Нормальный (0)</td><td>Нормальное (0)</td><td>Белый (0)</td><td>нет</td></tr>
+<tr>
+<td>16</td><td>72</td><td>Пульт</td><td></td><td>-</td><td>Ох</td><td>Нормальный (0)</td><td>Нормальное (0)</td><td>Белый (0)</td><td>нет</td></tr>
+<tr>
+<td>17</td><td>73</td><td>Пульт</td><td></td><td>-</td><td>Эх</td><td>Нормальный (0)</td><td>Нормальное (0)</td><td>Белый (0)</td><td>нет</td></tr>
+<tr>
+<td>18</td><td>81</td><td>Пульт</td><td></td><td>-</td><td>Ох</td><td>Нормальный (0)</td><td>Нормальное (0)</td><td>Белый (0)</td><td>нет</td></tr>
+<tr>
+<td>19</td><td>82</td><td>Пульт</td><td></td><td>-</td><td>Эх</td><td>Нормальный (0)</td><td>Нормальное (0)</td><td>Белый (0)</td><td>нет</td></tr>
+<tr>
+<td>20</td><td>90</td><td>Пульт</td><td></td><td>-</td><td>Ох</td><td>Нормальный (0)</td><td>Нормальное (0)</td><td>Белый (0)</td><td>нет</td></tr>
+</table>
+<h2>Сравнение ожидаемых реакций и факта по логам</h2>
+<p class="muted">Якорный глобальный пульс: 
+957. Глобальный пульс шага = якорь + № пульса внутри сценария. <table class="compare-table"><tr><th>Шаг</th><th>№ пульса</th>
+<th class="col-fact-h">Состояние</th><th class="col-fact-h">Стиль</th><th class="col-fact-h">Триггер</th><th class="col-fact-h">Актуально</th><th class="col-fact-h">Б/у рефлекс</th><th class="col-exp-h">Усл. рефлекс (ожид.)</th><th class="col-fact-h">Усл. рефлекс (факт)</th></tr>
+<tr>
+<td>1</td><td>1</td><td class="col-fact" title="НОРМА">Норма</td><td class="col-fact" title="Расслабление, Игра">7,16</td><td class="col-fact" title="Воздействие: нет&#10;Фразы: Эх&#10;Тон: Нормальный (0)&#10;Настроение: Нормальное (0)&#10;Цветовой фон: Белый">519</td><td class="col-fact">-</td><td class="col-fact">-</td><td class="col-exp">-</td><td class="col-fact">-</td></tr>
+<tr>
+<td>2</td><td>2</td><td class="col-fact" title="ПЛОХО">Плохо</td><td class="col-fact" title="Поиск, Напряжение, Исследование">1,8,9</td><td class="col-fact" title="Воздействие: Огорчить&#10;Фразы: нет&#10;Тон: —&#10;Настроение: —&#10;Цветовой фон: Белый">5</td><td class="col-fact" title="Актуальная ситуация">1</td><td class="col-fact" title="Действия: Грустит">908</td><td class="col-exp">-</td><td class="col-fact">-</td></tr>
+<tr>
+<td>3</td><td>10</td><td class="col-fact" title="НОРМА">Норма</td><td class="col-fact" title="Расслабление, Игра">7,16</td><td class="col-fact" title="Воздействие: нет&#10;Фразы: Эх&#10;Тон: Нормальный (0)&#10;Настроение: Нормальное (0)&#10;Цветовой фон: Белый">519</td><td class="col-fact">-</td><td class="col-fact">-</td><td class="col-exp">-</td><td class="col-fact">-</td></tr>
+<tr>
+<td>4</td><td>11</td><td class="col-fact" title="ПЛОХО">Плохо</td><td class="col-fact" title="Поиск, Напряжение, Исследование">1,8,9</td><td class="col-fact" title="Воздействие: Огорчить&#10;Фразы: нет&#10;Тон: —&#10;Настроение: —&#10;Цветовой фон: Белый">5</td><td class="col-fact" title="Актуальная ситуация">1</td><td class="col-fact" title="Действия: Грустит">908</td><td class="col-exp">-</td><td class="col-fact">-</td></tr>
+<tr>
+<td>5</td><td>19</td><td class="col-fact" title="НОРМА">Норма</td><td class="col-fact" title="Расслабление, Игра">7,16</td><td class="col-fact" title="Воздействие: нет&#10;Фразы: Эх&#10;Тон: Нормальный (0)&#10;Настроение: Нормальное (0)&#10;Цветовой фон: Белый">519</td><td class="col-fact">-</td><td class="col-fact">-</td><td class="col-exp">-</td><td class="col-fact">-</td></tr>
+<tr>
+<td>6</td><td>20</td><td class="col-fact" title="ПЛОХО">Плохо</td><td class="col-fact" title="Поиск, Напряжение, Исследование">1,8,9</td><td class="col-fact" title="Воздействие: Огорчить&#10;Фразы: нет&#10;Тон: —&#10;Настроение: —&#10;Цветовой фон: Белый">5</td><td class="col-fact" title="Актуальная ситуация">1</td><td class="col-fact" title="Действия: Грустит">908</td><td class="col-exp">-</td><td class="col-fact">-</td></tr>
+<tr>
+<td>7</td><td>28</td><td class="col-fact" title="НОРМА">Норма</td><td class="col-fact" title="Расслабление, Игра">7,16</td><td class="col-fact" title="Воздействие: нет&#10;Фразы: Эх&#10;Тон: Нормальный (0)&#10;Настроение: Нормальное (0)&#10;Цветовой фон: Белый">519</td><td class="col-fact">-</td><td class="col-fact">-</td><td class="col-exp">-</td><td class="col-fact">-</td></tr>
+<tr>
+<td>8</td><td>29</td><td class="col-fact" title="ПЛОХО">Плохо</td><td class="col-fact" title="Поиск, Напряжение, Исследование">1,8,9</td><td class="col-fact" title="Воздействие: Огорчить&#10;Фразы: нет&#10;Тон: —&#10;Настроение: —&#10;Цветовой фон: Белый">5</td><td class="col-fact" title="Актуальная ситуация">1</td><td class="col-fact" title="Действия: Грустит">908</td><td class="col-exp">-</td><td class="col-fact">-</td></tr>
+<tr>
+<td>9</td><td>37</td><td class="col-fact" title="НОРМА">Норма</td><td class="col-fact" title="Расслабление, Игра">7,16</td><td class="col-fact" title="Воздействие: нет&#10;Фразы: Эх&#10;Тон: Нормальный (0)&#10;Настроение: Нормальное (0)&#10;Цветовой фон: Белый">519</td><td class="col-fact">-</td><td class="col-fact">-</td><td class="col-exp">-</td><td class="col-fact">-</td></tr>
+<tr>
+<td>10</td><td>38</td><td class="col-fact" title="ПЛОХО">Плохо</td><td class="col-fact" title="Поиск, Напряжение, Исследование">1,8,9</td><td class="col-fact" title="Воздействие: Огорчить&#10;Фразы: нет&#10;Тон: —&#10;Настроение: —&#10;Цветовой фон: Белый">5</td><td class="col-fact" title="Актуальная ситуация">1</td><td class="col-fact" title="Действия: Грустит">908</td><td class="col-exp">-</td><td class="col-fact">-</td></tr>
+<tr>
+<td>11</td><td>46</td><td class="col-fact" title="НОРМА">Норма</td><td class="col-fact" title="Расслабление, Игра">7,16</td><td class="col-fact" title="Воздействие: нет&#10;Фразы: Эх&#10;Тон: Нормальный (0)&#10;Настроение: Нормальное (0)&#10;Цветовой фон: Белый">519</td><td class="col-fact">-</td><td class="col-fact">-</td><td class="col-exp" title="Действия: Грустит">1</td><td class="col-fact" title="Действия: Грустит">1</td></tr>
+<tr>
+<td>12</td><td>54</td><td class="col-fact" title="НОРМА">Норма</td><td class="col-fact" title="Расслабление, Игра">7,16</td><td class="col-fact" title="Воздействие: нет&#10;Фразы: Ох&#10;Тон: —&#10;Настроение: —&#10;Цветовой фон: Белый">520</td><td class="col-fact">-</td><td class="col-fact">-</td><td class="col-exp">-</td><td class="col-fact">-</td></tr>
+<tr>
+<td>13</td><td>55</td><td class="col-fact" title="НОРМА">Норма</td><td class="col-fact" title="Расслабление, Игра">7,16</td><td class="col-fact" title="Воздействие: нет&#10;Фразы: Эх&#10;Тон: Нормальный (0)&#10;Настроение: Нормальное (0)&#10;Цветовой фон: Белый">519</td><td class="col-fact">-</td><td class="col-fact">-</td><td class="col-exp" title="Действия: Грустит">1</td><td class="col-fact" title="Действия: Грустит">1</td></tr>
+<tr>
+<td>14</td><td>63</td><td class="col-fact" title="НОРМА">Норма</td><td class="col-fact" title="Расслабление, Игра">7,16</td><td class="col-fact" title="Воздействие: нет&#10;Фразы: Ох&#10;Тон: —&#10;Настроение: —&#10;Цветовой фон: Белый">520</td><td class="col-fact">-</td><td class="col-fact">-</td><td class="col-exp">-</td><td class="col-fact">-</td></tr>
+<tr>
+<td>15</td><td>64</td><td class="col-fact" title="НОРМА">Норма</td><td class="col-fact" title="Расслабление, Игра">7,16</td><td class="col-fact" title="Воздействие: нет&#10;Фразы: Эх&#10;Тон: Нормальный (0)&#10;Настроение: Нормальное (0)&#10;Цветовой фон: Белый">519</td><td class="col-fact">-</td><td class="col-fact">-</td><td class="col-exp" title="Действия: Грустит">1</td><td class="col-fact" title="Действия: Грустит">1</td></tr>
+<tr>
+<td>16</td><td>72</td><td class="col-fact" title="НОРМА">Норма</td><td class="col-fact" title="Расслабление, Игра">7,16</td><td class="col-fact" title="Воздействие: нет&#10;Фразы: Ох&#10;Тон: —&#10;Настроение: —&#10;Цветовой фон: Белый">520</td><td class="col-fact">-</td><td class="col-fact">-</td><td class="col-exp">-</td><td class="col-fact">-</td></tr>
+<tr>
+<td>17</td><td>73</td><td class="col-fact" title="НОРМА">Норма</td><td class="col-fact" title="Расслабление, Игра">7,16</td><td class="col-fact" title="Воздействие: нет&#10;Фразы: Эх&#10;Тон: Нормальный (0)&#10;Настроение: Нормальное (0)&#10;Цветовой фон: Белый">519</td><td class="col-fact">-</td><td class="col-fact">-</td><td class="col-exp" title="Действия: Грустит">1</td><td class="col-fact" title="Действия: Грустит">1</td></tr>
+<tr>
+<td>18</td><td>81</td><td class="col-fact" title="НОРМА">Норма</td><td class="col-fact" title="Расслабление, Игра">7,16</td><td class="col-fact" title="Воздействие: нет&#10;Фразы: Ох&#10;Тон: —&#10;Настроение: —&#10;Цветовой фон: Белый">520</td><td class="col-fact">-</td><td class="col-fact">-</td><td class="col-exp">-</td><td class="col-fact">-</td></tr>
+<tr>
+<td>19</td><td>82</td><td class="col-fact" title="НОРМА">Норма</td><td class="col-fact" title="Расслабление, Игра">7,16</td><td class="col-fact" title="Воздействие: нет&#10;Фразы: Эх&#10;Тон: Нормальный (0)&#10;Настроение: Нормальное (0)&#10;Цветовой фон: Белый">519</td><td class="col-fact">-</td><td class="col-fact">-</td><td class="col-exp" title="Действия: Грустит">1</td><td class="col-fact" title="Действия: Грустит">1</td></tr>
+<tr>
+<td>20</td><td>90</td><td class="col-fact" title="НОРМА">Норма</td><td class="col-fact" title="Расслабление, Игра">7,16</td><td class="col-fact" title="Воздействие: нет&#10;Фразы: Ох&#10;Тон: —&#10;Настроение: —&#10;Цветовой фон: Белый">520</td><td class="col-fact">-</td><td class="col-fact">-</td><td class="col-exp" title="Нет данных о действиях рефлекса">2</td><td class="col-fact fact-mismatch">-</td></tr>
+</table>
+<div class="summary-box">
+<h3>Итог сравнения ожиданий с логами</h3>
+<p class="summary-bad">Обнаружены расхождения в строках:</p>
+<ul>
+<li><strong>Шаг 20, № пульса 90.</strong> Усл. рефлекс: ожид. &#171;2&#187;, факт &#171;-&#187;</li>
+</ul>
+</div>
+<p class="muted" style="margin-top:24px;font-size:11px;">Сформировано AIStudio.</p>
+</body></html>

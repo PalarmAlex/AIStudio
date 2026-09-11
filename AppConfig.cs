@@ -122,8 +122,10 @@ public static class AppConfig
   }
 
   /// <summary>
-  /// Дублирует XML хаба в <c>{корень активного проекта}\Settings\Settings.xml</c>, чтобы переключение баз
+  /// Синхронизирует XML хаба с профилем <c>{корень активного проекта}\Settings\Settings.xml</c>, чтобы переключение баз
   /// подхватывало сохранённый профиль, не затрагивая файлы других корней данных.
+  /// Если профиль проекта уже существует, выполняется слияние: обновляются только ключи из хаба,
+  /// а проектные ключи, неизвестные студии (например, <c>BomExchangeFolder</c>), сохраняются как есть.
   /// </summary>
   public static void MirrorHubToProjectProfile()
   {
@@ -143,7 +145,38 @@ public static class AppConfig
       string profileDir = Path.GetDirectoryName(profilePath);
       if (!string.IsNullOrEmpty(profileDir))
         Directory.CreateDirectory(profileDir);
-      File.Copy(ConfigFullPath, profilePath, overwrite: true);
+
+      var hub = XDocument.Load(ConfigFullPath);
+      XElement hubApp = hub.Root?.Element("AppSettings");
+      if (hubApp == null)
+        return;
+
+      if (!File.Exists(profilePath))
+      {
+        // Профиля ещё нет — создаём полную копию хаба.
+        hub.Save(profilePath);
+        return;
+      }
+
+      // Слияние: обновляем/добавляем ключи хаба, прочие элементы профиля не трогаем.
+      var profile = XDocument.Load(profilePath);
+      XElement profileApp = profile.Root?.Element("AppSettings");
+      if (profileApp == null)
+      {
+        profile.Root?.Add(new XElement("AppSettings"));
+        profileApp = profile.Root?.Element("AppSettings");
+        if (profileApp == null)
+          return;
+      }
+      foreach (XElement hubElement in hubApp.Elements())
+      {
+        XElement target = profileApp.Element(hubElement.Name);
+        if (target != null)
+          target.Value = hubElement.Value;
+        else
+          profileApp.Add(new XElement(hubElement.Name, hubElement.Value));
+      }
+      profile.Save(profilePath);
     }
     catch (Exception ex)
     {
@@ -184,7 +217,9 @@ public static class AppConfig
         UpdateConfigPaths();
         SetIntSetting("FirstRun", 1);
       }
-      MirrorHubToProjectProfile();
+      // При запуске НЕ зеркалируем хаб в профиль проекта: иначе ручные правки и
+      // проектные ключи (BomExchangeFolder и т. п.) в Settings.xml затирались бы
+      // значениями из хаба. Профиль проекта обновляется только при явном сохранении настроек.
     }
     catch (Exception ex)
     {
