@@ -67,9 +67,23 @@ namespace AIStudio.ViewModels
         MaxAssociationStrength = _conditionedReflexesSystem.Settings.MaxAssociationStrength,
         InitialLifetimePulses = _conditionedReflexesSystem.Settings.InitialLifetimePulses,
         ActiveExtinctionRate = _conditionedReflexesSystem.Settings.ActiveExtinctionRate,
+        PassiveDecayPeriodPulses = _conditionedReflexesSystem.Settings.PassiveDecayPeriodPulses,
+        PassiveDecayFallbackPeriodPulses = _conditionedReflexesSystem.Settings.PassiveDecayFallbackPeriodPulses,
         HigherOrderStrengthReductionCoefficient = _conditionedReflexesSystem.Settings.HigherOrderStrengthReductionCoefficient,
         CompetitionStrengthRatioThreshold = _conditionedReflexesSystem.Settings.CompetitionStrengthRatioThreshold,
-        TieBreakPreferSmallerReflexId = _conditionedReflexesSystem.Settings.TieBreakPreferSmallerReflexId
+        TieBreakPreferSmallerReflexId = _conditionedReflexesSystem.Settings.TieBreakPreferSmallerReflexId,
+        EnableCompetitiveLearning = _conditionedReflexesSystem.Settings.EnableCompetitiveLearning,
+        CompetitionSuppressionCoefficient = _conditionedReflexesSystem.Settings.CompetitionSuppressionCoefficient,
+        InitialStrengthBonus = _conditionedReflexesSystem.Settings.InitialStrengthBonus,
+        AuthoritativeStrength = _conditionedReflexesSystem.Settings.AuthoritativeStrength,
+        EstablishedStrengthThreshold = _conditionedReflexesSystem.Settings.EstablishedStrengthThreshold,
+        ActivationReinforcementFraction = _conditionedReflexesSystem.Settings.ActivationReinforcementFraction,
+        MaxLifetimePulsesCap = _conditionedReflexesSystem.Settings.MaxLifetimePulsesCap,
+        SensoryDecayPeriodPulses = _conditionedReflexesSystem.Settings.SensoryDecayPeriodPulses,
+        SensoryStrengthFloor = _conditionedReflexesSystem.Settings.SensoryStrengthFloor,
+        SensoryHighStrengthThreshold = _conditionedReflexesSystem.Settings.SensoryHighStrengthThreshold,
+        SensoryHighStrengthDecayRate = _conditionedReflexesSystem.Settings.SensoryHighStrengthDecayRate,
+        SensoryMidStrengthThreshold = _conditionedReflexesSystem.Settings.SensoryMidStrengthThreshold
       };
       OnPropertyChanged(nameof(Settings));
     }
@@ -137,6 +151,10 @@ namespace AIStudio.ViewModels
       if (!activationThresholdValidation.isValid)
         errors.Add(activationThresholdValidation.errorMessage);
 
+      var decayRateValidation = SettingsValidator.ValidateDecayRate(Settings.DecayRate);
+      if (!decayRateValidation.isValid)
+        errors.Add(decayRateValidation.errorMessage);
+
       var initialLifetimeValidation = SettingsValidator.ValidateInitialLifetimePulses(Settings.InitialLifetimePulses);
       if (!initialLifetimeValidation.isValid)
         errors.Add(initialLifetimeValidation.errorMessage);
@@ -182,6 +200,43 @@ namespace AIStudio.ViewModels
       _conditionedReflexesSystem.Settings.CompetitionStrengthRatioThreshold =
           Math.Max(0.5f, Math.Min(Settings.CompetitionStrengthRatioThreshold, 0.9f));
       _conditionedReflexesSystem.Settings.TieBreakPreferSmallerReflexId = Settings.TieBreakPreferSmallerReflexId;
+
+      // Коэффициент затухания λ сенсорных ассоциаций (0.95-0.99)
+      _conditionedReflexesSystem.Settings.DecayRate = Math.Max(0.95f, Math.Min(Settings.DecayRate, 0.99f));
+
+      // Периоды пассивного угасания: резервный — строго положительный
+      _conditionedReflexesSystem.Settings.PassiveDecayPeriodPulses = Math.Max(0, Settings.PassiveDecayPeriodPulses);
+      _conditionedReflexesSystem.Settings.PassiveDecayFallbackPeriodPulses = Math.Max(1, Settings.PassiveDecayFallbackPeriodPulses);
+
+      // Конкурентное обучение
+      _conditionedReflexesSystem.Settings.EnableCompetitiveLearning = Settings.EnableCompetitiveLearning;
+      _conditionedReflexesSystem.Settings.CompetitionSuppressionCoefficient =
+          Math.Max(0f, Math.Min(Settings.CompetitionSuppressionCoefficient, 1f));
+
+      // Начальная крепость и установление
+      _conditionedReflexesSystem.Settings.InitialStrengthBonus =
+          Math.Max(0f, Math.Min(Settings.InitialStrengthBonus, 1f));
+      _conditionedReflexesSystem.Settings.AuthoritativeStrength =
+          Math.Max(0f, Math.Min(Settings.AuthoritativeStrength, 1f));
+      _conditionedReflexesSystem.Settings.EstablishedStrengthThreshold =
+          Math.Max(0f, Math.Min(Settings.EstablishedStrengthThreshold, 1f));
+      _conditionedReflexesSystem.Settings.ActivationReinforcementFraction =
+          Math.Max(0f, Math.Min(Settings.ActivationReinforcementFraction, 1f));
+
+      // Потолок TTL не может быть меньше начального лимита простоя
+      _conditionedReflexesSystem.Settings.MaxLifetimePulsesCap =
+          Math.Max(_conditionedReflexesSystem.Settings.InitialLifetimePulses, Settings.MaxLifetimePulsesCap);
+
+      // Сенсорные ассоциации CS↔CS
+      _conditionedReflexesSystem.Settings.SensoryDecayPeriodPulses = Math.Max(1, Settings.SensoryDecayPeriodPulses);
+      _conditionedReflexesSystem.Settings.SensoryStrengthFloor =
+          Math.Max(0f, Math.Min(Settings.SensoryStrengthFloor, 1f));
+      _conditionedReflexesSystem.Settings.SensoryHighStrengthThreshold =
+          Math.Max(0f, Math.Min(Settings.SensoryHighStrengthThreshold, 1f));
+      _conditionedReflexesSystem.Settings.SensoryHighStrengthDecayRate =
+          Math.Max(0.9f, Math.Min(Settings.SensoryHighStrengthDecayRate, 1f));
+      _conditionedReflexesSystem.Settings.SensoryMidStrengthThreshold =
+          Math.Max(0f, Math.Min(Settings.SensoryMidStrengthThreshold, 1f));
     }
 
     private void Cancel(object parameter)

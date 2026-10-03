@@ -7,7 +7,7 @@
         xmlns:converters="clr-namespace:AIStudio.Converters"
         mc:Ignorable="d"
         Title="Настройки условных рефлексов" 
-        Height="Auto" Width="720" SizeToContent="Height"
+        Height="Auto" Width="1180" SizeToContent="Height"
         WindowStartupLocation="CenterOwner"
         ResizeMode="NoResize"
         Background="#FFF0F0F0">
@@ -52,6 +52,13 @@
       <Setter Property="Margin" Value="0,8"/>
       <Setter Property="VerticalAlignment" Value="Center"/>
     </Style>
+
+    <Style x:Key="SectionHeaderStyle" TargetType="TextBlock">
+      <Setter Property="Margin" Value="0,14,0,2"/>
+      <Setter Property="FontWeight" Value="Bold"/>
+      <Setter Property="FontSize" Value="13"/>
+      <Setter Property="Foreground" Value="#FF1565C0"/>
+    </Style>
   </Window.Resources>
 
   <Window.InputBindings>
@@ -85,200 +92,518 @@
         </StackPanel>
       </Border>
 
-      <!-- Таблица настроек -->
+      <!-- Таблица настроек: два столбца, чтобы уменьшить высоту формы -->
       <Border Grid.Row="1" Margin="0,2,0,0" 
               BorderBrush="#FFDDDDDD" BorderThickness="1" 
               CornerRadius="3" Background="White">
         <ScrollViewer VerticalScrollBarVisibility="Auto" Padding="5">
-          <StackPanel Margin="2">
-            <!-- Коэффициент обучения -->
-            <Grid Style="{StaticResource GridRowStyle}">
-              <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="*"/>
-                <ColumnDefinition Width="Auto"/>
-                <ColumnDefinition Width="Auto"/>
-              </Grid.ColumnDefinitions>
+          <Grid Margin="2">
+            <Grid.ColumnDefinitions>
+              <ColumnDefinition Width="*"/>
+              <ColumnDefinition Width="Auto"/>
+              <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
 
-              <TextBlock Grid.Column="0" Style="{StaticResource SettingsLabelStyle}"
-                         Text="Коэффициент обучения (α):"/>
-              <TextBox Grid.Column="1" Style="{StaticResource SettingsTextBoxStyle}"
-                       GotFocus="TextBox_GotFocus"
-                       PreviewMouseLeftButtonDown="TextBox_PreviewMouseLeftButtonDown"
-                       LostFocus="TextBox_LostFocus"
-                       Text="{Binding Settings.LearningRate, UpdateSourceTrigger=LostFocus, StringFormat=N2, ValidatesOnExceptions=True, NotifyOnValidationError=True}"/>
-              <TextBlock Grid.Column="2" Style="{StaticResource SettingsRangeTextStyle}"
-                         Text="(0.1 - 0.3)"/>
-            </Grid>
+            <!-- Вертикальный разделитель между столбцами -->
+            <Rectangle Grid.Column="1" Width="1" Margin="10,0"
+                       Fill="#FFDDDDDD" HorizontalAlignment="Center"/>
 
-            <!-- Порог активации -->
-            <Grid Style="{StaticResource GridRowStyle}">
-              <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="*"/>
-                <ColumnDefinition Width="Auto"/>
-                <ColumnDefinition Width="Auto"/>
-              </Grid.ColumnDefinitions>
+            <!-- ============ ЛЕВЫЙ СТОЛБЕЦ ============ -->
+            <StackPanel Grid.Column="0">
 
-              <TextBlock Grid.Column="0" Style="{StaticResource SettingsLabelStyle}"
-                         Text="Порог активации (γ):"/>
-              <TextBox Grid.Column="1" Style="{StaticResource SettingsTextBoxStyle}"
-                       GotFocus="TextBox_GotFocus"
-                       PreviewMouseLeftButtonDown="TextBox_PreviewMouseLeftButtonDown"
-                       LostFocus="TextBox_LostFocus"
-                       Text="{Binding Settings.ActivationThreshold, UpdateSourceTrigger=LostFocus, StringFormat=N2, ValidatesOnExceptions=True, NotifyOnValidationError=True}"/>
-              <TextBlock Grid.Column="2" Style="{StaticResource SettingsRangeTextStyle}"
-                         Text="(0.5 - 0.7)"/>
-            </Grid>
+              <!-- ===== Основные параметры ===== -->
+              <TextBlock Style="{StaticResource SectionHeaderStyle}" Margin="0,0,0,2"
+                         Text="Основные параметры"/>
 
-            <!-- Начальный лимит простоя УР -->
-            <Grid Style="{StaticResource GridRowStyle}">
-              <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="*"/>
-                <ColumnDefinition Width="Auto"/>
-                <ColumnDefinition Width="Auto"/>
-              </Grid.ColumnDefinitions>
+              <!-- Коэффициент обучения -->
+              <Grid Style="{StaticResource GridRowStyle}">
+                <Grid.ColumnDefinitions>
+                  <ColumnDefinition Width="*"/>
+                  <ColumnDefinition Width="Auto"/>
+                  <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
 
-              <TextBlock Grid.Column="0" Style="{StaticResource SettingsLabelStyle}"
-                         Text="Начальный лимит простоя (пульсы):"
-                         ToolTip="При создании УР: ExpiresAt = now + T0; при каждой активации T0 удваивается"/>
-              <TextBox Grid.Column="1" Style="{StaticResource SettingsTextBoxStyle}"
-                       GotFocus="TextBox_GotFocus"
-                       PreviewMouseLeftButtonDown="TextBox_PreviewMouseLeftButtonDown"
-                       LostFocus="TextBox_LostFocus"
-                       Text="{Binding Settings.InitialLifetimePulses, UpdateSourceTrigger=LostFocus, ValidatesOnExceptions=True, NotifyOnValidationError=True}"/>
-              <TextBlock Grid.Column="2" Style="{StaticResource SettingsRangeTextStyle}"
-                         Text="(3600 - 604800)"/>
-            </Grid>
+                <TextBlock Grid.Column="0" Style="{StaticResource SettingsLabelStyle}"
+                           Text="Коэффициент обучения (α):"/>
+                <TextBox Grid.Column="1" Style="{StaticResource SettingsTextBoxStyle}"
+                         GotFocus="TextBox_GotFocus"
+                         PreviewMouseLeftButtonDown="TextBox_PreviewMouseLeftButtonDown"
+                         LostFocus="TextBox_LostFocus"
+                         Text="{Binding Settings.LearningRate, UpdateSourceTrigger=LostFocus, StringFormat=N2, ValidatesOnExceptions=True, NotifyOnValidationError=True}"/>
+                <TextBlock Grid.Column="2" Style="{StaticResource SettingsRangeTextStyle}"
+                           Text="(0.1 - 0.3)"/>
+              </Grid>
 
-            <!-- Активное угасание -->
-            <Grid Style="{StaticResource GridRowStyle}">
-              <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="*"/>
-                <ColumnDefinition Width="Auto"/>
-                <ColumnDefinition Width="Auto"/>
-              </Grid.ColumnDefinitions>
+              <!-- Коэффициент затухания сенсорных ассоциаций -->
+              <Grid Style="{StaticResource GridRowStyle}">
+                <Grid.ColumnDefinitions>
+                  <ColumnDefinition Width="*"/>
+                  <ColumnDefinition Width="Auto"/>
+                  <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
 
-              <TextBlock Grid.Column="0" Style="{StaticResource SettingsLabelStyle}"
-                         Text="Активное угасание (α_ext):"
-                         ToolTip="Шаг RW при CS без US в окне τ; действует и на сильные УР"/>
-              <TextBox Grid.Column="1" Style="{StaticResource SettingsTextBoxStyle}"
-                       GotFocus="TextBox_GotFocus"
-                       PreviewMouseLeftButtonDown="TextBox_PreviewMouseLeftButtonDown"
-                       LostFocus="TextBox_LostFocus"
-                       Text="{Binding Settings.ActiveExtinctionRate, UpdateSourceTrigger=LostFocus, StringFormat=N2, ValidatesOnExceptions=True, NotifyOnValidationError=True}"/>
-              <TextBlock Grid.Column="2" Style="{StaticResource SettingsRangeTextStyle}"
-                         Text="(0.01 - 0.2)"/>
-            </Grid>
+                <TextBlock Grid.Column="0" Style="{StaticResource SettingsLabelStyle}"
+                           Text="Коэфф. затухания λ (сенсорные CS↔CS):"
+                           ToolTip="Коэффициент затухания λ для сенсорных ассоциаций CS↔CS;passed через InitialLifetimePulses (динамический TTL)"/>
+                <TextBox Grid.Column="1" Style="{StaticResource SettingsTextBoxStyle}"
+                         GotFocus="TextBox_GotFocus"
+                         PreviewMouseLeftButtonDown="TextBox_PreviewMouseLeftButtonDown"
+                         LostFocus="TextBox_LostFocus"
+                         Text="{Binding Settings.DecayRate, UpdateSourceTrigger=LostFocus, StringFormat=N2, ValidatesOnExceptions=True, NotifyOnValidationError=True}"/>
+                <TextBlock Grid.Column="2" Style="{StaticResource SettingsRangeTextStyle}"
+                           Text="(0.95 - 0.99)"/>
+              </Grid>
 
-            <!-- Временное окно корреляции -->
-            <Grid Style="{StaticResource GridRowStyle}">
-              <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="*"/>
-                <ColumnDefinition Width="Auto"/>
-                <ColumnDefinition Width="Auto"/>
-              </Grid.ColumnDefinitions>
+              <!-- Порог активации -->
+              <Grid Style="{StaticResource GridRowStyle}">
+                <Grid.ColumnDefinitions>
+                  <ColumnDefinition Width="*"/>
+                  <ColumnDefinition Width="Auto"/>
+                  <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
 
-              <TextBlock Grid.Column="0" Style="{StaticResource SettingsLabelStyle}"
-                         Text="Временное окно корреляции (τ):"/>
-              <TextBox Grid.Column="1" Style="{StaticResource SettingsTextBoxStyle}"
-                       GotFocus="TextBox_GotFocus"
-                       PreviewMouseLeftButtonDown="TextBox_PreviewMouseLeftButtonDown"
-                       Text="{Binding Settings.TimeWindowPulses, UpdateSourceTrigger=LostFocus}"/>
-              <TextBlock Grid.Column="2" Style="{StaticResource SettingsRangeTextStyle}"
-                         Text="(1 - 10 пульсов)"/>
-            </Grid>
+                <TextBlock Grid.Column="0" Style="{StaticResource SettingsLabelStyle}"
+                           Text="Порог активации (γ):"/>
+                <TextBox Grid.Column="1" Style="{StaticResource SettingsTextBoxStyle}"
+                         GotFocus="TextBox_GotFocus"
+                         PreviewMouseLeftButtonDown="TextBox_PreviewMouseLeftButtonDown"
+                         LostFocus="TextBox_LostFocus"
+                         Text="{Binding Settings.ActivationThreshold, UpdateSourceTrigger=LostFocus, StringFormat=N2, ValidatesOnExceptions=True, NotifyOnValidationError=True}"/>
+                <TextBlock Grid.Column="2" Style="{StaticResource SettingsRangeTextStyle}"
+                           Text="(0.5 - 0.7)"/>
+              </Grid>
 
-            <!-- Минимальная крепость связи -->
-            <Grid Style="{StaticResource GridRowStyle}">
-              <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="*"/>
-                <ColumnDefinition Width="Auto"/>
-                <ColumnDefinition Width="Auto"/>
-              </Grid.ColumnDefinitions>
+              <!-- Начальный лимит простоя УР -->
+              <Grid Style="{StaticResource GridRowStyle}">
+                <Grid.ColumnDefinitions>
+                  <ColumnDefinition Width="*"/>
+                  <ColumnDefinition Width="Auto"/>
+                  <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
 
-              <TextBlock Grid.Column="0" Style="{StaticResource SettingsLabelStyle}"
-                         Text="Минимальная крепость связи (C_min):"/>
-              <TextBox Grid.Column="1" Style="{StaticResource SettingsTextBoxStyle}"
-                       GotFocus="TextBox_GotFocus"
-                       PreviewMouseLeftButtonDown="TextBox_PreviewMouseLeftButtonDown"
-                       LostFocus="TextBox_LostFocus"
-                       Text="{Binding Settings.MinAssociationStrength, UpdateSourceTrigger=LostFocus, StringFormat=N2, ValidatesOnExceptions=True, NotifyOnValidationError=True}"/>
-              <TextBlock Grid.Column="2" Style="{StaticResource SettingsRangeTextStyle}"
-                         Text="(0.01 - 0.3)"/>
-            </Grid>
+                <TextBlock Grid.Column="0" Style="{StaticResource SettingsLabelStyle}"
+                           Text="Начальный лимит простоя (пульсы):"
+                           ToolTip="При создании УР: ExpiresAt = now + T0; при каждой активации T0 удваивается"/>
+                <TextBox Grid.Column="1" Style="{StaticResource SettingsTextBoxStyle}"
+                         GotFocus="TextBox_GotFocus"
+                         PreviewMouseLeftButtonDown="TextBox_PreviewMouseLeftButtonDown"
+                         LostFocus="TextBox_LostFocus"
+                         Text="{Binding Settings.InitialLifetimePulses, UpdateSourceTrigger=LostFocus, ValidatesOnExceptions=True, NotifyOnValidationError=True}"/>
+                <TextBlock Grid.Column="2" Style="{StaticResource SettingsRangeTextStyle}"
+                           Text="(3600 - 604800)"/>
+              </Grid>
 
-            <!-- Коэффициент понижения крепости вторичных -->
-            <Grid Style="{StaticResource GridRowStyle}">
-              <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="*"/>
-                <ColumnDefinition Width="Auto"/>
-                <ColumnDefinition Width="Auto"/>
-              </Grid.ColumnDefinitions>
+              <!-- Активное угасание -->
+              <Grid Style="{StaticResource GridRowStyle}">
+                <Grid.ColumnDefinitions>
+                  <ColumnDefinition Width="*"/>
+                  <ColumnDefinition Width="Auto"/>
+                  <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
 
-              <TextBlock Grid.Column="0" Style="{StaticResource SettingsLabelStyle}"
-                         Text="Коэфф. понижения крепости вторичных (K):"/>
-              <TextBox Grid.Column="1" Style="{StaticResource SettingsTextBoxStyle}"
-                       GotFocus="TextBox_GotFocus"
-                       PreviewMouseLeftButtonDown="TextBox_PreviewMouseLeftButtonDown"
-                       LostFocus="TextBox_LostFocus"
-                       Text="{Binding Settings.HigherOrderStrengthReductionCoefficient, UpdateSourceTrigger=LostFocus, StringFormat=N2, ValidatesOnExceptions=True, NotifyOnValidationError=True}"
-                       ToolTip="Для третичных автоматически удваивается"/>
-              <TextBlock Grid.Column="2" Style="{StaticResource SettingsRangeTextStyle}"
-                         Text="(1.2 - 3.0)"/>
-            </Grid>
+                <TextBlock Grid.Column="0" Style="{StaticResource SettingsLabelStyle}"
+                           Text="Активное угасание (α_ext):"
+                           ToolTip="Шаг RW при CS без US в окне τ; действует и на сильные УР"/>
+                <TextBox Grid.Column="1" Style="{StaticResource SettingsTextBoxStyle}"
+                         GotFocus="TextBox_GotFocus"
+                         PreviewMouseLeftButtonDown="TextBox_PreviewMouseLeftButtonDown"
+                         LostFocus="TextBox_LostFocus"
+                         Text="{Binding Settings.ActiveExtinctionRate, UpdateSourceTrigger=LostFocus, StringFormat=N2, ValidatesOnExceptions=True, NotifyOnValidationError=True}"/>
+                <TextBlock Grid.Column="2" Style="{StaticResource SettingsRangeTextStyle}"
+                           Text="(0.01 - 0.2)"/>
+              </Grid>
 
-            <!-- Порог θ_comp для смешанного ответа / конкуренции -->
-            <Grid Style="{StaticResource GridRowStyle}">
-              <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="*"/>
-                <ColumnDefinition Width="Auto"/>
-                <ColumnDefinition Width="Auto"/>
-              </Grid.ColumnDefinitions>
-              <TextBlock Grid.Column="0" Style="{StaticResource SettingsLabelStyle}"
-                         Text="Порог отношения крепостей (θ_comp):"/>
-              <TextBox Grid.Column="1" Style="{StaticResource SettingsTextBoxStyle}"
-                       GotFocus="TextBox_GotFocus"
-                       PreviewMouseLeftButtonDown="TextBox_PreviewMouseLeftButtonDown"
-                       LostFocus="TextBox_LostFocus"
-                       Text="{Binding Settings.CompetitionStrengthRatioThreshold, UpdateSourceTrigger=LostFocus, ValidatesOnExceptions=True, NotifyOnValidationError=True}"/>
-              <TextBlock Grid.Column="2" Style="{StaticResource SettingsRangeTextStyle}"
-                         Text="(0.5 - 0.9)"/>
-            </Grid>
+              <!-- Временное окно корреляции -->
+              <Grid Style="{StaticResource GridRowStyle}">
+                <Grid.ColumnDefinitions>
+                  <ColumnDefinition Width="*"/>
+                  <ColumnDefinition Width="Auto"/>
+                  <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
 
-            <!-- Ничья по крепости: меньший или больший ID -->
-            <Grid Style="{StaticResource GridRowStyle}">
-              <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="*"/>
-                <ColumnDefinition Width="Auto"/>
-              </Grid.ColumnDefinitions>
-              <TextBlock Grid.Column="0" Style="{StaticResource SettingsLabelStyle}"
-                         Text="При равной крепости кандидатов:"/>
-              <CheckBox Grid.Column="1"
-                        Content="предпочитать меньший ID у-рефлекса"
-                        IsChecked="{Binding Settings.TieBreakPreferSmallerReflexId, UpdateSourceTrigger=PropertyChanged}"
-                        VerticalAlignment="Center"
-                        ToolTip="Если снять флажок — при равной крепости выбирается больший ID"/>
-            </Grid>
+                <TextBlock Grid.Column="0" Style="{StaticResource SettingsLabelStyle}"
+                           Text="Временное окно корреляции (τ):"/>
+                <TextBox Grid.Column="1" Style="{StaticResource SettingsTextBoxStyle}"
+                         GotFocus="TextBox_GotFocus"
+                         PreviewMouseLeftButtonDown="TextBox_PreviewMouseLeftButtonDown"
+                         Text="{Binding Settings.TimeWindowPulses, UpdateSourceTrigger=LostFocus}"/>
+                <TextBlock Grid.Column="2" Style="{StaticResource SettingsRangeTextStyle}"
+                           Text="(1 - 10 пульсов)"/>
+              </Grid>
 
-            <!-- Максимальная крепость связи -->
-            <Grid Style="{StaticResource GridRowStyle}">
-              <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="*"/>
-                <ColumnDefinition Width="Auto"/>
-                <ColumnDefinition Width="Auto"/>
-              </Grid.ColumnDefinitions>
+              <!-- Минимальная крепость связи -->
+              <Grid Style="{StaticResource GridRowStyle}">
+                <Grid.ColumnDefinitions>
+                  <ColumnDefinition Width="*"/>
+                  <ColumnDefinition Width="Auto"/>
+                  <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
 
-              <TextBlock Grid.Column="0" Style="{StaticResource SettingsLabelStyle}"
-                         Text="Максимальная крепость связи (β):"/>
-              <TextBox Grid.Column="1" Style="{StaticResource SettingsTextBoxStyle}"
-                       GotFocus="TextBox_GotFocus"
-                       PreviewMouseLeftButtonDown="TextBox_PreviewMouseLeftButtonDown"
-                       Text="{Binding Settings.MaxAssociationStrength, UpdateSourceTrigger=LostFocus, StringFormat=N2}"
-                       IsReadOnly="True" Background="#FFF5F5F5"/>
-              <TextBlock Grid.Column="2" Style="{StaticResource SettingsRangeTextStyle}"
-                         Text="(фиксировано)"/>
-            </Grid>
+                <TextBlock Grid.Column="0" Style="{StaticResource SettingsLabelStyle}"
+                           Text="Минимальная крепость связи (C_min):"/>
+                <TextBox Grid.Column="1" Style="{StaticResource SettingsTextBoxStyle}"
+                         GotFocus="TextBox_GotFocus"
+                         PreviewMouseLeftButtonDown="TextBox_PreviewMouseLeftButtonDown"
+                         LostFocus="TextBox_LostFocus"
+                         Text="{Binding Settings.MinAssociationStrength, UpdateSourceTrigger=LostFocus, StringFormat=N2, ValidatesOnExceptions=True, NotifyOnValidationError=True}"/>
+                <TextBlock Grid.Column="2" Style="{StaticResource SettingsRangeTextStyle}"
+                           Text="(0.01 - 0.3)"/>
+              </Grid>
 
-          </StackPanel>
+              <!-- Коэффициент понижения крепости вторичных -->
+              <Grid Style="{StaticResource GridRowStyle}">
+                <Grid.ColumnDefinitions>
+                  <ColumnDefinition Width="*"/>
+                  <ColumnDefinition Width="Auto"/>
+                  <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+
+                <TextBlock Grid.Column="0" Style="{StaticResource SettingsLabelStyle}"
+                           Text="Коэфф. понижения крепости вторичных (K):"/>
+                <TextBox Grid.Column="1" Style="{StaticResource SettingsTextBoxStyle}"
+                         GotFocus="TextBox_GotFocus"
+                         PreviewMouseLeftButtonDown="TextBox_PreviewMouseLeftButtonDown"
+                         LostFocus="TextBox_LostFocus"
+                         Text="{Binding Settings.HigherOrderStrengthReductionCoefficient, UpdateSourceTrigger=LostFocus, StringFormat=N2, ValidatesOnExceptions=True, NotifyOnValidationError=True}"
+                         ToolTip="Для третичных автоматически удваивается"/>
+                <TextBlock Grid.Column="2" Style="{StaticResource SettingsRangeTextStyle}"
+                           Text="(1.2 - 3.0)"/>
+              </Grid>
+
+              <!-- Порог θ_comp для смешанного ответа / конкуренции -->
+              <Grid Style="{StaticResource GridRowStyle}">
+                <Grid.ColumnDefinitions>
+                  <ColumnDefinition Width="*"/>
+                  <ColumnDefinition Width="Auto"/>
+                  <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                <TextBlock Grid.Column="0" Style="{StaticResource SettingsLabelStyle}"
+                           Text="Порог отношения крепостей (θ_comp):"/>
+                <TextBox Grid.Column="1" Style="{StaticResource SettingsTextBoxStyle}"
+                         GotFocus="TextBox_GotFocus"
+                         PreviewMouseLeftButtonDown="TextBox_PreviewMouseLeftButtonDown"
+                         LostFocus="TextBox_LostFocus"
+                         Text="{Binding Settings.CompetitionStrengthRatioThreshold, UpdateSourceTrigger=LostFocus, ValidatesOnExceptions=True, NotifyOnValidationError=True}"/>
+                <TextBlock Grid.Column="2" Style="{StaticResource SettingsRangeTextStyle}"
+                           Text="(0.5 - 0.9)"/>
+              </Grid>
+
+              <!-- Ничья по крепости: меньший или больший ID -->
+              <Grid Style="{StaticResource GridRowStyle}">
+                <Grid.ColumnDefinitions>
+                  <ColumnDefinition Width="*"/>
+                  <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                <TextBlock Grid.Column="0" Style="{StaticResource SettingsLabelStyle}"
+                           Text="При равной крепости кандидатов:"/>
+                <CheckBox Grid.Column="1"
+                          Content="предпочитать меньший ID у-рефлекса"
+                          IsChecked="{Binding Settings.TieBreakPreferSmallerReflexId, UpdateSourceTrigger=PropertyChanged}"
+                          VerticalAlignment="Center"
+                          ToolTip="Если снять флажок — при равной крепости выбирается больший ID"/>
+              </Grid>
+
+              <!-- Максимальная крепость связи -->
+              <Grid Style="{StaticResource GridRowStyle}">
+                <Grid.ColumnDefinitions>
+                  <ColumnDefinition Width="*"/>
+                  <ColumnDefinition Width="Auto"/>
+                  <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+
+                <TextBlock Grid.Column="0" Style="{StaticResource SettingsLabelStyle}"
+                           Text="Максимальная крепость связи (β):"/>
+                <TextBox Grid.Column="1" Style="{StaticResource SettingsTextBoxStyle}"
+                         GotFocus="TextBox_GotFocus"
+                         PreviewMouseLeftButtonDown="TextBox_PreviewMouseLeftButtonDown"
+                         Text="{Binding Settings.MaxAssociationStrength, UpdateSourceTrigger=LostFocus, StringFormat=N2}"
+                         IsReadOnly="True" Background="#FFF5F5F5"/>
+                <TextBlock Grid.Column="2" Style="{StaticResource SettingsRangeTextStyle}"
+                           Text="(фиксировано)"/>
+              </Grid>
+
+              <!-- ===== Угасание ===== -->
+              <TextBlock Style="{StaticResource SectionHeaderStyle}" Text="Угасание"/>
+
+              <!-- Период пассивного угасания -->
+              <Grid Style="{StaticResource GridRowStyle}">
+                <Grid.ColumnDefinitions>
+                  <ColumnDefinition Width="*"/>
+                  <ColumnDefinition Width="Auto"/>
+                  <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                <TextBlock Grid.Column="0" Style="{StaticResource SettingsLabelStyle}"
+                           Text="Период пассивного угасания (пульсы):"
+                           ToolTip="Раз в PassiveDecayPeriodPulses пульсов крепость УР снижается. Значение &lt;=0 включает резервный период"/>
+                <TextBox Grid.Column="1" Style="{StaticResource SettingsTextBoxStyle}"
+                         GotFocus="TextBox_GotFocus"
+                         PreviewMouseLeftButtonDown="TextBox_PreviewMouseLeftButtonDown"
+                         LostFocus="TextBox_LostFocus"
+                         Text="{Binding Settings.PassiveDecayPeriodPulses, UpdateSourceTrigger=LostFocus, ValidatesOnExceptions=True, NotifyOnValidationError=True}"/>
+                <TextBlock Grid.Column="2" Style="{StaticResource SettingsRangeTextStyle}"
+                           Text="(0 - 86400)"/>
+              </Grid>
+
+              <!-- Резервный период пассивного угасания -->
+              <Grid Style="{StaticResource GridRowStyle}">
+                <Grid.ColumnDefinitions>
+                  <ColumnDefinition Width="*"/>
+                  <ColumnDefinition Width="Auto"/>
+                  <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                <TextBlock Grid.Column="0" Style="{StaticResource SettingsLabelStyle}"
+                           Text="Резервный период угасания (пульсы):"
+                           ToolTip="Используется, если PassiveDecayPeriodPulses задан неверно (0 или меньше)"/>
+                <TextBox Grid.Column="1" Style="{StaticResource SettingsTextBoxStyle}"
+                         GotFocus="TextBox_GotFocus"
+                         PreviewMouseLeftButtonDown="TextBox_PreviewMouseLeftButtonDown"
+                         LostFocus="TextBox_LostFocus"
+                         Text="{Binding Settings.PassiveDecayFallbackPeriodPulses, UpdateSourceTrigger=LostFocus, ValidatesOnExceptions=True, NotifyOnValidationError=True}"/>
+                <TextBlock Grid.Column="2" Style="{StaticResource SettingsRangeTextStyle}"
+                           Text="(1 - 86400)"/>
+              </Grid>
+
+            </StackPanel>
+
+            <!-- ============ ПРАВЫЙ СТОЛБЕЦ ============ -->
+            <StackPanel Grid.Column="2">
+
+              <!-- ===== Конкурентное обучение ===== -->
+              <TextBlock Style="{StaticResource SectionHeaderStyle}" Margin="0,0,0,2"
+                         Text="Конкурентное обучение"/>
+
+              <!-- Включить конкурентный слой обучения -->
+              <Grid Style="{StaticResource GridRowStyle}">
+                <Grid.ColumnDefinitions>
+                  <ColumnDefinition Width="*"/>
+                  <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                <TextBlock Grid.Column="0" Style="{StaticResource SettingsLabelStyle}"
+                           Text="Конкурентный слой обучения (Rescorla–Wagner):"/>
+                <CheckBox Grid.Column="1"
+                          Content="включить (Kamin blocking / ΔV)"
+                          IsChecked="{Binding Settings.EnableCompetitiveLearning, UpdateSourceTrigger=PropertyChanged}"
+                          VerticalAlignment="Center"
+                          ToolTip="При включении α при CS→US распределяется с учётом предсказуемости US другими CS. Иначе каждый CS обучается независимо (модель без ΔV)"/>
+              </Grid>
+
+              <!-- Коэффициент подавления конкурирующими CS -->
+              <Grid Style="{StaticResource GridRowStyle}">
+                <Grid.ColumnDefinitions>
+                  <ColumnDefinition Width="*"/>
+                  <ColumnDefinition Width="Auto"/>
+                  <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                <TextBlock Grid.Column="0" Style="{StaticResource SettingsLabelStyle}"
+                           Text="Доля подавления конкурентами:"
+                           ToolTip="0 — блокировки нет; 1 — подавляющий конкурент гасит подкрепление целиком. Действует при включённом конкурентном слое"/>
+                <TextBox Grid.Column="1" Style="{StaticResource SettingsTextBoxStyle}"
+                         GotFocus="TextBox_GotFocus"
+                         PreviewMouseLeftButtonDown="TextBox_PreviewMouseLeftButtonDown"
+                         LostFocus="TextBox_LostFocus"
+                         Text="{Binding Settings.CompetitionSuppressionCoefficient, UpdateSourceTrigger=LostFocus, StringFormat=N2, ValidatesOnExceptions=True, NotifyOnValidationError=True}"/>
+                <TextBlock Grid.Column="2" Style="{StaticResource SettingsRangeTextStyle}"
+                           Text="(0.0 - 1.0)"/>
+              </Grid>
+
+              <!-- ===== Начальная крепость и установление ===== -->
+              <TextBlock Style="{StaticResource SectionHeaderStyle}" Text="Начальная крепость и установление"/>
+
+              <!-- Прибавка к стартовой крепости -->
+              <Grid Style="{StaticResource GridRowStyle}">
+                <Grid.ColumnDefinitions>
+                  <ColumnDefinition Width="*"/>
+                  <ColumnDefinition Width="Auto"/>
+                  <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                <TextBlock Grid.Column="0" Style="{StaticResource SettingsLabelStyle}"
+                           Text="Прибавка к стартовой крепости:"
+                           ToolTip="C₀ = (C_min + InitialStrengthBonus) / K(order)"/>
+                <TextBox Grid.Column="1" Style="{StaticResource SettingsTextBoxStyle}"
+                         GotFocus="TextBox_GotFocus"
+                         PreviewMouseLeftButtonDown="TextBox_PreviewMouseLeftButtonDown"
+                         LostFocus="TextBox_LostFocus"
+                         Text="{Binding Settings.InitialStrengthBonus, UpdateSourceTrigger=LostFocus, StringFormat=N2, ValidatesOnExceptions=True, NotifyOnValidationError=True}"/>
+                <TextBlock Grid.Column="2" Style="{StaticResource SettingsRangeTextStyle}"
+                           Text="(0.0 - 1.0)"/>
+              </Grid>
+
+              <!-- Крепость авторитарной записи -->
+              <Grid Style="{StaticResource GridRowStyle}">
+                <Grid.ColumnDefinitions>
+                  <ColumnDefinition Width="*"/>
+                  <ColumnDefinition Width="Auto"/>
+                  <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                <TextBlock Grid.Column="0" Style="{StaticResource SettingsLabelStyle}"
+                           Text="Крепость авторитарной записи:"
+                           ToolTip="Крепость при ручной записи оператора, до понижения по порядку: C₀ = AuthoritativeStrength / K(order)"/>
+                <TextBox Grid.Column="1" Style="{StaticResource SettingsTextBoxStyle}"
+                         GotFocus="TextBox_GotFocus"
+                         PreviewMouseLeftButtonDown="TextBox_PreviewMouseLeftButtonDown"
+                         LostFocus="TextBox_LostFocus"
+                         Text="{Binding Settings.AuthoritativeStrength, UpdateSourceTrigger=LostFocus, StringFormat=N2, ValidatesOnExceptions=True, NotifyOnValidationError=True}"/>
+                <TextBlock Grid.Column="2" Style="{StaticResource SettingsRangeTextStyle}"
+                           Text="(0.0 - 1.0)"/>
+              </Grid>
+
+              <!-- Порог установившегося рефлекса -->
+              <Grid Style="{StaticResource GridRowStyle}">
+                <Grid.ColumnDefinitions>
+                  <ColumnDefinition Width="*"/>
+                  <ColumnDefinition Width="Auto"/>
+                  <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                <TextBlock Grid.Column="0" Style="{StaticResource SettingsLabelStyle}"
+                           Text="Порог «установившегося» рефлекса:"
+                           ToolTip="MaxAchievedStrength выше этого значения ⇒ рефлекс считается установившимся (IsEstablished)"/>
+                <TextBox Grid.Column="1" Style="{StaticResource SettingsTextBoxStyle}"
+                         GotFocus="TextBox_GotFocus"
+                         PreviewMouseLeftButtonDown="TextBox_PreviewMouseLeftButtonDown"
+                         LostFocus="TextBox_LostFocus"
+                         Text="{Binding Settings.EstablishedStrengthThreshold, UpdateSourceTrigger=LostFocus, StringFormat=N2, ValidatesOnExceptions=True, NotifyOnValidationError=True}"/>
+                <TextBlock Grid.Column="2" Style="{StaticResource SettingsRangeTextStyle}"
+                           Text="(0.0 - 1.0)"/>
+              </Grid>
+
+              <!-- Доля α при успешной активации -->
+              <Grid Style="{StaticResource GridRowStyle}">
+                <Grid.ColumnDefinitions>
+                  <ColumnDefinition Width="*"/>
+                  <ColumnDefinition Width="Auto"/>
+                  <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                <TextBlock Grid.Column="0" Style="{StaticResource SettingsLabelStyle}"
+                           Text="Доля α при подкреплении активацией:"
+                           ToolTip="α_rein = LearningRate · ActivationReinforcementFraction / K(order)"/>
+                <TextBox Grid.Column="1" Style="{StaticResource SettingsTextBoxStyle}"
+                         GotFocus="TextBox_GotFocus"
+                         PreviewMouseLeftButtonDown="TextBox_PreviewMouseLeftButtonDown"
+                         LostFocus="TextBox_LostFocus"
+                         Text="{Binding Settings.ActivationReinforcementFraction, UpdateSourceTrigger=LostFocus, StringFormat=N2, ValidatesOnExceptions=True, NotifyOnValidationError=True}"/>
+                <TextBlock Grid.Column="2" Style="{StaticResource SettingsRangeTextStyle}"
+                           Text="(0.0 - 1.0)"/>
+              </Grid>
+
+              <!-- Потолок удвоения TTL -->
+              <Grid Style="{StaticResource GridRowStyle}">
+                <Grid.ColumnDefinitions>
+                  <ColumnDefinition Width="*"/>
+                  <ColumnDefinition Width="Auto"/>
+                  <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                <TextBlock Grid.Column="0" Style="{StaticResource SettingsLabelStyle}"
+                           Text="Потолок TTL при удвоении (пульсы):"
+                           ToolTip="Ограничение удвоения LifetimePulses при активации/успехе"/>
+                <TextBox Grid.Column="1" Style="{StaticResource SettingsTextBoxStyle}"
+                         GotFocus="TextBox_GotFocus"
+                         PreviewMouseLeftButtonDown="TextBox_PreviewMouseLeftButtonDown"
+                         LostFocus="TextBox_LostFocus"
+                         Text="{Binding Settings.MaxLifetimePulsesCap, UpdateSourceTrigger=LostFocus, ValidatesOnExceptions=True, NotifyOnValidationError=True}"/>
+                <TextBlock Grid.Column="2" Style="{StaticResource SettingsRangeTextStyle}"
+                           Text="(≥ InitialLifetimePulses)"/>
+              </Grid>
+
+              <!-- ===== Сенсорные ассоциации CS↔CS ===== -->
+              <TextBlock Style="{StaticResource SectionHeaderStyle}" Text="Сенсорные ассоциации CS↔CS"/>
+
+              <!-- Период затухания сенсорных связей -->
+              <Grid Style="{StaticResource GridRowStyle}">
+                <Grid.ColumnDefinitions>
+                  <ColumnDefinition Width="*"/>
+                  <ColumnDefinition Width="Auto"/>
+                  <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                <TextBlock Grid.Column="0" Style="{StaticResource SettingsLabelStyle}"
+                           Text="Период затухания CS↔CS (пульсы):"
+                           ToolTip="Период затухания сенсорных связей CS↔CS в пульсах (ApplyDecay срабатывает на кратных)"/>
+                <TextBox Grid.Column="1" Style="{StaticResource SettingsTextBoxStyle}"
+                         GotFocus="TextBox_GotFocus"
+                         PreviewMouseLeftButtonDown="TextBox_PreviewMouseLeftButtonDown"
+                         LostFocus="TextBox_LostFocus"
+                         Text="{Binding Settings.SensoryDecayPeriodPulses, UpdateSourceTrigger=LostFocus, ValidatesOnExceptions=True, NotifyOnValidationError=True}"/>
+                <TextBlock Grid.Column="2" Style="{StaticResource SettingsRangeTextStyle}"
+                           Text="(1 - 86400)"/>
+              </Grid>
+
+              <!-- Нижний предел крепости CS↔CS -->
+              <Grid Style="{StaticResource GridRowStyle}">
+                <Grid.ColumnDefinitions>
+                  <ColumnDefinition Width="*"/>
+                  <ColumnDefinition Width="Auto"/>
+                  <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                <TextBlock Grid.Column="0" Style="{StaticResource SettingsLabelStyle}"
+                           Text="Нижний предел крепости CS↔CS:"
+                           ToolTip="Нижний порог эффективной крепости для расчёта кривой затухания CS↔CS"/>
+                <TextBox Grid.Column="1" Style="{StaticResource SettingsTextBoxStyle}"
+                         GotFocus="TextBox_GotFocus"
+                         PreviewMouseLeftButtonDown="TextBox_PreviewMouseLeftButtonDown"
+                         LostFocus="TextBox_LostFocus"
+                         Text="{Binding Settings.SensoryStrengthFloor, UpdateSourceTrigger=LostFocus, StringFormat=N2, ValidatesOnExceptions=True, NotifyOnValidationError=True}"/>
+                <TextBlock Grid.Column="2" Style="{StaticResource SettingsRangeTextStyle}"
+                           Text="(0.0 - 1.0)"/>
+              </Grid>
+
+              <!-- Верхняя зона CS↔CS -->
+              <Grid Style="{StaticResource GridRowStyle}">
+                <Grid.ColumnDefinitions>
+                  <ColumnDefinition Width="*"/>
+                  <ColumnDefinition Width="Auto"/>
+                  <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                <TextBlock Grid.Column="0" Style="{StaticResource SettingsLabelStyle}"
+                           Text="Верхняя зона крепости CS↔CS:"
+                           ToolTip="Выше порога связь считается устойчивой и точится по SensoryHighStrengthDecayRate независимо от γ"/>
+                <TextBox Grid.Column="1" Style="{StaticResource SettingsTextBoxStyle}"
+                         GotFocus="TextBox_GotFocus"
+                         PreviewMouseLeftButtonDown="TextBox_PreviewMouseLeftButtonDown"
+                         LostFocus="TextBox_LostFocus"
+                         Text="{Binding Settings.SensoryHighStrengthThreshold, UpdateSourceTrigger=LostFocus, StringFormat=N2, ValidatesOnExceptions=True, NotifyOnValidationError=True}"/>
+                <TextBlock Grid.Column="2" Style="{StaticResource SettingsRangeTextStyle}"
+                           Text="(0.0 - 1.0)"/>
+              </Grid>
+
+              <!-- Коэфф. затухания устойчивых CS↔CS -->
+              <Grid Style="{StaticResource GridRowStyle}">
+                <Grid.ColumnDefinitions>
+                  <ColumnDefinition Width="*"/>
+                  <ColumnDefinition Width="Auto"/>
+                  <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                <TextBlock Grid.Column="0" Style="{StaticResource SettingsLabelStyle}"
+                           Text="Эфф. коэфф. затухания устойчивых CS↔CS:"
+                           ToolTip="Эффективный коэффициент затухания для устойчивых (высоких) связей CS↔CS"/>
+                <TextBox Grid.Column="1" Style="{StaticResource SettingsTextBoxStyle}"
+                         GotFocus="TextBox_GotFocus"
+                         PreviewMouseLeftButtonDown="TextBox_PreviewMouseLeftButtonDown"
+                         LostFocus="TextBox_LostFocus"
+                         Text="{Binding Settings.SensoryHighStrengthDecayRate, UpdateSourceTrigger=LostFocus, StringFormat=N3, ValidatesOnExceptions=True, NotifyOnValidationError=True}"/>
+                <TextBlock Grid.Column="2" Style="{StaticResource SettingsRangeTextStyle}"
+                           Text="(0.9 - 1.0)"/>
+              </Grid>
+
+              <!-- Средняя зона CS↔CS -->
+              <Grid Style="{StaticResource GridRowStyle}">
+                <Grid.ColumnDefinitions>
+                  <ColumnDefinition Width="*"/>
+                  <ColumnDefinition Width="Auto"/>
+                  <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                <TextBlock Grid.Column="0" Style="{StaticResource SettingsLabelStyle}"
+                           Text="Средняя зона крепости CS↔CS:"
+                           ToolTip="От этого порога до верхней — затухание по γ^C, ниже — по γ^√C"/>
+                <TextBox Grid.Column="1" Style="{StaticResource SettingsTextBoxStyle}"
+                         GotFocus="TextBox_GotFocus"
+                         PreviewMouseLeftButtonDown="TextBox_PreviewMouseLeftButtonDown"
+                         LostFocus="TextBox_LostFocus"
+                         Text="{Binding Settings.SensoryMidStrengthThreshold, UpdateSourceTrigger=LostFocus, StringFormat=N2, ValidatesOnExceptions=True, NotifyOnValidationError=True}"/>
+                <TextBlock Grid.Column="2" Style="{StaticResource SettingsRangeTextStyle}"
+                           Text="(0.0 - 1.0)"/>
+              </Grid>
+
+            </StackPanel>
+          </Grid>
         </ScrollViewer>
       </Border>
 

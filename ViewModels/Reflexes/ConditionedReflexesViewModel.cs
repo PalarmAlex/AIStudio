@@ -668,12 +668,7 @@ namespace AIStudio.ViewModels
         {
           Owner = Application.Current.MainWindow
         };
-        var result = settingsWindow.ShowDialog();
-        if (result == true)
-        {
-          MessageBox.Show("Настройки успешно применены и сохранены!",
-              "Успех", MessageBoxButton.OK, MessageBoxImage.Information);
-        }
+        settingsWindow.ShowDialog();
       }
       catch (Exception ex)
       {
