@@ -199,45 +199,5 @@ namespace AIStudio.Pages.Research
         vm.Description = text.Replace("\n", "\n");
       }
     }
-
-    private void ExpectGrid_OnMouseDoubleClick(object sender, MouseButtonEventArgs e)
-    {
-      if (!(sender is DataGrid) || !(DataContext is ScenarioEditorViewModel vm))
-        return;
-      var dep = e.OriginalSource as DependencyObject;
-      while (dep != null && !(dep is DataGridCell))
-        dep = VisualTreeHelper.GetParent(dep);
-      if (!(dep is DataGridCell cell))
-        return;
-      if (!(cell.Column is DataGridTextColumn col))
-        return;
-      if (!(cell.DataContext is ScenarioLogExpectationRow expRow))
-        return;
-
-      var header = col.Header?.ToString();
-      if (header != "Команды")
-        return;
-
-      var owner = Window.GetWindow(this);
-      // Текущие ID из строки ожиданий: парсим из CommandPatternsText (хранит отображаемые имена)
-      // Для редактирования ожидаемых команд используем тот же диалог, но передаём пустой список
-      // (в ожиданиях хранится текстовое представление, не ID).
-      var cmdDlg = new ScenarioCommandPatternsEditor(new List<int>())
-      { Owner = owner };
-      if (cmdDlg.ShowDialog() != true)
-        return;
-      var newCmdIds = cmdDlg.SelectedCommandPatternIds ?? new List<int>();
-      var lookup = vm.BuildCommandPatternLookup();
-      var parts = new List<string>();
-      foreach (int id in newCmdIds)
-      {
-        if (lookup != null && lookup.TryGetValue(id, out string txt) && !string.IsNullOrEmpty(txt))
-          parts.Add(txt);
-        else
-          parts.Add(id.ToString());
-      }
-      expRow.CommandPatternsText = parts.Count == 0 ? "-" : string.Join(", ", parts);
-      vm.MarkDirty();
-    }
   }
 }

@@ -8,6 +8,7 @@ using ISIDA.Actions;
 using ISIDA.Psychic.Automatism;
 using ISIDA.Reflexes;
 using ISIDA.Scenarios;
+using ISIDA.Sensors;
 
 namespace AIStudio.Common
 {
@@ -431,13 +432,15 @@ namespace AIStudio.Common
       AppendMetaRow(sb, "Фактическая скорость", Escape(FormatActualPulseSpeedText(completion)));
       sb.AppendLine("</table>");
       sb.AppendLine("<h2>Шаги</h2>");
-      sb.AppendLine("<table class=\"steps-zebra\"><tr><th>Шаг</th><th>№ пульса</th><th>Тип</th><th>Воздействия</th><th>Воздействие от среды</th><th>Фраза</th><th>Тон</th><th>Настр.</th><th>Цвет</th><th>Сброс ожид.</th></tr>");
+      sb.AppendLine("<table class=\"steps-zebra\"><tr><th>Шаг</th><th>№ пульса</th><th>Тип</th><th>Воздействия</th><th>Воздействие от среды</th><th>Команды</th><th>Фраза</th><th>Тон</th><th>Настр.</th><th>Цвет</th><th>Сброс ожид.</th></tr>");
       if (doc.Lines != null)
       {
+        var commandLookup = BuildCommandPatternLookupForReport();
         foreach (var line in doc.Lines.OrderBy(l => l.StepIndex))
         {
           line.RefreshActionNames(influenceActions);
           line.RefreshEnvironmentProbeNames(influenceActions);
+          line.RefreshCommandPatternNames(commandLookup);
           var actions = string.IsNullOrEmpty(line.ActionNamesDisplay) ? line.ActionIdsText : line.ActionNamesDisplay;
           var envProbes = FormatEnvironmentProbesReportCell(line.EnvironmentProbesDisplay);
           sb.AppendLine("<tr>");
@@ -446,6 +449,7 @@ namespace AIStudio.Common
           sb.Append("<td>").Append(Escape(line.Kind == ScenarioLineKind.WaitClick ? "Ожидание" : "Пульт")).Append("</td>");
           sb.Append("<td>").Append(Escape(actions)).Append("</td>");
           sb.Append("<td>").Append(Escape(envProbes)).Append("</td>");
+          sb.Append("<td>").Append(Escape(line.CommandPatternsDisplay ?? "")).Append("</td>");
           sb.Append("<td>").Append(Escape(line.Phrase ?? "")).Append("</td>");
           sb.Append("<td>").Append(Escape(FormatToneCell(line.ToneId))).Append("</td>");
           sb.Append("<td>").Append(Escape(FormatMoodCell(line.MoodId))).Append("</td>");
@@ -607,6 +611,24 @@ namespace AIStudio.Common
         }
       }
       return showExpected;
+    }
+
+    /// <summary>Строит словарь id → текст паттерна Command-канала из SensorySystem для таблицы «Шаги» отчёта.</summary>
+    private static IReadOnlyDictionary<int, string> BuildCommandPatternLookupForReport()
+    {
+      if (!SensorySystem.IsInitialized)
+        return null;
+      var ch = SensorySystem.Instance.CommandChannel;
+      if (ch?.PhraseTree?.Nodes == null)
+        return null;
+      var dict = new Dictionary<int, string>();
+      foreach (var node in ch.PhraseTree.Nodes.Values)
+      {
+        if (node.Id <= 0)
+          continue;
+        dict[node.Id] = ch.GetPhraseFromPhraseId(node.Id) ?? "";
+      }
+      return dict;
     }
 
     private static void RefreshScenarioLineDisplayNames(
