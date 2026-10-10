@@ -429,6 +429,9 @@
     <Compile Include="Dialogs\CommandPatternsSelectionDialog.xaml.cs">
       <DependentUpon>CommandPatternsSelectionDialog.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Dialogs\ScenarioCommandPatternsEditor.xaml.cs">
+      <DependentUpon>ScenarioCommandPatternsEditor.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Dialogs\CommandPatternRadioSelectionDialog.xaml.cs">
       <DependentUpon>CommandPatternRadioSelectionDialog.xaml</DependentUpon>
     </Compile>
@@ -746,6 +749,10 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="Dialogs\CommandPatternsSelectionDialog.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Dialogs\ScenarioCommandPatternsEditor.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

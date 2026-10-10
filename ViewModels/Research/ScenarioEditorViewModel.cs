@@ -6,6 +6,7 @@ using ISIDA.Actions;
 using ISIDA.Psychic.Automatism;
 using ISIDA.Reflexes;
 using ISIDA.Scenarios;
+using ISIDA.Sensors;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -98,19 +99,23 @@ namespace AIStudio.ViewModels.Research
       Lines.AllowRemove = true;
       Lines.AllowEdit = true;
       Lines.RaiseListChangedEvents = false;
+      var cmdLookupForInit = BuildCommandPatternLookup();
       foreach (var l in doc.Lines.OrderBy(x => x.StepIndex > 0 ? x.StepIndex : int.MaxValue).ThenBy(x => x.PulseWithinScenario))
       {
         var row = l.Clone();
         Lines.Add(row);
         row.RefreshActionNames(_influenceActions);
         row.RefreshEnvironmentProbeNames(_influenceActions);
+        row.RefreshCommandPatternNames(cmdLookupForInit);
       }
       Lines.RaiseListChangedEvents = true;
       ScenarioPulseSchedule.EnsureSequentialStepIndices(Lines);
+      var cmdLookupAfterInit = BuildCommandPatternLookup();
       foreach (var l in Lines)
       {
         l.RefreshActionNames(_influenceActions);
         l.RefreshEnvironmentProbeNames(_influenceActions);
+        l.RefreshCommandPatternNames(cmdLookupAfterInit);
       }
       if (Document.LogExpectationColumnSkips == null)
         Document.LogExpectationColumnSkips = new ScenarioLogExpectationColumnSkips();
@@ -229,6 +234,7 @@ namespace AIStudio.ViewModels.Research
         r.ReflexChainText = target;
         r.AutomatizmChainText = target;
         r.MainCycleText = target;
+        r.CommandPatternsText = target;
       }
       HasUnsavedChanges = true;
     }
@@ -256,14 +262,17 @@ namespace AIStudio.ViewModels.Research
           {
             Lines[e.NewIndex].RefreshActionNames(_influenceActions);
             Lines[e.NewIndex].RefreshEnvironmentProbeNames(_influenceActions);
+            Lines[e.NewIndex].RefreshCommandPatternNames(BuildCommandPatternLookup());
           }
           goto case ListChangedType.ItemDeleted;
         case ListChangedType.ItemDeleted:
           ScenarioPulseSchedule.EnsureSequentialStepIndices(Lines);
+          var cmdLookupDel = BuildCommandPatternLookup();
           foreach (var l in Lines)
           {
             l.RefreshActionNames(_influenceActions);
             l.RefreshEnvironmentProbeNames(_influenceActions);
+            l.RefreshCommandPatternNames(cmdLookupDel);
           }
           SyncExpectationRowsWithLines();
           HasUnsavedChanges = true;
@@ -292,6 +301,7 @@ namespace AIStudio.ViewModels.Research
       r.AutomatizmChainText = NormalizeExpectedCell(r.AutomatizmChainText);
       r.MainCycleText = NormalizeExpectedCell(r.MainCycleText);
       r.BackgroundCyclesText = NormalizeExpectedCell(r.BackgroundCyclesText);
+      r.CommandPatternsText = NormalizeExpectedCell(r.CommandPatternsText);
     }
 
     /// <summary>Состояние, стиль, ОР/УМ: «-», пусто (не проверять) или код.</summary>
@@ -362,6 +372,24 @@ namespace AIStudio.ViewModels.Research
     }
 
     public InfluenceActionSystem InfluenceActions => _influenceActions;
+
+    /// <summary>Строит словарь id → текст паттерна Command-канала из SensorySystem (если инициализирован).</summary>
+    public IReadOnlyDictionary<int, string> BuildCommandPatternLookup()
+    {
+      if (!SensorySystem.IsInitialized)
+        return null;
+      var ch = SensorySystem.Instance.CommandChannel;
+      if (ch?.PhraseTree?.Nodes == null)
+        return null;
+      var dict = new Dictionary<int, string>();
+      foreach (var node in ch.PhraseTree.Nodes.Values)
+      {
+        if (node.Id <= 0)
+          continue;
+        dict[node.Id] = ch.GetPhraseFromPhraseId(node.Id) ?? "";
+      }
+      return dict;
+    }
     public string Title
     {
       get => _title;
@@ -595,6 +623,7 @@ namespace AIStudio.ViewModels.Research
             AttachExpectationRow(expClone);
             lineClone.RefreshActionNames(_influenceActions);
             lineClone.RefreshEnvironmentProbeNames(_influenceActions);
+            lineClone.RefreshCommandPatternNames(BuildCommandPatternLookup());
           }
           insertAfter += blockLen;
         }
@@ -615,10 +644,12 @@ namespace AIStudio.ViewModels.Research
         Lines.ListChanged += OnLinesListChanged;
       }
       ScenarioPulseSchedule.EnsureSequentialStepIndices(Lines);
+      var cmdLookupRepeat = BuildCommandPatternLookup();
       foreach (var l in Lines)
       {
         l.RefreshActionNames(_influenceActions);
         l.RefreshEnvironmentProbeNames(_influenceActions);
+        l.RefreshCommandPatternNames(cmdLookupRepeat);
       }
       SyncExpectationRowsWithLines();
       if (blockEnd + 1 < Lines.Count)
@@ -659,10 +690,9 @@ namespace AIStudio.ViewModels.Research
       };
       row.RefreshActionNames(_influenceActions);
       row.RefreshEnvironmentProbeNames(_influenceActions);
+      row.RefreshCommandPatternNames(BuildCommandPatternLookup());
       return row;
-    }
-
-    private void AddLine()
+    }    private void AddLine()
     {
       var row = CreateNewLineRow();
       Lines.Add(row);
@@ -703,10 +733,12 @@ namespace AIStudio.ViewModels.Research
         Lines.ListChanged += OnLinesListChanged;
       }
       ScenarioPulseSchedule.EnsureSequentialStepIndices(Lines);
+      var cmdLookupDelete = BuildCommandPatternLookup();
       foreach (var l in Lines)
       {
         l.RefreshActionNames(_influenceActions);
         l.RefreshEnvironmentProbeNames(_influenceActions);
+        l.RefreshCommandPatternNames(cmdLookupDelete);
       }
       SyncExpectationRowsWithLines();
       SelectedLine = Lines.FirstOrDefault();
