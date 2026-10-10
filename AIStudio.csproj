@@ -892,9 +892,7 @@
   <ItemGroup>
     <Resource Include="Resources\Delete.ico" />
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="libs\" />
-  </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Target Name="EnsureSymbiontEnvContractBuilt" BeforeTargets="PrepareForBuild">
     <Error Condition="!Exists('..\SymbiontEnv.Contract\bin\$(Configuration)\SymbiontEnv.Contract.dll')" Text="Отсутствует SymbiontEnv.Contract.dll: ..\SymbiontEnv.Contract\bin\$(Configuration)\. Соберите SymbiontEnv.Contract.csproj (конфигурация $(Configuration))." />

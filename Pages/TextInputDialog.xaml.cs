@@ -48,13 +48,6 @@ namespace AIStudio.Dialogs
 
     private void OkButton_Click(object sender, RoutedEventArgs e)
     {
-      if (Multiline && !string.IsNullOrEmpty(Text))
-      {
-        // Заменяем настоящие переносы строк на специальные символы
-        Text = Text.Replace("\r\n", NewLineReplacement)
-                   .Replace("\n", NewLineReplacement)
-                   .Replace("\r", NewLineReplacement);
-      }
       DialogResult = true;
       Close();
     }
