@@ -23,6 +23,7 @@ namespace AIStudio.ViewModels.Research
   public sealed class ScenarioEditorViewModel : INotifyPropertyChanged
   {
     private readonly InfluenceActionSystem _influenceActions;
+    private readonly ConditionedReflexesSystem _conditionedReflexesSystem;
     private string _title = "";
     private string _description = "";
     private int _preRunTargetStage = -1;
@@ -45,9 +46,12 @@ namespace AIStudio.ViewModels.Research
     private string _repeatBlockCountText = "1";
     public ScenarioEditorViewModel(
         InfluenceActionSystem influenceActions,
+        ConditionedReflexesSystem conditionedReflexesSystem,
         ScenarioDocument doc)
     {
       _influenceActions = influenceActions ?? throw new ArgumentNullException(nameof(influenceActions));
+      _conditionedReflexesSystem = conditionedReflexesSystem ?? throw new ArgumentNullException(nameof(conditionedReflexesSystem));
+
       Document = doc ?? throw new ArgumentNullException(nameof(doc));
       _title = doc.Header.Title ?? "";
       _description = doc.Header.Description ?? "";
@@ -62,13 +66,14 @@ namespace AIStudio.ViewModels.Research
       _runPulseTimingCoefficient = NormalizeRunPulseTimingCoefficient(doc.Header.RunPulseTimingCoefficient);
       _reportHideEmptyComparisonColumns = doc.Header.ReportHideEmptyComparisonColumns;
       _reportHideExpectedWhenNoMismatch = doc.Header.ReportHideExpectedWhenNoMismatch;
-      PulseTimingCoefficientChoices = new List<int> { 1, 5, 10, 20 };
+      PulseTimingCoefficientChoices = new List<int> { 1, 5, 10, 20, 30 };
       PulseStepIncrementChoices = new List<ScenarioPulseIncrementChoiceItem>
       {
         new ScenarioPulseIncrementChoiceItem { Code = (int)ScenarioPulseStepIncrement.Sequential, Label = "Следующий по порядку" },
         new ScenarioPulseIncrementChoiceItem { Code = (int)ScenarioPulseStepIncrement.ActionHold, Label = "Время удержания действий" },
         new ScenarioPulseIncrementChoiceItem { Code = (int)ScenarioPulseStepIncrement.ActionHoldPlusOne, Label = "Время удержания действий + 1" },
-        new ScenarioPulseIncrementChoiceItem { Code = (int)ScenarioPulseStepIncrement.StateHoldPlusOne, Label = "Время удержания состояний + 1" }
+        new ScenarioPulseIncrementChoiceItem { Code = (int)ScenarioPulseStepIncrement.StateHoldPlusOne, Label = "Время удержания состояний + 1" },
+        new ScenarioPulseIncrementChoiceItem { Code = (int)ScenarioPulseStepIncrement.TimeWindowPlusOne, Label = "Временное окно корреляции + 1" }
       };
       ToneChoiceOptions = ActionsImagesSystem.GetToneList()
           .OrderBy(kv => kv.Key)
@@ -188,6 +193,7 @@ namespace AIStudio.ViewModels.Research
         || code == (int)ScenarioPulseStepIncrement.ActionHold
         || code == (int)ScenarioPulseStepIncrement.ActionHoldPlusOne
         || code == (int)ScenarioPulseStepIncrement.StateHoldPlusOne
+        || code == (int)ScenarioPulseStepIncrement.TimeWindowPlusOne
             ? code
             : (int)ScenarioPulseStepIncrement.ActionHoldPlusOne;
     private int CurrentPulseStepDelta()
@@ -196,7 +202,8 @@ namespace AIStudio.ViewModels.Research
       return ScenarioPulseSchedule.PulseDeltaBetweenConsecutiveSteps(
           mode,
           Math.Max(0, AppConfig.ReflexActionDisplayDuration),
-          Math.Max(0, AppConfig.DynamicTime));
+          Math.Max(0, AppConfig.DynamicTime),
+          Math.Max(0, _conditionedReflexesSystem.Settings.TimeWindowPulses));
     }
 
     public string MassFillMode

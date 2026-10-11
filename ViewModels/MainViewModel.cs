@@ -704,6 +704,7 @@ namespace AIStudio
       }
       var scenariosVm = new ScenarioRegistryViewModel(
           _influenceActionSystem,
+          _conditionedReflexesSystem,
           _scenarioRunner,
           openEditorEmbedded: OpenEditorEmbedded,
           tryStartScenario: TryStartScenario,

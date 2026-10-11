@@ -4,7 +4,9 @@ using AIStudio.Pages.Research;
 using AIStudio.Windows;
 using ISIDA.Actions;
 using ISIDA.Gomeostas;
+using ISIDA.Reflexes;
 using ISIDA.Scenarios;
+using Microsoft.Win32;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -17,13 +19,13 @@ using System.Text;
 using System.Windows;
 using System.Windows.Input;
 using System.Windows.Threading;
-using Microsoft.Win32;
 
 namespace AIStudio.ViewModels.Research
 {
   public sealed class ScenarioRegistryViewModel : INotifyPropertyChanged
   {
     private readonly InfluenceActionSystem _influenceActions;
+    private readonly ConditionedReflexesSystem _conditionedReflexesSystem;
     private readonly OperatorScenarioRunner _runner;
     private readonly Action<ScenarioEditorViewModel> _openEditorEmbedded;
     private readonly Func<ScenarioDocument, string, bool> _tryStartScenario;
@@ -61,6 +63,7 @@ namespace AIStudio.ViewModels.Research
 
     public ScenarioRegistryViewModel(
         InfluenceActionSystem influenceActions,
+        ConditionedReflexesSystem conditionedReflexesSystem,
         OperatorScenarioRunner runner,
         Action<ScenarioEditorViewModel> openEditorEmbedded = null,
         Func<ScenarioDocument, string, bool> tryStartScenario = null,
@@ -71,6 +74,7 @@ namespace AIStudio.ViewModels.Research
         GomeostasSystem gomeostas = null)
     {
       _influenceActions = influenceActions ?? throw new ArgumentNullException(nameof(influenceActions));
+      _conditionedReflexesSystem = conditionedReflexesSystem ?? throw new ArgumentNullException(nameof(conditionedReflexesSystem));
       _runner = runner ?? throw new ArgumentNullException(nameof(runner));
       _openEditorEmbedded = openEditorEmbedded;
       _tryStartScenario = tryStartScenario ?? throw new ArgumentNullException(nameof(tryStartScenario));
@@ -205,7 +209,7 @@ namespace AIStudio.ViewModels.Research
 
     private ScenarioEditorViewModel CreateEditorViewModel(ScenarioDocument doc)
     {
-      return new ScenarioEditorViewModel(_influenceActions, doc);
+      return new ScenarioEditorViewModel(_influenceActions, _conditionedReflexesSystem, doc);
     }
 
     private void OpenEditorWithViewModel(ScenarioEditorViewModel vm)
