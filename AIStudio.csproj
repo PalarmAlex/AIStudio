@@ -208,6 +208,9 @@
     <Compile Include="Pages\AdaptiveActions\ScenarioInfluenceActionsEditor.xaml.cs">
       <DependentUpon>ScenarioInfluenceActionsEditor.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Pages\AdaptiveActions\InfluenceActionSelectionEditor.xaml.cs">
+      <DependentUpon>InfluenceActionSelectionEditor.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Pages\AdaptiveActions\ScenarioEnvironmentProbesEditor.xaml.cs">
       <DependentUpon>ScenarioEnvironmentProbesEditor.xaml</DependentUpon>
     </Compile>
@@ -537,6 +540,10 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="Pages\AdaptiveActions\ScenarioEnvironmentProbesEditor.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Pages\AdaptiveActions\InfluenceActionSelectionEditor.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

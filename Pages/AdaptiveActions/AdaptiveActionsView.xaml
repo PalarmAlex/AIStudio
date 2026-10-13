@@ -155,20 +155,22 @@
             </DataGridTextColumn.HeaderStyle>
           </DataGridTextColumn>
 
-          <DataGridTextColumn Header="ID действия с пульта" 
-            Binding="{Binding InfluenceActionId, Mode=TwoWay, Converter={StaticResource StringToIntConverter}}" 
+          <DataGridTextColumn Header="ID действия с пульта"
+            Binding="{Binding InfluenceActionId, Mode=TwoWay, Converter={StaticResource StringToIntConverter}}"
+            IsReadOnly="True"
             Width="120">
+            <DataGridTextColumn.ElementStyle>
+              <Style TargetType="TextBlock">
+                <EventSetter Event="MouseDown" Handler="InfluenceActionIdCell_MouseDown"/>
+              </Style>
+            </DataGridTextColumn.ElementStyle>
+
             <DataGridTextColumn.HeaderStyle>
               <Style TargetType="DataGridColumnHeader" BasedOn="{StaticResource {x:Type DataGridColumnHeader}}">
-                <Setter Property="ToolTip" 
-                    Value="ID связанного действия с пульта (InfluenceAction) для отзеркаливания. Пустое поле = нет связи.&#x0a;При создании зеркального автоматизма по стимулу с пульта ищется это действие симбионта по данному полю."/>
+                <Setter Property="ToolTip"
+                    Value="ID связанного действия с пульта (InfluenceAction) для отзеркаливания. Пустое поле = нет связи.&#x0a;При создании зеркального автоматизма по стимулу с пульта ищется это действие симбионта по данному полю.&#x0a;ДБ клик открывает окно ввода."/>
               </Style>
             </DataGridTextColumn.HeaderStyle>
-            <DataGridTextColumn.EditingElementStyle>
-              <Style TargetType="TextBox">
-                <EventSetter Event="PreviewTextInput" Handler="NumericColumn_PreviewTextInput"/>
-              </Style>
-            </DataGridTextColumn.EditingElementStyle>
           </DataGridTextColumn>
 
         </DataGrid.Columns>

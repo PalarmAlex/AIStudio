@@ -249,6 +249,32 @@ namespace AIStudio.Pages
         e.Handled = true;
       }
     }
+
+    private void InfluenceActionIdCell_MouseDown(object sender, MouseButtonEventArgs e)
+    {
+      if (e.ClickCount == 2 && DataContext is AdaptiveActionsViewModel)
+      {
+        if (!IsFormEnabled)
+        {
+          e.Handled = true;
+          return;
+        }
+        if (sender is FrameworkElement element &&
+            element.DataContext is AdaptiveActionsSystem.AdaptiveAction action)
+        {
+          var editor = new InfluenceActionSelectionEditor(
+              $"Воздействие с пульта для действия: {action.Name} (ID: {action.Id})",
+              action.InfluenceActionId);
+          if (editor.ShowDialog() == true)
+          {
+            action.InfluenceActionId = editor.SelectedInfluenceActionId;
+            ActionsGrid.CommitEdit(DataGridEditingUnit.Row, true);
+            ActionsGrid.Items.Refresh();
+          }
+        }
+        e.Handled = true;
+      }
+    }
     #region Вспомогательные методы
     /// <summary>
     /// Парсит строку в float с поддержкой и точки, и запятой как разделителя
