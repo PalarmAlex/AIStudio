@@ -361,3 +361,6 @@ MigrationBackup/
 
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
+
+# Артефакт резервированного имени Windows (создаётся редиректом 2>nul в bash)
+nul
