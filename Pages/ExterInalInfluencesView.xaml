@@ -6,7 +6,7 @@
              xmlns:local="clr-namespace:AIStudio.Pages"
              xmlns:converters="clr-namespace:AIStudio.Converters"
              mc:Ignorable="d" 
-             d:DesignHeight="450" d:DesignWidth="800">
+             d:DesignHeight="450" d:DesignWidth="1000">
 
   <UserControl.Resources>
     <converters:IntDictionaryToStringConverter x:Key="IntDictionaryToStringConverter"/>
@@ -125,7 +125,7 @@
             </DataGridCheckBoxColumn.HeaderStyle>
           </DataGridCheckBoxColumn>
 
-          <DataGridTextColumn Header="Описание" Binding="{Binding Description, Mode=TwoWay}" Width="300">
+          <DataGridTextColumn Header="Описание" Binding="{Binding Description, Mode=TwoWay}" Width="*">
             <DataGridTextColumn.CellStyle>
               <Style TargetType="DataGridCell" BasedOn="{StaticResource {x:Type DataGridCell}}">
                 <Setter Property="ToolTip" Value="{Binding Description}"/>
@@ -157,7 +157,7 @@
           <DataGridTextColumn Header="Воздействие на гомеостаз" 
                               Binding="{Binding Influences, Converter={StaticResource IntDictionaryToStringConverter}}" 
                               IsReadOnly="True" 
-                              Width="*">
+                              Width="150">
             <DataGridTextColumn.ElementStyle>
               <Style TargetType="TextBlock">
                 <EventSetter Event="MouseDown" Handler="InfluencesCell_MouseDown"/>
@@ -177,7 +177,7 @@
                               Header="Антагонисты" 
                               Binding="{Binding AntagonistInfluences, Converter={StaticResource ListToStringConverter}}" 
                               IsReadOnly="True" 
-                              Width="*">
+                              Width="150">
             <DataGridTextColumn.ElementStyle>
               <Style TargetType="TextBlock">
                 <EventSetter Event="MouseDown" Handler="AntagonistCell_MouseDown"/>

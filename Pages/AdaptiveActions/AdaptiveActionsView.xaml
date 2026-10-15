@@ -91,7 +91,7 @@
         <DataGrid.Columns>
           <DataGridTextColumn Header="ID" Binding="{Binding Id}" Width="50" IsReadOnly="True"/>
           <DataGridTextColumn Header="Наименование" Binding="{Binding Name}" Width="150"/>
-          <DataGridTextColumn Header="Описание" Binding="{Binding Description, Mode=TwoWay}" Width="400">
+          <DataGridTextColumn Header="Описание" Binding="{Binding Description, Mode=TwoWay}" Width="*">
             <DataGridTextColumn.CellStyle>
               <Style TargetType="DataGridCell" BasedOn="{StaticResource {x:Type DataGridCell}}">
                 <Setter Property="ToolTip" Value="{Binding Description}"/>
@@ -122,7 +122,7 @@
           <DataGridTextColumn Header="Антагонисты" 
             Binding="{Binding AntagonistActions, Converter={StaticResource ListToStringConverter}}" 
             IsReadOnly="True" 
-            Width="*">
+            Width="150">
             <DataGridTextColumn.ElementStyle>
               <Style TargetType="TextBlock">
                 <EventSetter Event="MouseDown" Handler="AntagonistCell_MouseDown"/>
@@ -140,7 +140,7 @@
           <DataGridTextColumn Header="Target параметры" 
             Binding="{Binding TargetGomeoParamIdArr, Converter={StaticResource ListToStringConverter}}" 
             IsReadOnly="True" 
-            Width="*">
+            Width="150">
             <DataGridTextColumn.ElementStyle>
               <Style TargetType="TextBlock">
                 <EventSetter Event="MouseDown" Handler="TargetParametersCell_MouseDown"/>
@@ -158,7 +158,7 @@
           <DataGridTextColumn Header="ID действия с пульта"
             Binding="{Binding InfluenceActionId, Mode=TwoWay, Converter={StaticResource StringToIntConverter}}"
             IsReadOnly="True"
-            Width="120">
+            Width="150">
             <DataGridTextColumn.ElementStyle>
               <Style TargetType="TextBlock">
                 <EventSetter Event="MouseDown" Handler="InfluenceActionIdCell_MouseDown"/>
