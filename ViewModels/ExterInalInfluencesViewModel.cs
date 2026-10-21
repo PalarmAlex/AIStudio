@@ -113,10 +113,13 @@ namespace AIStudio.ViewModels
 
     public int AllocateNextRowId()
     {
-      // Берём max ID из всей системы InfluenceActions.dat, чтобы счётчик
-      // был глобальным для обеих форм (Триггеры и Метрики среды).
+      // Берём max ID из локальной коллекции (включая добавленные, но ещё не сохранённые строки)
+      // и из сохранённой системы — чтобы счётчик был глобальным для обеих форм
+      // (Триггеры и Метрики среды) и корректным при последовательном создании строк.
+      int maxLocal = InfluenceActions.Count == 0 ? 0 : InfluenceActions.Max(a => a.Id);
       var allActions = _influenceActionSystem.GetAllInfluenceActions().ToList();
-      int maxId = allActions.Count == 0 ? 0 : allActions.Max(a => a.Id);
+      int maxSystem = allActions.Count == 0 ? 0 : allActions.Max(a => a.Id);
+      int maxId = Math.Max(maxLocal, maxSystem);
       return IsEnvironmentScope
           ? InfluenceActionIdPolicy.AllocateNextEnvironmentId(maxId)
           : InfluenceActionIdPolicy.AllocateNextId(maxId);
