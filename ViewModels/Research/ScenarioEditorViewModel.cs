@@ -66,7 +66,7 @@ namespace AIStudio.ViewModels.Research
       _runPulseTimingCoefficient = NormalizeRunPulseTimingCoefficient(doc.Header.RunPulseTimingCoefficient);
       _reportHideEmptyComparisonColumns = doc.Header.ReportHideEmptyComparisonColumns;
       _reportHideExpectedWhenNoMismatch = doc.Header.ReportHideExpectedWhenNoMismatch;
-      PulseTimingCoefficientChoices = new List<int> { 1, 5, 10, 20, 30 };
+      PulseTimingCoefficientChoices = new List<int> { 1, 5, 10, 20 };
       PulseStepIncrementChoices = new List<ScenarioPulseIncrementChoiceItem>
       {
         new ScenarioPulseIncrementChoiceItem { Code = (int)ScenarioPulseStepIncrement.Sequential, Label = "Следующий по порядку" },
