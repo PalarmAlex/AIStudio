@@ -32,7 +32,7 @@ namespace AIStudio.ViewModels.Research
     private bool _scenarioObservationMode;
     private bool _scenarioAuthoritativeRecording;
     private string _massFillMode = "Unknown";
-    private int _pulseStepIncrement = (int)ScenarioPulseStepIncrement.ActionHoldPlusOne;
+    private int _pulseStepIncrement = (int)ScenarioPulseStepIncrement.TimeWindowPlusOne;
     private int _runPulseTimingCoefficient = 1;
     private bool _reportHideEmptyComparisonColumns = true;
     private bool _reportHideExpectedWhenNoMismatch = true;
@@ -195,7 +195,7 @@ namespace AIStudio.ViewModels.Research
         || code == (int)ScenarioPulseStepIncrement.StateHoldPlusOne
         || code == (int)ScenarioPulseStepIncrement.TimeWindowPlusOne
             ? code
-            : (int)ScenarioPulseStepIncrement.ActionHoldPlusOne;
+            : (int)ScenarioPulseStepIncrement.TimeWindowPlusOne;
     private int CurrentPulseStepDelta()
     {
       var mode = (ScenarioPulseStepIncrement)_pulseStepIncrement;
