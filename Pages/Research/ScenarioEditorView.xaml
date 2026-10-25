@@ -431,6 +431,25 @@
                   </Style>
                 </DataGridCheckBoxColumn.HeaderStyle>
               </DataGridCheckBoxColumn>
+              <DataGridTemplateColumn Header="Результат звена" Width="130">
+                <DataGridTemplateColumn.HeaderStyle>
+                  <Style TargetType="DataGridColumnHeader">
+                    <Setter Property="FontSize" Value="12"/>
+                    <Setter Property="FontWeight" Value="SemiBold"/>
+                    <Setter Property="ToolTip" Value="Оценка звена транзитивной цепочки рефлексов на этом шаге: «Нет» — сигнал не отправляется, цепочка прервётся по таймауту; «Успех» — переход к следующему звену; «Неудача» — цепочка завершается."/>
+                  </Style>
+                </DataGridTemplateColumn.HeaderStyle>
+                <DataGridTemplateColumn.CellTemplate>
+                  <DataTemplate>
+                    <ComboBox ItemsSource="{Binding DataContext.ChainStepResultChoiceOptions, ElementName=EditorRoot}"
+                              SelectedValue="{Binding ChainStepResultCode, UpdateSourceTrigger=PropertyChanged}"
+                              DisplayMemberPath="Label"
+                              SelectedValuePath="Id"
+                              Padding="2,1"
+                              FontSize="12"/>
+                  </DataTemplate>
+                </DataGridTemplateColumn.CellTemplate>
+              </DataGridTemplateColumn>
             </DataGrid.Columns>
           </DataGrid>
         </Grid>

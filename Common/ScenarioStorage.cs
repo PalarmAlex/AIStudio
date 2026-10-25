@@ -193,6 +193,9 @@ namespace AIStudio.Common
             ? p[10].Split(',').Select(s => s.Trim()).Where(s => s.Length > 0)
                 .Select(s => int.Parse(s, CultureInfo.InvariantCulture)).ToList()
             : new List<int>();
+        int chainStepResultCode = p.Length > 11
+            && int.TryParse(p[11].Trim(), NumberStyles.Integer, CultureInfo.InvariantCulture, out int csr)
+            ? csr : 0;
         return new ScenarioLineRow
         {
           StepIndex = step,
@@ -205,7 +208,8 @@ namespace AIStudio.Common
           EnvironmentProbes = environmentProbes,
           CommandPatternIds = commandPatternIds,
           Phrase = phrase,
-          ResetWaitingPeriod = rw != 0
+          ResetWaitingPeriod = rw != 0,
+          ChainStepResultCode = chainStepResultCode
         };
       }
       return null;
@@ -353,8 +357,8 @@ namespace AIStudio.Common
         "# Строки сценария оператора",
         $"{LinesFormatHeader}{ScenarioDocument.LinesFileFormatVersion}",
         $"# SCENARIO_META|{Escape(doc.Header.Title ?? "")}|{Escape(doc.Header.Description ?? "")}|{Escape(doc.Header.InitialHomeostasisValues ?? "")}|{doc.Header.PreRunTargetStage.ToString(CultureInfo.InvariantCulture)}|{(doc.Header.PreRunClearAgentData ? "1" : "0")}|{(doc.Header.ScenarioObservationMode ? "1" : "0")}|{(doc.Header.ScenarioAuthoritativeRecording ? "1" : "0")}|{(doc.Header.PreRunNormalHomeostasisState ? "1" : "0")}|{doc.Header.PulseStepIncrement.ToString(CultureInfo.InvariantCulture)}|{doc.Header.RunPulseTimingCoefficient.ToString(CultureInfo.InvariantCulture)}|{(doc.Header.ReportHideEmptyComparisonColumns ? "1" : "0")}|{(doc.Header.ReportHideExpectedWhenNoMismatch ? "1" : "0")}",
-        "# Step|Pulse|Kind(P|W)|ToneId|MoodId|ActionIds|Phrase|ResetWait|VisualColorId|EnvProbeSpecs|CommandPatternIds",
-        "# Kind=W — только клик по плашке ожидания; P — воздействия с пульта. Пульс — по шагам и режиму приращения из метаданных (см. настройки проекта). VisualColorId — код зрительного канала (0…8), см. AgentVisualColor. EnvProbeSpecs — воздействия среды: +id (давление), -id (отпускание), через запятую. CommandPatternIds — ID паттернов Command-канала через запятую."
+        "# Step|Pulse|Kind(P|W)|ToneId|MoodId|ActionIds|Phrase|ResetWait|VisualColorId|EnvProbeSpecs|CommandPatternIds|ChainStepResult",
+        "# Kind=W — только клик по плашке ожидания; P — воздействия с пульта. Пульс — по шагам и режиму приращения из метаданных (см. настройки проекта). VisualColorId — код зрительного канала (0…8), см. AgentVisualColor. EnvProbeSpecs — воздействия среды: +id (давление), -id (отпускание), через запятую. CommandPatternIds — ID паттернов Command-канала через запятую. ChainStepResult — оценка звена цепочки рефлексов: 0 — нет (ждём таймаут), 1 — успех, 2 — неудача."
       };
       foreach (var row in doc.Lines.OrderBy(r => r.StepIndex))
       {
@@ -367,6 +371,9 @@ namespace AIStudio.Common
         var cmdIds = row.CommandPatternIds == null || row.CommandPatternIds.Count == 0
             ? ""
             : string.Join(",", row.CommandPatternIds.Select(i => i.ToString(CultureInfo.InvariantCulture)));
+        int chainStepCode = row.ChainStepResultCode == (int)ScenarioChainStepResult.Success ? 1
+            : row.ChainStepResultCode == (int)ScenarioChainStepResult.Failure ? 2
+            : 0;
         lines.Add(string.Join("|",
             row.StepIndex.ToString(CultureInfo.InvariantCulture),
             row.PulseWithinScenario.ToString(CultureInfo.InvariantCulture),
@@ -378,7 +385,8 @@ namespace AIStudio.Common
             row.ResetWaitingPeriod ? "1" : "0",
             visualSave.ToString(CultureInfo.InvariantCulture),
             envSpecs,
-            cmdIds));
+            cmdIds,
+            chainStepCode.ToString(CultureInfo.InvariantCulture)));
       }
       var skc = doc.LogExpectationColumnSkips ?? new ScenarioLogExpectationColumnSkips();
       lines.Add("# SCENARIO_LOG_EXPECTATIONS|1");

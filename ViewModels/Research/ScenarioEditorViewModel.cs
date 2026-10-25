@@ -87,6 +87,12 @@ namespace AIStudio.ViewModels.Research
           .Range(AgentVisualColor.MinCode, AgentVisualColor.MaxCode - AgentVisualColor.MinCode + 1)
           .Select(c => new ScenarioToneMoodChoiceItem { Id = c, Label = AgentVisualColor.GetDisplayName(c) })
           .ToList();
+      ChainStepResultChoiceOptions = new List<ScenarioToneMoodChoiceItem>
+      {
+        new ScenarioToneMoodChoiceItem { Id = (int)ScenarioChainStepResult.None, Label = "Нет" },
+        new ScenarioToneMoodChoiceItem { Id = (int)ScenarioChainStepResult.Success, Label = "Успех" },
+        new ScenarioToneMoodChoiceItem { Id = (int)ScenarioChainStepResult.Failure, Label = "Неудача" }
+      };
       PreRunStageChoices = new ObservableCollection<EvolutionStageItem>();
       PreRunStageChoices.Add(new EvolutionStageItem { StageNumber = -1, Description = "Не менять стадию" });
       for (int i = 0; i <= 5; i++)
@@ -152,6 +158,7 @@ namespace AIStudio.ViewModels.Research
     public List<ScenarioToneMoodChoiceItem> ToneChoiceOptions { get; }
     public List<ScenarioToneMoodChoiceItem> MoodChoiceOptions { get; }
     public List<ScenarioToneMoodChoiceItem> VisualColorChoiceOptions { get; }
+    public List<ScenarioToneMoodChoiceItem> ChainStepResultChoiceOptions { get; }
     public List<ScenarioExpectationChoiceItem> StateChoiceOptions { get; }
     public List<ScenarioExpectationChoiceItem> StyleChoiceOptions { get; }
     public List<ScenarioExpectationChoiceItem> OrUmChoiceOptions { get; }

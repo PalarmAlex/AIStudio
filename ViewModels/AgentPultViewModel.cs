@@ -1828,6 +1828,37 @@ namespace AIStudio.ViewModels
 
 
 
+    /// <summary>
+    /// Применяет оценку звена цепочки, заданную шагом сценария: «Успех»/«Неудача» идут в движок,
+    /// «Нет» — no-op (цепочка сама прервётся по таймауту TransitiveChainStepEvaluationTimeout).
+    /// </summary>
+    public void ApplyScenarioChainStepResult(ScenarioChainStepResult result)
+    {
+      if (result == ScenarioChainStepResult.None)
+        return;
+      try
+      {
+        bool success = result == ScenarioChainStepResult.Success;
+        if (AppGlobalState.IsReflexChainActive && _reflexesActivator != null)
+        {
+          _reflexesActivator.SetChainStepResult(success);
+          return;
+        }
+        if (AppGlobalState.IsAutomatizmChainActive && AutomatismExecutionService.IsInitialized)
+        {
+          int chainId = AutomatismExecutionService.Instance.GetActiveAutomatizmChainId();
+          if (chainId > 0)
+            AutomatismExecutionService.Instance.SetChainStepResult(chainId, success ? 1 : -1);
+        }
+      }
+      catch (Exception ex)
+      {
+        Logger.Error(ex.Message);
+      }
+    }
+
+
+
     public void ApplyInfluenceActions(object parameter)
 
     {
