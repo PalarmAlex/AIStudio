@@ -432,7 +432,7 @@ namespace AIStudio.Common
       AppendMetaRow(sb, "Фактическая скорость", Escape(FormatActualPulseSpeedText(completion)));
       sb.AppendLine("</table>");
       sb.AppendLine("<h2>Шаги</h2>");
-      sb.AppendLine("<table class=\"steps-zebra\"><tr><th>Шаг</th><th>№ пульса</th><th>Тип</th><th>Воздействия</th><th>Воздействие от среды</th><th>Команды</th><th>Фраза</th><th>Тон</th><th>Настр.</th><th>Цвет</th><th>Сброс ожид.</th></tr>");
+      sb.AppendLine("<table class=\"steps-zebra\"><tr><th>Шаг</th><th>№ пульса</th><th>Тип</th><th>Воздействия</th><th>Воздействие от среды</th><th>Команды</th><th>Фраза</th><th>Тон</th><th>Настр.</th><th>Цвет</th><th>Сброс ожид.</th><th>Результат звена</th></tr>");
       if (doc.Lines != null)
       {
         var commandLookup = BuildCommandPatternLookupForReport();
@@ -455,6 +455,7 @@ namespace AIStudio.Common
           sb.Append("<td>").Append(Escape(FormatMoodCell(line.MoodId))).Append("</td>");
           sb.Append("<td>").Append(Escape(FormatVisualColorCell(line.VisualColorId))).Append("</td>");
           sb.Append("<td>").Append(line.ResetWaitingPeriod ? "да" : "нет").Append("</td>");
+          sb.Append("<td>").Append(Escape(FormatChainStepResultCell(line.ChainStepResult))).Append("</td>");
           sb.AppendLine("</tr>");
         }
       }
@@ -924,6 +925,16 @@ namespace AIStudio.Common
     {
       int code = AgentVisualColor.IsValidCode(colorId) ? colorId : AgentVisualColor.White;
       return AgentVisualColor.GetDisplayName(code) + " (" + code.ToString(CultureInfo.InvariantCulture) + ")";
+    }
+
+    private static string FormatChainStepResultCell(ScenarioChainStepResult result)
+    {
+      switch (result)
+      {
+        case ScenarioChainStepResult.Success: return "Успех";
+        case ScenarioChainStepResult.Failure: return "Неудача";
+        default: return "Нет";
+      }
     }
   }
 }
