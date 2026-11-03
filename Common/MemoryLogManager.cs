@@ -215,6 +215,11 @@ namespace AIStudio.Common
         GeneticReflexID = geneticReflexId == 0 ? null : geneticReflexId,
         ConditionReflexID = conditionedReflexId == 0 ? null : conditionedReflexId,
         AutomatizmID = automatizmId == 0 ? null : automatizmId,
+        // Триггер автоматизма — узел дерева, по которому он сработал. AutomatizmNodeId актуален на пульсе
+        // активации (PsychicSystem выставляет его вместе с АТ); читаем напрямую, т.к. ILogWriter его не передаёт.
+        AutomatizmTreeNodeId = automatizmId != 0 && AppGlobalState.AutomatizmNodeId != 0
+            ? (int?)AppGlobalState.AutomatizmNodeId
+            : null,
         ReflexChainInfo = reflexChainInfo ?? string.Empty,
         AutomatizmChainInfo = automatizmChainInfo ?? string.Empty,
         ThinkingLevel = thinkingLevel,
@@ -958,6 +963,12 @@ namespace AIStudio.Common
       /// <summary>Полезность автоматизма на момент записи строки лога (снимок), не текущая из справочника.</summary>
       public int? AutomatizmUsefulnessAtSnapshot { get; set; }
       /// <summary>
+      /// ID узла дерева автоматизмов, по которому сработал активный автоматизм (колонка «ТриггерАВ»).
+      /// Заполняется только при активном автоматизме: это его «аналог» Level3 у усл. рефлекса.
+      /// Для строк рефлексов остаётся null (у них PerceptionImage = триггер, колонка «Триггер»).
+      /// </summary>
+      public int? AutomatizmTreeNodeId { get; set; }
+      /// <summary>
       /// Отформатированное время для отображения в UI
       /// </summary>
       public string DisplayTime => Timestamp.ToString("HH:mm:ss");
@@ -977,6 +988,13 @@ namespace AIStudio.Common
       /// Отформатированный идентификатор триггерного стимула для отображения в UI
       /// </summary>
       public string DisplayTriggerStimulusID => TriggerStimulusID?.ToString() ?? "-";
+      /// <summary>
+      /// Ячейка «Триггер»: для автоматизма — ID узла дерева (колонка «ТриггерАВ»), для рефлексов — ID образа восприятия (как прежде).
+      /// </summary>
+      public string DisplayTriggerCell =>
+          AutomatizmTreeNodeId.HasValue && AutomatizmTreeNodeId.Value > 0
+              ? AutomatizmTreeNodeId.Value.ToString()
+              : DisplayTriggerStimulusID;
       /// <summary>
       /// Отформатированный флаг критических изменений для отображения в UI
       /// </summary>

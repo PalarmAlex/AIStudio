@@ -185,6 +185,7 @@
     <Compile Include="Converters\StyleBackgroundConverter.cs" />
     <Compile Include="Converters\StyleTooltipMultiConverter.cs" />
     <Compile Include="Converters\EnvironmentPressureTooltipMultiConverter.cs" />
+    <Compile Include="Converters\TriggerCellTooltipMultiConverter.cs" />
     <Compile Include="Converters\TriggerTooltipMultiConverter.cs" />
     <Compile Include="Converters\UsefulnessToColorConverter.cs" />
     <Compile Include="Converters\WordIdToTextConverter.cs" />

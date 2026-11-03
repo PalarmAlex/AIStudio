@@ -10,6 +10,8 @@ using ISIDA.Psychic.Automatism;
 using ISIDA.Psychic.Understanding;
 using ISIDA.Reflexes;
 using ISIDA.Sensors;
+using AIStudio.ViewModels;
+using AIStudio.Converters;
 
 namespace AIStudio.Common
 {
@@ -515,6 +517,142 @@ namespace AIStudio.Common
       if (s == "-" || string.IsNullOrEmpty(s))
         return "Нет активации ОР или уровня мышления";
       return GetOrientationReflexTooltip(s);
+    }
+
+    /// <summary>
+    /// Подсказка ячейки «Триггер» для автоматизма: расшифровка узла дерева автоматизмов
+    /// (состояние, эмоции, воздействия, команды, тон/настроение, вербальный образ, символ, цвет),
+    /// как в колонке «ID дерева условий» формы автоматизмов.
+    /// </summary>
+    public string GetAutomatizmTreeNodeTooltip(int? nodeId)
+    {
+      if (!nodeId.HasValue || nodeId.Value <= 0)
+        return "Нет данных об условиях запуска";
+      if (!AutomatizmTreeSystem.IsInitialized)
+        return "Дерево автоматизмов не инициализировано";
+      try
+      {
+        var treeNode = AutomatizmTreeSystem.Instance.GetNodeById(nodeId.Value);
+        if (treeNode == null)
+          return $"Узел дерева ID:{nodeId.Value} не найден";
+
+        var emotionIds = new List<int>();
+        if (treeNode.EmotionID > 0 && EmotionsImageSystem.IsInitialized)
+        {
+          var emotionImage = EmotionsImageSystem.Instance.GetEmotionsImage(treeNode.EmotionID);
+          emotionIds = emotionImage?.BaseStylesList?.ToList() ?? new List<int>();
+        }
+        var influenceActionIds = new List<int>();
+        if (treeNode.ActivityID > 0 && InfluenceActionsImagesSystem.IsInitialized)
+        {
+            influenceActionIds = InfluenceActionsImagesSystem.Instance
+                .GetInfluenceActionIds(treeNode.ActivityID)?.ToList() ?? new List<int>();
+        }
+        string toneMoodText = string.Empty;
+        if (treeNode.ToneMoodID > 0)
+        {
+          try { toneMoodText = PsychicSystem.GetToneMoodString(treeNode.ToneMoodID); }
+          catch { }
+        }
+        string verbalText = string.Empty;
+        if (treeNode.VerbID > 0 && VerbalBrocaImagesSystem.IsInitialized)
+        {
+          var verbalImage = VerbalBrocaImagesSystem.Instance.GetVerbalBrocaImage(treeNode.VerbID);
+          if (verbalImage?.PhraseIdList != null && verbalImage.PhraseIdList.Any())
+          {
+            verbalText = string.Join(" ", verbalImage.PhraseIdList
+                .Select(pid =>
+                {
+                  string t = _verbalSensor?.GetPhraseFromPhraseId(pid);
+                  return string.IsNullOrEmpty(t) ? $"[ID:{pid}]" : $"\"{t}\"";
+                }));
+          }
+        }
+
+        var item = new AutomatizmsViewModel.AutomatizmDisplayItem
+        {
+          BaseConditionText = FormatBaseConditionText(treeNode.BaseID),
+          EmotionText = FormatEmotionText(emotionIds),
+          InfluenceActionsText = FormatInfluenceActionsText(influenceActionIds),
+          CommandText = FormatCommandText(treeNode.CommandID),
+          ToneMoodID = treeNode.ToneMoodID,
+          ToneMoodText = toneMoodText,
+          VerbalText = verbalText,
+          SimbolID = treeNode.SimbolID,
+          VisualID = treeNode.VisualID
+        };
+        return TreeNodeConditionsToTooltipConverter.FormatConditionsTooltip(item);
+      }
+      catch (Exception ex)
+      {
+        return $"Ошибка загрузки узла дерева: {ex.Message}";
+      }
+    }
+
+    private static string FormatBaseConditionText(int baseId)
+    {
+      switch (baseId)
+      {
+        case -1: return "Плохо";
+        case 0: return "Норма";
+        case 1: return "Хорошо";
+        default: return $"Неизвестное ({baseId})";
+      }
+    }
+
+    private string FormatEmotionText(List<int> emotionIds)
+    {
+      if (emotionIds == null || !emotionIds.Any())
+        return "Нет эмоций";
+      var behaviorStyles = _gomeostas.GetAllBehaviorStyles();
+      var names = emotionIds
+          .Where(id => behaviorStyles.ContainsKey(id))
+          .Select(id => behaviorStyles[id].Name)
+          .ToList();
+      return names.Any() ? string.Join(", ", names) : $"Стили: {string.Join(", ", emotionIds)}";
+    }
+
+    private string FormatInfluenceActionsText(List<int> actionIds)
+    {
+      if (actionIds == null || !actionIds.Any())
+        return "Нет воздействий";
+      var allActions = _influenceActionSystem.GetAllInfluenceActions();
+      var names = actionIds
+          .Where(id => allActions.Any(a => a.Id == id))
+          .Select(id => allActions.First(a => a.Id == id).Name)
+          .ToList();
+      return names.Any() ? string.Join(", ", names) : $"Действия: {string.Join(", ", actionIds)}";
+    }
+
+    private static string FormatCommandText(int commandBrocaImageId)
+    {
+      if (commandBrocaImageId <= 0)
+        return string.Empty;
+      try
+      {
+        if (!CommandBrocaImagesSystem.IsInitialized)
+          return $"образ CommandBroca ID:{commandBrocaImageId}";
+        var commandImage = CommandBrocaImagesSystem.Instance.GetCommandBrocaImage(commandBrocaImageId);
+        if (commandImage?.PatternIdList == null || !commandImage.PatternIdList.Any())
+          return string.Empty;
+        var commandChannel = SensorySystem.IsInitialized ? SensorySystem.Instance.CommandChannel : null;
+        if (commandChannel == null)
+          return string.Join(" → ", commandImage.PatternIdList);
+        var parts = commandImage.PatternIdList
+            .Where(patternId => patternId > 0)
+            .Select(patternId =>
+            {
+              string text = commandChannel.GetPhraseFromPhraseId(patternId);
+              return string.IsNullOrWhiteSpace(text) ? $"[ID:{patternId}]" : $"{patternId}:{text}";
+            })
+            .ToList();
+        return parts.Any() ? string.Join(" → ", parts) : string.Empty;
+      }
+      catch (Exception ex)
+      {
+        Logger.Error($"Ошибка расшифровки CommandID={commandBrocaImageId}: {ex.Message}");
+        return $"образ CommandBroca ID:{commandBrocaImageId}";
+      }
     }
 
     public static string GetStateCodeTooltip(string rawStateCell)

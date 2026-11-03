@@ -10,6 +10,7 @@
 
   <UserControl.Resources>
     <converters:StyleTooltipMultiConverter x:Key="StyleTooltipConverter"/>
+    <converters:TriggerCellTooltipMultiConverter x:Key="TriggerCellTooltipConverter"/>
     <converters:TriggerTooltipMultiConverter x:Key="TriggerTooltipConverter"/>
     <converters:EnvironmentPressureTooltipMultiConverter x:Key="EnvironmentPressureTooltipConverter"/>
     <converters:ActionsForGeneticReflexConverter x:Key="ActionsForGeneticReflexConverter"/>
@@ -199,13 +200,13 @@
       </Setter>
     </Style>
 
-    <!-- Стиль для ячейки Триггер -->
+    <!-- Стиль для ячейки Триггер: для автоматизма — узел дерева, для рефлексов — образ восприятия -->
     <Style x:Key="TriggerCellStyle" TargetType="DataGridCell" BasedOn="{StaticResource MatrixCellStyle}">
       <Setter Property="ToolTip">
         <Setter.Value>
-          <MultiBinding Converter="{StaticResource TriggerTooltipConverter}">
+          <MultiBinding Converter="{StaticResource TriggerCellTooltipConverter}">
             <Binding Path="LogsViewModel" RelativeSource="{RelativeSource AncestorType={x:Type pages:LiveLogsToolTipScope}}"/>
-            <Binding Path="DisplayTriggerStimulusID"/>
+            <Binding/>
           </MultiBinding>
         </Setter.Value>
       </Setter>
@@ -484,12 +485,12 @@
             </DataGridTextColumn.Header>
           </DataGridTextColumn>
 
-          <DataGridTextColumn Binding="{Binding DisplayTriggerStimulusID}" Width="70"
+          <DataGridTextColumn Binding="{Binding DisplayTriggerCell}" Width="70"
                     CellStyle="{StaticResource TriggerCellStyle}">
             <DataGridTextColumn.Header>
               <DataGridColumnHeader Style="{StaticResource MatrixHeaderStyle}" 
                             Content="Триггер"
-                            ToolTip="ID образа пускового стимула (без метрик среды)"/>
+                            ToolTip="Для автоматизма — ID узла дерева автоматизмов (сработавшие условия). Для рефлексов — ID образа пускового стимула (без метрик среды)."/>
             </DataGridTextColumn.Header>
           </DataGridTextColumn>
 

@@ -237,6 +237,17 @@ namespace AIStudio.ViewModels
         _tooltipProvider.GetOrientationReflexTooltip(displayOrientationReflexType);
     public string GetThinkingLevelTooltip(string displayThinkingLevel, bool? thinkingLevelSuccess) =>
         _tooltipProvider.GetThinkingLevelTooltip(displayThinkingLevel, thinkingLevelSuccess);
+    /// <summary>
+    /// Подсказка ячейки «Триггер»: для автоматизма — расшифровка узла дерева, для рефлексов — образ восприятия.
+    /// </summary>
+    public string GetTriggerCellTooltip(LogEntry entry)
+    {
+      if (entry == null)
+        return "Нет данных";
+      if (entry.AutomatizmTreeNodeId.HasValue && entry.AutomatizmTreeNodeId.Value > 0)
+        return _tooltipProvider.GetAutomatizmTreeNodeTooltip(entry.AutomatizmTreeNodeId);
+      return _tooltipProvider.GetTriggerTooltip(entry.DisplayTriggerStimulusID);
+    }
     #endregion
   }
 }
