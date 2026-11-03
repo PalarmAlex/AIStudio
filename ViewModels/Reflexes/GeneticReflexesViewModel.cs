@@ -191,9 +191,12 @@ namespace AIStudio.ViewModels
           {
             try
             {
+              // Цвет передаём как в движке: узел-триггер дерева строится цветным,
+              // иначе поиск узла для рефлекса с nonzero-цветом не найдёт его образ
               actionImageId = PerceptionImagesSystem.Instance.AddPerceptionImage(
                   reflex.InfluenceActionIds ?? new List<int>(),
                   new List<int>(),
+                  visualColorId: reflex.VisualColorId,
                   commandPatternIdList: reflex.CommandPatternIds ?? new List<int>());
             }
             catch (Exception ex)
@@ -501,6 +504,17 @@ namespace AIStudio.ViewModels
         new KeyValuePair<int, string>(0, "Норма"),
         new KeyValuePair<int, string>(1, "Хорошо")
     };
+    /// <summary>
+    /// Варианты зрительного канала (тип активного документа) для колонки «Цвет»:
+    /// коды 0..8 по <see cref="AgentVisualColor"/>; 0 — белый, рефлекс под любой документ.
+    /// </summary>
+    public List<KeyValuePair<int, string>> VisualColorOptions { get; } =
+        Enumerable.Range(AgentVisualColor.MinCode, AgentVisualColor.MaxCode - AgentVisualColor.MinCode + 1)
+            .Select(code => new KeyValuePair<int, string>(code,
+                code == AgentVisualColor.White
+                    ? $"{AgentVisualColor.GetDisplayName(code)} — любой документ"
+                    : $"{AgentVisualColor.GetDisplayName(code)} ({code})"))
+            .ToList();
     private void LoadAgentData()
     {
       try
@@ -532,7 +546,8 @@ namespace AIStudio.ViewModels
           InfluenceActionIds = new List<int>(reflex.InfluenceActionIds ?? new List<int>()),
           CommandPatternIds = new List<int>(reflex.CommandPatternIds ?? new List<int>()),
           AdaptiveActions = new List<int>(reflex.AdaptiveActions),
-          ReflexChainID = reflex.ReflexChainID
+          ReflexChainID = reflex.ReflexChainID,
+          VisualColorId = reflex.VisualColorId
         };
         _allGeneticReflexes.Add(reflexCopy);
       }
@@ -653,6 +668,7 @@ namespace AIStudio.ViewModels
             originalReflex.CommandPatternIds = new List<int>(reflex.CommandPatternIds ?? new List<int>());
             originalReflex.AdaptiveActions = new List<int>(reflex.AdaptiveActions);
             originalReflex.ReflexChainID = reflex.ReflexChainID;
+            originalReflex.VisualColorId = reflex.VisualColorId;
             var warnings = _geneticReflexesSystem.UpdateGeneticReflex(originalReflex);
             if (warnings != null && warnings.Length > 0)
             {
@@ -669,7 +685,8 @@ namespace AIStudio.ViewModels
                 new List<int>(reflex.Level2),
                 new List<int>(reflex.InfluenceActionIds ?? new List<int>()),
                 new List<int>(reflex.CommandPatternIds ?? new List<int>()),
-                new List<int>(reflex.AdaptiveActions)
+                new List<int>(reflex.AdaptiveActions),
+                visualColorId: reflex.VisualColorId
             );
             if (warnings != null && warnings.Length > 0)
             {

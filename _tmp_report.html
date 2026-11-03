@@ -1,0 +1,244 @@
+﻿<!DOCTYPE html>
+<html><head><meta charset="utf-8"/>
+<style>
+body{font-family:Segoe UI,Tahoma,sans-serif;margin:16px;color:#222;}
+h1{font-size:18px;color:#1565C0;}
+h2{font-size:15px;color:#37474F;margin-top:20px;border-bottom:1px solid #B0BEC5;padding-bottom:4px;}
+table{border-collapse:collapse;width:100%;margin:8px 0;font-size:12px;}
+th,td{border:1px solid #CFD8DC;padding:6px 8px;text-align:left;vertical-align:top;}
+th{background:#ECEFF1;font-weight:600;}
+table.steps-zebra tr:nth-child(even){background:#FAFAFA;}
+table.group-compose{table-layout:fixed;width:100%;}
+table.group-compose td:nth-child(1),table.group-compose th:nth-child(1){text-align:center;white-space:nowrap;}
+table.group-compose td:nth-child(2),table.group-compose th:nth-child(2){word-wrap:break-word;word-break:break-word;}
+table.group-compose:not(.group-compose-compact) td:nth-child(n+3),table.group-compose:not(.group-compose-compact) th:nth-child(n+3){text-align:center;white-space:nowrap;}
+table.group-compose.group-compose-compact td:nth-child(n+3):not(:last-child),table.group-compose.group-compose-compact th:nth-child(n+3):not(:last-child){text-align:center;white-space:nowrap;}
+table.group-compose.group-compose-compact td:last-child,table.group-compose.group-compose-compact th:last-child{white-space:nowrap;text-align:left;}
+.muted{color:#78909C;}
+table.meta-table{width:100%;table-layout:fixed;}
+table.meta-table th.meta-label{width:15%;min-width:100px;max-width:160px;font-size:11px;font-weight:600;padding:6px 8px;vertical-align:top;background:#ECEFF1;}
+table.meta-table td.meta-value{width:85%;font-size:13px;padding:8px 12px;line-height:1.45;word-wrap:break-word;}
+table.compare-table{font-size:11px;}
+table.compare-table th.col-exp-h{background:#E8F5E9;}
+table.compare-table td.col-exp{background:transparent;}
+table.compare-table th.col-fact-h,table.compare-table td.col-fact{background:#E3F2FD;}
+table.compare-table td.col-fact.fact-mismatch{background:#FFEBEE;color:#B71C1C;border-color:#FFCDD2;}
+table.compare-table td.col-fact span.um-ok{color:#2E7D32;font-weight:600;}
+table.compare-table td.col-fact span.um-bad{color:#C62828;font-weight:600;}
+table.compare-table td.col-fact.fact-mismatch span.um-ok{color:#2E7D32;}
+table.compare-table td.col-fact.fact-mismatch span.um-bad{color:#C62828;}
+table.compare-table td.col-fact span.mc-ns{color:#C62828;font-weight:600;}
+table.compare-table td.col-fact span.mc-await{color:#F9A825;font-weight:600;}
+table.compare-table td.col-fact span.mc-solved{color:#2E7D32;font-weight:600;}
+table.compare-table td.col-fact.fact-mismatch span.mc-ns{color:#C62828;}
+table.compare-table td.col-fact.fact-mismatch span.mc-await{color:#F9A825;}
+table.compare-table td.col-fact.fact-mismatch span.mc-solved{color:#2E7D32;}
+.summary-box{margin-top:20px;padding:14px 16px;border-radius:6px;border:1px solid #CFD8DC;background:#FAFAFA;}
+.summary-box h3{margin:0 0 10px 0;font-size:14px;color:#37474F;}
+.summary-ok{color:#2E7D32;font-size:13px;font-weight:600;margin:0;}
+.summary-bad{color:#C62828;font-size:13px;font-weight:600;margin:0 0 8px 0;}
+.summary-box ul{margin:6px 0 0 0;padding-left:20px;}
+.summary-box li{margin:8px 0;font-size:12px;line-height:1.45;}
+</style>
+</head><body>
+<h1>Отчёт по прогону сценария оператора</h1>
+<p>
+Сценарий завершён успешно. Последний выполненный № пульса: 74.</p>
+<h2>Данные сценария</h2>
+<table class="meta-table">
+<tr><th class="meta-label">
+ID</th><td class="meta-value">1</td></tr>
+<tr><th class="meta-label">
+Название</th><td class="meta-value">Активация безусловных рефлексов</td></tr>
+<tr><th class="meta-label">
+Описание</th><td class="meta-value">Тестируется запуск безусловных рефлексов на триггер с пульта. Показано на примере метрики &quot;Pdf наличие файла&quot;, что активация в движке isida не зависит от типа активного документа, который распознается как фоновый цвет, но фактически она блокируется на стороне адаптера.</td></tr>
+<tr><th class="meta-label">
+Переход перед запуском (стадия)</th><td class="meta-value">0</td></tr>
+<tr><th class="meta-label">
+Очистка данных при переходе</th><td class="meta-value">да</td></tr>
+<tr><th class="meta-label">
+Сброс параметров в &#171;норму&#187; перед запуском</th><td class="meta-value">да</td></tr>
+<tr><th class="meta-label">
+Режим наблюдения при прогоне</th><td class="meta-value">нет</td></tr>
+<tr><th class="meta-label">
+Авторитарная запись при прогоне</th><td class="meta-value">нет</td></tr>
+<tr><th class="meta-label">
+Коэфф. пульсации</th><td class="meta-value">20</td></tr>
+<tr><th class="meta-label">
+Фактическая скорость</th><td class="meta-value">31.8 пульсов/сек</td></tr>
+</table>
+<h2>Шаги</h2>
+<table class="steps-zebra"><tr><th>Шаг</th><th>№ пульса</th><th>Тип</th><th>Воздействия</th><th>Воздействие от среды</th><th>Команды</th><th>Фраза</th><th>Тон</th><th>Настр.</th><th>Цвет</th><th>Сброс ожид.</th><th>Результат звена</th></tr>
+<tr>
+<td>1</td><td>1</td><td>Пульт</td><td></td><td>+Несохранённый документ</td><td></td><td></td><td>Нормальный (0)</td><td>Нормальное (0)</td><td>Белый (0)</td><td>нет</td><td>Нет</td></tr>
+<tr>
+<td>2</td><td>2</td><td>Пульт</td><td></td><td>+Несохранённый документ</td><td></td><td></td><td>Нормальный (0)</td><td>Нормальное (0)</td><td>Белый (0)</td><td>нет</td><td>Нет</td></tr>
+<tr>
+<td>3</td><td>3</td><td>Пульт</td><td></td><td>−Несохранённый документ</td><td></td><td></td><td>Нормальный (0)</td><td>Нормальное (0)</td><td>Белый (0)</td><td>нет</td><td>Нет</td></tr>
+<tr>
+<td>4</td><td>7</td><td>Пульт</td><td>Назначить материал детали</td><td>+Материал в модели</td><td></td><td></td><td>Нормальный (0)</td><td>Нормальное (0)</td><td>Белый (0)</td><td>нет</td><td>Нет</td></tr>
+<tr>
+<td>5</td><td>8</td><td>Пульт</td><td></td><td>−Материал в модели</td><td></td><td></td><td>Нормальный (0)</td><td>Нормальное (0)</td><td>Белый (0)</td><td>нет</td><td>Нет</td></tr>
+<tr>
+<td>6</td><td>12</td><td>Пульт</td><td></td><td>+PDF: наличие файла</td><td></td><td></td><td>Нормальный (0)</td><td>Нормальное (0)</td><td>Белый (0)</td><td>нет</td><td>Нет</td></tr>
+<tr>
+<td>7</td><td>13</td><td>Пульт</td><td>Запуск экспорта PDF</td><td>+PDF: наличие файла</td><td></td><td></td><td>Нормальный (0)</td><td>Нормальное (0)</td><td>Белый (0)</td><td>нет</td><td>Нет</td></tr>
+<tr>
+<td>8</td><td>14</td><td>Пульт</td><td></td><td>−PDF: наличие файла</td><td></td><td></td><td>Нормальный (0)</td><td>Нормальное (0)</td><td>Белый (0)</td><td>нет</td><td>Нет</td></tr>
+<tr>
+<td>9</td><td>18</td><td>Пульт</td><td></td><td>+PDF: наличие файла</td><td></td><td></td><td>Нормальный (0)</td><td>Нормальное (0)</td><td>Белый (0)</td><td>нет</td><td>Нет</td></tr>
+<tr>
+<td>10</td><td>19</td><td>Пульт</td><td>Запуск экспорта PDF</td><td>+PDF: наличие файла</td><td></td><td></td><td>Нормальный (0)</td><td>Нормальное (0)</td><td>Белый (0)</td><td>нет</td><td>Нет</td></tr>
+<tr>
+<td>11</td><td>20</td><td>Пульт</td><td></td><td>−PDF: наличие файла</td><td></td><td></td><td>Нормальный (0)</td><td>Нормальное (0)</td><td>Белый (0)</td><td>нет</td><td>Нет</td></tr>
+<tr>
+<td>12</td><td>24</td><td>Пульт</td><td></td><td>+PDF: устарел</td><td></td><td></td><td>Нормальный (0)</td><td>Нормальное (0)</td><td>Белый (0)</td><td>нет</td><td>Нет</td></tr>
+<tr>
+<td>13</td><td>25</td><td>Пульт</td><td>Запуск экспорта PDF</td><td>+PDF: устарел</td><td></td><td></td><td>Нормальный (0)</td><td>Нормальное (0)</td><td>Белый (0)</td><td>нет</td><td>Нет</td></tr>
+<tr>
+<td>14</td><td>26</td><td>Пульт</td><td></td><td>−PDF: устарел</td><td></td><td></td><td>Нормальный (0)</td><td>Нормальное (0)</td><td>Белый (0)</td><td>нет</td><td>Нет</td></tr>
+<tr>
+<td>15</td><td>30</td><td>Пульт</td><td></td><td>+DXF: наличие файла</td><td></td><td></td><td>Нормальный (0)</td><td>Нормальное (0)</td><td>Белый (0)</td><td>нет</td><td>Нет</td></tr>
+<tr>
+<td>16</td><td>31</td><td>Пульт</td><td>Запуск экспорта DXF</td><td>+DXF: наличие файла</td><td></td><td></td><td>Нормальный (0)</td><td>Нормальное (0)</td><td>Белый (0)</td><td>нет</td><td>Нет</td></tr>
+<tr>
+<td>17</td><td>32</td><td>Пульт</td><td></td><td>−DXF: наличие файла</td><td></td><td></td><td>Нормальный (0)</td><td>Нормальное (0)</td><td>Белый (0)</td><td>нет</td><td>Нет</td></tr>
+<tr>
+<td>18</td><td>36</td><td>Пульт</td><td></td><td>+DXF: устарел</td><td></td><td></td><td>Нормальный (0)</td><td>Нормальное (0)</td><td>Белый (0)</td><td>нет</td><td>Нет</td></tr>
+<tr>
+<td>19</td><td>37</td><td>Пульт</td><td>Запуск экспорта DXF</td><td>+DXF: устарел</td><td></td><td></td><td>Нормальный (0)</td><td>Нормальное (0)</td><td>Белый (0)</td><td>нет</td><td>Нет</td></tr>
+<tr>
+<td>20</td><td>38</td><td>Пульт</td><td></td><td>−DXF: устарел</td><td></td><td></td><td>Нормальный (0)</td><td>Нормальное (0)</td><td>Белый (0)</td><td>нет</td><td>Нет</td></tr>
+<tr>
+<td>21</td><td>42</td><td>Пульт</td><td></td><td>+Габарит заготовки: ссылки</td><td></td><td></td><td>Нормальный (0)</td><td>Нормальное (0)</td><td>Белый (0)</td><td>нет</td><td>Нет</td></tr>
+<tr>
+<td>22</td><td>43</td><td>Пульт</td><td>Вычислить габарит заготовки</td><td>+Габарит заготовки: ссылки</td><td></td><td></td><td>Нормальный (0)</td><td>Нормальное (0)</td><td>Белый (0)</td><td>нет</td><td>Нет</td></tr>
+<tr>
+<td>23</td><td>44</td><td>Пульт</td><td></td><td>−Габарит заготовки: ссылки</td><td></td><td></td><td>Нормальный (0)</td><td>Нормальное (0)</td><td>Белый (0)</td><td>нет</td><td>Нет</td></tr>
+<tr>
+<td>24</td><td>48</td><td>Пульт</td><td></td><td>+Реестр: битые ссылки</td><td></td><td></td><td>Нормальный (0)</td><td>Нормальное (0)</td><td>Белый (0)</td><td>нет</td><td>Нет</td></tr>
+<tr>
+<td>25</td><td>49</td><td>Пульт</td><td>Показать проблемы реестра</td><td>+Реестр: битые ссылки</td><td></td><td></td><td>Нормальный (0)</td><td>Нормальное (0)</td><td>Белый (0)</td><td>нет</td><td>Нет</td></tr>
+<tr>
+<td>26</td><td>50</td><td>Пульт</td><td></td><td>−Реестр: битые ссылки</td><td></td><td></td><td>Нормальный (0)</td><td>Нормальное (0)</td><td>Белый (0)</td><td>нет</td><td>Нет</td></tr>
+<tr>
+<td>27</td><td>54</td><td>Пульт</td><td></td><td>+Реестр: нет чертежа</td><td></td><td></td><td>Нормальный (0)</td><td>Нормальное (0)</td><td>Белый (0)</td><td>нет</td><td>Нет</td></tr>
+<tr>
+<td>28</td><td>55</td><td>Пульт</td><td>Показать проблемы реестра</td><td>+Реестр: нет чертежа</td><td></td><td></td><td>Нормальный (0)</td><td>Нормальное (0)</td><td>Белый (0)</td><td>нет</td><td>Нет</td></tr>
+<tr>
+<td>29</td><td>56</td><td>Пульт</td><td></td><td>−Реестр: нет чертежа</td><td></td><td></td><td>Нормальный (0)</td><td>Нормальное (0)</td><td>Белый (0)</td><td>нет</td><td>Нет</td></tr>
+<tr>
+<td>30</td><td>60</td><td>Пульт</td><td></td><td>+Реестр: проблемы PDF</td><td></td><td></td><td>Нормальный (0)</td><td>Нормальное (0)</td><td>Белый (0)</td><td>нет</td><td>Нет</td></tr>
+<tr>
+<td>31</td><td>61</td><td>Пульт</td><td>Показать проблемы реестра</td><td>+Реестр: проблемы PDF</td><td></td><td></td><td>Нормальный (0)</td><td>Нормальное (0)</td><td>Белый (0)</td><td>нет</td><td>Нет</td></tr>
+<tr>
+<td>32</td><td>62</td><td>Пульт</td><td></td><td>−Реестр: проблемы PDF</td><td></td><td></td><td>Нормальный (0)</td><td>Нормальное (0)</td><td>Белый (0)</td><td>нет</td><td>Нет</td></tr>
+<tr>
+<td>33</td><td>66</td><td>Пульт</td><td></td><td>+BOM: расхождения для 1С</td><td></td><td></td><td>Нормальный (0)</td><td>Нормальное (0)</td><td>Белый (0)</td><td>нет</td><td>Нет</td></tr>
+<tr>
+<td>34</td><td>67</td><td>Пульт</td><td>Подготовка экспорта 1С</td><td>+BOM: расхождения для 1С</td><td></td><td></td><td>Нормальный (0)</td><td>Нормальное (0)</td><td>Белый (0)</td><td>нет</td><td>Нет</td></tr>
+<tr>
+<td>35</td><td>68</td><td>Пульт</td><td></td><td>−BOM: расхождения для 1С</td><td></td><td></td><td>Нормальный (0)</td><td>Нормальное (0)</td><td>Белый (0)</td><td>нет</td><td>Нет</td></tr>
+<tr>
+<td>36</td><td>72</td><td>Пульт</td><td></td><td>+Реестр: дубли обозначений</td><td></td><td></td><td>Нормальный (0)</td><td>Нормальное (0)</td><td>Белый (0)</td><td>нет</td><td>Нет</td></tr>
+<tr>
+<td>37</td><td>73</td><td>Пульт</td><td>Показать проблемы реестра</td><td>+Реестр: дубли обозначений</td><td></td><td></td><td>Нормальный (0)</td><td>Нормальное (0)</td><td>Белый (0)</td><td>нет</td><td>Нет</td></tr>
+<tr>
+<td>38</td><td>74</td><td>Пульт</td><td></td><td>−Реестр: дубли обозначений</td><td></td><td></td><td>Нормальный (0)</td><td>Нормальное (0)</td><td>Белый (0)</td><td>нет</td><td>Нет</td></tr>
+</table>
+<h2>Сравнение ожидаемых реакций и факта по логам</h2>
+<p class="muted">Якорный глобальный пульс: 
+7. Глобальный пульс шага = якорь + № пульса внутри сценария. <table class="compare-table"><tr><th>Шаг</th><th>№ пульса</th>
+<th class="col-fact-h">Состояние</th><th class="col-fact-h">Стиль</th><th class="col-fact-h">Триггер</th><th class="col-exp-h">Б/у рефлекс (ожид.)</th><th class="col-fact-h">Б/у рефлекс (факт)</th></tr>
+<tr>
+<td>1</td><td>1</td><td class="col-fact" title="ПЛОХО">Плохо</td><td class="col-fact" title="Ожидание именования">18</td><td class="col-fact">-</td><td class="col-exp">-</td><td class="col-fact">-</td></tr>
+<tr>
+<td>2</td><td>2</td><td class="col-fact" title="ПЛОХО">Плохо</td><td class="col-fact" title="Ожидание именования">18</td><td class="col-fact">-</td><td class="col-exp" title="Действия: Имя документа">1</td><td class="col-fact" title="Действия: Имя документа">1</td></tr>
+<tr>
+<td>3</td><td>3</td><td class="col-fact" title="ХОРОШО">Хорошо</td><td class="col-fact" title="Именование выполнено">19</td><td class="col-fact">-</td><td class="col-exp">-</td><td class="col-fact">-</td></tr>
+<tr>
+<td>4</td><td>7</td><td class="col-fact" title="ПЛОХО">Плохо</td><td class="col-fact" title="Ожидание материала">20</td><td class="col-fact" title="Воздействие: Назначить материал детали&#10;Фразы: нет&#10;Команды: нет&#10;Тон: —&#10;Настроение: —&#10;Цветовой фон: Белый">10</td><td class="col-exp" title="Действия: Материал детали">3</td><td class="col-fact fact-mismatch">-</td></tr>
+<tr>
+<td>5</td><td>8</td><td class="col-fact" title="ХОРОШО">Хорошо</td><td class="col-fact" title="Материал назначен">21</td><td class="col-fact">-</td><td class="col-exp">-</td><td class="col-fact">-</td></tr>
+<tr>
+<td>6</td><td>12</td><td class="col-fact" title="ПЛОХО">Плохо</td><td class="col-fact" title="Проблемы с документацией">22</td><td class="col-fact">-</td><td class="col-exp">-</td><td class="col-fact">-</td></tr>
+<tr>
+<td>7</td><td>13</td><td class="col-fact" title="ПЛОХО">Плохо</td><td class="col-fact" title="Проблемы с документацией">22</td><td class="col-fact" title="Воздействие: Запуск экспорта PDF&#10;Фразы: нет&#10;Команды: нет&#10;Тон: —&#10;Настроение: —&#10;Цветовой фон: Белый">11</td><td class="col-exp" title="Действия: Экспорт PDF">5</td><td class="col-fact fact-mismatch">-</td></tr>
+<tr>
+<td>8</td><td>14</td><td class="col-fact" title="ХОРОШО">Хорошо</td><td class="col-fact" title="Нет проблем с документацией">23</td><td class="col-fact">-</td><td class="col-exp">-</td><td class="col-fact">-</td></tr>
+<tr>
+<td>9</td><td>18</td><td class="col-fact" title="ПЛОХО">Плохо</td><td class="col-fact" title="Проблемы с документацией">22</td><td class="col-fact">-</td><td class="col-exp">-</td><td class="col-fact">-</td></tr>
+<tr>
+<td>10</td><td>19</td><td class="col-fact" title="ПЛОХО">Плохо</td><td class="col-fact" title="Проблемы с документацией">22</td><td class="col-fact">-</td><td class="col-exp" title="Действия: Экспорт PDF">5</td><td class="col-fact fact-mismatch">-</td></tr>
+<tr>
+<td>11</td><td>20</td><td class="col-fact" title="ХОРОШО">Хорошо</td><td class="col-fact" title="Нет проблем с документацией">23</td><td class="col-fact">-</td><td class="col-exp">-</td><td class="col-fact">-</td></tr>
+<tr>
+<td>12</td><td>24</td><td class="col-fact" title="ПЛОХО">Плохо</td><td class="col-fact" title="Проблемы с документацией">22</td><td class="col-fact">-</td><td class="col-exp">-</td><td class="col-fact">-</td></tr>
+<tr>
+<td>13</td><td>25</td><td class="col-fact" title="ПЛОХО">Плохо</td><td class="col-fact" title="Проблемы с документацией">22</td><td class="col-fact">-</td><td class="col-exp" title="Действия: Экспорт PDF">5</td><td class="col-fact fact-mismatch">-</td></tr>
+<tr>
+<td>14</td><td>26</td><td class="col-fact" title="ХОРОШО">Хорошо</td><td class="col-fact" title="Нет проблем с документацией">23</td><td class="col-fact">-</td><td class="col-exp">-</td><td class="col-fact">-</td></tr>
+<tr>
+<td>15</td><td>30</td><td class="col-fact" title="ПЛОХО">Плохо</td><td class="col-fact" title="Проблемы с документацией">22</td><td class="col-fact">-</td><td class="col-exp">-</td><td class="col-fact">-</td></tr>
+<tr>
+<td>16</td><td>31</td><td class="col-fact" title="ПЛОХО">Плохо</td><td class="col-fact" title="Проблемы с документацией">22</td><td class="col-fact" title="Воздействие: Запуск экспорта DXF&#10;Фразы: нет&#10;Команды: нет&#10;Тон: —&#10;Настроение: —&#10;Цветовой фон: Белый">12</td><td class="col-exp" title="Действия: Экспорт DXF">4</td><td class="col-fact fact-mismatch">-</td></tr>
+<tr>
+<td>17</td><td>32</td><td class="col-fact" title="ХОРОШО">Хорошо</td><td class="col-fact" title="Нет проблем с документацией">23</td><td class="col-fact">-</td><td class="col-exp">-</td><td class="col-fact">-</td></tr>
+<tr>
+<td>18</td><td>36</td><td class="col-fact" title="ПЛОХО">Плохо</td><td class="col-fact" title="Проблемы с документацией">22</td><td class="col-fact">-</td><td class="col-exp">-</td><td class="col-fact">-</td></tr>
+<tr>
+<td>19</td><td>37</td><td class="col-fact" title="ПЛОХО">Плохо</td><td class="col-fact" title="Проблемы с документацией">22</td><td class="col-fact">-</td><td class="col-exp" title="Действия: Экспорт DXF">4</td><td class="col-fact fact-mismatch">-</td></tr>
+<tr>
+<td>20</td><td>38</td><td class="col-fact" title="ХОРОШО">Хорошо</td><td class="col-fact" title="Нет проблем с документацией">23</td><td class="col-fact">-</td><td class="col-exp">-</td><td class="col-fact">-</td></tr>
+<tr>
+<td>21</td><td>42</td><td class="col-fact" title="ПЛОХО">Плохо</td><td class="col-fact" title="Проблемы с документацией">22</td><td class="col-fact">-</td><td class="col-exp">-</td><td class="col-fact">-</td></tr>
+<tr>
+<td>22</td><td>43</td><td class="col-fact" title="ПЛОХО">Плохо</td><td class="col-fact" title="Проблемы с документацией">22</td><td class="col-fact" title="Воздействие: Вычислить габарит заготовки&#10;Фразы: нет&#10;Команды: нет&#10;Тон: —&#10;Настроение: —&#10;Цветовой фон: Белый">13</td><td class="col-exp" title="Действия: Габарит заготовки">7</td><td class="col-fact fact-mismatch">-</td></tr>
+<tr>
+<td>23</td><td>44</td><td class="col-fact" title="ХОРОШО">Хорошо</td><td class="col-fact" title="Нет проблем с документацией">23</td><td class="col-fact">-</td><td class="col-exp">-</td><td class="col-fact">-</td></tr>
+<tr>
+<td>24</td><td>48</td><td class="col-fact" title="ПЛОХО">Плохо</td><td class="col-fact" title="Проблемы с реестром">24</td><td class="col-fact">-</td><td class="col-exp">-</td><td class="col-fact">-</td></tr>
+<tr>
+<td>25</td><td>49</td><td class="col-fact" title="ПЛОХО">Плохо</td><td class="col-fact" title="Проблемы с реестром">24</td><td class="col-fact" title="Воздействие: Показать проблемы реестра&#10;Фразы: нет&#10;Команды: нет&#10;Тон: —&#10;Настроение: —&#10;Цветовой фон: Белый">5</td><td class="col-exp" title="Действия: Проблемы реестра">8</td><td class="col-fact" title="Действия: Проблемы реестра">8</td></tr>
+<tr>
+<td>26</td><td>50</td><td class="col-fact" title="ХОРОШО">Хорошо</td><td class="col-fact" title="Реестр в порядке">25</td><td class="col-fact">-</td><td class="col-exp">-</td><td class="col-fact">-</td></tr>
+<tr>
+<td>27</td><td>54</td><td class="col-fact" title="ПЛОХО">Плохо</td><td class="col-fact" title="Проблемы с реестром">24</td><td class="col-fact">-</td><td class="col-exp">-</td><td class="col-fact">-</td></tr>
+<tr>
+<td>28</td><td>55</td><td class="col-fact" title="ПЛОХО">Плохо</td><td class="col-fact" title="Проблемы с реестром">24</td><td class="col-fact">-</td><td class="col-exp" title="Действия: Проблемы реестра">8</td><td class="col-fact" title="Действия: Проблемы реестра">8</td></tr>
+<tr>
+<td>29</td><td>56</td><td class="col-fact" title="ХОРОШО">Хорошо</td><td class="col-fact" title="Реестр в порядке">25</td><td class="col-fact">-</td><td class="col-exp">-</td><td class="col-fact">-</td></tr>
+<tr>
+<td>30</td><td>60</td><td class="col-fact" title="ПЛОХО">Плохо</td><td class="col-fact" title="Проблемы с реестром">24</td><td class="col-fact">-</td><td class="col-exp">-</td><td class="col-fact">-</td></tr>
+<tr>
+<td>31</td><td>61</td><td class="col-fact" title="ПЛОХО">Плохо</td><td class="col-fact" title="Проблемы с реестром">24</td><td class="col-fact">-</td><td class="col-exp" title="Действия: Проблемы реестра">8</td><td class="col-fact" title="Действия: Проблемы реестра">8</td></tr>
+<tr>
+<td>32</td><td>62</td><td class="col-fact" title="ХОРОШО">Хорошо</td><td class="col-fact" title="Реестр в порядке">25</td><td class="col-fact">-</td><td class="col-exp">-</td><td class="col-fact">-</td></tr>
+<tr>
+<td>33</td><td>66</td><td class="col-fact" title="ПЛОХО">Плохо</td><td class="col-fact" title="Расхождения BOM">26</td><td class="col-fact">-</td><td class="col-exp">-</td><td class="col-fact">-</td></tr>
+<tr>
+<td>34</td><td>67</td><td class="col-fact" title="ПЛОХО">Плохо</td><td class="col-fact" title="Расхождения BOM">26</td><td class="col-fact" title="Воздействие: Подготовка экспорта 1С&#10;Фразы: нет&#10;Команды: нет&#10;Тон: —&#10;Настроение: —&#10;Цветовой фон: Белый">7</td><td class="col-exp" title="Действия: Создать файл обмена данными">10</td><td class="col-fact" title="Действия: Создать файл обмена данными">10</td></tr>
+<tr>
+<td>35</td><td>68</td><td class="col-fact" title="ХОРОШО">Хорошо</td><td class="col-fact" title="BOM актуален">27</td><td class="col-fact">-</td><td class="col-exp">-</td><td class="col-fact">-</td></tr>
+<tr>
+<td>36</td><td>72</td><td class="col-fact" title="ПЛОХО">Плохо</td><td class="col-fact" title="Проблемы с реестром">24</td><td class="col-fact">-</td><td class="col-exp">-</td><td class="col-fact">-</td></tr>
+<tr>
+<td>37</td><td>73</td><td class="col-fact" title="ПЛОХО">Плохо</td><td class="col-fact" title="Проблемы с реестром">24</td><td class="col-fact" title="Воздействие: Показать проблемы реестра&#10;Фразы: нет&#10;Команды: нет&#10;Тон: —&#10;Настроение: —&#10;Цветовой фон: Белый">5</td><td class="col-exp" title="Действия: Проблемы реестра">8</td><td class="col-fact" title="Действия: Проблемы реестра">8</td></tr>
+<tr>
+<td>38</td><td>74</td><td class="col-fact" title="ХОРОШО">Хорошо</td><td class="col-fact" title="Реестр в порядке">25</td><td class="col-fact">-</td><td class="col-exp">-</td><td class="col-fact">-</td></tr>
+</table>
+<div class="summary-box">
+<h3>Итог сравнения ожиданий с логами</h3>
+<p class="summary-bad">Обнаружены расхождения в строках:</p>
+<ul>
+<li><strong>Шаг 4, № пульса 7.</strong> Б/у рефлекс: ожид. &#171;3&#187;, факт &#171;-&#187;</li>
+<li><strong>Шаг 7, № пульса 13.</strong> Б/у рефлекс: ожид. &#171;5&#187;, факт &#171;-&#187;</li>
+<li><strong>Шаг 10, № пульса 19.</strong> Б/у рефлекс: ожид. &#171;5&#187;, факт &#171;-&#187;</li>
+<li><strong>Шаг 13, № пульса 25.</strong> Б/у рефлекс: ожид. &#171;5&#187;, факт &#171;-&#187;</li>
+<li><strong>Шаг 16, № пульса 31.</strong> Б/у рефлекс: ожид. &#171;4&#187;, факт &#171;-&#187;</li>
+<li><strong>Шаг 19, № пульса 37.</strong> Б/у рефлекс: ожид. &#171;4&#187;, факт &#171;-&#187;</li>
+<li><strong>Шаг 22, № пульса 43.</strong> Б/у рефлекс: ожид. &#171;7&#187;, факт &#171;-&#187;</li>
+</ul>
+</div>
+<p class="muted" style="margin-top:24px;font-size:11px;">Сформировано AIStudio.</p>
+</body></html>

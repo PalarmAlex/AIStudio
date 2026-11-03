@@ -43,7 +43,11 @@ namespace AIStudio.Dialogs
         return;
       }
 
-      foreach (var action in InfluenceActionSystem.Instance.GetAllInfluenceActions().OrderBy(a => a.Id))
+      // Показываем только триггеры с пульта (операторские стимулы), как в таблице
+      // «Стимулы (воздействия на агента)»: метрики среды с ProbeKey исключаются.
+      foreach (var action in InfluenceActionSystem.Instance.GetAllInfluenceActions()
+          .Where(a => !a.IsEnvironmentProbeAction)
+          .OrderBy(a => a.Id))
       {
         _allItems.Add(new InfluenceActionSelectionItem
         {

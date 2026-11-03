@@ -19,6 +19,7 @@
     <converters:WordIdToTextConverter x:Key="WordIdToTextConverter"/>
     <converters:IdListToNamesConverter x:Key="IdListToNamesConverter"/>
     <converters:ReflexChainDetailTooltipConverter x:Key="ReflexChainDetailTooltipConverter"/>
+    <converters:VisualColorIdToTextConverter x:Key="VisualColorIdToTextConverter"/>
     <BooleanToVisibilityConverter x:Key="BoolToVis"/>
     <Style x:Key="BaseTextBlockStyle" TargetType="TextBlock">
       <Setter Property="Background" Value="White"/>
@@ -300,6 +301,32 @@
                 <EventSetter Event="MouseDoubleClick" Handler="CommandPatternIdsCell_DoubleClick"/>
               </Style>
             </DataGridTemplateColumn.CellStyle>
+          </DataGridTemplateColumn>
+
+          <!-- Цвет (тип документа) -->
+          <DataGridTemplateColumn Header="Цвет" Width="130"
+                       CanUserSort="True" SortMemberPath="VisualColorId">
+
+            <DataGridTemplateColumn.HeaderStyle>
+              <Style TargetType="DataGridColumnHeader">
+                <Setter Property="ToolTip"
+                Value="Зрительный канал (тип активного документа SolidWorks). Рефлекс срабатывает только под документ своего цвета; белый (0) — под любой документ."/>
+              </Style>
+            </DataGridTemplateColumn.HeaderStyle>
+
+            <DataGridTemplateColumn.CellTemplate>
+              <DataTemplate>
+                <TextBlock Text="{Binding VisualColorId, Converter={StaticResource VisualColorIdToTextConverter}}"/>
+              </DataTemplate>
+            </DataGridTemplateColumn.CellTemplate>
+            <DataGridTemplateColumn.CellEditingTemplate>
+              <DataTemplate>
+                <ComboBox ItemsSource="{Binding DataContext.VisualColorOptions, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                 SelectedValue="{Binding VisualColorId}"
+                 DisplayMemberPath="Value"
+                 SelectedValuePath="Key"/>
+              </DataTemplate>
+            </DataGridTemplateColumn.CellEditingTemplate>
           </DataGridTemplateColumn>
 
           <!-- Моторные действия -->
