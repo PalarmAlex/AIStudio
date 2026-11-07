@@ -254,6 +254,11 @@ namespace AIStudio.Common
       sb.AppendLine("th,td{border:1px solid #CFD8DC;padding:6px 8px;text-align:left;vertical-align:top;}");
       sb.AppendLine("th{background:#ECEFF1;font-weight:600;}");
       sb.AppendLine("table.steps-zebra tr:nth-child(even){background:#FAFAFA;}");
+      // Фиксированная шапка таблиц «Шаги» и «Сравнение...»: строка заголовков прилипает к верху
+      // окна при прокрутке (в отчётах сотни строк — без фиксации теряются подписи колонок).
+      // Фон у th уже непрозрачный, поэтому в правиле задаём только прилипание и рамку через
+      // box-shadow (при border-collapse:collapse границы «отстают» от прилипшей ячейки).
+      sb.AppendLine("table.steps-zebra thead th,table.compare-table thead th{position:sticky;top:0;z-index:2;box-shadow:inset 0 1px 0 #CFD8DC,inset 0 -1px 0 #90A4AE;}");
       sb.AppendLine("table.group-compose{table-layout:fixed;width:100%;}");
       sb.AppendLine("table.group-compose td:nth-child(1),table.group-compose th:nth-child(1){text-align:center;white-space:nowrap;}");
       sb.AppendLine("table.group-compose td:nth-child(2),table.group-compose th:nth-child(2){word-wrap:break-word;word-break:break-word;}");
@@ -285,6 +290,13 @@ namespace AIStudio.Common
       sb.AppendLine(".summary-bad{color:#C62828;font-size:13px;font-weight:600;margin:0 0 8px 0;}");
       sb.AppendLine(".summary-box ul{margin:6px 0 0 0;padding-left:20px;}");
       sb.AppendLine(".summary-box li{margin:8px 0;font-size:12px;line-height:1.45;}");
+      // Блок «Событийные логи»: токены сокращённого лога движка (ShortLogChannel).
+      // Каждый токен — блок текста за один пульс; «№ пульса» и «×N» (повторы) уже в тексте токена.
+      sb.AppendLine(".event-log{margin:8px 0;border:1px solid #CFD8DC;border-radius:6px;background:#FCFDFE;padding:8px 10px;max-height:520px;overflow:auto;}");
+      sb.AppendLine(".event-log .ev-token{margin:0 0 8px 0;padding:6px 8px;border:1px solid #E0E6EA;border-radius:4px;background:#fff;font-family:Consolas,'Courier New',monospace;font-size:11.5px;line-height:1.4;white-space:pre-wrap;word-wrap:break-word;}");
+      sb.AppendLine(".event-log .ev-token:last-child{margin-bottom:0;}");
+      sb.AppendLine(".event-log .ev-pulse{color:#1565C0;font-weight:600;}");
+      sb.AppendLine(".event-log .ev-empty{color:#78909C;font-size:12px;margin:0;}");
       sb.AppendLine("</style>");
     }
 
@@ -432,7 +444,7 @@ namespace AIStudio.Common
       AppendMetaRow(sb, "Фактическая скорость", Escape(FormatActualPulseSpeedText(completion)));
       sb.AppendLine("</table>");
       sb.AppendLine("<h2>Шаги</h2>");
-      sb.AppendLine("<table class=\"steps-zebra\"><tr><th>Шаг</th><th>№ пульса</th><th>Тип</th><th>Воздействия</th><th>Воздействие от среды</th><th>Команды</th><th>Фраза</th><th>Тон</th><th>Настр.</th><th>Цвет</th><th>Сброс ожид.</th><th>Результат звена</th></tr>");
+      sb.AppendLine("<table class=\"steps-zebra\"><thead><tr><th>Шаг</th><th>№ пульса</th><th>Тип</th><th>Воздействия</th><th>Воздействие от среды</th><th>Команды</th><th>Фраза</th><th>Тон</th><th>Настр.</th><th>Цвет</th><th>Сброс ожид.</th><th>Результат звена</th></tr></thead><tbody>");
       if (doc.Lines != null)
       {
         var commandLookup = BuildCommandPatternLookupForReport();
@@ -459,7 +471,7 @@ namespace AIStudio.Common
           sb.AppendLine("</tr>");
         }
       }
-      sb.AppendLine("</table>");
+      sb.AppendLine("</tbody></table>");
       int anchor = completion?.AnchorGlobalPulse ?? 0;
       var agg = ScenarioLogComparer.AggregateByPulse(MemoryLogManager.Instance.LogEntries);
       ScenarioReportLogDisplay.RewriteAggregatedStylesToCombinationCodes(agg, perceptionImages);
@@ -474,7 +486,7 @@ namespace AIStudio.Common
       var comparisonSpecs = BuildVisibleComparisonColumnSpecs(doc, anchor, agg, hideEmptyCols);
       var showExpectedColumn = ComputeShowExpectedComparisonColumns(
           doc, anchor, agg, comparisonSpecs, hideExpectedWhenNoMismatch);
-      sb.AppendLine("<table class=\"compare-table\"><tr><th>Шаг</th><th>№ пульса</th>");
+      sb.AppendLine("<table class=\"compare-table\"><thead><tr><th>Шаг</th><th>№ пульса</th>");
       for (int ci = 0; ci < comparisonSpecs.Length; ci++)
       {
         var col = comparisonSpecs[ci];
@@ -482,7 +494,7 @@ namespace AIStudio.Common
           sb.Append("<th class=\"col-exp-h\">").Append(Escape(col.Label + " (ожид.)")).Append("</th>");
         sb.Append("<th class=\"col-fact-h\">").Append(Escape(showExpectedColumn[ci] ? col.Label + " (факт)" : col.Label)).Append("</th>");
       }
-      sb.AppendLine("</tr>");
+      sb.AppendLine("</tr></thead><tbody>");
       var compareList = ScenarioLogComparer.Compare(doc, anchor, agg,
           new ScenarioLogComparer.CompareMessageFormatting
           {
@@ -562,8 +574,90 @@ namespace AIStudio.Common
           sb.AppendLine("</tr>");
         }
       }
-      sb.AppendLine("</table>");
+      sb.AppendLine("</tbody></table>");
       AppendComparisonSummary(sb, compareList);
+      AppendEventLog(sb, anchor, completion?.LastExecutedPulseWithinScenario ?? 0);
+    }
+
+    /// <summary>
+    /// Блок «Событийные логи»: токены сокращённого (семантического) лога движка
+    /// (<see cref="ISIDA.Common.ShortLogChannel"/>) за пульсы текущего прогона.
+    /// Берётся снимок активной сессии; в отчёт попадают только токены, чей глобальный пульс
+    /// лежит в пределах прогона <c>[anchor; anchor + lastExecuted]</c> (глобальный пульс шага =
+    /// якорь + № пульса внутри сценария — та же шкала, что у таблиц выше).
+    /// </summary>
+    /// <param name="sb">Целевой <see cref="StringBuilder"/> с HTML отчёта.</param>
+    /// <param name="anchor">Якорный глобальный пульс прогона.</param>
+    /// <param name="lastExecutedPulse">Последний выполненный № пульса внутри сценария.</param>
+    private static void AppendEventLog(StringBuilder sb, int anchor, int lastExecutedPulse)
+    {
+      sb.AppendLine("<h2>Событийные логи</h2>");
+      ISIDA.Common.ShortLogToken[] tokens;
+      try
+      {
+        tokens = ISIDA.Common.ShortLogChannel.GetCurrentSessionTokens();
+      }
+      catch (Exception ex)
+      {
+        sb.AppendLine("<p class=\"event-log\"><span class=\"ev-empty\">Не удалось прочитать событийный лог: ")
+            .Append(Escape(ex.Message)).AppendLine("</span></p>");
+        return;
+      }
+
+      int fromPulse = anchor;
+      int toPulse = anchor + Math.Max(0, lastExecutedPulse);
+      var visible = new List<ISIDA.Common.ShortLogToken>();
+      if (tokens != null)
+      {
+        foreach (var t in tokens)
+        {
+          if (t == null)
+            continue;
+          // Пульс 0 — пульсация ещё не шла; вне окна прогона токены не относятся к этому прогону.
+          if (t.Pulse <= 0)
+            continue;
+          if (t.Pulse < fromPulse || t.Pulse > toPulse)
+            continue;
+          visible.Add(t);
+        }
+      }
+
+      if (visible.Count == 0)
+      {
+        sb.AppendLine("<p class=\"event-log\"><span class=\"ev-empty\">Событийных логов за пульсы прогона нет "
+            + "(канал сокращённого лога пуст или сессия завершена).</span></p>");
+        return;
+      }
+
+      sb.AppendLine("<p class=\"muted\">Токены сокращённого лога движка за пульсы <b>")
+          .Append(Escape(fromPulse.ToString(CultureInfo.InvariantCulture)))
+          .Append("–").Append(Escape(toPulse.ToString(CultureInfo.InvariantCulture)))
+          .Append("</b> (глобальные). Всего токенов: ")
+          .Append(Escape(visible.Count.ToString(CultureInfo.InvariantCulture)))
+          .Append(".</p>");
+      sb.AppendLine("<div class=\"event-log\">");
+      foreach (var t in visible)
+        AppendEventLogToken(sb, t);
+      sb.AppendLine("</div>");
+    }
+
+    /// <summary>
+    /// Выводит один токен сокращённого лога: первую строку (<c>№ пульса: ххх [×N]</c>) подсвечивает
+    /// как заголовок блока, остальное — как предформатированный текст (переносы сохраняются).
+    /// </summary>
+    /// <param name="sb">Целевой <see cref="StringBuilder"/> с HTML отчёта.</param>
+    /// <param name="token">Токен сокращённого лога.</param>
+    private static void AppendEventLogToken(StringBuilder sb, ISIDA.Common.ShortLogToken token)
+    {
+      string full = token.ToString() ?? string.Empty;
+      int nl = full.IndexOf('\n');
+      string firstLine = nl < 0 ? full : full.Substring(0, nl);
+      string rest = nl < 0 ? string.Empty : full.Substring(nl + 1);
+      sb.Append("<div class=\"ev-token\"><span class=\"ev-pulse\">")
+          .Append(Escape(firstLine)).Append("</span>");
+      if (rest.Length > 0)
+        sb.Append('\n').Append(Escape(rest));
+      sb.AppendLine("</div>");
     }
 
     /// <summary>Та же логика, что <see cref="ScenarioLogComparer.Compare"/> (поле проверяется только если ожидание не пустое).</summary>
