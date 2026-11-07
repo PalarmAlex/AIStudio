@@ -650,23 +650,33 @@ namespace AIStudio.Common
     {
       string full = token.ToString() ?? string.Empty;
       int nl = full.IndexOf('\n');
-      string firstLine = nl < 0 ? full : full.Substring(0, nl);
       string rest = nl < 0 ? string.Empty : full.Substring(nl + 1);
+      string firstLine = nl < 0 ? full : full.Substring(0, nl);
 
-      // firstLine имеет вид «№ пульса: 042» (или «№ пульса: 042 ×3»); заменяем число на относительное.
+      // firstLine имеет вид «№ пульса: 1007» (или «№ пульса: 1007 ×3»).
+      // Находим позицию числа после «№ пульса:» и заменяем его целиком (не фиксированные 3 символа).
+      int afterColon = firstLine.IndexOf(':');
+      int numStart = afterColon >= 0 ? afterColon + 1 : 0;
+      while (numStart < firstLine.Length && char.IsWhiteSpace(firstLine[numStart]))
+        numStart++;
+
+      // Число может быть любой длины (например, 1007, а не только 3 цифры).
+      int numEnd = numStart;
+      while (numEnd < firstLine.Length && char.IsDigit(firstLine[numEnd]))
+        numEnd++;
+
+      // Повтор «×N» идёт после числа (если есть).
+      string repeat = "";
+      if (numEnd < firstLine.Length && char.IsWhiteSpace(firstLine[numEnd]))
+      {
+        int xIdx = firstLine.IndexOf("×", numEnd, StringComparison.Ordinal);
+        if (xIdx >= 0)
+          repeat = firstLine.Substring(xIdx);
+      }
+
       int relPulse = token.Pulse - anchor;
-      string num = relPulse.ToString("D3", CultureInfo.InvariantCulture);
-      // Заменяем глобальный номер (3 цифры после «№ пульса:») на относительный.
-      int dash = firstLine.IndexOf(":", StringComparison.Ordinal);
-      string prefix = dash < 0 ? "" : firstLine.Substring(0, dash + 1);
-      string suffix = dash < 0 ? "" : firstLine.Substring(dash + 1);
-      // Убираем ведущие пробелы и «0»-пады из suffix, вставляем новый номер.
-      suffix = " " + num + suffix.Trim();
-      // Повтор ×N — убираем из suffix, подставим после num.
-      int xIdx = suffix.IndexOf(" ×", StringComparison.Ordinal);
-      string repeat = xIdx >= 0 ? suffix.Substring(xIdx) : string.Empty;
-      string core = xIdx >= 0 ? suffix.Substring(0, xIdx).Trim() : suffix.Trim();
-      firstLine = prefix + " " + core + repeat;
+      string num = relPulse.ToString(CultureInfo.InvariantCulture);
+      firstLine = firstLine.Substring(0, numStart) + num + repeat;
 
       sb.Append("<div class=\"ev-token\"><span class=\"ev-pulse\">")
           .Append(Escape(firstLine)).Append("</span>");
