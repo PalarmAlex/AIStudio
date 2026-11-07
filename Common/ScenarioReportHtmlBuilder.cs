@@ -583,8 +583,7 @@ namespace AIStudio.Common
     /// Блок «Событийные логи»: токены сокращённого (семантического) лога движка
     /// (<see cref="ISIDA.Common.ShortLogChannel"/>) за пульсы текущего прогона.
     /// Берётся снимок активной сессии; в отчёт попадают только токены, чей глобальный пульс
-    /// лежит в пределах прогона <c>[anchor; anchor + lastExecuted]</c> (глобальный пульс шага =
-    /// якорь + № пульса внутри сценария — та же шкала, что у таблиц выше).
+    /// лежит в пределах прогона <c>[anchor; anchor + lastExecuted]</c>.
     /// </summary>
     /// <param name="sb">Целевой <see cref="StringBuilder"/> с HTML отчёта.</param>
     /// <param name="anchor">Якорный глобальный пульс прогона.</param>
@@ -629,30 +628,46 @@ namespace AIStudio.Common
         return;
       }
 
-      sb.AppendLine("<p class=\"muted\">Токены сокращённого лога движка за пульсы <b>")
-          .Append(Escape(fromPulse.ToString(CultureInfo.InvariantCulture)))
-          .Append("–").Append(Escape(toPulse.ToString(CultureInfo.InvariantCulture)))
-          .Append("</b> (глобальные). Всего токенов: ")
+      sb.AppendLine("<p class=\"muted\">Токены сокращённого лога движка. Всего токенов: ")
           .Append(Escape(visible.Count.ToString(CultureInfo.InvariantCulture)))
           .Append(".</p>");
       sb.AppendLine("<div class=\"event-log\">");
       foreach (var t in visible)
-        AppendEventLogToken(sb, t);
+        AppendEventLogToken(sb, t, anchor);
       sb.AppendLine("</div>");
     }
 
     /// <summary>
     /// Выводит один токен сокращённого лога: первую строку (<c>№ пульса: ххх [×N]</c>) подсвечивает
     /// как заголовок блока, остальное — как предформатированный текст (переносы сохраняются).
+    /// Номер пульса приводится к шкале сценария: <c>глобальный − anchor</c>, чтобы совпадал
+    /// с колонкой «№ пульса» в таблицах выше.
     /// </summary>
     /// <param name="sb">Целевой <see cref="StringBuilder"/> с HTML отчёта.</param>
     /// <param name="token">Токен сокращённого лога.</param>
-    private static void AppendEventLogToken(StringBuilder sb, ISIDA.Common.ShortLogToken token)
+    /// <param name="anchor">Якорный глобальный пульс прогона (вычитается для относительного номера).</param>
+    private static void AppendEventLogToken(StringBuilder sb, ISIDA.Common.ShortLogToken token, int anchor)
     {
       string full = token.ToString() ?? string.Empty;
       int nl = full.IndexOf('\n');
       string firstLine = nl < 0 ? full : full.Substring(0, nl);
       string rest = nl < 0 ? string.Empty : full.Substring(nl + 1);
+
+      // firstLine имеет вид «№ пульса: 042» (или «№ пульса: 042 ×3»); заменяем число на относительное.
+      int relPulse = token.Pulse - anchor;
+      string num = relPulse.ToString("D3", CultureInfo.InvariantCulture);
+      // Заменяем глобальный номер (3 цифры после «№ пульса:») на относительный.
+      int dash = firstLine.IndexOf(":", StringComparison.Ordinal);
+      string prefix = dash < 0 ? "" : firstLine.Substring(0, dash + 1);
+      string suffix = dash < 0 ? "" : firstLine.Substring(dash + 1);
+      // Убираем ведущие пробелы и «0»-пады из suffix, вставляем новый номер.
+      suffix = " " + num + suffix.Trim();
+      // Повтор ×N — убираем из suffix, подставим после num.
+      int xIdx = suffix.IndexOf(" ×", StringComparison.Ordinal);
+      string repeat = xIdx >= 0 ? suffix.Substring(xIdx) : string.Empty;
+      string core = xIdx >= 0 ? suffix.Substring(0, xIdx).Trim() : suffix.Trim();
+      firstLine = prefix + " " + core + repeat;
+
       sb.Append("<div class=\"ev-token\"><span class=\"ev-pulse\">")
           .Append(Escape(firstLine)).Append("</span>");
       if (rest.Length > 0)
