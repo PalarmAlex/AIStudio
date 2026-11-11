@@ -80,7 +80,8 @@ namespace AIStudio.ViewModels
           Vigor = action.Vigor,
           AntagonistActions = new List<int>(action.AntagonistActions),
           TargetGomeoParamIdArr = new List<int>(action.TargetGomeoParamIdArr),
-          InfluenceActionId = action.InfluenceActionId
+          InfluenceActionId = action.InfluenceActionId,
+          CommandPatternId = action.CommandPatternId
         });
       }
       OnPropertyChanged(nameof(IsStageZero));
@@ -262,6 +263,7 @@ namespace AIStudio.ViewModels
           existingAction.AntagonistActions = new List<int>(action.AntagonistActions);
           existingAction.TargetGomeoParamIdArr = new List<int>(action.TargetGomeoParamIdArr);
           existingAction.InfluenceActionId = action.InfluenceActionId;
+          existingAction.CommandPatternId = action.CommandPatternId;
         }
         else
         {
@@ -272,7 +274,8 @@ namespace AIStudio.ViewModels
               new List<int>(action.TargetGomeoParamIdArr),
               false,
               action.Vigor,
-              action.InfluenceActionId
+              action.InfluenceActionId,
+              action.CommandPatternId
           );
           action.Id = newId;
         }

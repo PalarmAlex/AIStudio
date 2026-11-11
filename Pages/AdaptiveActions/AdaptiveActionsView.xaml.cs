@@ -50,7 +50,8 @@ namespace AIStudio.Pages
         Description = string.Empty,
         AntagonistActions = new List<int>(),
         TargetGomeoParamIdArr = new List<int>(),
-        InfluenceActionId = 0
+        InfluenceActionId = 0,
+        CommandPatternId = 0
       };
     }
 
@@ -268,6 +269,35 @@ namespace AIStudio.Pages
           if (editor.ShowDialog() == true)
           {
             action.InfluenceActionId = editor.SelectedInfluenceActionId;
+            ActionsGrid.CommitEdit(DataGridEditingUnit.Row, true);
+            ActionsGrid.Items.Refresh();
+          }
+        }
+        e.Handled = true;
+      }
+    }
+
+    private void CommandPatternIdCell_MouseDown(object sender, MouseButtonEventArgs e)
+    {
+      if (e.ClickCount == 2 && DataContext is AdaptiveActionsViewModel)
+      {
+        if (!IsFormEnabled)
+        {
+          e.Handled = true;
+          return;
+        }
+        if (sender is FrameworkElement element &&
+            element.DataContext is AdaptiveActionsSystem.AdaptiveAction action)
+        {
+          var editor = new CommandSelectionEditor(
+              $"Команда для действия: {action.Name} (ID: {action.Id})",
+              action.CommandPatternId)
+          {
+            Owner = Window.GetWindow(this)
+          };
+          if (editor.ShowDialog() == true)
+          {
+            action.CommandPatternId = editor.SelectedCommandPatternId;
             ActionsGrid.CommitEdit(DataGridEditingUnit.Row, true);
             ActionsGrid.Items.Refresh();
           }

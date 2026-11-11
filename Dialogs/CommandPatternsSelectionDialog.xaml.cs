@@ -71,8 +71,7 @@ namespace AIStudio.Dialogs
       {
         string lowered = filter.ToLowerInvariant();
         items = items.Where(item =>
-            item.Id.ToString(CultureInfo.InvariantCulture).Contains(lowered)
-            || (item.Text ?? string.Empty).ToLowerInvariant().Contains(lowered));
+            (item.Text ?? string.Empty).ToLowerInvariant().Contains(lowered));
       }
 
       AvailableList.ItemsSource = items.ToList();
