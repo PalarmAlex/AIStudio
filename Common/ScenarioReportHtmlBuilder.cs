@@ -180,6 +180,27 @@ namespace AIStudio.Common
       sb.AppendLine("</table>");
     }
 
+    /// <summary>
+    /// Записи журнала только за окно указанного прогона. Отсекает хвосты предыдущих прогонов:
+    /// предзапуск обнуляет глобальный счётчик пульсов (<c>GlobalTimer.Reset</c>), из-за чего номера
+    /// пульсов старого и нового прогонов совпадают и без временной границы склеиваются в один снапшот
+    /// по пульсу (фантомные автоматизмы/ОР и потеря условных рефлексов в отчёте). При отсутствии границ
+    /// (<paramref name="completion"/> = null или время не задано) возвращает весь буфер (обратная совместимость).
+    /// </summary>
+    /// <param name="completion">Результат прогона с временными границами (<see cref="OperatorScenarioCompletedEventArgs.RunStartLocal"/>/<see cref="OperatorScenarioCompletedEventArgs.RunEndLocal"/>).</param>
+    private static IEnumerable<MemoryLogManager.LogEntry> RunWindowLogEntries(
+        OperatorScenarioCompletedEventArgs completion)
+    {
+      var all = MemoryLogManager.Instance.LogEntries;
+      if (completion == null)
+        return all;
+      DateTime from = completion.RunStartLocal;
+      DateTime to = completion.RunEndLocal;
+      if (from == default(DateTime) || to == default(DateTime))
+        return all;
+      return all.Where(e => e != null && e.Timestamp >= from && e.Timestamp <= to);
+    }
+
     private static List<ScenarioLogComparer.StepCompareResult> BuildCompareResultsForReport(
         ScenarioDocument doc,
         OperatorScenarioCompletedEventArgs completion,
@@ -189,7 +210,7 @@ namespace AIStudio.Common
       if (doc == null)
         return new List<ScenarioLogComparer.StepCompareResult>();
       int anchor = completion?.AnchorGlobalPulse ?? 0;
-      var agg = ScenarioLogComparer.AggregateByPulse(MemoryLogManager.Instance.LogEntries);
+      var agg = ScenarioLogComparer.AggregateByPulse(RunWindowLogEntries(completion));
       ScenarioReportLogDisplay.RewriteAggregatedStylesToCombinationCodes(agg, perceptionImages);
       return ScenarioLogComparer.Compare(doc, anchor, agg,
           new ScenarioLogComparer.CompareMessageFormatting
@@ -473,7 +494,7 @@ namespace AIStudio.Common
       }
       sb.AppendLine("</tbody></table>");
       int anchor = completion?.AnchorGlobalPulse ?? 0;
-      var agg = ScenarioLogComparer.AggregateByPulse(MemoryLogManager.Instance.LogEntries);
+      var agg = ScenarioLogComparer.AggregateByPulse(RunWindowLogEntries(completion));
       ScenarioReportLogDisplay.RewriteAggregatedStylesToCombinationCodes(agg, perceptionImages);
       var expectations = doc.LogExpectations ?? new List<ScenarioLogExpectationRow>();
       sb.AppendLine("<h2>Сравнение ожидаемых реакций и факта по логам</h2>");
