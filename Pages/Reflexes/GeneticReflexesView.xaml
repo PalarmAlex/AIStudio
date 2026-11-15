@@ -8,7 +8,7 @@
              xmlns:common="clr-namespace:AIStudio.Common"
              xmlns:sys="clr-namespace:System;assembly=mscorlib"
              mc:Ignorable="d" 
-             d:DesignHeight="450" d:DesignWidth="800">
+             d:DesignHeight="450" d:DesignWidth="1000">
 
   <UserControl.Resources>
     <converters:ListToStringConverter x:Key="ListToStringConverter"/>
@@ -235,7 +235,7 @@
           </DataGridTemplateColumn>
 
           <!-- Контексты реагирования -->
-          <DataGridTemplateColumn Header="Контексты реагирования" Width="250" 
+          <DataGridTemplateColumn Header="Контексты реагирования" Width="*" 
                        CanUserSort="True" SortMemberPath="Level2">
 
             <DataGridTemplateColumn.HeaderStyle>
@@ -281,7 +281,7 @@
           </DataGridTemplateColumn>
 
           <!-- Command (среда) -->
-          <DataGridTemplateColumn Header="Command (среда)" Width="220"
+          <DataGridTemplateColumn Header="Command (среда)" Width="100"
                        CanUserSort="True" SortMemberPath="CommandPatternIds">
 
             <DataGridTemplateColumn.HeaderStyle>
@@ -304,7 +304,7 @@
           </DataGridTemplateColumn>
 
           <!-- Цвет (тип документа) -->
-          <DataGridTemplateColumn Header="Цвет" Width="130"
+          <DataGridTemplateColumn Header="Цвет" Width="100"
                        CanUserSort="True" SortMemberPath="VisualColorId">
 
             <DataGridTemplateColumn.HeaderStyle>
@@ -330,7 +330,7 @@
           </DataGridTemplateColumn>
 
           <!-- Моторные действия -->
-          <DataGridTemplateColumn Header="Моторные действия" Width="*" 
+          <DataGridTemplateColumn Header="Моторные действия" Width="150" 
                        CanUserSort="True" SortMemberPath="AdaptiveActions">
 
             <DataGridTemplateColumn.HeaderStyle>
