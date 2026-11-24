@@ -70,6 +70,7 @@ namespace AIStudio
     private AutomatizmChainsSystem _automatizmChains;
     private AutomatizmFileLoader _automatizmFileLoader;
     private Stage2PrimitivesLoader _stage2PrimitivesLoader;
+    private ActionParamTypesSystem _actionParamTypesSystem;
     private readonly OperatorScenarioRunner _scenarioRunner = new OperatorScenarioRunner();
     private bool _wasPulsatingForScenario;
     private ScenarioRunProgressWindow _scenarioRunProgressWindow;
@@ -290,6 +291,7 @@ namespace AIStudio
       _automatizmChains = ctx.AutomatizmChainsSystem;
       _automatizmFileLoader = ctx.AutomatizmFileLoader;
       _stage2PrimitivesLoader = ctx.Stage2PrimitivesLoader;
+      _actionParamTypesSystem = ctx.ActionParamTypesSystem;
       _agentLogCellTooltips = new AgentLogCellTooltipProvider(
           _gomeostas,
           _perceptionImagesSystem,
@@ -447,7 +449,7 @@ namespace AIStudio
             ShowMotorRules();
             break;
           case "19": // Экспортировать настройки
-            ShowStub("Экспортировать настройки");
+            ExportActionParams();
             break;
           case "20": // Сохранить текущее состояние
             ShowStub("Сохранить текущее состояние");
@@ -2176,6 +2178,16 @@ namespace AIStudio
           bootDataFolder);
       conditionedReflexesView.DataContext = viewModel;
       CurrentContent = conditionedReflexesView;
+    }
+
+    private void ExportActionParams()
+    {
+      var result = ActionParamExportService.Export(_actionsSystem, _actionParamTypesSystem);
+      MessageBox.Show(
+          result.Message,
+          result.Success ? "Экспорт параметров" : "Ошибка экспорта",
+          MessageBoxButton.OK,
+          result.Success ? MessageBoxImage.Information : MessageBoxImage.Warning);
     }
 
     private void ShowStub(string menuTitle)

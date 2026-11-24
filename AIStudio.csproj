@@ -364,6 +364,7 @@
     </Compile>
     <Compile Include="ViewModels\AdaptiveActionsViewModel.cs" />
     <Compile Include="ViewModels\AgentAdaptiveActionsViewModel.cs" />
+    <Compile Include="ViewModels\ActionParamExportService.cs" />
     <Compile Include="ViewModels\AgentBehaviorStylesViewModel.cs" />
     <Compile Include="ViewModels\AgentParametersViewModel.cs" />
     <Compile Include="ViewModels\AgentPultViewModel.cs" />
