@@ -55,7 +55,7 @@
               <DataTemplate>
                 <Grid Margin="0,4">
                   <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="140"/>
+                    <ColumnDefinition Width="168"/>
                     <ColumnDefinition Width="*"/>
                     <ColumnDefinition Width="98"/>
                   </Grid.ColumnDefinitions>
