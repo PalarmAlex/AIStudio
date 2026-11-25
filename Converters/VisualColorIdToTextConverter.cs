@@ -16,12 +16,12 @@ namespace AIStudio.Converters
       if (value is int code)
       {
         if (code == AgentVisualColor.White)
-          return "Белый (любой)";
+          return "Белый";
         if (AgentVisualColor.IsValidCode(code))
           return $"{AgentVisualColor.GetDisplayName(code)} ({code})";
         return $"Код {code}";
       }
-      return "Белый (любой)";
+      return "Белый";
     }
 
     public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
